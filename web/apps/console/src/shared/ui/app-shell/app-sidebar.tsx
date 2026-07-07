@@ -27,9 +27,9 @@ export function AppSidebar() {
           <Link
             to="/"
             aria-label="Plexor — на главную"
-            className="flex h-7 w-9 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="flex items-center justify-center rounded-md p-1 outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
-            <PlexorMark className="h-4 w-6" />
+            <PlexorMark className="h-5 w-7" />
           </Link>
         </div>
       </SidebarHeader>
@@ -51,7 +51,7 @@ export function AppSidebar() {
                       </SidebarMenuButton>
                       <span
                         aria-hidden="true"
-                        className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-md bg-foreground/90 px-2 py-1 text-xs font-medium text-background opacity-0 shadow-md transition-all duration-150 ease-out group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/menu-item:ml-2 group-hover/menu-item:bg-foreground"
+                        className="pointer-events-none absolute left-full top-1/2 z-50 ml-3.5 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-md bg-foreground/90 px-2 py-1 text-xs font-medium text-background opacity-0 shadow-md transition-all duration-150 ease-out group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/menu-item:ml-2.5 group-hover/menu-item:bg-foreground"
                       >
                         {item.title}
                       </span>
