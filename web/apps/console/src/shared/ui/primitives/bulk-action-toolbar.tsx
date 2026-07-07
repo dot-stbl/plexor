@@ -5,15 +5,20 @@ import { cn } from '@/shared/lib/utils';
 import type { ComponentProps, ReactNode } from 'react';
 
 /**
- * BulkActionToolbar — appears above a table when rows are selected.
+ * BulkActionToolbar — floating bottom panel for bulk actions.
  *
- * Built on shadcn Button + Plexor DS MonoNum. Composed from shadcn
- * primitives, not a custom abstract primitive.
+ * Appears when rows are selected in a list or table. Floats above the
+ * page bottom (doesn't shift layout, doesn't compete with sticky header).
  *
  * Visual:
- *   ┌────────────────────────────────────────────────────────┐
- *   │  3 selected   [Suspend]  [Delete]      Clear selection  │
- *   └────────────────────────────────────────────────────────┘
+ *
+ *    ┌────────────────────────────────────────────────────────┐
+ *    │  3 selected   Suspend  Restart  Delete      Clear all  │
+ *    └────────────────────────────────────────────────────────┘
+ *
+ * Slides in from below on appear, slides out on clear.
+ * Built on shadcn Button + Plexor MonoNum. Not a custom abstract
+ * primitive — composed from shadcn.
  *
  * @example
  *   const [selected, setSelected] = useState<string[]>([]);
@@ -21,7 +26,6 @@ import type { ComponentProps, ReactNode } from 'react';
  *     count={selected.length}
  *     onClear={() => setSelected([])}
  *     actions={[
- *       { label: 'Suspend', onClick: handleSuspend, variant: 'outline' },
  *       { label: 'Delete', onClick: handleDelete, variant: 'destructive' },
  *     ]}
  *   />
@@ -39,6 +43,8 @@ export interface BulkActionToolbarProps extends Omit<ComponentProps<'div'>, 'chi
   onClear: () => void;
   actions: BulkActionAction[];
   entityLabel?: string;
+  /** Optional custom position from bottom (in Tailwind spacing units). */
+  bottomClass?: string;
 }
 
 export function BulkActionToolbar({
@@ -47,6 +53,7 @@ export function BulkActionToolbar({
   actions,
   entityLabel = 'selected',
   className,
+  bottomClass = 'bottom-4',
   ...props
 }: BulkActionToolbarProps) {
   if (count === 0) return null;
@@ -58,16 +65,19 @@ export function BulkActionToolbar({
       role="region"
       aria-label={`${count} ${entityLabel}`}
       className={cn(
-        'sticky top-12 z-30 flex items-center gap-3 border-b border-border bg-card px-4 py-2 shadow-sm',
+        'fixed left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-border bg-card px-5 py-2 shadow-lg',
+        'animate-in slide-in-from-bottom-4 fade-in duration-200',
+        bottomClass,
         className,
       )}
       {...props}
     >
-      <span className="text-sm">
+      <span className="text-sm font-medium">
         <MonoNum>{count}</MonoNum>{' '}
         <span className="text-muted-foreground">{entityLabel}</span>
       </span>
-      <div className="flex flex-1 items-center gap-1.5">
+      <span className="h-5 w-px bg-border" aria-hidden />
+      <div className="flex items-center gap-1.5">
         {actions.map((action) => (
           <Button
             key={action.label}
@@ -81,8 +91,9 @@ export function BulkActionToolbar({
           </Button>
         ))}
       </div>
+      <span className="h-5 w-px bg-border" aria-hidden />
       <Button size="sm" variant="ghost" onClick={onClear}>
-        Clear selection
+        Clear
       </Button>
     </div>
   );

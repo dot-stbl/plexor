@@ -233,10 +233,10 @@ function ComponentsPage() {
 function BulkActionToolbarDemo() {
   const [selected, setSelected] = useState<string[]>(['vm-001', 'vm-014']);
   const items = [
-    { id: 'vm-001', name: 'vm-prod-01' },
-    { id: 'vm-002', name: 'vm-prod-02' },
-    { id: 'vm-014', name: 'vm-stage-01' },
-    { id: 'vm-022', name: 'vm-dev-01' },
+    { id: 'vm-001', name: 'vm-prod-01', status: 'running' },
+    { id: 'vm-002', name: 'vm-prod-02', status: 'running' },
+    { id: 'vm-014', name: 'vm-stage-01', status: 'stopped' },
+    { id: 'vm-022', name: 'vm-dev-01', status: 'failed' },
   ];
 
   const toggle = (id: string) => {
@@ -254,15 +254,10 @@ function BulkActionToolbarDemo() {
   return (
     <div className="flex flex-col gap-3">
       <div className="text-muted-foreground text-sm">
-        Sticky toolbar above a table. Click rows to select — toolbar appears when count {'>'} 0.
+        Floating bottom panel — slides up when rows selected, doesn't
+        compete with sticky header. Click rows to select.
       </div>
-      <div className="rounded-md border border-border bg-card">
-        <BulkActionToolbar
-          count={selected.length}
-          onClear={() => setSelected([])}
-          actions={actions}
-          entityLabel="vms selected"
-        />
+      <div className="relative min-h-80 overflow-hidden rounded-md border border-border bg-card">
         <div className="divide-y divide-border">
           {items.map((item) => (
             <label key={item.id} className="flex items-center gap-3 px-4 py-2 hover:bg-muted/50">
@@ -271,12 +266,22 @@ function BulkActionToolbarDemo() {
                 onCheckedChange={() => toggle(item.id)}
               />
               <span className="text-sm">{item.name}</span>
+              <StatusPill variant={item.status as 'running' | 'stopped' | 'failed'}>
+                {item.status}
+              </StatusPill>
               <MonoNum muted className="ml-auto">
                 {item.id}
               </MonoNum>
             </label>
           ))}
         </div>
+        <BulkActionToolbar
+          count={selected.length}
+          onClear={() => setSelected([])}
+          actions={actions}
+          entityLabel="vms selected"
+          bottomClass="bottom-3"
+        />
       </div>
     </div>
   );
