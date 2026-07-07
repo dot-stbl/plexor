@@ -1,10 +1,8 @@
-"use client"
-
 import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 
 import { cn } from "@/lib/utils"
-import { DotsSixVertical, Check, CaretUp, CaretDown } from '@phosphor-icons/react'
+import { CaretDown, Check, CaretUp } from '@phosphor-icons/react'
 
 const Select = SelectPrimitive.Root
 
@@ -49,7 +47,7 @@ function SelectTrigger({
       {children}
       <SelectPrimitive.Icon
         render={
-          <DotsSixVertical strokeWidth={2} className="pointer-events-none size-3.5 text-muted-foreground"  />
+          <CaretDown className="pointer-events-none size-3.5 text-muted-foreground" />
         }
       />
     </SelectPrimitive.Trigger>
@@ -127,7 +125,7 @@ function SelectItem({
       </SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator
         render={
-          <Check strokeWidth={2} className="pointer-events-none size-3.5 text-foreground" />
+          <Check className="pointer-events-none size-3.5 text-foreground" />
         }
       />
     </SelectPrimitive.Item>
@@ -163,7 +161,7 @@ function SelectScrollUpButton({
       )}
       {...props}
     >
-      <CaretUp strokeWidth={2}  />
+      <CaretUp />
     </SelectPrimitive.ScrollUpArrow>
   )
 }
@@ -181,7 +179,7 @@ function SelectScrollDownButton({
       )}
       {...props}
     >
-      <CaretDown strokeWidth={2}  />
+      <CaretDown />
     </SelectPrimitive.ScrollDownArrow>
   )
 }
