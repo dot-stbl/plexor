@@ -39,13 +39,6 @@
     <ProjectReference Include="..\..\..\src\installer\Plexor.Installer.Cli\Plexor.Installer.Cli.csproj" />
     <ProjectReference Include="..\..\..\src\providers\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
     <!-- All modules: -->
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Compute\Plexor.Modules.Compute.Domain\Plexor.Modules.Compute.Domain.csproj" />
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Compute\Plexor.Modules.Compute.Application\Plexor.Modules.Compute.Application.csproj" />
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Compute\Plexor.Modules.Compute.Infrastructure\Plexor.Modules.Compute.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Network\Plexor.Modules.Network.Application\Plexor.Modules.Network.Application.csproj" />
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Network\Plexor.Modules.Network.Infrastructure\Plexor.Modules.Network.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Application\Plexor.Modules.Storage.Application.csproj" />
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Infrastructure\Plexor.Modules.Storage.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Domain\Plexor.Modules.Identity.Domain.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Application\Plexor.Modules.Identity.Application.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Infrastructure\Plexor.Modules.Identity.Infrastructure.csproj" />
@@ -54,6 +47,9 @@
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Infrastructure\Plexor.Modules.Tenants.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Application\Plexor.Modules.Billing.Application.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Infrastructure\Plexor.Modules.Billing.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Domain\Plexor.Modules.Audit.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Application\Plexor.Modules.Audit.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

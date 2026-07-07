@@ -8,10 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plexor.Modules.Storage.Application\Plexor.Modules.Storage.Application.csproj" />
+    <ProjectReference Include="..\Plexor.Modules.Audit.Application\Plexor.Modules.Audit.Application.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
-    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
   </ItemGroup>
 
