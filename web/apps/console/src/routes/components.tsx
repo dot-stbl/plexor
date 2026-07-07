@@ -20,6 +20,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/shared/ui/primitives/in
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/primitives/select';
 
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet, FieldLegend } from '@/shared/ui/primitives/field';
+import { Combobox, ComboboxInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList } from '@/shared/ui/primitives/combobox';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/shared/ui/primitives/input-group';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
@@ -229,7 +230,7 @@ function ComponentsPage() {
 
 function Topnav() {
   return (
-    <header className="flex h-12 items-center gap-4 border-b border-border bg-card px-5">
+    <header className="sticky top-0 z-50 flex h-12 items-center gap-4 border-b border-border bg-background/80 px-5 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center gap-2">
         <span className="flex h-6 w-6 items-center justify-center rounded bg-primary font-mono text-xs font-bold text-primary-foreground">
           P
@@ -557,12 +558,20 @@ function Component({ id }: { id: string }) {
       );
     case 'combobox':
       return (
-        <Demo label="Searchable combobox (Base UI AriaCombobox — render-prop API)">
-          <div className="max-w-xs text-sm text-muted-foreground">
-            Combobox is in <code className="font-mono">@/shared/ui/primitives/combobox</code>.
-            Uses Base UI's render-prop API (ComboboxInput / ComboboxContent / ComboboxItem).
-            See shadcn-ui docs for the exact usage pattern.
-          </div>
+        <Demo label="Searchable combobox with Phosphor magnifying-glass icon">
+          <Combobox items={['Next.js', 'SvelteKit', 'Nuxt.js', 'Remix', 'Astro']}>
+            <ComboboxInput placeholder="Select a framework" />
+            <ComboboxContent>
+              <ComboboxEmpty>No items found.</ComboboxEmpty>
+              <ComboboxList>
+                {(item) => (
+                  <ComboboxItem key={item} value={item}>
+                    {item}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
         </Demo>
       );
     case 'input-otp':
