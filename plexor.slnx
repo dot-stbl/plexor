@@ -20,7 +20,7 @@
   <!--   /samples/            — example plexor.yaml cluster specs                -->
   <!--   /tools/              — codegen, scaffolds, dev CLI                      -->
   <!--   /web/                — frontend (pnpm + Turbo monorepo)                 -->
-  <!--   /docs/               — ADRs, architecture, ops                          -->
+  <!--   /agents/docs/        — intent docs, architecture, ops                   -->
   <!-- ====================================================================== -->
 
   <Folder Name="/src/" />

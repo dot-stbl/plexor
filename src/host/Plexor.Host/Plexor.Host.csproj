@@ -23,7 +23,6 @@
     <ProjectReference Include="..\..\shared\Plexor.Shared.Http\Plexor.Shared.Http.csproj" />
     <ProjectReference Include="..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\shared\Plexor.Shared.Id\Plexor.Shared.Id.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
 
     <!-- ============ Modules (all wired) ============ -->
     <ProjectReference Include="..\..\modules\Plexor.Modules.Compute\Plexor.Modules.Compute.Application\Plexor.Modules.Compute.Application.csproj" />
@@ -38,6 +37,7 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Infrastructure\Plexor.Modules.Tenants.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Application\Plexor.Modules.Billing.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Infrastructure\Plexor.Modules.Billing.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Telemetry\Plexor.Modules.Telemetry.Application\Plexor.Modules.Telemetry.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Telemetry\Plexor.Modules.Telemetry.Infrastructure\Plexor.Modules.Telemetry.Infrastructure.csproj" />
   </ItemGroup>
 
