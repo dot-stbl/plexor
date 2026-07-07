@@ -19,6 +19,12 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    // kubb plugin-client declares axios as optional peer dep; pre-bundle
+    // explicitly so Vite resolves axios at startup instead of throwing
+    // 'Could not resolve axios' at first import.
+    include: ['@kubb/plugin-client/client', 'axios'],
+  },
   server: {
     port: 5173,
     strictPort: true,
