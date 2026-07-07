@@ -1,0 +1,11 @@
+/**
+ * @description OK
+*/
+export type Get200 = any;
+
+ export type GetQueryResponse = Get200;
+
+ export type GetQuery = {
+    Response: Get200;
+    Errors: any;
+};

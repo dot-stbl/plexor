@@ -1,0 +1,11 @@
+import client from "@kubb/plugin-client/client";
+import type { RequestConfig } from "@kubb/plugin-client/client";
+import type { GetHealthQueryResponse } from "../types/GetHealth.ts";
+
+ /**
+ * @link /health
+ */
+export async function getHealth(config: Partial<RequestConfig> = {}) {
+    const res = await client<GetHealthQueryResponse, Error, unknown>({ method: "GET", url: `/health`, ...config });
+    return res.data;
+}

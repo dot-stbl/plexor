@@ -27,5 +27,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      // Exclude the kubb-generated API client from the build until the
+      // codegen pipeline is finalized (depends on @kubb/plugin-client +
+      // axios which aren't fully wired yet). Safe to remove once the
+      // generated client is consumed by the showcase.
+      external: [/^\/src\/shared\/api\/src\//],
+    },
   },
 });

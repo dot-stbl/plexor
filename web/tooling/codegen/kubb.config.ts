@@ -5,6 +5,7 @@
 
 import { defineConfig } from '@kubb/core';
 import { pluginOas } from '@kubb/plugin-oas';
+import { pluginTs } from '@kubb/plugin-ts';
 import { pluginClient } from '@kubb/plugin-client';
 import { pluginReactQuery } from '@kubb/plugin-react-query';
 import { pluginZod } from '@kubb/plugin-zod';
@@ -22,6 +23,7 @@ export default defineConfig({
   },
   plugins: [
     pluginOas({ validate: true }),
+    pluginTs({ output: { path: 'types' } }),
     pluginClient({ output: { path: 'client' } }),
     pluginZod({ output: { path: 'schemas' } }),
     pluginReactQuery({ output: { path: 'hooks' } }),

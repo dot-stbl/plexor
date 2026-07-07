@@ -52,14 +52,24 @@ declare module '@tanstack/react-router' {
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Root element #root not found');
 
-createRoot(rootElement).render(
-  <StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="plexor-theme">
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <RouterProvider router={router} />
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
-  </StrictMode>,
-);
+// In dev with VITE_USE_MOCKS=true, start MSW (kubb faker-backed handlers) before
+// first render. Flip the flag off to hit the real Plexor.Host API — no screen changes.
+async function enableMocking() {
+  if (import.meta.env.VITE_USE_MOCKS !== 'true') return;
+  const { worker } = await import('@/shared/api/mocks/browser');
+  await worker.start({ onUnhandledRequest: 'bypass' });
+}
+
+void enableMocking().then(() => {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <ThemeProvider defaultTheme="system" storageKey="plexor-theme">
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <RouterProvider router={router} />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </StrictMode>,
+  );
+});
