@@ -4,39 +4,38 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
 } from '@/shared/ui/primitives/sidebar';
 import { PlexorMark } from './plexor-mark';
-import { ProjectSwitcher } from './project-switcher';
 import { navSections, isActiveRoute } from './nav-config';
 
+/**
+ * Permanently-collapsed icon rail (non-expandable — see AppShell's controlled
+ * `open={false}`). Labels are shown as tooltips on hover.
+ */
 export function AppSidebar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   return (
     <Sidebar collapsible="icon" data-od-id="app-sidebar">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-1 py-0.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+        <div className="flex justify-center py-1">
           <Link
             to="/"
             aria-label="Plexor — на главную"
-            className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className="flex size-9 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
           >
             <PlexorMark className="size-4" />
           </Link>
-          <ProjectSwitcher />
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         {navSections.map((section) => (
           <SidebarGroup key={section.label}>
-            <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {section.items.map((item) => {
@@ -60,8 +59,6 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-
-      <SidebarRail />
     </Sidebar>
   );
 }

@@ -4,13 +4,14 @@ import { AppSidebar } from './app-sidebar';
 import { AppNavbar } from './app-navbar';
 
 /**
- * App chrome: collapsible sidebar + sticky navbar + scrollable content slot.
- * Routes render their own <main> inside the content slot (SidebarInset is a
- * <main>, so we use a plain inset <div> here to avoid nesting two <main>s).
+ * App chrome: a permanently-collapsed icon rail + persistent top bar + a
+ * scrollable content slot. The sidebar is locked collapsed via controlled
+ * `open={false}` with a no-op setter (no toggle, cmd+B disabled).
+ * Routes render their own <main>/PageHeader inside the content slot.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider open={false} onOpenChange={() => {}}>
       <AppSidebar />
       <div className="relative flex min-w-0 flex-1 flex-col bg-background">
         <AppNavbar />

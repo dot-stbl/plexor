@@ -121,7 +121,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "flex h-7 cursor-default select-none items-center gap-2 rounded-sm pl-2 pr-2 text-xs/relaxed outline-hidden",
+        "flex h-7 cursor-default select-none items-center rounded-sm pl-2 pr-2 text-xs/relaxed outline-hidden",
         "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0",
@@ -136,7 +136,7 @@ function SelectItem({
         render={
           <Check
             weight="bold"
-            className="pointer-events-none size-3.5 text-foreground"
+            className="pointer-events-none ml-auto size-3.5 text-foreground"
           />
         }
       />
