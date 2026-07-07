@@ -1,0 +1,13 @@
+{
+  "name": "plexor-web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --filter '@plexor/console' dev",
+    "build": "bun --filter '@plexor/console' build",
+    "test": "bun --filter '@plexor/console' test",
+    "lint": "bun --filter '@plexor/console' lint",
+    "typecheck": "bun --filter '@plexor/console' typecheck"
+  }
+}

@@ -1,0 +1,15 @@
+# bun config — see https://bun.sh/docs/runtime/configuration
+
+[install]
+# exact = true  # uncomment for reproducible installs
+peer = false
+auto = "auto"
+
+[install.scopes]
+# "@plexor" = { token = "$NPM_TOKEN" }  # uncomment for private registry
+
+[test]
+# preload bun:test globals + matchers; tests can use `describe/it/expect` without imports
+preload = []
+coverage = true
+coverageReporter = ["text", "lcov"]

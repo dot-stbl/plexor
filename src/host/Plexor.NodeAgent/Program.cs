@@ -12,7 +12,6 @@
 // Rule: end with `app.Run()`. See async-and-tasks.md §3 and VSTHRD200.
 // ============================================================================
 
-using Microsoft.Extensions.Hosting;
 using Plexor.NodeAgent;
 
 var builder = Host.CreateApplicationBuilder(args);

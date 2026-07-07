@@ -1,0 +1,19 @@
+{
+  "name": "@plexor/codegen",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "kubb generate"
+  },
+  "devDependencies": {
+    "@kubb/cli": "3.0.0",
+    "@kubb/core": "3.0.0",
+    "@kubb/plugin-oas": "3.0.0",
+    "@kubb/plugin-client": "3.0.0",
+    "@kubb/plugin-react-query": "3.0.0",
+    "@kubb/plugin-zod": "3.0.0",
+    "@kubb/plugin-msw": "3.0.0",
+    "@kubb/plugin-faker": "3.0.0"
+  }
+}

@@ -18,10 +18,6 @@
 // `<Main>$` returning Task, which violates VSTHRD200 (Async suffix rule).
 // ============================================================================
 
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();

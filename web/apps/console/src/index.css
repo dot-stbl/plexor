@@ -1,0 +1,205 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@import '@fontsource-variable/inter';
+
+@custom-variant dark (&:is(.dark *));
+
+/* Plexor Design System — design tokens.
+ * Source of truth: .agents/docs/design/styles.css
+ * Tech / utility direction: monochrome + status semantics only.
+ */
+
+:root {
+  /* Surface */
+  --background: oklch(98% 0.005 250);
+  --surface: oklch(100% 0 0);
+  --surface-2: oklch(97% 0.006 250);
+  --surface-3: oklch(95% 0.008 250);
+
+  /* Ink */
+  --foreground: oklch(22% 0.02 240);
+  --fg-2: oklch(35% 0.018 240);
+  --muted: oklch(50% 0.018 240);
+  --muted-2: oklch(65% 0.014 240);
+
+  /* Borders */
+  --border: oklch(91% 0.008 240);
+  --border-2: oklch(85% 0.008 240);
+
+  /* Status semantics */
+  --ok: oklch(58% 0.16 145);
+  --ok-soft: oklch(95% 0.03 145);
+  --ok-ink: oklch(45% 0.13 145);
+  --err: oklch(58% 0.20 25);
+  --err-soft: oklch(96% 0.03 25);
+  --err-ink: oklch(50% 0.17 25);
+  --warn: oklch(72% 0.15 75);
+  --warn-soft: oklch(96% 0.05 75);
+  --warn-ink: oklch(48% 0.10 75);
+  --idle: oklch(60% 0.008 240);
+  --idle-soft: oklch(95% 0.006 240);
+  --idle-ink: oklch(45% 0.012 240);
+
+  /* Primary action — monochrome ink */
+  --accent: oklch(28% 0.02 255);
+  --accent-hover: oklch(20% 0.02 255);
+  --accent-fg: oklch(100% 0 0);
+
+  /* shadcn slot mapping (Plexor DS → shadcn theme) */
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-fg);
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--foreground);
+  --accent-foreground: var(--accent-fg);
+  --destructive: var(--err);
+  --destructive-foreground: oklch(98% 0.005 250);
+  --input: var(--border);
+  --ring: var(--accent);
+  --radius: 0.5rem;
+
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+  /* Sidebar (Plexor keeps shadcn-style for nav layout) */
+  --sidebar: oklch(100% 0 0);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: var(--accent-fg);
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--accent);
+}
+
+.dark {
+  --background: oklch(17% 0.012 250);
+  --surface: oklch(21% 0.014 250);
+  --surface-2: oklch(25% 0.015 250);
+  --surface-3: oklch(28% 0.016 250);
+  --foreground: oklch(94% 0.006 250);
+  --fg-2: oklch(82% 0.008 250);
+  --muted: oklch(66% 0.012 250);
+  --muted-2: oklch(52% 0.012 250);
+  --border: oklch(30% 0.012 250);
+  --border-2: oklch(38% 0.014 250);
+  --ok: oklch(72% 0.15 145);
+  --ok-soft: oklch(32% 0.05 145);
+  --ok-ink: oklch(85% 0.13 145);
+  --err: oklch(68% 0.18 25);
+  --err-soft: oklch(33% 0.06 25);
+  --err-ink: oklch(83% 0.14 25);
+  --warn: oklch(80% 0.13 75);
+  --warn-soft: oklch(33% 0.05 75);
+  --warn-ink: oklch(87% 0.10 75);
+  --idle: oklch(55% 0.008 250);
+  --idle-soft: oklch(30% 0.006 250);
+  --idle-ink: oklch(72% 0.01 250);
+  --accent: oklch(92% 0.006 250);
+  --accent-hover: oklch(100% 0 0);
+  --accent-fg: oklch(20% 0.02 250);
+
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-fg);
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--foreground);
+  --accent-foreground: var(--accent-fg);
+  --destructive: var(--err);
+  --destructive-foreground: oklch(98% 0.005 250);
+  --input: var(--border);
+  --ring: var(--accent);
+
+  --sidebar: oklch(21% 0.014 250);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: oklch(92% 0.006 250);
+  --sidebar-primary-foreground: oklch(20% 0.02 250);
+  --sidebar-accent: oklch(25% 0.015 250);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--accent);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-2);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-ink: var(--ok-ink);
+  --color-err: var(--err);
+  --color-err-soft: var(--err-soft);
+  --color-err-ink: var(--err-ink);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-ink: var(--warn-ink);
+  --color-idle: var(--idle);
+  --color-idle-soft: var(--idle-soft);
+  --color-idle-ink: var(--idle-ink);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+  ::selection {
+    background: oklch(90% 0.015 255);
+    color: var(--foreground);
+  }
+}

@@ -237,6 +237,19 @@
       if (t) t.setAttribute('aria-expanded', 'false');
     });
   }
+  // Position a menu as fixed relative to its trigger so overflow:hidden ancestors
+  // (e.g. rounded table-wrap) never clip it.
+  function positionMenu(trigger, menu) {
+    var r = trigger.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.right = 'auto';
+    var mw = menu.offsetWidth, mh = menu.offsetHeight;
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var left = Math.min(Math.max(8, r.right - mw), vw - mw - 8);
+    var top = (r.bottom + 4 + mh <= vh) ? (r.bottom + 4) : Math.max(8, r.top - mh - 4);
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+  }
   document.querySelectorAll('[data-menu-trigger]').forEach(function (trigger) {
     var menu = trigger.parentNode.querySelector('.menu');
     if (!menu) return;
@@ -244,7 +257,7 @@
       e.stopPropagation();
       var willOpen = menu.hidden;
       closeAllMenus();
-      menu.hidden = !willOpen;
+      if (willOpen) { menu.hidden = false; positionMenu(trigger, menu); }
       trigger.setAttribute('aria-expanded', String(willOpen));
     });
     menu.addEventListener('click', function () { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); });
@@ -419,6 +432,8 @@
     closeAllMenus();
     document.querySelectorAll('.combo-pop:not([hidden])').forEach(function (p) { p.hidden = true; });
   });
+  // Fixed-positioned menus don't follow scroll — close them on scroll.
+  window.addEventListener('scroll', function () { closeAllMenus(); }, true);
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
     closeAllMenus();
