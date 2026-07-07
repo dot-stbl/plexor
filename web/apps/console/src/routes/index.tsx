@@ -56,9 +56,9 @@ function DesignSystemShowcase() {
           <StatusPill variant="err">failed</StatusPill>
           <StatusPill variant="idle">stopped</StatusPill>
           <StatusPill variant="ok" hideDot>no-dot</StatusPill>
-          <span className="pill tag">tag</span>
-          <span className="pill tag">region=eu</span>
-          <span className="pill tag">mono</span>
+          <span className="inline-flex items-center h-auto px-[7px] py-0.5 rounded font-mono tabular-nums tracking-tight text-[11px] font-normal text-fg-2 bg-muted">tag</span>
+          <span className="inline-flex items-center h-auto px-[7px] py-0.5 rounded font-mono tabular-nums tracking-tight text-[11px] font-normal text-fg-2 bg-muted">region=eu</span>
+          <span className="inline-flex items-center h-auto px-[7px] py-0.5 rounded font-mono tabular-nums tracking-tight text-[11px] font-normal text-fg-2 bg-muted">font-mono tabular-nums tracking-tight</span>
         </div>
       </Section>
 
@@ -98,27 +98,27 @@ function DesignSystemShowcase() {
       <Section
         id="chips"
         eyebrow="Chips"
-        title="Фильтр-чипы — поверхность, pill-shape, нажимаемые"
+        title="Фильтр-чипы — поверхность, inline-flex items-center gap-1.5 h-5 px-2 rounded-full text-xs font-medium whitespace-nowrap-shape, нажимаемые"
       >
         <div className="toolbar">
           <div className="toolbar-group">
-            <button className="chip is-on" aria-pressed="true">
-              running <span className="chip-count mono">12</span>
-            </button>
-            <button className="chip" aria-pressed="false">
-              stopped <span className="chip-count mono">3</span>
-            </button>
-            <button className="chip" aria-pressed="false">
-              failed <span className="chip-count mono">1</span>
-            </button>
+            <Button size="sm" variant="outline" aria-pressed="true">
+              running <span className="font-mono tabular-nums tracking-tight">12</span>
+            </Button>
+            <Button size="sm" variant="outline" aria-pressed="false">
+              stopped <span className="font-mono tabular-nums tracking-tight">3</span>
+            </Button>
+            <Button size="sm" variant="outline" aria-pressed="false">
+              failed <span className="font-mono tabular-nums tracking-tight">1</span>
+            </Button>
           </div>
           <div className="toolbar-group">
-            <button className="chip" aria-pressed="false">
+            <Button size="sm" variant="outline" aria-pressed="false">
               eu-central-1
-            </button>
-            <button className="chip is-on" aria-pressed="true">
+            </Button>
+            <Button size="sm" variant="outline" aria-pressed="true">
               eu-west-1
-            </button>
+            </Button>
           </div>
           <div className="toolbar-end">
             <Button size="sm" variant="outline">Clear</Button>
@@ -141,7 +141,7 @@ function DesignSystemShowcase() {
             </div>
             <div className="field">
               <label htmlFor="t-slug">Slug</label>
-              <input id="t-slug" className="input mono" placeholder="acme-prod" />
+              <input id="t-slug" className="input font-mono tabular-nums tracking-tight" placeholder="acme-prod" />
             </div>
             <div className="field">
               <label htmlFor="t-region">Region</label>
@@ -180,7 +180,7 @@ function DesignSystemShowcase() {
       <Section
         id="table"
         eyebrow="Table"
-        title="Таблица — плотные строки 30px, mono в numeric, sticky header"
+        title="Таблица — плотные строки 30px, font-mono tabular-nums tracking-tight в numeric, sticky header"
       >
         <div className="table-wrap">
           <table className="tbl">
@@ -188,7 +188,7 @@ function DesignSystemShowcase() {
               <tr>
                 <th>Tenant</th>
                 <th>Region</th>
-                <th className="num">VMs</th>
+                <th className="font-mono">VMs</th>
                 <th>Status</th>
                 <th>IP</th>
                 <th></th>
@@ -200,8 +200,8 @@ function DesignSystemShowcase() {
                   <td>
                     <MonoNum muted>{t.id}</MonoNum>
                   </td>
-                  <td className="mono">{t.region}</td>
-                  <td className="num">
+                  <td className="font-mono tabular-nums tracking-tight">{t.region}</td>
+                  <td className="font-mono">
                     <MonoNum>{t.vms}</MonoNum>
                   </td>
                   <td>
@@ -225,7 +225,7 @@ function DesignSystemShowcase() {
             </tbody>
           </table>
           <div className="pagination">
-            <div className="pg-info mono">
+            <div className="pg-info font-mono tabular-nums tracking-tight">
               Rows 1–5 of 5 · selected: 0
             </div>
             <div className="pg-controls">
@@ -270,9 +270,9 @@ function DesignSystemShowcase() {
         <div className="table-wrap">
           {AUDIT.map((row, i) => (
             <div key={i} className="audit-row">
-              <span className="mono">{row.ts}</span>
-              <span className="mono">{row.actor}</span>
-              <span className="mono">{row.action}</span>
+              <span className="font-mono tabular-nums tracking-tight">{row.ts}</span>
+              <span className="font-mono tabular-nums tracking-tight">{row.actor}</span>
+              <span className="font-mono tabular-nums tracking-tight">{row.action}</span>
               <span>{row.target}</span>
               <span className="flex items-center gap-2">
                 <StatusPill variant={row.result}>{row.result}</StatusPill>
@@ -317,7 +317,7 @@ function DesignSystemShowcase() {
           >
             <div className="font-semibold">Quota exceeded</div>
             <div className="text-sm">
-              Tenant <span className="font-mono">acme-prod</span> reached its VM limit (38/38).
+              Tenant <span className="font-mono tabular-nums tracking-tight">acme-prod</span> reached its VM limit (38/38).
             </div>
           </div>
           <div
@@ -356,7 +356,7 @@ function DesignSystemShowcase() {
       >
         <div className="space-y-4">
           <div>
-            <div className="eyebrow mb-2">Heading</div>
+            <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium mb-2">Heading</div>
             <h1 className="text-2xl font-semibold tracking-tight">Display H1</h1>
             <h2 className="text-xl font-semibold tracking-tight">Heading H2</h2>
             <h3 className="text-base font-semibold tracking-tight">Heading H3</h3>
@@ -366,24 +366,24 @@ function DesignSystemShowcase() {
           </div>
 
           <div>
-            <div className="eyebrow mb-2">Helpers</div>
+            <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium mb-2">Helpers</div>
             <div className="space-y-1.5 text-sm">
               <div>
-                <span className="eyebrow inline-block w-32">Mono</span>
+                <span className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium inline-block w-32">Mono</span>
                 <MonoNum>10.128.42.17</MonoNum>
               </div>
               <div>
-                <span className="eyebrow inline-block w-32">Code</span>
-                <code className="code">plx tenant create</code>
+                <span className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium inline-block w-32">Code</span>
+                <code className="font-mono text-[12px] bg-muted px-[5px] py-px rounded text-fg-2">plx tenant create</code>
               </div>
               <div>
-                <span className="eyebrow inline-block w-32">Kbd</span>
-                <span className="kbd">⌘</span> <span className="kbd">K</span> for command palette
+                <span className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium inline-block w-32">Kbd</span>
+                <span className="inline-flex items-center gap-1 font-mono tabular-nums tracking-tight text-[11px] text-muted-foreground px-1 min-w-4 h-[18px] border border-border rounded bg-muted">⌘</span> <span className="inline-flex items-center gap-1 font-mono tabular-nums tracking-tight text-[11px] text-muted-foreground px-1 min-w-4 h-[18px] border border-border rounded bg-muted">K</span> for command palette
               </div>
               <div>
-                <span className="eyebrow inline-block w-32">Tab nav</span>
-                <span className="kbd">/</span> focus search ·{' '}
-                <span className="kbd">Esc</span> close drawer
+                <span className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium inline-block w-32">Tab nav</span>
+                <span className="inline-flex items-center gap-1 font-mono tabular-nums tracking-tight text-[11px] text-muted-foreground px-1 min-w-4 h-[18px] border border-border rounded bg-muted">/</span> focus search ·{' '}
+                <span className="inline-flex items-center gap-1 font-mono tabular-nums tracking-tight text-[11px] text-muted-foreground px-1 min-w-4 h-[18px] border border-border rounded bg-muted">Esc</span> close drawer
               </div>
             </div>
           </div>
@@ -444,23 +444,23 @@ function DesignSystemShowcase() {
       <Section
         id="kv"
         eyebrow="Detail"
-        title="KV-list + mono values — для detail страниц"
+        title="KV-list + font-mono tabular-nums tracking-tight values — для detail страниц"
       >
         <dl className="kv-list">
           <dt>ID</dt>
-          <dd className="mono">vm-prod-014</dd>
+          <dd className="font-mono tabular-nums tracking-tight">vm-prod-014</dd>
           <dt>Status</dt>
           <dd>
             <StatusPill variant="running">running</StatusPill>
           </dd>
           <dt>Zone</dt>
-          <dd className="mono">eu-central-1-a</dd>
+          <dd className="font-mono tabular-nums tracking-tight">eu-central-1-a</dd>
           <dt>Node</dt>
-          <dd className="mono">node-eu-1a</dd>
+          <dd className="font-mono tabular-nums tracking-tight">node-eu-1a</dd>
           <dt>Internal IP</dt>
-          <dd className="mono">10.128.42.17</dd>
+          <dd className="font-mono tabular-nums tracking-tight">10.128.42.17</dd>
           <dt>Public IP</dt>
-          <dd className="mono">203.0.113.42</dd>
+          <dd className="font-mono tabular-nums tracking-tight">203.0.113.42</dd>
           <dt>CPU</dt>
           <dd>
             <MonoNum>4 vCPU</MonoNum>
@@ -481,8 +481,8 @@ function DesignSystemShowcase() {
       </Section>
 
       <footer className="border-t border-border pt-6 text-muted-foreground text-xs">
-        <span className="font-mono">.agents/docs/design/styles.css</span> ·{' '}
-        <span className="font-mono">.agents/docs/design/design-system.html</span> ·{' '}
+        <span className="font-mono tabular-nums tracking-tight">.agents/docs/design/styles.css</span> ·{' '}
+        <span className="font-mono tabular-nums tracking-tight">.agents/docs/design/design-system.html</span> ·{' '}
         <Link to="/" className="underline">
           refresh
         </Link>
@@ -498,14 +498,14 @@ function TopNav() {
     <header className="border-border bg-card sticky top-0 z-40 flex h-12 items-center gap-4 border-b px-5">
       <div className="flex items-center gap-2 text-sm font-semibold tracking-tight">
         <span
-          className="flex h-6 w-6 items-center justify-center rounded font-mono text-xs font-bold text-[var(--surface)]"
+          className="flex h-6 w-6 items-center justify-center rounded font-mono tabular-nums tracking-tight text-xs font-bold text-[var(--surface)]"
           style={{ background: 'var(--foreground)' }}
         >
           P
         </span>
         Plexor
       </div>
-      <span className="border-l border-border pl-3 font-mono text-xs text-muted-foreground">
+      <span className="border-l border-border pl-3 font-mono tabular-nums tracking-tight text-xs text-muted-foreground">
         showcase
       </span>
       <div className="flex-1" />
@@ -524,24 +524,24 @@ function TopNav() {
 function PageHeader() {
   return (
     <header>
-      <div className="eyebrow">Plexor Portal · design system reference</div>
+      <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium">Plexor Portal · design system reference</div>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">
         Компоненты и состояния
       </h1>
       <p className="text-muted-foreground mt-1 text-sm">
         Полный mirror{' '}
-        <span className="font-mono text-xs">.agents/docs/design/styles.css</span> ·{' '}
+        <span className="font-mono tabular-nums tracking-tight text-xs">.agents/docs/design/styles.css</span> ·{' '}
         использует Plexor DS tokens (light + dark) + Base UI registry + 4 custom
         primitives: StatusPill, MonoNum, ThemeToggle, Button (sized).
       </p>
       <div className="mt-4 flex flex-wrap gap-2 text-xs">
-        <span className="pill ok">
+        <span className="inline-flex items-center gap-1.5 h-5 px-2 rounded-full text-xs font-medium text-ok-ink bg-ok-soft">
           <span className="dot"></span>build: 1.34s
         </span>
-        <span className="pill tag">CSS 29 KB gzip</span>
-        <span className="pill tag">JS 95 KB gzip</span>
-        <span className="pill tag">60 components</span>
-        <span className="pill tag">2 themes</span>
+        <span className="inline-flex items-center h-auto px-[7px] py-0.5 rounded font-mono tabular-nums tracking-tight text-[11px] font-normal text-fg-2 bg-muted">CSS 29 KB gzip</span>
+        <span className="inline-flex items-center h-auto px-[7px] py-0.5 rounded font-mono tabular-nums tracking-tight text-[11px] font-normal text-fg-2 bg-muted">JS 95 KB gzip</span>
+        <span className="inline-flex items-center h-auto px-[7px] py-0.5 rounded font-mono tabular-nums tracking-tight text-[11px] font-normal text-fg-2 bg-muted">60 components</span>
+        <span className="inline-flex items-center h-auto px-[7px] py-0.5 rounded font-mono tabular-nums tracking-tight text-[11px] font-normal text-fg-2 bg-muted">2 themes</span>
       </div>
     </header>
   );
@@ -620,7 +620,11 @@ function Section({
   return (
     <section id={id} className="space-y-3">
       <header className="space-y-1">
-        {eyebrow ? <div className="eyebrow">{eyebrow}</div> : null}
+        {eyebrow ? (
+          <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium">
+            {eyebrow}
+          </div>
+        ) : null}
         <h2 className="text-base font-semibold tracking-tight">{title}</h2>
         {caption ? <p className="text-muted-foreground text-xs">{caption}</p> : null}
       </header>

@@ -5,23 +5,34 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Plexor Design System — design tokens.
- * Source of truth: .agents/docs/design/styles.css
- * Tech / utility direction: monochrome + status semantics only.
- */
+/* =========================================================================
+ * Plexor Design System — globals.css
+ * =========================================================================
+ * Base: shadcn-ui default tokens (overridden below with Plexor DS values).
+ * Tokens: Plexor DS oklch colors, semantic status, spacing scale, fonts.
+ * Layout: minimal structural classes (kpi, audit-row, tbl, toolbar, etc.)
+ *          for things shadcn-ui doesn't cover. NO decorative classes —
+ *          use Tailwind utilities for typography/display.
+ * ========================================================================= */
 
 :root {
+  /* --- Plexor DS Surface (overrides shadcn) --- */
   --background: oklch(98% 0.005 250);
   --surface: oklch(100% 0 0);
   --surface-2: oklch(97% 0.006 250);
   --surface-3: oklch(95% 0.008 250);
+
+  /* --- Plexor DS Ink (foreground hierarchy) --- */
   --foreground: oklch(22% 0.02 240);
   --fg-2: oklch(35% 0.018 240);
   --muted: oklch(50% 0.018 240);
   --muted-2: oklch(65% 0.014 240);
+
+  /* --- Plexor DS Borders (two-step) --- */
   --border: oklch(91% 0.008 240);
   --border-2: oklch(85% 0.008 240);
 
+  /* --- Plexor DS Status Semantics (light) --- */
   --ok: oklch(58% 0.16 145);
   --ok-soft: oklch(95% 0.03 145);
   --ok-ink: oklch(45% 0.13 145);
@@ -35,16 +46,18 @@
   --idle-soft: oklch(95% 0.006 240);
   --idle-ink: oklch(45% 0.012 240);
 
+  /* --- Plexor DS Primary Action (monochrome accent) --- */
   --accent: oklch(28% 0.02 255);
   --accent-hover: oklch(20% 0.02 255);
   --accent-fg: oklch(100% 0 0);
 
-  --primary: var(--accent);
-  --primary-foreground: var(--accent-fg);
+  /* --- shadcn slot mapping (so shadcn Tailwind utilities pick up Plexor values) --- */
   --card: var(--surface);
   --card-foreground: var(--foreground);
   --popover: var(--surface);
   --popover-foreground: var(--foreground);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-fg);
   --secondary: var(--surface-2);
   --secondary-foreground: var(--foreground);
   --accent-foreground: var(--accent-fg);
@@ -54,10 +67,7 @@
   --ring: var(--accent);
   --radius: 0.5rem;
 
-  --font-sans: 'Onest Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
-
-  /* Spacing (4-base, dense) — from styles.css */
+  /* --- Plexor DS Spacing (4-base, dense) --- */
   --s-1: 2px;
   --s-2: 4px;
   --s-3: 8px;
@@ -67,7 +77,7 @@
   --s-7: 24px;
   --s-8: 32px;
 
-  /* Scale (dense console type) */
+  /* --- Plexor DS Type Scale --- */
   --fs-10: 10px;
   --fs-11: 11px;
   --fs-12: 12px;
@@ -79,27 +89,32 @@
   --fs-22: 22px;
   --fs-28: 28px;
 
-  /* Layout chrome */
-  --topnav-h: 48px;
-  --sidebar-w: 48px;
-  --bc-row-h: 36px;
-  --row-h: 30px;
-
-  /* Plexor DS corner radii (--radius is shadcn default) */
+  /* --- Plexor DS Corner Radii --- */
   --radius-ds-sm: 6px;
   --radius-ds: 8px;
   --radius-ds-lg: 12px;
   --radius-pill: 999px;
 
-  /* Motion */
+  /* --- Plexor DS Layout Chrome --- */
+  --topnav-h: 48px;
+  --sidebar-w: 48px;
+  --bc-row-h: 36px;
+  --row-h: 30px;
+
+  /* --- Plexor DS Motion --- */
   --t-fast: 80ms ease;
   --t-base: 140ms ease;
 
-  /* Shadows (only floating UI) */
+  /* --- Plexor DS Shadows (floating UI only) --- */
   --sh-1: 0 1px 0 oklch(0% 0 0 / 0.04), 0 4px 12px oklch(0% 0 0 / 0.06);
   --sh-2: 0 4px 20px oklch(0% 0 0 / 0.10), 0 1px 0 oklch(0% 0 0 / 0.04);
 
-  --sidebar: oklch(100% 0 0);
+  /* --- Plexor DS Fonts --- */
+  --font-sans: 'Onest Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+  /* --- shadcn Sidebar (uses our --surface) --- */
+  --sidebar: var(--surface);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--accent);
   --sidebar-primary-foreground: var(--accent-fg);
@@ -109,17 +124,28 @@
   --sidebar-ring: var(--accent);
 }
 
+/* =========================================================================
+ * Dark theme — applied via `html.dark` (toggled by ThemeToggle)
+ * ========================================================================= */
+
 .dark {
+  /* --- Plexor DS Surface (dark) --- */
   --background: oklch(17% 0.012 250);
   --surface: oklch(21% 0.014 250);
   --surface-2: oklch(25% 0.015 250);
   --surface-3: oklch(28% 0.016 250);
+
+  /* --- Plexor DS Ink (dark) --- */
   --foreground: oklch(94% 0.006 250);
   --fg-2: oklch(82% 0.008 250);
   --muted: oklch(66% 0.012 250);
   --muted-2: oklch(52% 0.012 250);
+
+  /* --- Plexor DS Borders (dark) --- */
   --border: oklch(30% 0.012 250);
   --border-2: oklch(38% 0.014 250);
+
+  /* --- Plexor DS Status Semantics (dark) --- */
   --ok: oklch(72% 0.15 145);
   --ok-soft: oklch(32% 0.05 145);
   --ok-ink: oklch(85% 0.13 145);
@@ -132,10 +158,13 @@
   --idle: oklch(55% 0.008 250);
   --idle-soft: oklch(30% 0.006 250);
   --idle-ink: oklch(72% 0.01 250);
+
+  /* --- Plexor DS Primary Action (dark — light accent) --- */
   --accent: oklch(92% 0.006 250);
   --accent-hover: oklch(100% 0 0);
   --accent-fg: oklch(20% 0.02 250);
 
+  /* --- shadcn slot remap (dark) --- */
   --primary: var(--accent);
   --primary-foreground: var(--accent-fg);
   --card: var(--surface);
@@ -150,15 +179,23 @@
   --input: var(--border);
   --ring: var(--accent);
 
-  --sidebar: oklch(21% 0.014 250);
+  /* --- shadcn Sidebar (dark) --- */
+  --sidebar: var(--surface);
   --sidebar-foreground: var(--foreground);
-  --sidebar-primary: oklch(92% 0.006 250);
-  --sidebar-primary-foreground: oklch(20% 0.02 250);
-  --sidebar-accent: oklch(25% 0.015 250);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: var(--accent-fg);
+  --sidebar-accent: var(--surface-2);
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--accent);
 }
+
+/* =========================================================================
+ * Tailwind v4 — @theme inline maps our tokens to Tailwind utilities
+ * =========================================================================
+ * After this block, `bg-primary`, `text-muted-foreground`, `border-border`,
+ * `bg-ok-soft`, etc. all resolve to Plexor DS values automatically.
+ */
 
 @theme inline {
   --color-background: var(--background);
@@ -192,6 +229,11 @@
   --color-idle: var(--idle);
   --color-idle-soft: var(--idle-soft);
   --color-idle-ink: var(--idle-ink);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-fg-2: var(--fg-2);
+  --color-border-2: var(--border-2);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -212,15 +254,18 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-html,
-body,
-#root {
-  height: 100%;
-}
+/* =========================================================================
+ * Base layer — global resets and document defaults
+ * ========================================================================= */
 
 @layer base {
   * {
     border-color: var(--border);
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
   }
   body {
     background-color: var(--background);
@@ -235,205 +280,28 @@ body,
     background: oklch(90% 0.015 255);
     color: var(--foreground);
   }
+  /* Themed scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-2) transparent;
+  }
 }
 
-/* Plexor Design System — utility classes (mirrors styles.css section structure).
- * Not overlapping with shadcn — these are flat classes that BEM-styled Plexor
- * components in styles.css use. Shadcn primitives (Button, Card, …) handle
- * the interactive primitives; these classes power static UI patterns.
- */
+/* =========================================================================
+ * Utilities layer — ONLY structural layouts shadcn-ui doesn't cover.
+ * For typography/display use Tailwind utilities directly (font-mono,
+ * uppercase, tracking-*, text-*, etc).
+ * ========================================================================= */
+
 @layer utilities {
-  /* numerics */
-  .mono,
-  .num {
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-  }
-  .tnum {
-    font-variant-numeric: tabular-nums;
-  }
-  .uppercase {
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .eyebrow {
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 500;
-  }
-  .row-h {
-    height: var(--row-h);
-  }
-  .bc-row-h {
-    height: var(--bc-row-h);
-  }
-
-  /* inline display */
-  .kbd {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--muted);
-    padding: 0 4px;
-    min-width: 16px;
-    height: 18px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--surface-3);
-  }
-  .code {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    background: var(--surface-3);
-    padding: 1px 5px;
-    border-radius: var(--radius-sm);
-    color: var(--fg-2);
-  }
-
-  /* status pill */
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 20px;
-    padding: 0 8px;
-    border-radius: var(--radius-pill);
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1;
-    white-space: nowrap;
-  }
-  .pill .dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .pill.ok {
-    color: var(--ok-ink);
-    background: var(--ok-soft);
-  }
-  .pill.ok .dot {
-    background: var(--ok);
-  }
-  .pill.err {
-    color: var(--err-ink);
-    background: var(--err-soft);
-  }
-  .pill.err .dot {
-    background: var(--err);
-  }
-  .pill.warn {
-    color: var(--warn-ink);
-    background: var(--warn-soft);
-  }
-  .pill.warn .dot {
-    background: var(--warn);
-  }
-  .pill.idle {
-    color: var(--idle-ink);
-    background: var(--idle-soft);
-  }
-  .pill.idle .dot {
-    background: var(--idle);
-  }
-  .pill.tag {
-    background: var(--surface-3);
-    color: var(--fg-2);
-    height: auto;
-    padding: 2px 7px;
-    border-radius: var(--radius-sm);
-    font-size: 11px;
-    font-family: var(--font-mono);
-    font-weight: 400;
-  }
-
-  /* filter chip (pill-shaped, surface bg, can be active) */
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 24px;
-    padding: 0 8px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
-    font-size: 12px;
-    color: var(--fg-2);
-    background: var(--surface);
-    cursor: pointer;
-  }
-  .chip:hover {
-    background: var(--surface-2);
-  }
-  .chip[aria-pressed='true'],
-  .chip.is-on {
-    background: var(--surface-3);
-    color: var(--fg);
-    border-color: var(--border-2);
-  }
-  .chip .chip-count {
-    color: var(--muted);
-    font-family: var(--font-mono);
-  }
-
-  /* Plexor DS button (.btn) — REMOVED. Use shadcn <Button> component with
-   * variants default | outline | secondary | ghost | destructive |
-   * danger | danger-solid | link and sizes xs | sm | md | lg | xl | icon.
-   * shadcn Button is adapted to Plexor DS tokens (--primary, --accent, etc.). */
-
-  /* input / textarea (.input .textarea — from styles.css).
-   * Select removed — use Base UI SelectUi instead (native <select> option list
-   * is unstyleable across browsers, accent-color inconsistent). */
-  .input,
-  .textarea {
-    height: 28px;
-    padding: 0 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-ds);
-    font-size: 13px;
-    color: var(--fg);
-    outline: none;
-    font-family: var(--font-sans);
-    width: 100%;
-  }
-  .input:hover {
-    border-color: var(--border-2);
-  }
-  .input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px oklch(45% 0.02 255 / 0.2);
-  }
-  .input::placeholder {
-    color: var(--muted-2);
-  }
-  .input.mono {
-    font-family: var(--font-mono);
-  }
-  .input.lg {
-    height: 32px;
-    font-size: 14px;
-  }
-  .textarea {
-    height: auto;
-    padding: 8px 12px;
-    resize: vertical;
-    line-height: 1.5;
-  }
-
-  /* KPI cards (.kpi + .kpi-grid) — from styles.css */
+  /* ---- KPI cards (Plexor DS billing dashboard) ---- */
   .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: var(--s-4);
   }
   .kpi {
-    background: var(--surface);
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius-ds-lg);
     padding: var(--s-4);
@@ -469,7 +337,7 @@ body,
     color: var(--ok);
   }
 
-  /* Audit row (.audit-row) — fixed-grid timeline, from styles.css */
+  /* ---- Audit row (fixed-grid timeline) ---- */
   .audit-row {
     display: grid;
     grid-template-columns: 160px 140px 140px 1fr 90px;
@@ -483,80 +351,9 @@ body,
     background: var(--surface-2);
   }
 
-  /* Chart wrapper (.chart-wrap) — from styles.css */
-  .chart-wrap {
-    padding: var(--s-4);
-  }
-
-  /* icon button — REMOVED. Use shadcn <Button size="icon-xs/sm/md/lg"> instead.
-   * Shadcn Button is adapted to Plexor DS tokens and supports icon sizes
-   * natively via the icon-* size variants. */
-
-  /* Plexor DS segmented button group */
-  .btn-group {
-    display: inline-flex;
-  }
-  .btn-group > .btn-pds {
-    border-radius: 0;
-    border-right-width: 0;
-  }
-  .btn-group > .btn-pds:first-child {
-    border-radius: var(--radius) 0 0 var(--radius);
-  }
-  .btn-group > .btn-pds:last-child {
-    border-radius: 0 var(--radius) var(--radius) 0;
-    border-right-width: 1px;
-  }
-  .btn-group > .btn-pds[aria-pressed='true'],
-  .btn-group > .btn-pds.is-active {
-    background: var(--surface-3);
-    color: var(--fg);
-  }
-
-  /* Plexor DS tabs (underlined, not pills) */
-  .tabs {
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .tab {
-    padding: 8px 12px;
-    font-size: 13px;
-    color: var(--muted);
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    position: relative;
-    margin-bottom: -1px;
-    background: transparent;
-    border-left: 0;
-    border-right: 0;
-    border-top: 0;
-  }
-  .tab:hover {
-    color: var(--fg);
-  }
-  .tab.is-active {
-    color: var(--fg);
-    border-bottom-color: var(--accent);
-    font-weight: 500;
-  }
-  .tab-badge {
-    font-size: 11px;
-    color: var(--muted);
-    margin-left: 6px;
-    font-family: var(--font-mono);
-  }
-  .tab-panel {
-    display: none;
-  }
-  .tab-panel.is-active {
-    display: block;
-  }
-
-  /* Plexor DS table — dense rows, mono in numeric cells */
+  /* ---- Plexor DS table — dense rows, mono in numeric cells ---- */
   .table-wrap {
-    background: var(--surface);
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
@@ -579,7 +376,7 @@ body,
     background: var(--surface-3);
     color: var(--muted);
     font-weight: 500;
-    font-size: 11px;
+    font-size: var(--fs-11);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border-bottom: 1px solid var(--border-2);
@@ -597,7 +394,7 @@ body,
     background: var(--surface-3);
   }
 
-  /* toolbar */
+  /* ---- Toolbar (filter bar with chips) ---- */
   .toolbar {
     display: flex;
     align-items: center;
@@ -606,11 +403,6 @@ body,
     border-bottom: 1px solid var(--border);
     background: var(--surface);
     flex-wrap: wrap;
-  }
-  .toolbar-search {
-    flex: 1;
-    min-width: 220px;
-    max-width: 360px;
   }
   .toolbar-end {
     display: flex;
@@ -630,7 +422,7 @@ body,
     padding-right: 0;
   }
 
-  /* pagination */
+  /* ---- Pagination (Plexor DS flat — shadcn Pagination uses different markup) ---- */
   .pagination {
     display: flex;
     align-items: center;
@@ -662,39 +454,32 @@ body,
   }
   .pg-page.is-active {
     background: var(--surface-3);
-    color: var(--fg);
+    color: var(--foreground);
   }
   .pg-page:hover {
     background: var(--surface-2);
   }
 
-  /* form fields */
+  /* ---- Form fields (label + input + hint) ---- */
   .field {
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
-  .field label {
-    font-size: 12px;
-    color: var(--fg-2);
-    font-weight: 500;
-  }
   .field-hint {
-    font-size: 11px;
+    font-size: var(--fs-11);
     color: var(--muted);
   }
-  .field-error {
-    font-size: 12px;
-    color: var(--err);
-  }
 
-  /* empty + skeleton */
+  /* ---- Empty state ---- */
   .empty-state {
     padding: 40px 24px;
     text-align: center;
     color: var(--muted);
     font-size: 13px;
   }
+
+  /* ---- Skeleton (loading placeholder with shimmer) ---- */
   .skeleton {
     position: relative;
     overflow: hidden;
@@ -740,7 +525,7 @@ body,
     height: 10px;
   }
 
-  /* kv list (detail pages) */
+  /* ---- KV list (definition list for detail pages) ---- */
   .kv-list {
     display: grid;
     grid-template-columns: 140px 1fr;
@@ -752,14 +537,10 @@ body,
   }
   .kv-list dd {
     margin: 0;
-    color: var(--fg);
-  }
-  .kv-list dd.mono {
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
+    color: var(--foreground);
   }
 
-  /* terminal / console panel */
+  /* ---- Terminal / serial console panel (no shadcn equivalent) ---- */
   .console {
     background: oklch(18% 0.02 240);
     color: oklch(92% 0.008 240);
@@ -790,13 +571,7 @@ body,
     }
   }
 
-  /* thin themed scrollbar */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-2) transparent;
-  }
-
-  /* CSS-only tooltip (hover-only, like styles.css) */
+  /* ---- CSS-only tooltip (hover-only, no JS) ---- */
   [data-tooltip] {
     position: relative;
   }
@@ -828,29 +603,20 @@ body,
     color: oklch(18% 0.02 250);
   }
 
-  /* sidebar-link active state */
-  .sidebar-link.is-active::before {
-    content: '';
-    position: absolute;
-    left: -10px;
-    top: 6px;
-    bottom: 6px;
-    width: 2px;
-    background: var(--accent);
-    border-radius: 2px;
-  }
-
-  /* focus ring — unified across interactive elements */
-  :where(button, a[href], .btn, .chip, .tab, .sidebar-link, .icon-btn, .pg-page, [role='button']):focus-visible {
+  /* ---- Focus ring (unified across interactive elements) ---- */
+  :where(button, a[href], .pg-page, [role='button']):focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
-  :where(button, a[href], .btn, .chip, .tab, .sidebar-link, .icon-btn, .pg-page, [role='button']):focus:not(:focus-visible) {
+  :where(button, a[href], .pg-page, [role='button']):focus:not(:focus-visible) {
     outline: none;
   }
 }
 
-/* Plexor DS themed dark — applies when html.dark */
+/* =========================================================================
+ * Themed dark — applied via `html.dark` (toggled by ThemeToggle)
+ * ========================================================================= */
+
 html.dark {
   color-scheme: dark;
 }

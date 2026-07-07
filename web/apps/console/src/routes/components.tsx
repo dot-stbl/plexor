@@ -100,9 +100,9 @@ interface NavGroup {
 const NAV: NavGroup[] = [
   { title: 'Foundations', items: [
     { id: 'theme-toggle', label: 'ThemeToggle' },
-    { id: 'mono-num', label: 'MonoNum' },
-    { id: 'status-pill', label: 'StatusPill' },
-    { id: 'kbd-code', label: 'Kbd + Code' },
+    { id: 'font-mono tabular-nums tracking-tight-font-mono', label: 'MonoNum' },
+    { id: 'status-inline-flex items-center gap-1.5 h-5 px-2 rounded-full text-xs font-medium whitespace-nowrap', label: 'StatusPill' },
+    { id: 'inline-flex items-center gap-1 font-mono tabular-nums tracking-tight text-[11px] text-muted-foreground px-1 min-w-4 h-[18px] border border-border rounded bg-muted-font-mono tabular-nums tracking-tight text-[12px] bg-muted px-[5px] py-px rounded text-fg-2', label: 'Kbd + Code' },
   ]},
   { title: 'Buttons & actions', items: [
     { id: 'button', label: 'Button' },
@@ -211,7 +211,7 @@ function ComponentsNav() {
         <nav className="space-y-4 text-sm">
           {NAV.map((group) => (
             <div key={group.title}>
-              <div className="eyebrow mb-1.5 px-2">{group.title}</div>
+              <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium mb-1.5 px-2">{group.title}</div>
               <ul className="space-y-0.5">
                 {group.items.map((item) => (
                   <li key={item.id}>
@@ -240,16 +240,16 @@ function ComponentsNav() {
 function Header() {
   return (
     <header className="space-y-2 border-b border-border pb-6">
-      <div className="eyebrow">Plexor Portal · reference</div>
+      <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium">Plexor Portal · reference</div>
       <h1 className="text-2xl font-semibold tracking-tight">Components</h1>
       <p className="text-muted-foreground text-sm">
         Every shadcn primitive (60) + 3 custom (StatusPill, MonoNum, ThemeToggle)
         + Plexor DS flat classes. Each section: live examples + import path.
       </p>
       <div className="mt-3 flex items-center gap-2 text-xs">
-        <span className="pill ok"><span className="dot"></span>60 primitives</span>
-        <span className="pill tag">+ 3 custom</span>
-        <span className="pill tag">auto dark mode</span>
+        <span className="inline-flex items-center gap-1.5 h-5 px-2 rounded-full text-xs font-medium text-ok-ink bg-ok-soft"><span className="dot"></span>60 primitives</span>
+        <span className="inline-flex items-center h-auto px-[7px] py-0.5 rounded font-mono tabular-nums tracking-tight text-[11px] font-normal text-fg-2 bg-muted">+ 3 custom</span>
+        <span className="inline-flex items-center h-auto px-[7px] py-0.5 rounded font-mono tabular-nums tracking-tight text-[11px] font-normal text-fg-2 bg-muted">auto dark mode</span>
       </div>
     </header>
   );
@@ -258,7 +258,7 @@ function Header() {
 function NavSection({ group }: { group: NavGroup }) {
   return (
     <section className="space-y-6">
-      <h2 className="text-eyebrow text-muted-foreground border-b border-border pb-1.5">
+      <h2 className="text-text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium text-muted-foreground border-b border-border pb-1.5">
         {group.title}
       </h2>
       <div className="space-y-12">
@@ -279,7 +279,7 @@ function ComponentSection({ id, label }: { id: string; label: string }) {
             {label}
           </a>
         </h3>
-        <code className="code text-[11px]">@/shared/ui/primitives/{id}</code>
+        <code className="font-mono text-[11px] bg-muted text-fg-2 px-1 py-px rounded">@/shared/ui/primitives/{id}</code>
       </header>
       <Component id={id} />
     </article>
@@ -297,7 +297,7 @@ function Component({ id }: { id: string }) {
           </div>
         </Demo>
       );
-    case 'mono-num':
+    case 'font-mono tabular-nums tracking-tight-font-mono':
       return (
         <Demo label="Tabular numerics in dense columns">
           <div className="space-y-1 text-sm">
@@ -308,7 +308,7 @@ function Component({ id }: { id: string }) {
           </div>
         </Demo>
       );
-    case 'status-pill':
+    case 'status-inline-flex items-center gap-1.5 h-5 px-2 rounded-full text-xs font-medium whitespace-nowrap':
       return (
         <Demo label="Status semantics — ok/err/warn/idle + aliases">
           <div className="flex flex-wrap gap-2">
@@ -322,13 +322,13 @@ function Component({ id }: { id: string }) {
           </div>
         </Demo>
       );
-    case 'kbd-code':
+    case 'inline-flex items-center gap-1 font-mono tabular-nums tracking-tight text-[11px] text-muted-foreground px-1 min-w-4 h-[18px] border border-border rounded bg-muted-font-mono tabular-nums tracking-tight text-[12px] bg-muted px-[5px] py-px rounded text-fg-2':
       return (
         <Demo label="Inline display helpers (status-bar microcopy)">
           <div className="space-y-1.5 text-sm">
-            <div><span className="eyebrow mr-3 inline-block w-32">Code</span><code className="code">plx tenant create</code></div>
-            <div><span className="eyebrow mr-3 inline-block w-32">Kbd (chord)</span><span className="kbd">⌘</span> <span className="kbd">K</span> open palette</div>
-            <div><span className="eyebrow mr-3 inline-block w-32">Kbd (single)</span>Press <span className="kbd">Esc</span> to close</div>
+            <div><span className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium mr-3 inline-block w-32">Code</span><code className="font-mono text-[12px] bg-muted px-[5px] py-px rounded text-fg-2">plx tenant create</code></div>
+            <div><span className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium mr-3 inline-block w-32">Kbd (chord)</span><span className="inline-flex items-center gap-1 font-mono tabular-nums tracking-tight text-[11px] text-muted-foreground px-1 min-w-4 h-[18px] border border-border rounded bg-muted">⌘</span> <span className="inline-flex items-center gap-1 font-mono tabular-nums tracking-tight text-[11px] text-muted-foreground px-1 min-w-4 h-[18px] border border-border rounded bg-muted">K</span> open palette</div>
+            <div><span className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium mr-3 inline-block w-32">Kbd (single)</span>Press <span className="inline-flex items-center gap-1 font-mono tabular-nums tracking-tight text-[11px] text-muted-foreground px-1 min-w-4 h-[18px] border border-border rounded bg-muted">Esc</span> to close</div>
           </div>
         </Demo>
       );
@@ -515,7 +515,7 @@ function Component({ id }: { id: string }) {
       );
     case 'input-otp':
       return (
-        <Demo label="6-digit code">
+        <Demo label="6-digit font-mono tabular-nums tracking-tight text-[12px] bg-muted px-[5px] py-px rounded text-fg-2">
           <InputOTP maxLength={6}>
             <InputOTPGroup>
               <InputOTPSlot index={0} />
@@ -993,7 +993,7 @@ function Component({ id }: { id: string }) {
 function Demo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="rounded-md border border-border bg-card p-4">
-      <div className="eyebrow mb-2">{label}</div>
+      <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium mb-2">{label}</div>
       {children}
     </div>
   );
@@ -1003,8 +1003,8 @@ function Footer() {
   return (
     <footer className="border-t border-border pt-6 text-muted-foreground text-xs">
       <div className="space-y-1">
-        <div><span className="font-mono">.agents/docs/ui/architecture.md</span> · 14 stack decisions</div>
-        <div><span className="font-mono">.agents/docs/design/styles.css</span> · 876 lines of Plexor DS tokens</div>
+        <div><span className="font-mono tabular-nums tracking-tight">.agents/docs/ui/architecture.md</span> · 14 stack decisions</div>
+        <div><span className="font-mono tabular-nums tracking-tight">.agents/docs/design/styles.css</span> · 876 lines of Plexor DS tokens</div>
       </div>
     </footer>
   );
