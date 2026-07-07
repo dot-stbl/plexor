@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { Gear, Trash, ArrowClockwise, Pause } from '@phosphor-icons/react';
+import { Gear, Trash, ArrowClockwise, Pause, Pencil, Copy, Clipboard } from '@phosphor-icons/react';
 
 import { ModeToggle } from '@/shared/ui/primitives/theme-toggle';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
+import { IP } from '@/shared/ui/primitives/ip';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Stat } from '@/shared/ui/primitives/stat';
 import { Console, ConsoleLine } from '@/shared/ui/primitives/console';
@@ -81,6 +82,8 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
   ContextMenuTrigger,
 } from '@/shared/ui/primitives/context-menu';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from '@/shared/ui/primitives/command';
@@ -114,6 +117,7 @@ const NAV: NavGroup[] = [
       { id: 'console', label: 'Console' },
       { id: 'toolbar', label: 'Toolbar' },
       { id: 'bulk-action-toolbar', label: 'BulkActionToolbar' },
+      { id: 'ip', label: 'IP' },
     ],
   },
   {
@@ -249,7 +253,6 @@ function BulkActionToolbarDemo() {
   const actions: BulkActionAction[] = [
     { label: 'Suspend', onClick: () => {}, variant: 'outline', icon: <Pause className="size-4" /> },
     { label: 'Restart', onClick: () => {}, variant: 'outline', icon: <ArrowClockwise className="size-4" /> },
-    { label: 'Delete', onClick: () => {}, variant: 'destructive', icon: <Trash className="size-4" /> },
   ];
 
   return (
@@ -279,7 +282,11 @@ function BulkActionToolbarDemo() {
         <BulkActionToolbar
           count={selected.length}
           onClear={() => setSelected([])}
-          actions={actions}
+          actions={[
+            ...actions,
+            // Destructive: icon-only red button (clear visual signal)
+            { label: '', onClick: () => {}, variant: 'destructive', icon: <Trash className="size-4" /> },
+          ]}
           entityLabel="vms selected"
           bottomClass="bottom-3"
         />
@@ -528,6 +535,51 @@ function Component({ id }: { id: string }) {
     case 'bulk-action-toolbar':
       return <BulkActionToolbarDemo />;
 
+    case 'ip':
+      return (
+        <Demo label="IP address primitive: IPv4 / IPv6 / muted / link / grouped">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1 text-sm">
+              <div className="flex items-center gap-3">
+                <span className="text-muted-foreground w-24">IPv4</span>
+                <IP value="192.168.1.10" />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-muted-foreground w-24">muted</span>
+                <IP value="192.168.1.10" muted />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-muted-foreground w-24">link</span>
+                <IP value="10.0.0.1" link />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-muted-foreground w-24">no group</span>
+                <IP value="192.168.1.10" group={false} />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-muted-foreground w-24">IPv6</span>
+                <IP value="2001:db8::1" muted />
+              </div>
+            </div>
+            <div className="border-t border-border pt-3">
+              <div className="text-muted-foreground mb-2 text-xs uppercase tracking-[0.06em]">
+                Column alignment (grouped octets)
+              </div>
+              <div className="font-mono text-sm tabular-nums">
+                <div className="flex gap-6">
+                  <span>10.1.2.3</span>
+                  <span>192.168.100.10</span>
+                </div>
+                <div className="flex gap-6">
+                  <span>10.0.0.1</span>
+                  <span>172.16.0.254</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Demo>
+      );
+
     // ── shadcn-ui Buttons & actions ──
     case 'button':
       return (
@@ -614,7 +666,7 @@ function Component({ id }: { id: string }) {
       );
     case 'context-menu':
       return (
-        <Demo label="Right-click menu">
+        <Demo label="Right-click menu: icons + shortcut + separator + destructive">
           <ContextMenu>
             <ContextMenuTrigger
               render={
@@ -624,9 +676,26 @@ function Component({ id }: { id: string }) {
               }
             />
             <ContextMenuContent>
-              <ContextMenuItem>Open</ContextMenuItem>
-              <ContextMenuItem>Inspect</ContextMenuItem>
-              <ContextMenuItem>Copy ID</ContextMenuItem>
+              <ContextMenuItem>
+                <Pencil />
+                Edit
+              </ContextMenuItem>
+              <ContextMenuItem>
+                <Copy />
+                Copy ID
+                <ContextMenuShortcut>⌘C</ContextMenuShortcut>
+              </ContextMenuItem>
+              <ContextMenuItem>
+                <Clipboard />
+                Inspect
+                <ContextMenuShortcut>⌘I</ContextMenuShortcut>
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem variant="destructive">
+                <Trash />
+                Delete
+                <ContextMenuShortcut>⌫</ContextMenuShortcut>
+              </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
         </Demo>

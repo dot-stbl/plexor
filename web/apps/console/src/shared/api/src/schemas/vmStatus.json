@@ -1,0 +1,1 @@
+{"type":"string","description":"Lifecycle state of a VM.","enum":["provisioning","running","stopped","error","idle"],"example":"running","x-readme-ref-name":"VmStatus"}

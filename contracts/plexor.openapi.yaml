@@ -1,0 +1,243 @@
+openapi: 3.0.3
+info:
+  title: Plexor API
+  version: 0.1.0-draft
+  description: >
+    Design-first contract for the Plexor console. Authored on the frontend so
+    screens can be built on generated hooks + faker/MSW mocks while the backend
+    (Plexor.Host) is not yet available. When the backend lands it implements
+    this exact contract; flip VITE_USE_MOCKS=false — screens are untouched.
+    Errors follow RFC 7807 Problem Details to match the Platyflow backend convention.
+
+servers:
+  - url: /api/v1
+    description: Console API (relative — proxied by Vite in dev, real host in prod)
+
+tags:
+  - name: vms
+    description: Virtual machines
+
+paths:
+  /vms:
+    get:
+      operationId: listVms
+      tags: [vms]
+      summary: List virtual machines
+      parameters:
+        - name: zone
+          in: query
+          required: false
+          schema: { type: string, example: eu-central-1a }
+        - name: status
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/VmStatus' }
+        - name: q
+          in: query
+          required: false
+          description: Free-text filter over name / IP / tags.
+          schema: { type: string }
+        - name: page
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, default: 1, example: 1 }
+        - name: pageSize
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20, example: 20 }
+      responses:
+        '200':
+          description: Paginated list of virtual machines.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VmList' }
+        default:
+          $ref: '#/components/responses/Problem'
+    post:
+      operationId: provisionVm
+      tags: [vms]
+      summary: Provision a virtual machine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateVmRequest' }
+      responses:
+        '201':
+          description: VM accepted for provisioning.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VmDetail' }
+        '422':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /vms/{vmId}:
+    parameters:
+      - $ref: '#/components/parameters/VmId'
+    get:
+      operationId: getVm
+      tags: [vms]
+      summary: Get a virtual machine
+      responses:
+        '200':
+          description: Virtual machine detail.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VmDetail' }
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+    delete:
+      operationId: deleteVm
+      tags: [vms]
+      summary: Delete a virtual machine
+      responses:
+        '204':
+          description: Deleted.
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /vms/{vmId}/start:
+    parameters:
+      - $ref: '#/components/parameters/VmId'
+    post:
+      operationId: startVm
+      tags: [vms]
+      summary: Start a virtual machine
+      responses:
+        '200':
+          description: Start requested.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VmDetail' }
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /vms/{vmId}/stop:
+    parameters:
+      - $ref: '#/components/parameters/VmId'
+    post:
+      operationId: stopVm
+      tags: [vms]
+      summary: Stop a virtual machine
+      responses:
+        '200':
+          description: Stop requested.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VmDetail' }
+        default:
+          $ref: '#/components/responses/Problem'
+
+components:
+  parameters:
+    VmId:
+      name: vmId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    Problem:
+      description: RFC 7807 error.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+
+  schemas:
+    VmStatus:
+      type: string
+      description: Lifecycle state of a VM.
+      enum: [provisioning, running, stopped, error, idle]
+      example: running
+
+    Vm:
+      type: object
+      description: A virtual machine as shown in the list.
+      required: [id, name, status, internalIp, zone, machineType, vcpu, ramGb, diskGb, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, example: web-prod-01 }
+        status: { $ref: '#/components/schemas/VmStatus' }
+        internalIp: { type: string, example: 10.128.4.21 }
+        zone: { type: string, example: eu-central-1a }
+        machineType: { type: string, example: standard-4 }
+        vcpu: { type: integer, example: 4 }
+        ramGb: { type: integer, example: 16 }
+        diskGb: { type: integer, example: 120 }
+        tags:
+          type: array
+          items: { type: string }
+          example: [prod, web]
+        createdAt: { type: string, format: date-time }
+
+    VmDetail:
+      allOf:
+        - $ref: '#/components/schemas/Vm'
+        - type: object
+          description: Extra fields shown on the detail screen.
+          required: [project, vpcId, subnetId, image, diskEncrypted]
+          properties:
+            description: { type: string, nullable: true, example: Front-end nodes }
+            label: { type: string, nullable: true, example: web }
+            project: { type: string, example: plexor-core }
+            vpcId: { type: string, format: uuid }
+            subnetId: { type: string, format: uuid }
+            securityGroups:
+              type: array
+              items: { type: string }
+              example: [default, web-ingress]
+            image: { type: string, example: Ubuntu 24.04 LTS }
+            diskEncrypted: { type: boolean, example: true }
+            publicIp: { type: string, nullable: true, example: null }
+            updatedAt: { type: string, format: date-time }
+
+    CreateVmRequest:
+      type: object
+      description: Payload from the create-VM wizard.
+      required: [name, project, subnetId, machineType, diskGb, image]
+      properties:
+        name: { type: string, minLength: 1, example: api-prod-02 }
+        project: { type: string, example: plexor-core }
+        vpcId: { type: string, format: uuid, nullable: true }
+        subnetId: { type: string, format: uuid }
+        machineType: { type: string, example: standard-4 }
+        vcpu: { type: integer, minimum: 1, example: 4 }
+        ramGb: { type: integer, minimum: 1, example: 16 }
+        diskGb: { type: integer, minimum: 10, example: 120 }
+        image: { type: string, example: Ubuntu 24.04 LTS }
+        diskEncrypted: { type: boolean, default: true }
+        securityGroups:
+          type: array
+          items: { type: string }
+        label: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        tags:
+          type: array
+          items: { type: string }
+
+    VmList:
+      type: object
+      required: [items, page, pageSize, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Vm' }
+        page: { type: integer, example: 1 }
+        pageSize: { type: integer, example: 20 }
+        total: { type: integer, example: 42 }
+
+    ProblemDetails:
+      type: object
+      description: RFC 7807 problem details.
+      properties:
+        type: { type: string, example: 'https://plexor.dev/problems/not-found' }
+        title: { type: string, example: Not Found }
+        status: { type: integer, example: 404 }
+        detail: { type: string, example: VM not found. }
+        instance: { type: string, nullable: true }

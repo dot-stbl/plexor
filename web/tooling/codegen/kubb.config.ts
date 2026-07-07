@@ -24,7 +24,11 @@ const banner =
 export default defineConfig({
   root: '.',
   input: {
-    path: '../../../artifacts/openapi.json',
+    // Design-first: hand-authored contract is the source of truth while the
+    // backend is not yet available. When Plexor.Host emits real endpoints,
+    // switch back to '../../../artifacts/openapi.json' (or diff the two to
+    // verify the backend matches this contract).
+    path: '../../../contracts/plexor.openapi.yaml',
   },
   output: {
     path: '../../apps/console/src/shared/api/src',
