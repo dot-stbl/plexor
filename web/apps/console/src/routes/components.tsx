@@ -741,17 +741,23 @@ function Component({ id }: { id: string }) {
       );
     case 'select':
       return (
-        <Demo label="Native select via Base UI">
-          <Select defaultValue="eu-central-1">
-            <SelectTrigger className="max-w-xs">
-              <SelectValue placeholder="Select region" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="eu-central-1">eu-central-1</SelectItem>
-              <SelectItem value="eu-west-1">eu-west-1</SelectItem>
-              <SelectItem value="us-east-1">us-east-1</SelectItem>
-            </SelectContent>
-          </Select>
+        <Demo label="Native select via Base UI (long values fit cleanly)">
+          <div className="flex flex-col gap-3">
+            <Select defaultValue="europe-central-1-production">
+              <SelectTrigger>
+                <SelectValue placeholder="Select region" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="europe-central-1-production">europe-central-1 (production)</SelectItem>
+                <SelectItem value="europe-west-1-staging">europe-west-1 (staging)</SelectItem>
+                <SelectItem value="us-east-1-development">us-east-1 (development)</SelectItem>
+                <SelectItem value="asia-northeast-1-canary">asia-northeast-1 (canary)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-xs">
+              Trigger width adapts to longest content; items have equal width.
+            </p>
+          </div>
         </Demo>
       );
     case 'combobox':
