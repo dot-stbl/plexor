@@ -32,7 +32,7 @@
   .ds-content { padding: var(--s-7) var(--s-8) 120px; max-width: 1060px; min-width: 0; }
 
   .ds-hero { margin-bottom: var(--s-8); }
-  .ds-hero h1 { font-size: var(--fs-28); font-weight: 600; letter-spacing: -0.02em; margin: 0 0 var(--s-3); line-height: 1.15; }
+  .ds-hero h1 { font-size: var(--fs-28); font-weight: 600; letter-spacing: -0.02em; margin: 0 0 var(--s-3); line-height: 1.15; text-wrap: balance; }
   .ds-hero p { color: var(--muted); font-size: var(--fs-15); max-width: 660px; margin: 0; line-height: 1.55; }
 
   .ds-principles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); margin-top: var(--s-6); }
@@ -42,7 +42,7 @@
 
   .ds-section { margin-top: var(--s-8); scroll-margin-top: calc(var(--topnav-h) + 12px); }
   .sec-head { display: flex; align-items: baseline; gap: var(--s-3); margin-bottom: var(--s-5); padding-bottom: var(--s-3); border-bottom: 1px solid var(--border-2); }
-  .sec-head h2 { font-size: var(--fs-18); font-weight: 600; margin: 0; letter-spacing: -0.012em; }
+  .sec-head h2 { font-size: var(--fs-18); font-weight: 600; margin: 0; letter-spacing: -0.012em; text-wrap: balance; }
   .sec-head .sec-note { color: var(--muted); font-size: var(--fs-12); margin-left: auto; }
 
   .ds-block { margin-bottom: var(--s-7); }
@@ -501,7 +501,7 @@
         <h2>Табы</h2>
         <span class="sec-note">4+ раздела ресурса → табы</span>
       </div>
-      <div class="demo" style="padding:0; background:var(--surface)" data-tabs>
+      <div class="demo" style="padding:0; background:var(--surface); overflow:hidden;" data-tabs>
         <div class="tabs">
           <button class="tab is-active" aria-selected="true">Обзор</button>
           <button class="tab" aria-selected="false">Сеть <span class="tab-badge">3</span></button>
@@ -529,7 +529,7 @@
         <h2>Фильтры</h2>
         <span class="sec-note">чипы одиночного выбора в группе</span>
       </div>
-      <div class="demo" style="padding:0; background:var(--surface)">
+      <div class="demo" style="padding:0; background:var(--surface); overflow:hidden;">
         <div class="toolbar">
           <div class="toolbar-group">
             <button class="chip is-on" aria-pressed="true">Все <span class="chip-count">14</span></button>
@@ -637,7 +637,7 @@
         <h2>Степпер мастера</h2>
         <span class="sec-note">создание VM · создание VPC</span>
       </div>
-      <div class="demo" style="padding:0; background:var(--surface)">
+      <div class="demo" style="padding:0; background:var(--surface); overflow:hidden;">
         <div class="wizard-stepper">
           <div class="wizard-step is-done"><span class="step-num"><span class="step-num-text">1</span></span> Основное</div>
           <div class="wizard-step is-done"><span class="step-num"><span class="step-num-text">2</span></span> Образ</div>

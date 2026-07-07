@@ -98,6 +98,17 @@
   <Folder Name="/tests/" />
   <Folder Name="/tests/unit/">
     <Project Path="tests/unit/Plexor.ArchitectureTests/Plexor.ArchitectureTests.csproj" />
+    <Project Path="tests/unit/Plexor.Modules.Tenants.Unit/Plexor.Modules.Tenants.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Modules.Identity.Unit/Plexor.Modules.Identity.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Modules.Audit.Unit/Plexor.Modules.Audit.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Modules.Billing.Unit/Plexor.Modules.Billing.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Shared.Kernel.Unit/Plexor.Shared.Kernel.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Shared.Contracts.Unit/Plexor.Shared.Contracts.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Shared.Persistence.Unit/Plexor.Shared.Persistence.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Shared.Telemetry.Unit/Plexor.Shared.Telemetry.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Shared.Http.Unit/Plexor.Shared.Http.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Shared.Composition.Unit/Plexor.Shared.Composition.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Core.Providers.Unit/Plexor.Core.Providers.Unit.csproj" />
   </Folder>
 
 </Solution>

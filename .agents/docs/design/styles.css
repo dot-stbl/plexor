@@ -359,6 +359,16 @@ table { border-collapse: collapse; border-spacing: 0; width: 100%; }
 .icon-btn.danger:hover { background: var(--err-soft); color: var(--err-ink); }
 .icon-btn.primary:hover { background: var(--ok-soft); color: var(--ok-ink); }
 
+/* Keyboard focus — one unified ring across interactive elements (WCAG).
+   Mouse clicks stay clean; only keyboard nav shows the ring. */
+:where(a[href], button, .btn, .chip, .tab, .sidebar-link, .icon-btn, .cs-pill, .pg-page):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+:where(a[href], button, .btn, .chip, .tab, .sidebar-link, .icon-btn, .cs-pill, .pg-page):focus:not(:focus-visible) {
+  outline: none;
+}
+
 .btn-group { display: inline-flex; }
 .btn-group .btn { border-radius: 0; border-right-width: 0; }
 .btn-group .btn:first-child { border-radius: var(--radius) 0 0 var(--radius); }
