@@ -189,6 +189,48 @@
     background-color: var(--background);
     color: var(--foreground);
   }
+
+  /* ─── Scrollbar (thin, themed) — global, can't be Tailwind utilities ─── */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    scrollbar-gutter: stable;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  /* Contain overscroll in modals/sheets/dialogs */
+  [data-slot~='dialog-content'],
+  [data-slot~='sheet-content'],
+  [data-slot~='drawer-content'] {
+    overscroll-behavior: contain;
+  }
+  /* Reduce motion: disable smooth scroll */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
 }
 
 html.dark {

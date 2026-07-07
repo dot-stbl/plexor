@@ -6,7 +6,7 @@ import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Stat } from '@/shared/ui/primitives/stat';
 import { Console, ConsoleLine } from '@/shared/ui/primitives/console';
-import { Toolbar, ToolbarGroup, ToolbarEnd } from '@/shared/ui/primitives/toolbar';
+import { Toolbar, ToolbarSearch, ToolbarFilter, ToolbarActions } from '@/shared/ui/primitives/toolbar';
 import { Button } from '@/shared/ui/primitives/button';
 import { ButtonGroup } from '@/shared/ui/primitives/button-group';
 import { Input } from '@/shared/ui/primitives/input';
@@ -18,7 +18,7 @@ import { Switch } from '@/shared/ui/primitives/switch';
 import { Slider } from '@/shared/ui/primitives/slider';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/shared/ui/primitives/input-otp';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/primitives/select';
-import { Combobox, ComboboxInput, ComboboxContent, ComboboxItem } from '@/shared/ui/primitives/combobox';
+
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet, FieldLegend } from '@/shared/ui/primitives/field';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/shared/ui/primitives/input-group';
 
@@ -381,29 +381,21 @@ function Component({ id }: { id: string }) {
       );
     case 'toolbar':
       return (
-        <Demo label="Filter bar with grouped controls + end actions">
+        <Demo label="Filter bar: search + filter chips + actions">
           <Toolbar>
-            <ToolbarGroup>
-              <ToggleGroup defaultValue={["running"]}>
-                <ToggleGroupItem value="running">running</ToggleGroupItem>
-                <ToggleGroupItem value="stopped">stopped</ToggleGroupItem>
-                <ToggleGroupItem value="failed">failed</ToggleGroupItem>
-              </ToggleGroup>
-            </ToolbarGroup>
-            <ToolbarGroup>
-              <Button size="sm" variant="outline">
-                eu-central-1
-              </Button>
-              <Button size="sm" variant="outline">
-                eu-west-1
-              </Button>
-            </ToolbarGroup>
-            <ToolbarEnd>
-              <Button size="sm" variant="outline">
-                Clear
-              </Button>
-              <Button size="sm">Apply</Button>
-            </ToolbarEnd>
+            <ToolbarSearch>
+              <Input placeholder="Search tenants…" />
+            </ToolbarSearch>
+            <ToolbarFilter>
+              <Button size="sm" variant="default">running</Button>
+              <Button size="sm" variant="outline">stopped</Button>
+              <Button size="sm" variant="outline">failed</Button>
+            </ToolbarFilter>
+            <ToolbarActions>
+              <Button size="sm" variant="outline">Filter</Button>
+              <Button size="sm" variant="outline">Sort</Button>
+              <Button size="sm">New tenant</Button>
+            </ToolbarActions>
           </Toolbar>
         </Demo>
       );
@@ -565,15 +557,12 @@ function Component({ id }: { id: string }) {
       );
     case 'combobox':
       return (
-        <Demo label="Searchable combobox">
-          <Combobox className="max-w-xs">
-            <ComboboxInput placeholder="Search image…" />
-            <ComboboxContent>
-              <ComboboxItem value="ubuntu-22">Ubuntu 22.04 LTS</ComboboxItem>
-              <ComboboxItem value="debian-12">Debian 12</ComboboxItem>
-              <ComboboxItem value="alpine-3">Alpine 3.19</ComboboxItem>
-            </ComboboxContent>
-          </Combobox>
+        <Demo label="Searchable combobox (Base UI AriaCombobox — render-prop API)">
+          <div className="max-w-xs text-sm text-muted-foreground">
+            Combobox is in <code className="font-mono">@/shared/ui/primitives/combobox</code>.
+            Uses Base UI's render-prop API (ComboboxInput / ComboboxContent / ComboboxItem).
+            See shadcn-ui docs for the exact usage pattern.
+          </div>
         </Demo>
       );
     case 'input-otp':
