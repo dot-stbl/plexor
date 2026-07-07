@@ -157,6 +157,16 @@
       <a href="#console">Консоль · KV</a>
     </div>
     <div class="toc-group">
+      <div class="toc-title">Интерактив</div>
+      <a href="#menu">Меню действий</a>
+      <a href="#dialog">Диалоги</a>
+      <a href="#toast">Тосты · копирование</a>
+      <a href="#combobox">Комбобокс</a>
+      <a href="#cmdk">Палитра ⌘K</a>
+      <a href="#table-actions">Таблица · sort/выбор</a>
+      <a href="#tooltip">Тултип</a>
+    </div>
+    <div class="toc-group">
       <div class="toc-title">Паттерны</div>
       <a href="#states">Состояния</a>
       <a href="#voice">Голос и микрокопия</a>
@@ -696,6 +706,153 @@ plexor@vm-prod-01:~$ sudo systemctl restart myapp<span class="line-cursor"></spa
       </div>
     </section>
 
+    <!-- ══════════ MENU ══════════ -->
+    <section class="ds-section" id="menu" data-od-id="section-menu">
+      <div class="sec-head"><h2>Меню действий</h2><span class="sec-note">клик вне / Esc — закрыть</span></div>
+      <div class="demo demo-row">
+        <div class="menu-wrap">
+          <button class="btn" data-menu-trigger aria-haspopup="true" aria-expanded="false">Действия <span class="caret" style="color:var(--muted-2)">▾</span></button>
+          <div class="menu" role="menu" hidden>
+            <button class="menu-item" role="menuitem">Открыть</button>
+            <button class="menu-item" role="menuitem">Переименовать <span class="menu-kbd">F2</span></button>
+            <button class="menu-item" role="menuitem">Дублировать</button>
+            <div class="menu-sep"></div>
+            <button class="menu-item danger" role="menuitem">Удалить <span class="menu-kbd">⌫</span></button>
+          </div>
+        </div>
+        <div class="menu-wrap">
+          <button class="icon-btn md" data-menu-trigger aria-haspopup="true" aria-label="Ещё"><svg viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="13" cy="8" r="1.2" fill="currentColor"/></svg></button>
+          <div class="menu" role="menu" hidden>
+            <button class="menu-item" role="menuitem">Перезагрузить</button>
+            <button class="menu-item" role="menuitem">Открыть консоль</button>
+            <div class="menu-sep"></div>
+            <button class="menu-item danger" role="menuitem">Остановить</button>
+          </div>
+        </div>
+        <span class="demo-cap" style="margin:0">Одно меню открыто за раз.</span>
+      </div>
+    </section>
+
+    <!-- ══════════ DIALOG ══════════ -->
+    <section class="ds-section" id="dialog" data-od-id="section-dialog">
+      <div class="sec-head"><h2>Диалоги</h2><span class="sec-note">фон / Esc / Отмена — закрыть</span></div>
+      <div class="demo demo-row">
+        <button class="btn danger" data-dialog-open="#ds-dlg-delete">Удалить ВМ…</button>
+        <button class="btn" data-dialog-open="#ds-dlg-form">Переименовать…</button>
+        <span class="demo-cap" style="margin:0">Кнопка диалога отдаёт тост-результат.</span>
+      </div>
+    </section>
+
+    <!-- ══════════ TOAST ══════════ -->
+    <section class="ds-section" id="toast" data-od-id="section-toast">
+      <div class="sec-head"><h2>Тосты и копирование</h2><span class="sec-note">авто-скрытие · статус-дот</span></div>
+      <div class="demo demo-row">
+        <button class="btn" data-toast="ok" data-toast-msg="ВМ vm-prod-07 создана">Успех</button>
+        <button class="btn" data-toast="err" data-toast-msg="Не удалось удалить VPC: 2 подсети">Ошибка</button>
+        <button class="btn" data-toast="warn" data-toast-msg="Квота CPU почти исчерпана">Предупреждение</button>
+        <button class="btn" data-copy="10.128.4.21"><svg viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M3 11V4a1 1 0 0 1 1-1h7" stroke="currentColor" stroke-width="1.3"/></svg>Скопировать IP</button>
+      </div>
+    </section>
+
+    <!-- ══════════ COMBOBOX ══════════ -->
+    <section class="ds-section" id="combobox" data-od-id="section-combobox">
+      <div class="sec-head"><h2>Комбобокс</h2><span class="sec-note">поиск по списку</span></div>
+      <div class="demo demo-row">
+        <div class="combo" data-combo>
+          <button class="combo-btn"><span class="combo-label">eu-central-1-a</span> <span class="caret">▾</span></button>
+          <div class="combo-pop" hidden>
+            <input class="combo-search" type="search" placeholder="Поиск зоны…" />
+            <div class="combo-list">
+              <button class="combo-opt is-selected">eu-central-1-a</button>
+              <button class="combo-opt">eu-central-1-b</button>
+              <button class="combo-opt">eu-central-1-c</button>
+              <button class="combo-opt">eu-west-1-a</button>
+              <button class="combo-opt">us-east-1-a</button>
+            </div>
+          </div>
+        </div>
+        <span class="demo-cap" style="margin:0">Печатай — фильтрует список.</span>
+      </div>
+    </section>
+
+    <!-- ══════════ CMDK ══════════ -->
+    <section class="ds-section" id="cmdk" data-od-id="section-cmdk">
+      <div class="sec-head"><h2>Командная палитра</h2><span class="sec-note">⌘K / Ctrl+K · ↑↓ Enter</span></div>
+      <div class="demo demo-row">
+        <button class="btn" data-cmdk-open>Открыть <span class="kbd">⌘</span><span class="kbd">K</span></button>
+        <span class="demo-cap" style="margin:0">Или нажми ⌘K / Ctrl+K где угодно на странице.</span>
+      </div>
+    </section>
+
+    <!-- ══════════ TABLE ACTIONS ══════════ -->
+    <section class="ds-section" id="table-actions" data-od-id="section-table-actions">
+      <div class="sec-head"><h2>Таблица: сортировка · выбор · bulk</h2><span class="sec-note">клик по заголовку · чекбоксы · ⋮</span></div>
+      <div class="table-wrap has-menus" data-select-table>
+        <div class="bulk-bar" hidden>
+          <span class="bulk-count">Выбрано: 0</span>
+          <div class="bulk-actions">
+            <button class="btn sm">Старт</button>
+            <button class="btn sm">Стоп</button>
+            <button class="btn sm danger">Удалить</button>
+            <button class="btn sm ghost" data-bulk-clear>Снять</button>
+          </div>
+        </div>
+        <table class="tbl tbl-compact" data-sortable>
+          <thead>
+            <tr>
+              <th style="width:28px"><input type="checkbox" data-select-all aria-label="Выбрать все" style="accent-color:var(--accent)"/></th>
+              <th data-sort="text">Имя</th>
+              <th data-sort="text">Статус</th>
+              <th class="num" data-sort="num">vCPU</th>
+              <th class="num" data-sort="num">RAM</th>
+              <th class="actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" data-select-row aria-label="Выбрать"/></td>
+              <td style="font-weight:500">vm-prod-01</td>
+              <td><span class="pill ok"><span class="dot"></span>running</span></td>
+              <td class="num">2</td><td class="num">8&nbsp;GB</td>
+              <td class="actions"><div class="menu-wrap"><button class="icon-btn sm" data-menu-trigger aria-label="Действия"><svg viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="13" cy="8" r="1.2" fill="currentColor"/></svg></button><div class="menu" role="menu" hidden><button class="menu-item">Открыть</button><button class="menu-item">Перезагрузить</button><div class="menu-sep"></div><button class="menu-item danger">Удалить</button></div></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" data-select-row aria-label="Выбрать"/></td>
+              <td style="font-weight:500">vm-cache-1</td>
+              <td><span class="pill err"><span class="dot"></span>error</span></td>
+              <td class="num">4</td><td class="num">32&nbsp;GB</td>
+              <td class="actions"><div class="menu-wrap"><button class="icon-btn sm" data-menu-trigger aria-label="Действия"><svg viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="13" cy="8" r="1.2" fill="currentColor"/></svg></button><div class="menu" role="menu" hidden><button class="menu-item">Открыть</button><button class="menu-item">Перезагрузить</button><div class="menu-sep"></div><button class="menu-item danger">Удалить</button></div></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" data-select-row aria-label="Выбрать"/></td>
+              <td style="font-weight:500">vm-batch-runner</td>
+              <td><span class="pill warn"><span class="dot"></span>paused</span></td>
+              <td class="num">8</td><td class="num">16&nbsp;GB</td>
+              <td class="actions"><div class="menu-wrap"><button class="icon-btn sm" data-menu-trigger aria-label="Действия"><svg viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="13" cy="8" r="1.2" fill="currentColor"/></svg></button><div class="menu" role="menu" hidden><button class="menu-item">Открыть</button><button class="menu-item">Перезагрузить</button><div class="menu-sep"></div><button class="menu-item danger">Удалить</button></div></div></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" data-select-row aria-label="Выбрать"/></td>
+              <td style="font-weight:500">vm-ml-trainer</td>
+              <td><span class="pill idle"><span class="dot"></span>stopped</span></td>
+              <td class="num">16</td><td class="num">64&nbsp;GB</td>
+              <td class="actions"><div class="menu-wrap"><button class="icon-btn sm" data-menu-trigger aria-label="Действия"><svg viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="13" cy="8" r="1.2" fill="currentColor"/></svg></button><div class="menu" role="menu" hidden><button class="menu-item">Открыть</button><button class="menu-item">Перезагрузить</button><div class="menu-sep"></div><button class="menu-item danger">Удалить</button></div></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="demo-cap" style="margin-top:var(--s-3)">Клик по «Имя / vCPU / RAM» — сортировка. Чекбоксы — bulk-бар. «⋮» — меню строки.</div>
+    </section>
+
+    <!-- ══════════ TOOLTIP ══════════ -->
+    <section class="ds-section" id="tooltip" data-od-id="section-tooltip">
+      <div class="sec-head"><h2>Тултип</h2><span class="sec-note">hover / focus</span></div>
+      <div class="demo demo-row">
+        <button class="btn" data-tooltip="Провижн ~30 секунд">Навести сюда</button>
+        <button class="icon-btn md" data-tooltip="Обновить" aria-label="Обновить"><svg viewBox="0 0 16 16" fill="none"><path d="M13 8a5 5 0 1 1-1.5-3.5L13 3M13 3v3h-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <span class="pill idle" data-tooltip="Последний heartbeat 4с назад"><span class="dot"></span>online</span>
+      </div>
+    </section>
+
     <!-- ══════════ STATES ══════════ -->
     <section class="ds-section" id="states" data-od-id="section-states">
       <div class="sec-head">
@@ -781,6 +938,40 @@ plexor@vm-prod-01:~$ sudo systemctl restart myapp<span class="line-cursor"></spa
     </section>
 
   </main>
+</div>
+
+<!-- Dialog: delete -->
+<div class="dialog-scrim" id="ds-dlg-delete" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="ds-dlg-delete-t">
+    <div class="dialog-head"><h2 id="ds-dlg-delete-t">Удалить vm-prod-01?</h2><button class="icon-btn" data-dialog-close aria-label="Закрыть"><svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></div>
+    <div class="dialog-body">Машина будет остановлена и удалена без возможности восстановления. Загрузочный диск <span class="code">40 GB gp3</span> тоже будет удалён.</div>
+    <div class="dialog-foot"><button class="btn" data-dialog-close>Отмена</button><button class="btn danger-solid" data-dialog-close data-toast="err" data-toast-msg="vm-prod-01 удалена">Удалить</button></div>
+  </div>
+</div>
+
+<!-- Dialog: rename -->
+<div class="dialog-scrim" id="ds-dlg-form" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="ds-dlg-form-t">
+    <div class="dialog-head"><h2 id="ds-dlg-form-t">Переименовать ВМ</h2><button class="icon-btn" data-dialog-close aria-label="Закрыть"><svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></div>
+    <div class="dialog-body"><div class="field"><label>Новое имя</label><input class="input mono" value="vm-prod-01" /><span class="field-hint">Только строчные латиница, цифры и дефис.</span></div></div>
+    <div class="dialog-foot"><button class="btn" data-dialog-close>Отмена</button><button class="btn primary" data-dialog-close data-toast="ok" data-toast-msg="Имя обновлено">Сохранить</button></div>
+  </div>
+</div>
+
+<!-- Command palette -->
+<div class="cmdk-scrim" data-cmdk hidden>
+  <div class="cmdk" role="dialog" aria-modal="true" aria-label="Командная палитра">
+    <input class="cmdk-input" type="text" placeholder="Команда или переход…" aria-label="Команда" />
+    <div class="cmdk-list">
+      <button class="cmdk-item" data-cmd="Создать ВМ"><svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Создать ВМ<span class="cmdk-hint">c</span></button>
+      <button class="cmdk-item" data-cmd="Compute"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>Перейти — Виртуальные машины<span class="cmdk-hint">g c</span></button>
+      <button class="cmdk-item" data-cmd="Network"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 2c2 2 2 10 0 12" stroke="currentColor" stroke-width="1.3"/></svg>Перейти — Сеть (VPC)<span class="cmdk-hint">g n</span></button>
+      <button class="cmdk-item" data-cmd="Billing">Перейти — Биллинг<span class="cmdk-hint">g b</span></button>
+      <button class="cmdk-item" data-cmd="Console">Открыть serial-консоль</button>
+      <button class="cmdk-item" data-cmd="Audit">Открыть аудит-лог</button>
+    </div>
+    <div class="cmdk-empty" hidden>Ничего не найдено</div>
+  </div>
 </div>
 
 <!-- Drawer (demo) -->

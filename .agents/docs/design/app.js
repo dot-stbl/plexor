@@ -228,4 +228,204 @@
       }
     });
   });
+
+  // ───────────── Popover menus (⋮ / dropdowns) ─────────────
+  function closeAllMenus() {
+    document.querySelectorAll('.menu:not([hidden])').forEach(function (m) {
+      m.hidden = true;
+      var t = m.parentNode && m.parentNode.querySelector('[data-menu-trigger]');
+      if (t) t.setAttribute('aria-expanded', 'false');
+    });
+  }
+  document.querySelectorAll('[data-menu-trigger]').forEach(function (trigger) {
+    var menu = trigger.parentNode.querySelector('.menu');
+    if (!menu) return;
+    trigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var willOpen = menu.hidden;
+      closeAllMenus();
+      menu.hidden = !willOpen;
+      trigger.setAttribute('aria-expanded', String(willOpen));
+    });
+    menu.addEventListener('click', function () { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); });
+  });
+
+  // ───────────── Dialogs ─────────────
+  document.querySelectorAll('[data-dialog-open]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var d = document.querySelector(b.getAttribute('data-dialog-open'));
+      if (d) d.hidden = false;
+    });
+  });
+  document.querySelectorAll('.dialog-scrim').forEach(function (scrim) {
+    scrim.addEventListener('click', function (e) { if (e.target === scrim) scrim.hidden = true; });
+    scrim.querySelectorAll('[data-dialog-close]').forEach(function (b) {
+      b.addEventListener('click', function () { scrim.hidden = true; });
+    });
+  });
+
+  // ───────────── Toasts ─────────────
+  function showToast(msg, kind) {
+    var stack = document.querySelector('.toast-stack');
+    if (!stack) { stack = document.createElement('div'); stack.className = 'toast-stack'; document.body.appendChild(stack); }
+    var t = document.createElement('div');
+    t.className = 'toast' + (kind ? ' ' + kind : '');
+    t.innerHTML = '<span class="dot"></span><span class="toast-msg"></span><button class="toast-x icon-btn sm" aria-label="Закрыть"><svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>';
+    t.querySelector('.toast-msg').textContent = msg;
+    function dismiss() { t.classList.add('is-out'); setTimeout(function () { if (t.parentNode) t.remove(); }, 180); }
+    t.querySelector('.toast-x').addEventListener('click', dismiss);
+    stack.appendChild(t);
+    setTimeout(dismiss, 3600);
+  }
+  window.plexorToast = showToast;
+  document.querySelectorAll('[data-toast]').forEach(function (b) {
+    b.addEventListener('click', function () { showToast(b.getAttribute('data-toast-msg') || 'Готово', b.getAttribute('data-toast')); });
+  });
+
+  // ───────────── Copy to clipboard ─────────────
+  document.querySelectorAll('[data-copy]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var text = b.getAttribute('data-copy');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(
+          function () { showToast('Скопировано: ' + text, 'ok'); },
+          function () { showToast('Не удалось скопировать', 'err'); }
+        );
+      } else { showToast('Скопировано: ' + text, 'ok'); }
+    });
+  });
+
+  // ───────────── Combobox (searchable select) ─────────────
+  document.querySelectorAll('[data-combo]').forEach(function (combo) {
+    var btn = combo.querySelector('.combo-btn');
+    var pop = combo.querySelector('.combo-pop');
+    var search = combo.querySelector('.combo-search');
+    var label = combo.querySelector('.combo-label');
+    var opts = combo.querySelectorAll('.combo-opt');
+    if (!btn || !pop) return;
+    combo.addEventListener('click', function (e) { e.stopPropagation(); });
+    btn.addEventListener('click', function () {
+      var open = pop.hidden;
+      pop.hidden = !open;
+      if (open && search) { search.value = ''; opts.forEach(function (o) { o.hidden = false; }); search.focus(); }
+    });
+    if (search) search.addEventListener('input', function () {
+      var q = search.value.toLowerCase();
+      opts.forEach(function (o) { o.hidden = o.textContent.toLowerCase().indexOf(q) === -1; });
+    });
+    opts.forEach(function (o) {
+      o.addEventListener('click', function () {
+        opts.forEach(function (x) { x.classList.remove('is-selected'); });
+        o.classList.add('is-selected');
+        if (label) label.textContent = o.textContent.trim();
+        pop.hidden = true;
+      });
+    });
+  });
+
+  // ───────────── Sortable tables ─────────────
+  document.querySelectorAll('table[data-sortable]').forEach(function (table) {
+    table.querySelectorAll('th[data-sort]').forEach(function (th) {
+      var index = Array.prototype.indexOf.call(th.parentNode.children, th);
+      th.addEventListener('click', function () {
+        var tbody = table.tBodies[0]; if (!tbody) return;
+        var asc = th.getAttribute('aria-sort') !== 'ascending';
+        table.querySelectorAll('th[data-sort]').forEach(function (o) { o.removeAttribute('aria-sort'); });
+        th.setAttribute('aria-sort', asc ? 'ascending' : 'descending');
+        var type = th.getAttribute('data-sort');
+        var rows = Array.prototype.slice.call(tbody.rows);
+        rows.sort(function (a, b) {
+          var av = (a.cells[index] ? a.cells[index].textContent : '').trim();
+          var bv = (b.cells[index] ? b.cells[index].textContent : '').trim();
+          var r = type === 'num'
+            ? (parseFloat(av.replace(/[^\d.-]/g, '')) || 0) - (parseFloat(bv.replace(/[^\d.-]/g, '')) || 0)
+            : av.localeCompare(bv, 'ru');
+          return asc ? r : -r;
+        });
+        rows.forEach(function (r) { tbody.appendChild(r); });
+      });
+    });
+  });
+
+  // ───────────── Table row selection + bulk bar ─────────────
+  document.querySelectorAll('[data-select-table]').forEach(function (wrap) {
+    var all = wrap.querySelector('[data-select-all]');
+    var rowBoxes = wrap.querySelectorAll('[data-select-row]');
+    var bar = wrap.querySelector('.bulk-bar');
+    var countEl = bar ? bar.querySelector('.bulk-count') : null;
+    function sync() {
+      var n = 0;
+      rowBoxes.forEach(function (cb) {
+        var tr = cb.closest('tr');
+        if (cb.checked) { n++; if (tr) tr.classList.add('is-selected'); }
+        else if (tr) tr.classList.remove('is-selected');
+      });
+      if (bar) bar.hidden = n === 0;
+      if (countEl) countEl.textContent = 'Выбрано: ' + n;
+      if (all) { all.checked = n > 0 && n === rowBoxes.length; all.indeterminate = n > 0 && n < rowBoxes.length; }
+    }
+    if (all) all.addEventListener('change', function () { rowBoxes.forEach(function (cb) { cb.checked = all.checked; }); sync(); });
+    rowBoxes.forEach(function (cb) { cb.addEventListener('change', sync); });
+    if (bar) {
+      var clear = bar.querySelector('[data-bulk-clear]');
+      if (clear) clear.addEventListener('click', function () { rowBoxes.forEach(function (cb) { cb.checked = false; }); if (all) all.checked = false; sync(); });
+    }
+    sync();
+  });
+
+  // ───────────── Command palette (⌘K / Ctrl+K) ─────────────
+  var cmdk = document.querySelector('[data-cmdk]');
+  if (cmdk) {
+    var cmdkInput = cmdk.querySelector('.cmdk-input');
+    var cmdkItems = cmdk.querySelectorAll('.cmdk-item');
+    var cmdkEmpty = cmdk.querySelector('.cmdk-empty');
+    function filterCmdk() {
+      var q = (cmdkInput ? cmdkInput.value : '').toLowerCase();
+      var visible = 0;
+      cmdkItems.forEach(function (it) {
+        var match = it.textContent.toLowerCase().indexOf(q) !== -1;
+        it.hidden = !match; it.classList.remove('is-active');
+        if (match) visible++;
+      });
+      if (cmdkEmpty) cmdkEmpty.hidden = visible !== 0;
+      var first = cmdk.querySelector('.cmdk-item:not([hidden])');
+      if (first) first.classList.add('is-active');
+    }
+    function openCmdk() { cmdk.hidden = false; if (cmdkInput) { cmdkInput.value = ''; filterCmdk(); cmdkInput.focus(); } }
+    function closeCmdk() { cmdk.hidden = true; }
+    if (cmdkInput) cmdkInput.addEventListener('input', filterCmdk);
+    cmdk.addEventListener('click', function (e) { if (e.target === cmdk) closeCmdk(); });
+    cmdkItems.forEach(function (it) {
+      it.addEventListener('click', function () { closeCmdk(); showToast('Команда: ' + (it.getAttribute('data-cmd') || it.textContent.trim()), 'ok'); });
+    });
+    document.querySelectorAll('[data-cmdk-open]').forEach(function (b) { b.addEventListener('click', openCmdk); });
+    window.plexorOpenCmdk = openCmdk;
+    document.addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); if (cmdk.hidden) openCmdk(); else closeCmdk(); }
+    });
+    if (cmdkInput) cmdkInput.addEventListener('keydown', function (e) {
+      var items = Array.prototype.slice.call(cmdk.querySelectorAll('.cmdk-item:not([hidden])'));
+      if (!items.length) return;
+      var idx = items.findIndex(function (x) { return x.classList.contains('is-active'); });
+      if (idx < 0) idx = 0;
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[idx].classList.remove('is-active'); items[(idx + 1) % items.length].classList.add('is-active'); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); items[idx].classList.remove('is-active'); items[(idx - 1 + items.length) % items.length].classList.add('is-active'); }
+      else if (e.key === 'Enter') { e.preventDefault(); items[idx].click(); }
+    });
+  }
+
+  // ───────────── Global click / Esc: close overlays ─────────────
+  document.addEventListener('click', function () {
+    closeAllMenus();
+    document.querySelectorAll('.combo-pop:not([hidden])').forEach(function (p) { p.hidden = true; });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    closeAllMenus();
+    document.querySelectorAll('.combo-pop:not([hidden])').forEach(function (p) { p.hidden = true; });
+    document.querySelectorAll('.dialog-scrim:not([hidden])').forEach(function (d) { d.hidden = true; });
+    document.querySelectorAll('.drawer.is-open').forEach(function (d) { d.classList.remove('is-open'); });
+    document.querySelectorAll('.drawer-scrim.is-open').forEach(function (s) { s.classList.remove('is-open'); });
+    if (cmdk && !cmdk.hidden) cmdk.hidden = true;
+  });
 })();

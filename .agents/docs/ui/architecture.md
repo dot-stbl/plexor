@@ -35,7 +35,7 @@
 | 1 | Package manager | **bun** | быстрый install, единый toolchain |
 | 2 | Bundler | **Vite** | зрелый, UseProxyToSpaDevelopmentServer работает из коробки |
 | 3 | Dev integration | **UseSpa + UseProxyToSpaDevelopmentServer** | один origin, нет CORS, backend проксирует на Vite в dev |
-| 4 | Design system | **shadcn/ui + Plexor tokens** | компоненты в нашем репо (agent-readable), нет npm drift |
+| 4 | Design system | **shadcn/ui + Plexor tokens** (на Base UI) | компоненты в нашем репо (agent-readable), Base UI primitives (преемник Radix) |
 | 5 | Styling | **Tailwind CSS** | de facto для shadcn/Radix |
 | 6 | Routing | **TanStack Router** | file-based, type-safe params + search validation |
 | 7 | Server state | **TanStack Query** | cache, invalidation, devtools, генерится kubb |
