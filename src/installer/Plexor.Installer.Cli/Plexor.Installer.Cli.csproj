@@ -30,6 +30,7 @@
     <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
     <ProjectReference Include="..\..\providers\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
+    <ProjectReference Include="..\Plexor.Installer.Engine\Plexor.Installer.Engine.csproj" />
   </ItemGroup>
 
   <ItemGroup>
