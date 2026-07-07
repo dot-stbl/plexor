@@ -6,7 +6,8 @@ import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Stat } from '@/shared/ui/primitives/stat';
 import { Console, ConsoleLine } from '@/shared/ui/primitives/console';
-import { Toolbar, ToolbarSearch, ToolbarFilter, ToolbarActions } from '@/shared/ui/primitives/toolbar';
+import { Toolbar, ToolbarHeader, ToolbarTitle, ToolbarActions, ToolbarContent, ToolbarSection, ToolbarSectionLabel, ToolbarItems, ToolbarItem, ToolbarLabel, ToolbarDescription, ToolbarSeparator } from '@/shared/ui/primitives/toolbar';
+import { BulkActionToolbar, type BulkActionAction } from '@/shared/ui/primitives/bulk-action-toolbar';
 import { Button } from '@/shared/ui/primitives/button';
 import { ButtonGroup } from '@/shared/ui/primitives/button-group';
 import { Input } from '@/shared/ui/primitives/input';
@@ -17,7 +18,7 @@ import { RadioGroup, RadioGroupItem } from '@/shared/ui/primitives/radio-group';
 import { Switch } from '@/shared/ui/primitives/switch';
 import { Slider } from '@/shared/ui/primitives/slider';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/shared/ui/primitives/input-otp';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/primitives/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/primitives/select';
 
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet, FieldLegend } from '@/shared/ui/primitives/field';
 import { Combobox, ComboboxInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList } from '@/shared/ui/primitives/combobox';
@@ -111,6 +112,7 @@ const NAV: NavGroup[] = [
       { id: 'stat', label: 'Stat' },
       { id: 'console', label: 'Console' },
       { id: 'toolbar', label: 'Toolbar' },
+      { id: 'bulk-action-toolbar', label: 'BulkActionToolbar' },
     ],
   },
   {
@@ -224,6 +226,58 @@ function ComponentsPage() {
         </main>
       </div>
       <Toaster position="bottom-right" />
+    </div>
+  );
+}
+
+function BulkActionToolbarDemo() {
+  const [selected, setSelected] = useState<string[]>(['vm-001', 'vm-014']);
+  const items = [
+    { id: 'vm-001', name: 'vm-prod-01' },
+    { id: 'vm-002', name: 'vm-prod-02' },
+    { id: 'vm-014', name: 'vm-stage-01' },
+    { id: 'vm-022', name: 'vm-dev-01' },
+  ];
+
+  const toggle = (id: string) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  };
+
+  const actions: BulkActionAction[] = [
+    { label: 'Suspend', onClick: () => {}, variant: 'outline' },
+    { label: 'Restart', onClick: () => {}, variant: 'outline' },
+    { label: 'Delete', onClick: () => {}, variant: 'destructive' },
+  ];
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="text-muted-foreground text-sm">
+        Sticky toolbar above a table. Click rows to select — toolbar appears when count {'>'} 0.
+      </div>
+      <div className="rounded-md border border-border bg-card">
+        <BulkActionToolbar
+          count={selected.length}
+          onClear={() => setSelected([])}
+          actions={actions}
+          entityLabel="vms selected"
+        />
+        <div className="divide-y divide-border">
+          {items.map((item) => (
+            <label key={item.id} className="flex items-center gap-3 px-4 py-2 hover:bg-muted/50">
+              <Checkbox
+                checked={selected.includes(item.id)}
+                onCheckedChange={() => toggle(item.id)}
+              />
+              <span className="text-sm">{item.name}</span>
+              <MonoNum muted className="ml-auto">
+                {item.id}
+              </MonoNum>
+            </label>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -382,24 +436,91 @@ function Component({ id }: { id: string }) {
       );
     case 'toolbar':
       return (
-        <Demo label="Filter bar: search + filter chips + actions">
-          <Toolbar>
-            <ToolbarSearch>
-              <Input placeholder="Search tenants…" />
-            </ToolbarSearch>
-            <ToolbarFilter>
-              <Button size="sm" variant="default">running</Button>
-              <Button size="sm" variant="outline">stopped</Button>
-              <Button size="sm" variant="outline">failed</Button>
-            </ToolbarFilter>
-            <ToolbarActions>
-              <Button size="sm" variant="outline">Filter</Button>
-              <Button size="sm" variant="outline">Sort</Button>
-              <Button size="sm">New tenant</Button>
-            </ToolbarActions>
+        <Demo label="Settings panel primitive: header + sections + items">
+          <Toolbar className="max-w-md">
+            <ToolbarHeader>
+              <ToolbarTitle>Display</ToolbarTitle>
+              <ToolbarActions>
+                <Button size="sm" variant="outline">Reset</Button>
+              </ToolbarActions>
+            </ToolbarHeader>
+            <ToolbarContent>
+              <ToolbarSection>
+                <ToolbarSectionLabel>Theme</ToolbarSectionLabel>
+                <ToolbarItems>
+                  <ToolbarItem>
+                    <ToolbarLabel>Mode</ToolbarLabel>
+                    <Select items={[
+                      { label: 'Light', value: 'light' },
+                      { label: 'Dark', value: 'dark' },
+                      { label: 'System', value: 'system' },
+                    ]}>
+                      <SelectTrigger size="sm" className="w-32">
+                        <SelectValue placeholder="Theme" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {[
+                            { label: 'Light', value: 'light' },
+                            { label: 'Dark', value: 'dark' },
+                            { label: 'System', value: 'system' },
+                          ].map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </ToolbarItem>
+                  <ToolbarItem>
+                    <div className="flex flex-col gap-0.5">
+                      <ToolbarLabel>Compact density</ToolbarLabel>
+                      <ToolbarDescription>Reduce row height and padding</ToolbarDescription>
+                    </div>
+                    <Switch />
+                  </ToolbarItem>
+                  <ToolbarItem>
+                    <ToolbarLabel>Show line numbers</ToolbarLabel>
+                    <Switch />
+                  </ToolbarItem>
+                </ToolbarItems>
+              </ToolbarSection>
+              <ToolbarSeparator />
+              <ToolbarSection>
+                <ToolbarSectionLabel>Notifications</ToolbarSectionLabel>
+                <ToolbarItems>
+                  <ToolbarItem>
+                    <ToolbarLabel>Email alerts</ToolbarLabel>
+                    <Switch defaultChecked />
+                  </ToolbarItem>
+                  <ToolbarItem>
+                    <ToolbarLabel>Sound</ToolbarLabel>
+                    <Switch />
+                  </ToolbarItem>
+                </ToolbarItems>
+              </ToolbarSection>
+              <ToolbarSeparator />
+              <ToolbarSection>
+                <ToolbarSectionLabel>Account</ToolbarSectionLabel>
+                <ToolbarItems>
+                  <ToolbarItem>
+                    <ToolbarLabel>Storage used</ToolbarLabel>
+                    <MonoNum muted>42.3 GB</MonoNum>
+                  </ToolbarItem>
+                  <ToolbarItem>
+                    <ToolbarLabel>Plan</ToolbarLabel>
+                    <span className="text-muted-foreground text-sm">Pro</span>
+                  </ToolbarItem>
+                </ToolbarItems>
+              </ToolbarSection>
+            </ToolbarContent>
           </Toolbar>
         </Demo>
       );
+
+    case 'bulk-action-toolbar':
+      return <BulkActionToolbarDemo />;
 
     // ── shadcn-ui Buttons & actions ──
     case 'button':

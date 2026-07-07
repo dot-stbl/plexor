@@ -29,7 +29,14 @@
 
   /* ─── Borders (2 levels) ─── */
   --border: oklch(91% 0.008 240);
+  --border-2: oklch(85% 0.008 240);
   --input: var(--border);
+
+  /* ─── Plexor DS extra scale (surfaces / secondary ink) ─── */
+  --surface-2: oklch(97% 0.006 250);
+  --surface-3: oklch(95% 0.008 240);
+  --fg-2: oklch(35% 0.018 240);
+  --muted-2: oklch(65% 0.014 240);
 
   /* ─── Accent (Plexor DS — monochrome dark ink, NOT blue) ─── */
   --accent: oklch(28% 0.02 255);
@@ -86,7 +93,13 @@
   --muted-foreground: oklch(66% 0.012 250);
 
   --border: oklch(30% 0.012 250);
+  --border-2: oklch(38% 0.014 250);
   --input: var(--border);
+
+  --surface-2: oklch(25% 0.015 250);
+  --surface-3: oklch(28% 0.016 250);
+  --fg-2: oklch(82% 0.008 250);
+  --muted-2: oklch(52% 0.012 250);
 
   --accent: oklch(92% 0.006 250);
   --accent-foreground: oklch(20% 0.02 250);
@@ -139,8 +152,15 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
+  --color-border-2: var(--border-2);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* Plexor DS extra scale — bg-surface-2, text-fg-2, text-muted-2, border-border-2 */
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-fg-2: var(--fg-2);
+  --color-muted-2: var(--muted-2);
 
   /* Status semantics — bg-ok-soft, text-err-ink, etc. */
   --color-ok: var(--ok);

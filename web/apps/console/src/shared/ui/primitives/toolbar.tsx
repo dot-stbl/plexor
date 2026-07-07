@@ -3,22 +3,40 @@ import { cn } from '@/shared/lib/utils';
 import type { ComponentProps } from 'react';
 
 /**
- * Toolbar — filter bar primitive for tables and lists.
+ * Toolbar — abstract generic panel primitive.
  *
- * Abstract: any "search + filter chips + actions" surface
- * (table toolbars, page filters, search headers).
+ * Composable subcomponents for building settings panels, detail sidebars,
+ * or any "list of sections with rows" pattern.
  *
- * Layout:
- *   [search input]  |  [filter chips]  |  [actions / menu]
+ * Layout pattern:
+ *   <Toolbar>                          // root: sectioned panel
+ *     <ToolbarHeader>                   // optional header (title + actions)
+ *       <ToolbarTitle>Display</ToolbarTitle>
+ *       <ToolbarActions>...</ToolbarActions>
+ *     </ToolbarHeader>
+ *     <ToolbarContent>                  // scrollable body
+ *       <ToolbarSection>                // optional section
+ *         <ToolbarSectionLabel>Theme</ToolbarSectionLabel>
+ *         <ToolbarItems>
+ *           <ToolbarItem>               // row: label + control
+ *             <span>Mode</span>
+ *             <Switch />
+ *           </ToolbarItem>
+ *         </ToolbarItems>
+ *       </ToolbarSection>
+ *     </ToolbarContent>
+ *   </Toolbar>
  *
- * shadcn-ui's @shadcn registry has no Toolbar primitive, so we provide it.
+ * Note: this is a settings/panel primitive, not a horizontal action bar.
+ * For horizontal action bars (filter bar, bulk action bar), compose shadcn
+ * `Button` + `InputGroup` directly.
  */
 export function Toolbar({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       data-slot="toolbar"
       className={cn(
-        'flex flex-wrap items-center gap-2 border-b border-border bg-card px-3 py-2',
+        'flex flex-col divide-y divide-border rounded-lg border border-border bg-card text-sm',
         className,
       )}
       {...props}
@@ -27,32 +45,79 @@ export function Toolbar({ className, ...props }: ComponentProps<'div'>) {
 }
 
 /**
- * ToolbarSearch — left-aligned search input with icon addon.
- * Use as the first child of <Toolbar>.
+ * ToolbarHeader — top section of a Toolbar with title + right-aligned actions.
  */
-export function ToolbarSearch({
-  className,
-  ...props
-}: ComponentProps<'div'>) {
+export function ToolbarHeader({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
-      data-slot="toolbar-search"
-      className={cn('flex-1 min-w-48 max-w-72', className)}
+      data-slot="toolbar-header"
+      className={cn('flex items-center justify-between gap-3 px-4 py-3', className)}
       {...props}
     />
   );
 }
 
 /**
- * ToolbarFilter — group of filter chips (status, region, etc.) with
- * shared visual separator. Use between search and actions.
+ * ToolbarTitle — heading inside a ToolbarHeader.
  */
-export function ToolbarFilter({ className, ...props }: ComponentProps<'div'>) {
+export function ToolbarTitle({ className, ...props }: ComponentProps<'h2'>) {
+  return (
+    <h2
+      data-slot="toolbar-title"
+      className={cn('text-base font-semibold tracking-tight', className)}
+      {...props}
+    />
+  );
+}
+
+/**
+ * ToolbarActions — right-aligned action group inside a ToolbarHeader.
+ */
+export function ToolbarActions({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
-      data-slot="toolbar-filter"
+      data-slot="toolbar-actions"
+      className={cn('flex items-center gap-1.5', className)}
+      {...props}
+    />
+  );
+}
+
+/**
+ * ToolbarContent — body of a Toolbar.
+ */
+export function ToolbarContent({ className, ...props }: ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="toolbar-content"
+      className={cn('flex flex-col', className)}
+      {...props}
+    />
+  );
+}
+
+/**
+ * ToolbarSection — grouped section within ToolbarContent.
+ */
+export function ToolbarSection({ className, ...props }: ComponentProps<'section'>) {
+  return (
+    <section
+      data-slot="toolbar-section"
+      className={cn('flex flex-col gap-2 px-4 py-3', className)}
+      {...props}
+    />
+  );
+}
+
+/**
+ * ToolbarSectionLabel — heading for a ToolbarSection.
+ */
+export function ToolbarSectionLabel({ className, ...props }: ComponentProps<'h3'>) {
+  return (
+    <h3
+      data-slot="toolbar-section-label"
       className={cn(
-        'flex items-center gap-1 border-l border-r border-border px-2 first:border-l-0 first:pl-0 last:border-r-0 last:pr-0',
+        'text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium',
         className,
       )}
       {...props}
@@ -61,27 +126,93 @@ export function ToolbarFilter({ className, ...props }: ComponentProps<'div'>) {
 }
 
 /**
- * ToolbarSeparator — thin vertical divider between toolbar groups.
+ * ToolbarItems — list of items within a section.
+ */
+export function ToolbarItems({ className, ...props }: ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="toolbar-items"
+      className={cn('flex flex-col gap-3', className)}
+      {...props}
+    />
+  );
+}
+
+/**
+ * ToolbarItem — single row in a settings panel.
+ * Renders label on the left and control on the right by default.
+ */
+export function ToolbarItem({ className, ...props }: ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="toolbar-item"
+      className={cn('flex items-center justify-between gap-3', className)}
+      {...props}
+    />
+  );
+}
+
+/**
+ * ToolbarLabel — label text on the left side of a ToolbarItem.
+ */
+export function ToolbarLabel({ className, ...props }: ComponentProps<'label'>) {
+  return (
+    <label
+      data-slot="toolbar-label"
+      className={cn('text-foreground font-medium', className)}
+      {...props}
+    />
+  );
+}
+
+/**
+ * ToolbarDescription — secondary text under a ToolbarItem label.
+ */
+export function ToolbarDescription({ className, ...props }: ComponentProps<'p'>) {
+  return (
+    <p
+      data-slot="toolbar-description"
+      className={cn('text-muted-foreground text-xs', className)}
+      {...props}
+    />
+  );
+}
+
+/**
+ * ToolbarSeparator — thin divider between items.
  */
 export function ToolbarSeparator({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       data-slot="toolbar-separator"
       role="separator"
-      className={cn('h-5 w-px bg-border', className)}
+      className={cn('h-px bg-border', className)}
       {...props}
     />
   );
 }
 
 /**
- * ToolbarActions — right-aligned action group.
+ * ToolbarGroup — horizontal cluster of items.
  */
-export function ToolbarActions({ className, ...props }: ComponentProps<'div'>) {
+export function ToolbarGroup({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
-      data-slot="toolbar-actions"
-      className={cn('flex items-center gap-1.5 ml-auto', className)}
+      data-slot="toolbar-group"
+      className={cn('flex items-center gap-2', className)}
+      {...props}
+    />
+  );
+}
+
+/**
+ * ToolbarEmpty — placeholder for empty state.
+ */
+export function ToolbarEmpty({ className, ...props }: ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="toolbar-empty"
+      className={cn('text-muted-foreground py-8 text-center text-sm', className)}
       {...props}
     />
   );
