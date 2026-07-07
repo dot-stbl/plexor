@@ -9,17 +9,27 @@ import { CaretDown, Check } from "@phosphor-icons/react";
 /**
  * Select — Plexor DS wrapper around Base UI Select.
  *
- * Layout philosophy:
- *   - Trigger: content-sized (w-fit). Width = value text + CaretDown.
- *   - Popup: sized to widest item (alignItemWithTrigger=false).
- *   - Items: content-sized, no w-full, no flex-1.
- *   - Check: inline at end of item row.
+ * **Layout pattern (shadcn convention with Base UI):**
+ * - Trigger: content-sized (w-fit), value + CaretDown icon
+ * - Popup: anchor-width min, item content width
+ * - Items: full-width, Check icon on the LEFT (reserved pl-8 space),
+ *   text right-aligned to that reservation
  *
- * Previous attempts tried alignItemWithTrigger=true (popup = trigger)
- * but that combined with `flex-1` on SelectValue created phantom
- * width — trigger stretched beyond content, popup matched trigger,
- * items had empty space after Check icon. Tight layout requires
- * popup sizing to items, NOT to trigger.
+ * **Why Check on LEFT, not right?**
+ * The shadcn Select convention puts the selected indicator on the left.
+ * This reserves a constant pl-8 (32px) gutter on the left so text
+ * is always at the same X position whether item is selected or not.
+ *
+ * If Check were on the right:
+ * - NOT selected: text starts at pl-2 (8px), no Check, pr-2 (8px)
+ * - SELECTED: text starts at pl-2 (8px), then gap, then Check, then pr-2
+ * - Visual: text X position is same, but right side has different stuff
+ *   (icon vs nothing) — user perceives asymmetric padding
+ *
+ * With Check on LEFT + always-on pl-8 reservation:
+ * - Both states: text always at 32px from left, 8px from right
+ * - Selected state adds visual indicator to the left of text
+ * - Padding is symmetric in BOTH states
  */
 
 const Select = SelectPrimitive.Root;
@@ -92,9 +102,8 @@ function SelectContent({
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
           className={cn(
-            "relative isolate z-50 max-h-(--available-height) min-w-(--anchor-width) origin-(--transform-origin)",
-            "overflow-x-hidden overflow-y-auto rounded-md bg-popover text-popover-foreground shadow-md",
-            "ring-1 ring-foreground/10",
+            "relative isolate z-50 max-h-(--available-height) origin-(--transform-origin)",
+            "overflow-hidden rounded-md bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10",
             "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95",
             "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             "data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1",
@@ -121,7 +130,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "flex h-7 cursor-default select-none items-center rounded-sm pl-2 pr-2 text-xs/relaxed outline-hidden",
+        "relative flex w-full cursor-default select-none items-center rounded-sm py-1 pl-8 pr-2 text-xs/relaxed outline-hidden",
         "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0",
@@ -129,17 +138,17 @@ function SelectItem({
       )}
       {...props}
     >
-      <SelectPrimitive.ItemText className="whitespace-nowrap">
-        {children}
-      </SelectPrimitive.ItemText>
-      <SelectPrimitive.ItemIndicator
-        render={
-          <Check
-            weight="bold"
-            className="pointer-events-none ml-auto size-3.5 text-foreground"
-          />
-        }
-      />
+      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        <SelectPrimitive.ItemIndicator
+          render={
+            <Check
+              weight="bold"
+              className="pointer-events-none size-3.5 text-foreground"
+            />
+          }
+        />
+      </span>
+      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
   );
 }

@@ -1,4 +1,5 @@
 import { Bell } from '@phosphor-icons/react';
+import { toast } from 'sonner';
 import { Button } from '@/shared/ui/primitives/button';
 import { ModeToggle } from '@/shared/ui/primitives/theme-toggle';
 import { Avatar, AvatarFallback } from '@/shared/ui/primitives/avatar';
@@ -23,7 +24,12 @@ export function AppNavbar() {
       <ScopeSwitcher />
 
       <div className="ml-auto flex items-center gap-1.5">
-        <Button variant="ghost" size="icon" aria-label="Уведомления">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Уведомления"
+          onClick={() => toast('Новых уведомлений нет')}
+        >
           <Bell className="size-4" />
         </Button>
 
@@ -47,8 +53,10 @@ export function AppNavbar() {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Настройки проекта</DropdownMenuItem>
-            <DropdownMenuItem>Выйти</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => toast('Настройки проекта — скоро')}>
+              Настройки проекта
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => toast('Вы вышли из аккаунта')}>Выйти</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { TooltipProvider } from '@/shared/ui/primitives/tooltip';
+import { Toaster } from '@/shared/ui/primitives/sonner';
 import { ThemeProvider } from '@/shared/lib/theme-provider';
 import { routeTree } from './routeTree.gen';
 
@@ -67,6 +68,7 @@ void enableMocking().then(() => {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <RouterProvider router={router} />
+            <Toaster />
           </TooltipProvider>
         </QueryClientProvider>
       </ThemeProvider>
