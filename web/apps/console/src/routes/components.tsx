@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 import { Gear, Trash, ArrowClockwise, Pause, Pencil, Copy, Clipboard } from '@phosphor-icons/react';
 
 import { ModeToggle } from '@/shared/ui/primitives/theme-toggle';
@@ -93,7 +93,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/shared/ui/primitives/carousel';
 import { Calendar } from '@/shared/ui/primitives/calendar';
 import { ChartContainer } from '@/shared/ui/primitives/chart';
-import { cn } from '@/shared/lib/utils';
 
 export const Route = createFileRoute('/components')({
   component: ComponentsPage,
@@ -201,35 +200,13 @@ const NAV: NavGroup[] = [
 ];
 
 function ComponentsPage() {
-  const [active, setActive] = useState<string | null>(null);
-
-  useEffect(() => {
-    const onScroll = () => {
-      const headings = Array.from(document.querySelectorAll<HTMLElement>('[data-section]'));
-      const offset = 100;
-      const top = window.scrollY + offset;
-      let current: string | null = null;
-      for (const h of headings) {
-        if (h.offsetTop <= top) current = h.id;
-      }
-      setActive(current);
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
   return (
     <div className="min-h-screen">
-      <Topnav />
-      <div className="grid grid-cols-[240px_1fr] gap-8 px-8 py-6">
-        <SidebarNav active={active} />
-        <main className="min-w-0 space-y-16">
-          {NAV.map((group) => (
-            <NavSection key={group.id} group={group} />
-          ))}
-        </main>
-      </div>
+      <main className="mx-auto max-w-5xl space-y-16 px-8 py-10">
+        {NAV.map((group) => (
+          <NavSection key={group.id} group={group} />
+        ))}
+      </main>
       <Toaster position="bottom-right" />
     </div>
   );
@@ -292,60 +269,6 @@ function BulkActionToolbarDemo() {
         />
       </div>
     </div>
-  );
-}
-
-function Topnav() {
-  return (
-    <header className="sticky top-0 z-50 flex h-12 items-center gap-4 border-b border-border bg-background/80 px-5 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center gap-2">
-        <span className="flex h-6 w-6 items-center justify-center rounded bg-primary font-mono text-xs font-bold text-primary-foreground">
-          P
-        </span>
-        <span className="text-sm font-semibold tracking-tight">Plexor</span>
-        <span className="border-l border-border pl-3 font-mono text-xs text-muted-foreground">
-          components
-        </span>
-      </div>
-      <div className="flex-1" />
-      <Link to="/" className="text-muted-foreground hover:text-foreground text-xs underline">
-        ← back to home
-      </Link>
-      <ModeToggle />
-    </header>
-  );
-}
-
-function SidebarNav({ active }: { active: string | null }) {
-  return (
-    <aside className="sticky top-[60px] h-[calc(100vh-3rem)] self-start overflow-y-auto">
-      <nav className="space-y-4 pr-3 text-sm">
-        {NAV.map((group) => (
-          <div key={group.id}>
-            <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium mb-1.5 px-2">
-              {group.label}
-            </div>
-            <ul className="space-y-0.5">
-              {group.items.map((item) => (
-                <li key={item.id}>
-                  <a
-                    href={`#${item.id}`}
-                    className={cn(
-                      'block rounded-sm px-2 py-1 text-[13px] transition-colors',
-                      active === item.id
-                        ? 'bg-muted text-foreground font-medium'
-                        : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
-                    )}
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </nav>
-    </aside>
   );
 }
 

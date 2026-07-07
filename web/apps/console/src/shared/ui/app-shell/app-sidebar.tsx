@@ -21,16 +21,15 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" data-od-id="app-sidebar">
       <SidebarHeader>
-        <div className="flex items-center gap-2.5 px-1 py-1">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+        <div className="flex items-center gap-2 px-1 py-0.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+          <Link
+            to="/"
+            aria-label="Plexor — на главную"
+            className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          >
             <PlexorMark className="size-4" />
-          </div>
-          <div className="grid gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-semibold tracking-tight">Plexor</span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-              облачная консоль
-            </span>
-          </div>
+          </Link>
+          <ProjectSwitcher />
         </div>
       </SidebarHeader>
 
