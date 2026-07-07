@@ -46,6 +46,12 @@ const buttonVariants = cva(
         // Plexor DS destructive — soft (text-only) and solid forms
         destructive:
           "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20 focus-visible:outline-destructive/40 aria-expanded:bg-destructive/20",
+        // Plexor DS danger: text-only, err-ink color, transparent border (sibling to destructive but milder)
+        danger:
+          "text-[var(--err-ink)] border-transparent hover:bg-[var(--err-soft)] hover:border-[var(--err)]",
+        // Plexor DS danger-solid: filled red, white text, used for irreversible confirmations
+        "danger-solid":
+          "bg-[var(--err)] text-white border-[var(--err)] hover:bg-[oklch(52%_0.20_25)] hover:border-[oklch(52%_0.20_25)] focus-visible:outline-[oklch(45%_0.18_25)]",
         link: "border-transparent text-primary underline-offset-4 hover:underline",
       },
       size: {

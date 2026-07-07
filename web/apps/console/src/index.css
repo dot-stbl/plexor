@@ -381,73 +381,10 @@ body,
     font-family: var(--font-mono);
   }
 
-  /* Plexor DS button (.btn) — from styles.css.
-   * Co-exists with shadcn Button component (different markup). Use .btn
-   * for static markup that mirrors design-system.html exactly.
-   * Variants: default | primary | danger | danger-solid | ghost | disabled
-   * Sizes: sm (24px) | default (28px) | lg (32px) */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 28px;
-    padding: 0 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-ds);
-    background: var(--surface);
-    color: var(--fg);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    user-select: none;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .btn:hover {
-    background: var(--surface-2);
-  }
-  .btn.primary {
-    background: var(--accent);
-    color: var(--accent-fg);
-    border-color: var(--accent);
-  }
-  .btn.primary:hover {
-    background: var(--accent-hover);
-    border-color: var(--accent-hover);
-  }
-  .btn.lg {
-    height: 32px;
-    padding: 0 16px;
-  }
-  .btn.sm {
-    height: 24px;
-    padding: 0 8px;
-    font-size: 12px;
-  }
-  .btn.ghost {
-    border-color: transparent;
-  }
-  .btn.danger {
-    color: var(--err-ink);
-  }
-  .btn.danger:hover {
-    background: var(--err-soft);
-    border-color: var(--err);
-  }
-  .btn.danger-solid {
-    background: var(--err);
-    color: oklch(100% 0 0);
-    border-color: var(--err);
-  }
-  .btn.danger-solid:hover {
-    background: oklch(52% 0.2 25);
-    border-color: oklch(52% 0.2 25);
-  }
-  .btn:disabled,
-  .btn[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+  /* Plexor DS button (.btn) — REMOVED. Use shadcn <Button> component with
+   * variants default | outline | secondary | ghost | destructive |
+   * danger | danger-solid | link and sizes xs | sm | md | lg | xl | icon.
+   * shadcn Button is adapted to Plexor DS tokens (--primary, --accent, etc.). */
 
   /* input / textarea (.input .textarea — from styles.css).
    * Select removed — use Base UI SelectUi instead (native <select> option list
@@ -551,34 +488,9 @@ body,
     padding: var(--s-4);
   }
 
-  /* icon button */
-  .icon-btn {
-    width: 28px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius);
-    color: var(--muted);
-    background: transparent;
-    border: 1px solid transparent;
-  }
-  .icon-btn:hover {
-    background: var(--surface-2);
-    color: var(--fg);
-  }
-  .icon-btn.sm {
-    width: 24px;
-    height: 24px;
-  }
-  .icon-btn.md {
-    width: 32px;
-    height: 32px;
-  }
-  .icon-btn.danger:hover {
-    background: var(--err-soft);
-    color: var(--err-ink);
-  }
+  /* icon button — REMOVED. Use shadcn <Button size="icon-xs/sm/md/lg"> instead.
+   * Shadcn Button is adapted to Plexor DS tokens and supports icon sizes
+   * natively via the icon-* size variants. */
 
   /* Plexor DS segmented button group */
   .btn-group {

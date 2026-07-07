@@ -70,7 +70,10 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/primitives/popover';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/shared/ui/primitives/hover-card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/primitives/tooltip';
-import { Command, CommandInput, CommandList, CommandItem } from '@/shared/ui/primitives/command';
+import {
+  Command, CommandInput, CommandList, CommandItem,
+  CommandEmpty, CommandGroup, CommandSeparator, CommandShortcut,
+} from '@/shared/ui/primitives/command';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/shared/ui/primitives/table';
@@ -367,11 +370,11 @@ function Component({ id }: { id: string }) {
       );
     case 'icon-btn':
       return (
-        <Demo label="28px square — 24 / 28 / 32 sizes">
+        <Demo label="shadcn Button with size=icon-xs/sm/md/lg + data-tooltip">
           <div className="flex items-center gap-2">
-            <button className="icon-btn sm" data-tooltip="Settings" aria-label="Settings">⚙</button>
-            <button className="icon-btn" data-tooltip="Notifications" aria-label="Notifications">◑</button>
-            <button className="icon-btn md danger" data-tooltip="Delete" aria-label="Delete">✕</button>
+            <Button size="icon-sm" variant="ghost" data-tooltip="Settings" aria-label="Settings">⚙</Button>
+            <Button size="icon" variant="ghost" data-tooltip="Notifications" aria-label="Notifications">◑</Button>
+            <Button size="icon-lg" variant="ghost" data-tooltip="Delete" aria-label="Delete" className="text-[var(--err-ink)] hover:bg-[var(--err-soft)]">✕</Button>
           </div>
         </Demo>
       );
@@ -806,13 +809,30 @@ function Component({ id }: { id: string }) {
       );
     case 'command':
       return (
-        <Demo label="⌘K command palette">
-          <Command className="max-w-sm rounded-md border">
+        <Demo label="⌘K command palette (cmdk)">
+          <Command className="max-w-sm rounded-md border bg-card text-foreground">
             <CommandInput placeholder="Type a command…" />
             <CommandList>
-              <CommandItem>Create tenant</CommandItem>
-              <CommandItem>Open settings</CommandItem>
-              <CommandItem>View audit log</CommandItem>
+              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandGroup heading="Actions">
+                <CommandItem value="create-tenant">
+                  <span>Create tenant</span>
+                  <CommandShortcut>⌘N</CommandShortcut>
+                </CommandItem>
+                <CommandItem value="open-settings">
+                  <span>Open settings</span>
+                  <CommandShortcut>⌘,</CommandShortcut>
+                </CommandItem>
+                <CommandItem value="view-audit">
+                  <span>View audit log</span>
+                </CommandItem>
+              </CommandGroup>
+              <CommandSeparator />
+              <CommandGroup heading="Navigate">
+                <CommandItem value="go-vms">VMs</CommandItem>
+                <CommandItem value="go-volumes">Volumes</CommandItem>
+                <CommandItem value="go-billing">Billing</CommandItem>
+              </CommandGroup>
             </CommandList>
           </Command>
         </Demo>

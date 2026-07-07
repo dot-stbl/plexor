@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
+import { Button } from '@/shared/ui/primitives/button';
+import { ButtonGroup } from '@/shared/ui/primitives/button-group';
 import {
   Dialog,
   DialogContent,
@@ -67,29 +69,28 @@ function DesignSystemShowcase() {
       >
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <button className="btn primary">Primary</button>
-            <button className="btn">Default</button>
-            <button className="btn lg">Large (32)</button>
-            <button className="btn sm">Small (24)</button>
-            <button className="btn danger">Danger</button>
-            <button className="btn danger-solid">Danger solid</button>
-            <button className="btn ghost">Ghost</button>
-            <button className="btn" disabled>
-              Disabled
-            </button>
+            <Button variant="default">Primary</Button>
+            <Button variant="outline">Outline</Button>
+            <Button variant="secondary">Secondary</Button>
+            <Button variant="ghost">Ghost</Button>
+            <Button variant="destructive">Destructive</Button>
+            <Button variant="danger">Danger</Button>
+            <Button variant="danger-solid">Danger solid</Button>
+            <Button variant="link">Link</Button>
+            <Button disabled>Disabled</Button>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="btn-group">
-              <button className="btn is-active">List</button>
-              <button className="btn">Grid</button>
-              <button className="btn">Map</button>
-            </div>
-            <div className="btn-group">
-              <button className="btn sm is-active">7d</button>
-              <button className="btn sm">30d</button>
-              <button className="btn sm">90d</button>
-            </div>
+            <ButtonGroup>
+              <Button variant="outline">List</Button>
+              <Button variant="outline">Grid</Button>
+              <Button variant="outline">Map</Button>
+            </ButtonGroup>
+            <ButtonGroup>
+              <Button size="sm" variant="outline">7d</Button>
+              <Button size="sm" variant="outline">30d</Button>
+              <Button size="sm" variant="outline">90d</Button>
+            </ButtonGroup>
           </div>
         </div>
       </Section>
@@ -120,8 +121,8 @@ function DesignSystemShowcase() {
             </button>
           </div>
           <div className="toolbar-end">
-            <button className="btn sm">Clear</button>
-            <button className="btn sm primary">Apply</button>
+            <Button size="sm" variant="outline">Clear</Button>
+            <Button size="sm">Apply</Button>
           </div>
         </div>
       </Section>
@@ -210,13 +211,14 @@ function DesignSystemShowcase() {
                     <MonoNum muted>{t.ip}</MonoNum>
                   </td>
                   <td style={{ width: 32, textAlign: 'right' }}>
-                    <button
-                      className="icon-btn sm"
+                    <Button
+                      size="icon-xs"
+                      variant="ghost"
                       data-tooltip="Open tenant"
                       aria-label="Open"
                     >
                       →
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -394,31 +396,34 @@ function DesignSystemShowcase() {
         title="icon-btn 24/28/32 — CSS-only [data-tooltip] hover label"
       >
         <div className="flex items-center gap-2">
-          <button className="icon-btn sm" data-tooltip="Settings" aria-label="Settings">
+          <Button size="icon-sm" variant="ghost" data-tooltip="Settings" aria-label="Settings">
             ⚙
-          </button>
-          <button
-            className="icon-btn"
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
             data-tooltip="Notifications"
             aria-label="Notifications"
           >
             ◑
-          </button>
-          <button
-            className="icon-btn md danger"
+          </Button>
+          <Button
+            size="icon-lg"
+            variant="ghost"
             data-tooltip="Delete (danger)"
             aria-label="Delete"
+            className="text-[var(--err-ink)] hover:bg-[var(--err-soft)]"
           >
             ✕
-          </button>
-          <button className="btn sm" data-tooltip="Click me">Hover me</button>
+          </Button>
+          <Button size="sm" variant="outline" data-tooltip="Click me">Hover me</Button>
         </div>
       </Section>
 
       <Section id="dialog" eyebrow="Dialog" title="Модалка — подтверждение удаления">
         <Dialog>
           <DialogTrigger
-            render={<button className="btn danger-solid">Delete cluster</button>}
+            render={<Button variant="danger-solid">Delete cluster</Button>}
           />
           <DialogContent>
             <DialogHeader>
@@ -429,8 +434,8 @@ function DesignSystemShowcase() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <button className="btn">Cancel</button>
-              <button className="btn danger-solid">Confirm delete</button>
+              <Button variant="outline">Cancel</Button>
+              <Button variant="danger-solid">Confirm delete</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
