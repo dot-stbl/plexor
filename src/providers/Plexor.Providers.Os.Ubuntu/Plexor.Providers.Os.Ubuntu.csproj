@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <Tier>production</Tier>
+    <ProviderPrimitive>host-os</ProviderPrimitive>
+  </PropertyGroup>
+
+  <!--
+    Plexor.Providers.Os.Ubuntu — host OS bootstrap for bare-metal nodes.
+    Uses PXE + cloud-init + curtin-style preseed to install Ubuntu 24.04
+    LTS on each compute node. Defaults to Talos for ≥3-node clusters
+    where immutability matters.
+
+    Companion: Plexor.Providers.Os.Talos (later, when ≥3-node clusters
+    become a thing).
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Id\Plexor.Shared.Id.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
+  </ItemGroup>
+
+</Project>

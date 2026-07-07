@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "screens/03-create-vm-wizard.html",
+  "entry": "screens/03-create-vm-wizard.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-07-07T15:12:22.592Z",
+  "updatedAt": "2026-07-07T15:12:22.592Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

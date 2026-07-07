@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Использование · Plexor</title>
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  /* Bar chart — local to this page */
+  .bars { display: grid; grid-template-columns: repeat(30, 1fr); gap: 2px; height: 160px; align-items: end; padding: 8px 0; }
+  .bars .bar { background: var(--accent); border-radius: 1px 1px 0 0; min-height: 2px; position: relative; cursor: pointer; }
+  .bars .bar:hover { background: var(--accent-hover); }
+  .bars .bar.is-today { background: oklch(45% 0.16 145); border: 1px solid var(--accent); }
+  .bars-axis { display: grid; grid-template-columns: repeat(30, 1fr); gap: 2px; font-size: 10px; color: var(--muted); font-family: var(--font-mono); padding-top: 6px; border-top: 1px solid var(--border); }
+  .bars-axis span { text-align: center; }
+  .bars-axis span:first-child { text-align: left; }
+  .bars-axis span:last-child { text-align: right; }
+
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 8px; font-family: var(--font-mono); align-items: center;}
+  .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+</style>
+</head>
+<body data-section="billing">
+
+<header class="topnav">
+  <a href="../index.html" class="brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <rect width="22" height="22" rx="4" fill="currentColor"/>
+      <path d="M6 6h10M6 11h10M6 16h6" stroke="var(--surface)" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-name">Plexor</span>
+  </a>
+  <span class="brand-tag">cluster prod-eu-1</span>
+  <button class="selector" type="button"><span class="selector-key">проект</span><span class="mono">default-project</span><span class="selector-caret">▾</span></button>
+  <button class="selector" type="button"><span class="selector-key">регион</span><span class="mono">eu-central-1</span><span class="selector-caret">▾</span></button>
+  <span class="topnav-spacer"></span>
+  <div class="topnav-right">
+    <button class="icon-btn md" aria-label="Уведомления"><svg viewBox="0 0 16 16" fill="none"><path d="M3 12h10l-1-2V7a4 4 0 1 0-8 0v3l-1 2Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+    <div class="avatar" title="Иван Петров">ИП</div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="sidebar" aria-label="Главная навигация">
+    <div class="sidebar-nav">
+      <a class="sidebar-link" href="01-vm-list.html" data-section="compute" data-tip="Compute · ВМ"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="04-network-vpc.html" data-section="network" data-tip="Network · VPC"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2C6 4 6 12 8 14" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="#" data-section="storage" data-tip="Storage · S3"><svg viewBox="0 0 16 16" fill="none"><ellipse cx="8" cy="4" rx="6" ry="2" stroke="currentColor" stroke-width="1.3"/><path d="M2 4v4c0 1.1 2.7 2 6 2s6-.9 6-2V4M2 8v4c0 1.1 2.7 2 6 2s6-.9 6-2V8" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="#" data-section="identity" data-tip="Identity · IAM"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1 2 3v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V3l-6-2Z" stroke="currentColor" stroke-width="1.3"/><path d="m5.5 8 2 2 3-3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="sidebar-link" href="05-billing-usage.html" data-section="billing" data-tip="Billing · Расход"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 6h12M5 11h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></a>
+      <a class="sidebar-link" href="06-audit-log.html" data-section="observability" data-tip="Observability · Аудит"><svg viewBox="0 0 16 16" fill="none"><path d="M2 13 5 9l3 3 6-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 5h5v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-footer">
+      <a class="sidebar-link" href="#" data-tip="Настройки"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></a>
+    </div>
+  </nav>
+
+  <main class="page">
+    <div class="bc-row">
+      <div class="bc">
+        <a class="bc-item" href="../index.html">Plexor</a>
+        <span class="bc-sep">/</span>
+        <a class="bc-item" href="#">default-project</a>
+        <span class="bc-sep">/</span>
+        <a class="bc-item" href="05-billing-usage.html">Billing</a>
+        <span class="bc-sep">/</span>
+        <span class="bc-item is-current">Использование</span>
+      </div>
+      <div class="bc-actions">
+        <a class="btn sm" href="#">Экспорт CSV</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="page-header">
+        <div>
+          <h1>Использование</h1>
+          <div class="page-subtitle">Период: июнь 2026 — по сегодня, 06 июля 2026</div>
+        </div>
+        <div class="page-meta">
+          <div class="cluster-switcher">
+            <span class="cs-pill" aria-pressed="false">день</span>
+            <span class="cs-pill" aria-pressed="false">неделя</span>
+            <span class="cs-pill" aria-pressed="true">месяц</span>
+            <span class="cs-pill" aria-pressed="false">квартал</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi">
+          <span class="kpi-label">Расход MTD</span>
+          <span class="kpi-value">₽ 41 560</span>
+          <span class="kpi-trend up">
+            <svg viewBox="0 0 12 12" fill="none"><path d="m3 8 3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            +12.4% к прошл. месяцу
+          </span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Прогноз к концу месяца</span>
+          <span class="kpi-value">₽ 78 440</span>
+          <span class="kpi-trend down">
+            <svg viewBox="0 0 12 12" fill="none"><path d="m3 4 3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            65% от бюджета
+          </span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Бюджет месяца</span>
+          <span class="kpi-value">₽ 120 000</span>
+          <span style="height: 6px; background: var(--surface-3); border-radius: 3px; overflow: hidden; margin-top: 4px;">
+            <span style="display: block; height: 100%; width: 35%; background: var(--ok); border-radius: 3px;"></span>
+          </span>
+          <span style="font-size: 11px; color: var(--muted); font-family: var(--font-mono);">использовано 35%</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Δ за день</span>
+          <span class="kpi-value">+ ₽ 1 240</span>
+          <span class="kpi-trend up">выше среднего на 28%</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Расход по дням · ₽</h2>
+          <span class="panel-meta">30 дней · обновляется раз в час</span>
+        </div>
+        <div class="chart-wrap">
+          <div class="bars" id="bars">
+            <div class="bar" style="height: 36%"></div>
+            <div class="bar" style="height: 42%"></div>
+            <div class="bar" style="height: 38%"></div>
+            <div class="bar" style="height: 45%"></div>
+            <div class="bar" style="height: 51%"></div>
+            <div class="bar" style="height: 60%"></div>
+            <div class="bar" style="height: 32%"></div>
+            <div class="bar" style="height: 28%"></div>
+            <div class="bar" style="height: 35%"></div>
+            <div class="bar" style="height: 39%"></div>
+            <div class="bar" style="height: 44%"></div>
+            <div class="bar" style="height: 47%"></div>
+            <div class="bar" style="height: 52%"></div>
+            <div class="bar" style="height: 60%"></div>
+            <div class="bar" style="height: 64%"></div>
+            <div class="bar" style="height: 56%"></div>
+            <div class="bar" style="height: 71%"></div>
+            <div class="bar" style="height: 68%"></div>
+            <div class="bar" style="height: 74%"></div>
+            <div class="bar" style="height: 58%"></div>
+            <div class="bar" style="height: 49%"></div>
+            <div class="bar" style="height: 41%"></div>
+            <div class="bar" style="height: 47%"></div>
+            <div class="bar" style="height: 53%"></div>
+            <div class="bar" style="height: 62%"></div>
+            <div class="bar" style="height: 70%"></div>
+            <div class="bar" style="height: 78%"></div>
+            <div class="bar" style="height: 81%"></div>
+            <div class="bar" style="height: 86%"></div>
+            <div class="bar is-today" style="height: 92%"></div>
+          </div>
+          <div class="bars-axis">
+            <span>07.06</span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span>12.06</span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span>17.06</span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span>22.06</span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span>27.06</span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span>02.07</span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span>06.07</span>
+          </div>
+          <div class="legend">
+            <span><span class="swatch" style="background: var(--accent);"></span>факт расхода</span>
+            <span><span class="swatch" style="background: oklch(45% 0.16 145); border: 1px solid var(--accent);"></span>сегодня</span>
+            <span style="margin-left:auto;">Медиана: ₽ 1 240 / день · Пик: ₽ 1 920 (05.07)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top: 16px;">
+        <div class="toolbar">
+          <div class="toolbar-group">
+            <span class="eyebrow">Сервис</span>
+            <button class="chip is-on" aria-pressed="true">Все</button>
+            <button class="chip" aria-pressed="false">Compute</button>
+            <button class="chip" aria-pressed="false">Network</button>
+            <button class="chip" aria-pressed="false">Object storage</button>
+            <button class="chip" aria-pressed="false">Backups</button>
+          </div>
+          <div class="toolbar-end">
+            <button class="btn">Колонки</button>
+          </div>
+        </div>
+
+        <table class="tbl tbl-compact">
+          <thead>
+            <tr>
+              <th>Сервис</th>
+              <th>Подписки</th>
+              <th class="num">Текущий расход</th>
+              <th class="num">За неделю</th>
+              <th class="num">За месяц</th>
+              <th class="num">Доля</th>
+              <th class="num">₽ / час</th>
+              <th>Δ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span style="font-weight: 500;">Compute · VM</span></td>
+              <td>13 ВМ</td>
+              <td class="num"><strong>₽ 28 460</strong></td>
+              <td class="num">₽ 6 320</td>
+              <td class="num">₽ 28 460</td>
+              <td class="num">68.5%</td>
+              <td class="num">39.5</td>
+              <td><span class="pill warn"><span class="dot"></span>+12%</span></td>
+            </tr>
+            <tr>
+              <td><span style="font-weight: 500;">Compute · GPU</span></td>
+              <td>2 ВМ (g5.xlarge)</td>
+              <td class="num"><strong>₽ 6 840</strong></td>
+              <td class="num">₽ 1 580</td>
+              <td class="num">₽ 6 840</td>
+              <td class="num">16.5%</td>
+              <td class="num">9.5</td>
+              <td><span class="pill idle"><span class="dot"></span>0%</span></td>
+            </tr>
+            <tr>
+              <td><span style="font-weight: 500;">Object storage</span></td>
+              <td>3 бакета · 1.4 TB</td>
+              <td class="num"><strong>₽ 2 980</strong></td>
+              <td class="num">₽ 720</td>
+              <td class="num">₽ 2 980</td>
+              <td class="num">7.2%</td>
+              <td class="num">4.1</td>
+              <td><span class="pill ok"><span class="dot"></span>−4%</span></td>
+            </tr>
+            <tr>
+              <td><span style="font-weight: 500;">Network egress</span></td>
+              <td>140 GB / день</td>
+              <td class="num"><strong>₽ 2 240</strong></td>
+              <td class="num">₽ 540</td>
+              <td class="num">₽ 2 240</td>
+              <td class="num">5.4%</td>
+              <td class="num">3.1</td>
+              <td><span class="pill warn"><span class="dot"></span>+8%</span></td>
+            </tr>
+            <tr>
+              <td><span style="font-weight: 500;">Snapshots & backups</span></td>
+              <td>14 снапшотов</td>
+              <td class="num"><strong>₽ 780</strong></td>
+              <td class="num">₽ 180</td>
+              <td class="num">₽ 780</td>
+              <td class="num">1.9%</td>
+              <td class="num">1.1</td>
+              <td><span class="pill idle"><span class="dot"></span>0%</span></td>
+            </tr>
+            <tr>
+              <td><span style="font-weight: 500;">NAT gateway</span></td>
+              <td>1 шт · 12 GB/день</td>
+              <td class="num"><strong>₽ 260</strong></td>
+              <td class="num">₽ 60</td>
+              <td class="num">₽ 260</td>
+              <td class="num">0.6%</td>
+              <td class="num">0.4</td>
+              <td><span class="pill ok"><span class="dot"></span>−2%</span></td>
+            </tr>
+            <tr class="is-selected">
+              <td><span style="font-weight: 500;">Load balancer</span></td>
+              <td>2 L4 · 1 L7</td>
+              <td class="num"><strong>₽ 0</strong></td>
+              <td class="num">₽ 0</td>
+              <td class="num">₽ 0</td>
+              <td class="num">0%</td>
+              <td class="num">0</td>
+              <td><span class="pill idle"><span class="dot"></span>не выбрано</span></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="background: var(--surface-3);">
+              <td colspan="2" style="font-weight: 500;">Итого</td>
+              <td class="num" style="font-weight: 600; font-family: var(--font-mono);">₽ 41 560</td>
+              <td class="num" style="color: var(--muted);">₽ 9 400</td>
+              <td class="num" style="color: var(--muted);">₽ 41 560</td>
+              <td class="num">100%</td>
+              <td class="num">57.7</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div style="margin-top: 16px; padding: 12px 16px; background: var(--surface-3); border-radius: 4px; font-size: 12px; color: var(--muted);">
+        Прогноз пересчитывается раз в час с использованием текущего темпа расхода за последние 7 дней. Бюджеты и алерты настраиваются в <a href="#" style="color: var(--fg-2); text-decoration: underline;">разделе алертов</a>.
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // Local bar tooltip
+  document.querySelectorAll('#bars .bar').forEach(function (bar) {
+    bar.addEventListener('mouseenter', function (e) {
+      const v = ['₽ 920', '₽ 1 040', '₽ 980', '₽ 1 110', '₽ 1 240', '₽ 1 380', '₽ 820', '₽ 740', '₽ 880',
+        '₽ 960', '₽ 1 080', '₽ 1 160', '₽ 1 250', '₽ 1 380', '₽ 1 460', '₽ 1 320',
+        '₽ 1 560', '₽ 1 490', '₽ 1 610', '₽ 1 380', '₽ 1 200', '₽ 1 020', '₽ 1 130',
+        '₽ 1 280', '₽ 1 420', '₽ 1 540', '₽ 1 700', '₽ 1 780', '₽ 1 870', '₽ 1 920'];
+      const idx = [...bar.parentNode.children].indexOf(bar);
+      bar.style.position = 'relative';
+      let tip = bar.querySelector('.tip');
+      if (!tip) {
+        tip = document.createElement('div');
+        tip.className = 'tip';
+        tip.style.cssText = 'position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: oklch(20% 0.02 240); color: white; padding: 6px 10px; border-radius: 3px; font-family: var(--font-mono); font-size: 11px; white-space: nowrap; z-index: 10; pointer-events: none;';
+        bar.appendChild(tip);
+      }
+      tip.textContent = (v[idx] || '₽ —') + ' · 0' + (idx + 7 > 30 ? 0 : idx + 7) + '.07';
+    });
+  });
+</script>
+<script src="../app.js"></script>
+</body>
+</html>

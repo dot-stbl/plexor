@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Plexor.Build.Tools — solution-level build hooks.
+
+    This project does NOT produce a DLL. Its purpose is to host the
+    Plexor.Build.Tools.targets file (format gate + anti-pattern gate) and
+    ensure the targets fire exactly once per solution build (because the
+    project is built once, at the top of MSBuild's topological order — it
+    has no ProjectReferences).
+
+    Key tricks:
+      EnableDefaultCompileItems=false → no .cs files picked up
+      IncludeBuildOutput=false        → no .dll emitted
+      NoWarn=CS5001;CS1591            → no Main / no XML doc expected
+      <Import Project="Plexor.Build.Tools.targets"/> → hosts the targets
+
+    Why this matters: putting VerifyFormatOnBuild in Directory.Build.targets
+    would fire it 49 times (once per project in the solution). Putting it
+    here fires it once.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoWarn>$(NoWarn);CS5001;CS1591</NoWarn>
+  </PropertyGroup>
+
+  <Import Project="Plexor.Build.Tools.targets"/>
+
+</Project>

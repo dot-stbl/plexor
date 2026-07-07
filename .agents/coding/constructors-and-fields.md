@@ -1,0 +1,210 @@
+---
+description: c# primary constructors, fields, file static constants — конструкторы и поля
+globs: ["**/*.cs"]
+always: true
+---
+
+# Primary constructors, fields, constants
+
+Этот файл — правила для конструкторов, полей и констант. Naming/sealed/records — в `naming-and-types.md`. Pattern matching / var / braces — в `code-shape.md`.
+
+## Primary constructors — REQUIRED для DI-классов
+
+**Default:** primary constructor для всех DI-классов, сервисов, контроллеров,
+репозиториев, worker'ов.
+
+**Исключения (только эти):**
+1. Нужна валидация параметров в конструкторе.
+2. Side-effects в конструкторе (singleton init).
+3. Интерфейсная иерархия с разными ctor'ами (наследник выбирает base-ctor).
+
+**Параметр primary constructor — это уже поле. Не дублируй в `private readonly`.**
+Параметр разворачивается в скрытое backing-поле, доступен по имени в любом
+методе. Создавать отдельное поле (с подчёркиванием или без) и копировать
+значение — двойное хранение без выгоды.
+
+```csharp
+// ✅ Correct — primary constructor, обращение по имени параметра
+public sealed class UserService(IUserRepository repository, ILogger<UserService> logger)
+{
+    public Task<User?> GetAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return repository.GetByIdAsync(id, cancellationToken);
+    }
+}
+
+// ❌ Wrong — primary ctor + дублирующее поле
+public sealed class UserService(
+    IUserRepository repository,
+    ILogger<UserService> logger)
+{
+    private readonly IUserRepository repository = repository; // ← дубликат
+    private readonly ILogger<UserService> _logger = logger;   // ← дубликат
+}
+
+// ❌ Wrong — explicit ctor + private readonly + xml-doc на ctor
+public sealed class UserService : IUserService
+{
+    private readonly IUserRepository _repository;
+    private readonly ILogger<UserService> _logger;
+    /// <summary>Constructs a new UserService.</summary>
+    public UserService(IUserRepository repository, ILogger<UserService> logger) { ... }
+}
+```
+
+`private readonly` остаётся **только** когда:
+- нужна **мутируемая** внутренняя мутация (`private int counter`),
+- значение **производное** от параметра (кеш, precompiled regex),
+- поле **не из primary ctor** (сетится обычным методом).
+
+**Enforcement:** convention + code review. Нет analyzer для дублирующих полей.
+**Test:** при виде `private readonly X _x = primaryCtorParam` — удалить поле.
+
+### `<remarks>` для однострочного описания ctor
+
+Когда primary constructor нуждается в пояснении — `<remarks>` на классе,
+не `<summary>` на конструкторе.
+
+```csharp
+/// <summary>OTel-backed counter wrapping <see cref="Counter{T}" />.</summary>
+/// <remarks>Constructs from an OTel <see cref="Counter{T}" /> instance.</remarks>
+public sealed class OpenTelemetryCounter(Counter<double> counter) : ITelemetryCounter
+{
+    public void Add(double value) => counter.Add(value);
+}
+```
+
+### Pyramid Rule (short → long)
+
+Параметры primary constructor сортируются **по длине типа: короткий → длинный**.
+
+```csharp
+// ✅ Correct — IUserRepository (короче) первым
+public sealed class UserService(IUserRepository repository, ILogger<UserService> logger) { ... }
+
+// ❌ Wrong — порядок нарушен
+public sealed class UserService(ILogger<UserService> logger, IUserRepository repository) { ... }
+```
+
+При равной длине — алфавитный порядок.
+
+---
+
+## Private fields — NO underscore prefix
+
+**Предпочитай auto-properties или primary constructor.**
+
+Поле без подчёркивания — только если нужна custom-логика геттера/сеттера
+или поле нельзя выразить через primary constructor.
+
+```csharp
+// ✅ Best — primary constructor (см. выше)
+
+// ✅ Auto-property когда нужно
+public sealed class UserService
+{
+    public ILogger<UserService> Logger { get; }
+}
+
+// ✅ Private field без подчёркивания — если нужна custom-логика
+public sealed class Counter
+{
+    private int currentValue;
+
+    public int Increment() => Interlocked.Increment(ref currentValue);
+}
+
+// ❌ Wrong
+private readonly string _someValue;
+```
+
+---
+
+## Constants — `file static class`, не `public const` на классе поведения
+
+Строковые идентификаторы (имена кук, хедеров, секций конфига, ключей
+options, префиксов схем) живут в `file static class <Name>Constants` в том
+же файле, где используются.
+
+```csharp
+// MyFilter.cs
+file static class MyFilterConstants
+{
+    public const string HeaderName = "X-My-Header";
+    public const string CookieName = "my.cookie";
+    public const string BearerPrefix = "Bearer ";
+}
+
+public sealed class MyFilter : IFilterMetadata
+{
+    public async Task OnExecutionAsync(/* ... */)
+    {
+        if (request.Headers.Authorization.ToString()
+            .StartsWith(MyFilterConstants.BearerPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            // ...
+        }
+    }
+}
+```
+
+**Почему:**
+1. Константа не торчит на классе, который про другое.
+2. File-scope не даёт зацепиться извне (`using static` не работает на file).
+3. Парные константы (cookie + header) — в одном `file static class`.
+4. Точный blast radius при рефакторинге.
+
+**Когда `file static class`:**
+- Имя cookie / header (antiforgery, auth, telemetry).
+- Префиксы схем (`Bearer `).
+- Имя секции конфига (`Auth:Cookie`).
+- Ключ options.
+- Любая wire-format строка.
+
+**Когда обычный `public const` / enum:**
+- Публичный API-контракт (breaking change при правке).
+- Enum-члены (`AuthSchemes.Cookie`).
+- Магические числа без строковой семантики.
+- Доменные константы (`MaxRetryCount = 5`).
+
+**C# 11+** разрешает несколько `file static class` с одинаковым именем в
+разных файлах — каждый `file` ограничивает область одним файлом.
+
+```csharp
+// MyFilter.cs
+file static class MyFilterConstants { public const string BearerPrefix = "Bearer "; }
+
+// MyOptions.cs
+file static class MyFilterConstants { public const string HeaderName = "X-My-Header"; }
+```
+
+### Anti-patterns
+
+```csharp
+// ❌ Wrong — public const на классе поведения
+public sealed class AntiforgeryFilter : IFilterMetadata
+{
+    public const string HeaderName = "RequestVerificationToken"; // торчит наружу
+    public const string CookieName = "hybrid.xsrf";
+}
+
+// ❌ Wrong — общий Constants.cs на полпроекта
+internal static class Constants
+{
+    public const string AntiforgeryCookieName = "hybrid.xsrf";
+    public const string AuthHeaderName = "Authorization";
+    public const string OutboxPollInterval = "2000";
+    // 40 полей, 5 модулей, непонятно кто меняет
+}
+
+// ❌ Wrong — литерал в коде
+if (request.Headers.Authorization.ToString().StartsWith("Bearer ", ...));
+```
+
+---
+
+## Связанные правила
+
+- `naming-and-types.md` — naming, sealed, record vs class, type references
+- `code-shape.md` — pattern matching, var, braces, no #region, no ThrowIfNull
+- `anti-patterns.md` — JsonSerializerOptions (тоже про константы)

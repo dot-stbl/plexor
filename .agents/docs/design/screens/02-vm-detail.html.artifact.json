@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "screens/02-vm-detail.html",
+  "entry": "screens/02-vm-detail.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-07-07T15:11:29.246Z",
+  "updatedAt": "2026-07-07T15:11:29.246Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

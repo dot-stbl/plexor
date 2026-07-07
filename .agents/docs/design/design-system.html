@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Дизайн-система · Plexor</title>
+<!-- Тему применяем до первого кадра, чтобы не мигало -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('plexor-theme');
+      var dark = t ? t === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+    } catch (e) {}
+  })();
+</script>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  .ds-shell { display: grid; grid-template-columns: 208px 1fr; align-items: start; }
+
+  .ds-toc {
+    position: sticky; top: var(--topnav-h);
+    height: calc(100vh - var(--topnav-h)); overflow: auto;
+    border-right: 1px solid var(--border); background: var(--surface);
+    padding: var(--s-5) var(--s-4);
+  }
+  .ds-toc .toc-group { margin-bottom: var(--s-5); }
+  .ds-toc .toc-title { font-size: var(--fs-11); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; margin-bottom: var(--s-3); }
+  .ds-toc a { display: block; padding: 5px 8px; border-radius: var(--radius); color: var(--fg-2); font-size: var(--fs-13); }
+  .ds-toc a:hover { background: var(--surface-2); color: var(--fg); }
+
+  .ds-content { padding: var(--s-7) var(--s-8) 120px; max-width: 1060px; min-width: 0; }
+
+  .ds-hero { margin-bottom: var(--s-8); }
+  .ds-hero h1 { font-size: var(--fs-28); font-weight: 600; letter-spacing: -0.02em; margin: 0 0 var(--s-3); line-height: 1.15; }
+  .ds-hero p { color: var(--muted); font-size: var(--fs-15); max-width: 660px; margin: 0; line-height: 1.55; }
+
+  .ds-principles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); margin-top: var(--s-6); }
+  .ds-principle { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--s-4); background: var(--surface); }
+  .ds-principle .p-k { font-size: var(--fs-13); font-weight: 600; margin-bottom: 4px; }
+  .ds-principle .p-v { font-size: var(--fs-12); color: var(--muted); line-height: 1.5; }
+
+  .ds-section { margin-top: var(--s-8); scroll-margin-top: calc(var(--topnav-h) + 12px); }
+  .sec-head { display: flex; align-items: baseline; gap: var(--s-3); margin-bottom: var(--s-5); padding-bottom: var(--s-3); border-bottom: 1px solid var(--border-2); }
+  .sec-head h2 { font-size: var(--fs-18); font-weight: 600; margin: 0; letter-spacing: -0.012em; }
+  .sec-head .sec-note { color: var(--muted); font-size: var(--fs-12); margin-left: auto; }
+
+  .ds-block { margin-bottom: var(--s-7); }
+  .ds-block > h3 { font-size: var(--fs-13); font-weight: 600; margin: 0 0 var(--s-4); color: var(--fg-2); }
+
+  .demo { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); padding: var(--s-6); }
+  .demo + .demo { margin-top: var(--s-3); }
+  .demo-row { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: center; }
+  .demo-stack { display: flex; flex-direction: column; gap: var(--s-4); max-width: 420px; }
+  .demo-cap { font-size: var(--fs-11); color: var(--muted); font-family: var(--font-mono); margin-bottom: var(--s-4); }
+
+  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(184px, 1fr)); gap: var(--s-3); }
+  .swatch { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+  .swatch .sw-chip { height: 52px; border-bottom: 1px solid var(--border); }
+  .swatch .sw-meta { padding: var(--s-3); }
+  .swatch .sw-name { font-size: var(--fs-12); font-weight: 600; font-family: var(--font-mono); }
+  .swatch .sw-val { font-size: var(--fs-10); color: var(--muted); font-family: var(--font-mono); margin-top: 3px; }
+  .swatch .sw-use { font-size: var(--fs-11); color: var(--muted); margin-top: 6px; line-height: 1.4; }
+
+  .type-row { display: grid; grid-template-columns: 120px 1fr; gap: var(--s-5); align-items: baseline; padding: var(--s-4) 0; border-bottom: 1px solid var(--border); }
+  .type-row:last-child { border-bottom: 0; }
+  .type-row .t-meta { font-family: var(--font-mono); font-size: var(--fs-11); color: var(--muted); }
+  .type-row .t-meta b { display: block; color: var(--fg-2); font-size: var(--fs-12); }
+  .type-row .t-sample { color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .space-row { display: grid; grid-template-columns: 128px 1fr; gap: var(--s-4); align-items: center; padding: 5px 0; }
+  .space-row .s-name { font-family: var(--font-mono); font-size: var(--fs-12); color: var(--muted); }
+  .space-bar { height: 12px; background: var(--accent); border-radius: 2px; }
+
+  .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--s-3); }
+  .spec-tile { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--s-4); background: var(--surface); }
+  .spec-tile .st-demo { height: 52px; display: flex; align-items: center; justify-content: center; margin-bottom: var(--s-3); }
+  .spec-tile .st-name { font-size: var(--fs-12); font-weight: 600; font-family: var(--font-mono); }
+  .spec-tile .st-val { font-size: var(--fs-11); color: var(--muted); font-family: var(--font-mono); margin-top: 2px; }
+
+  .box-demo { width: 64px; height: 40px; background: var(--surface-3); border: 1px solid var(--border-2); }
+
+  .rule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .rule { border: 1px solid var(--border); border-radius: var(--radius); padding: var(--s-4); background: var(--surface); font-size: var(--fs-13); }
+  .rule .r-head { display: flex; align-items: center; gap: var(--s-2); font-weight: 600; margin-bottom: var(--s-3); font-family: var(--font-mono); font-size: var(--fs-12); text-transform: uppercase; letter-spacing: 0.05em; }
+  .rule.good .r-head { color: var(--ok); }
+  .rule.bad .r-head { color: var(--err); }
+  .rule ul { margin: 0; padding-left: 18px; color: var(--fg-2); }
+  .rule li { margin-bottom: 7px; line-height: 1.45; }
+  .rule li:last-child { margin-bottom: 0; }
+  .rule code { font-family: var(--font-mono); font-size: var(--fs-12); color: var(--muted); }
+
+  .note {
+    border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-3);
+    padding: var(--s-4) var(--s-5); font-size: var(--fs-13); color: var(--fg-2); line-height: 1.55;
+  }
+  .note b { color: var(--fg); }
+
+  @media (max-width: 940px) {
+    .ds-shell { grid-template-columns: 1fr; }
+    .ds-toc { display: none; }
+    .ds-content { padding: var(--s-5); }
+    .ds-principles { grid-template-columns: 1fr; }
+    .rule-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── Topnav ─── -->
+<header class="topnav">
+  <a href="index.html" class="brand" data-od-id="brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <rect width="22" height="22" rx="4" fill="currentColor"/>
+      <path d="M6 6h10M6 11h10M6 16h6" stroke="var(--surface)" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-name">Plexor</span>
+  </a>
+  <span class="brand-tag">design system</span>
+
+  <span class="topnav-spacer"></span>
+
+  <div class="topnav-right">
+    <button class="btn ghost" type="button" data-theme-toggle aria-pressed="false" aria-label="Переключить тему" data-od-id="theme-toggle">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13.2 9.4A5.5 5.5 0 0 1 6.6 2.8 5.5 5.5 0 1 0 13.2 9.4Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+      <span data-theme-label>Светлая</span>
+    </button>
+    <a class="icon-btn md" href="index.html" aria-label="К экранам прототипа" title="К экранам">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3.5" width="5" height="9" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="3.5" width="5" height="9" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
+    </a>
+    <div class="avatar" title="Дизайн-система Plexor">DS</div>
+  </div>
+</header>
+
+<div class="ds-shell">
+
+  <!-- ─── TOC ─── -->
+  <nav class="ds-toc" aria-label="Содержание">
+    <div class="toc-group">
+      <div class="toc-title">Основы</div>
+      <a href="#colors">Цвет</a>
+      <a href="#type">Типографика</a>
+      <a href="#space">Отступы</a>
+      <a href="#shape">Радиусы · тени · движение</a>
+    </div>
+    <div class="toc-group">
+      <div class="toc-title">Компоненты</div>
+      <a href="#buttons">Кнопки</a>
+      <a href="#inputs">Поля ввода</a>
+      <a href="#status">Статусы и теги</a>
+      <a href="#tabs">Табы</a>
+      <a href="#filters">Фильтры</a>
+      <a href="#table">Таблица</a>
+      <a href="#kpi">KPI-карточки</a>
+      <a href="#wizard">Степпер</a>
+      <a href="#drawer">Дровер</a>
+      <a href="#console">Консоль · KV</a>
+    </div>
+    <div class="toc-group">
+      <div class="toc-title">Паттерны</div>
+      <a href="#states">Состояния</a>
+      <a href="#voice">Голос и микрокопия</a>
+    </div>
+  </nav>
+
+  <!-- ─── Content ─── -->
+  <main class="ds-content">
+
+    <section class="ds-hero" data-od-id="ds-hero">
+      <h1>Дизайн-система Plexor</h1>
+      <p>Живой справочник консоли self-hosted облака. Одно направление — <b>tech / utility</b>: плотная сетка, тонкие бордеры, моноширинные числа, монохромная палитра и только статусные цвета. Всё на этой странице собрано из того же <code class="code">styles.css</code>, что и экраны прототипа — правки в токенах отражаются здесь автоматически.</p>
+
+      <div class="ds-principles">
+        <div class="ds-principle">
+          <div class="p-k">Плотность — это фича</div>
+          <div class="p-v">Больше информации на экран, меньше украшений. Dmitriy читает таблицу, а не любуется ей.</div>
+        </div>
+        <div class="ds-principle">
+          <div class="p-k">Монохром + статусы</div>
+          <div class="p-v">Серая шкала как база. Зелёный / красный / жёлтый — только для смысла: running, error, paused.</div>
+        </div>
+        <div class="ds-principle">
+          <div class="p-k">Числа — моноширинные</div>
+          <div class="p-v">IP, ID, метрики, деньги — JetBrains Mono с табличными цифрами. Колонки выравниваются сами.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ COLOR ══════════ -->
+    <section class="ds-section" id="colors" data-od-id="section-colors">
+      <div class="sec-head">
+        <h2>Цвет</h2>
+        <span class="sec-note">монохром + 4 статуса · OKLch</span>
+      </div>
+
+      <div class="ds-block">
+        <h3>Поверхности</h3>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="sw-chip" style="background:var(--bg)"></div><div class="sw-meta"><div class="sw-name">--bg</div><div class="sw-val">98% .005 250</div><div class="sw-use">Фон страницы</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--surface)"></div><div class="sw-meta"><div class="sw-name">--surface</div><div class="sw-val">100% 0 0</div><div class="sw-use">Панели, карточки, таблицы</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--surface-2)"></div><div class="sw-meta"><div class="sw-name">--surface-2</div><div class="sw-val">97% .006 250</div><div class="sw-use">Hover, выбранная строка</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--surface-3)"></div><div class="sw-meta"><div class="sw-name">--surface-3</div><div class="sw-val">95% .008 250</div><div class="sw-use">Шапки таблиц, sticky-строки</div></div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Текст</h3>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="sw-chip" style="background:var(--fg)"></div><div class="sw-meta"><div class="sw-name">--fg</div><div class="sw-val">22% .02 240</div><div class="sw-use">Основной текст</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--fg-2)"></div><div class="sw-meta"><div class="sw-name">--fg-2</div><div class="sw-val">35% .018 240</div><div class="sw-use">Заголовки блоков, метки полей</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--muted)"></div><div class="sw-meta"><div class="sw-name">--muted</div><div class="sw-val">50% .018 240</div><div class="sw-use">Подписи, метаданные</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--muted-2)"></div><div class="sw-meta"><div class="sw-name">--muted-2</div><div class="sw-val">65% .014 240</div><div class="sw-use">Плейсхолдеры, каретки</div></div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Границы</h3>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="sw-chip" style="background:var(--border)"></div><div class="sw-meta"><div class="sw-name">--border</div><div class="sw-val">91% .008 240</div><div class="sw-use">Разделители по умолчанию</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--border-2)"></div><div class="sw-meta"><div class="sw-name">--border-2</div><div class="sw-val">85% .008 240</div><div class="sw-use">Усиленные границы, ховер полей</div></div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Статусы</h3>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="sw-chip" style="background:var(--ok)"></div><div class="sw-meta"><div class="sw-name">--ok</div><div class="sw-val">58% .16 145</div><div class="sw-use">running · success · CTA</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--err)"></div><div class="sw-meta"><div class="sw-name">--err</div><div class="sw-val">58% .20 25</div><div class="sw-use">error · stopped · удаление</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--warn)"></div><div class="sw-meta"><div class="sw-name">--warn</div><div class="sw-val">72% .15 75</div><div class="sw-use">paused · pending</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--idle)"></div><div class="sw-meta"><div class="sw-name">--idle</div><div class="sw-val">60% .008 240</div><div class="sw-use">neutral · выключено</div></div></div>
+        </div>
+      </div>
+
+      <div class="note" data-od-id="accent-note">
+        <b>Один акцент.</b> Первичное действие использует тот же зелёный тон, что и статус <code class="code">ok</code>. Так у консоли ровно один «активный» цвет. Если решим, что CTA не должен нести смысл «успех», сделаем первичную кнопку монохромной (тёмная заливка) и оставим зелёный строго под статус — это правка одного токена <code class="code">--accent</code>.
+      </div>
+    </section>
+
+    <!-- ══════════ TYPOGRAPHY ══════════ -->
+    <section class="ds-section" id="type" data-od-id="section-type">
+      <div class="sec-head">
+        <h2>Типографика</h2>
+        <span class="sec-note">system-sans · JetBrains Mono</span>
+      </div>
+
+      <div class="ds-block">
+        <h3>Гарнитуры</h3>
+        <div class="demo demo-row" style="gap: var(--s-8)">
+          <div>
+            <div class="demo-cap">--font-sans · Onest · интерфейс</div>
+            <div style="font-size: var(--fs-22); font-weight: 600; letter-spacing: -0.015em;">Provision VM in 30 seconds</div>
+            <div style="color: var(--muted);">Мягкий гротеск для UI — спокойный, без маркетинга.</div>
+          </div>
+          <div>
+            <div class="demo-cap">--font-mono · JetBrains Mono · данные</div>
+            <div class="mono" style="font-size: var(--fs-22); font-weight: 500;">10.128.4.21</div>
+            <div class="mono" style="color: var(--muted);">vm-a8c91f2e · $1.20/hr</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Три веса</h3>
+        <div class="demo demo-row" style="gap: var(--s-8)">
+          <div><div class="demo-cap">400 · текст</div><div style="font-size: var(--fs-18); font-weight: 400;">Обычный текст интерфейса</div></div>
+          <div><div class="demo-cap">500 · UI / акцент</div><div style="font-size: var(--fs-18); font-weight: 500;">Метки, кнопки, ссылки</div></div>
+          <div><div class="demo-cap">600 · заголовки</div><div style="font-size: var(--fs-18); font-weight: 600; letter-spacing: -0.01em;">Заголовки и числа</div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Шкала кеглей</h3>
+        <div class="demo">
+          <div class="type-row"><div class="t-meta"><b>28px</b> --fs-28 · 1.15</div><div class="t-sample" style="font-size:var(--fs-28); font-weight:600; letter-spacing:-0.02em;">Заголовок раздела</div></div>
+          <div class="type-row"><div class="t-meta"><b>22px</b> --fs-22 · 1.2</div><div class="t-sample" style="font-size:var(--fs-22); font-weight:600; letter-spacing:-0.015em;">Заголовок страницы · метрика</div></div>
+          <div class="type-row"><div class="t-meta"><b>18px</b> --fs-18</div><div class="t-sample" style="font-size:var(--fs-18); font-weight:600;">Заголовок панели</div></div>
+          <div class="type-row"><div class="t-meta"><b>16px</b> --fs-16</div><div class="t-sample" style="font-size:var(--fs-16); font-weight:500;">Акцентный текст в блоке</div></div>
+          <div class="type-row"><div class="t-meta"><b>15px</b> --fs-15</div><div class="t-sample" style="font-size:var(--fs-15);">Вводный абзац, лид</div></div>
+          <div class="type-row"><div class="t-meta"><b>13px</b> --fs-13 · база</div><div class="t-sample" style="font-size:var(--fs-13);">Основной текст интерфейса — размер по умолчанию</div></div>
+          <div class="type-row"><div class="t-meta"><b>12px</b> --fs-12</div><div class="t-sample" style="font-size:var(--fs-12); color:var(--muted);">Микрокопия, значения полей</div></div>
+          <div class="type-row"><div class="t-meta"><b>11px</b> --fs-11</div><div class="t-sample eyebrow" style="font-size:var(--fs-11);">EYEBROW · ЗАГОЛОВКИ КОЛОНОК</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ SPACING ══════════ -->
+    <section class="ds-section" id="space" data-od-id="section-space">
+      <div class="sec-head">
+        <h2>Отступы</h2>
+        <span class="sec-note">сетка 4px, плотная</span>
+      </div>
+      <div class="demo">
+        <div class="space-row"><span class="s-name">--s-1 · 2px</span><div class="space-bar" style="width:2px"></div></div>
+        <div class="space-row"><span class="s-name">--s-2 · 4px</span><div class="space-bar" style="width:4px"></div></div>
+        <div class="space-row"><span class="s-name">--s-3 · 8px</span><div class="space-bar" style="width:8px"></div></div>
+        <div class="space-row"><span class="s-name">--s-4 · 12px</span><div class="space-bar" style="width:12px"></div></div>
+        <div class="space-row"><span class="s-name">--s-5 · 16px</span><div class="space-bar" style="width:16px"></div></div>
+        <div class="space-row"><span class="s-name">--s-6 · 20px</span><div class="space-bar" style="width:20px"></div></div>
+        <div class="space-row"><span class="s-name">--s-7 · 24px</span><div class="space-bar" style="width:24px"></div></div>
+        <div class="space-row"><span class="s-name">--s-8 · 32px</span><div class="space-bar" style="width:32px"></div></div>
+      </div>
+    </section>
+
+    <!-- ══════════ SHAPE ══════════ -->
+    <section class="ds-section" id="shape" data-od-id="section-shape">
+      <div class="sec-head">
+        <h2>Радиусы · тени · движение</h2>
+      </div>
+
+      <div class="ds-block">
+        <h3>Радиусы — мягкие, без прямых углов</h3>
+        <div class="spec-grid">
+          <div class="spec-tile"><div class="st-demo"><div class="box-demo" style="border-radius:var(--radius-sm)"></div></div><div class="st-name">--radius-sm</div><div class="st-val">6px · теги, kbd, код</div></div>
+          <div class="spec-tile"><div class="st-demo"><div class="box-demo" style="border-radius:var(--radius)"></div></div><div class="st-name">--radius</div><div class="st-val">8px · кнопки, поля, чипы</div></div>
+          <div class="spec-tile"><div class="st-demo"><div class="box-demo" style="border-radius:var(--radius-lg)"></div></div><div class="st-name">--radius-lg</div><div class="st-val">12px · панели, карточки, KPI</div></div>
+          <div class="spec-tile"><div class="st-demo"><div class="box-demo" style="width:40px;border-radius:var(--radius-pill)"></div></div><div class="st-name">--radius-pill</div><div class="st-val">999px · чипы, пилюли статуса</div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Тени — только для плавающего UI</h3>
+        <div class="spec-grid">
+          <div class="spec-tile"><div class="st-demo"><div class="box-demo" style="box-shadow:var(--sh-1); border-color:transparent"></div></div><div class="st-name">--sh-1</div><div class="st-val">поповеры, дропдауны</div></div>
+          <div class="spec-tile"><div class="st-demo"><div class="box-demo" style="box-shadow:var(--sh-2); border-color:transparent"></div></div><div class="st-name">--sh-2</div><div class="st-val">дроверы, модалки</div></div>
+          <div class="spec-tile"><div class="st-demo" style="color:var(--muted); font-size:var(--fs-12)">без тени</div><div class="st-name">плоский UI</div><div class="st-val">таблицы, панели — только бордер</div></div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Движение</h3>
+        <div class="demo demo-row">
+          <span class="demo-cap" style="margin:0">Наведи — переход по токену:</span>
+          <button class="btn" style="transition: background var(--t-fast)">--t-fast · 80ms</button>
+          <button class="btn" style="transition: background var(--t-base)">--t-base · 140ms</button>
+          <span style="color:var(--muted); font-size:var(--fs-12)">Уважаем <code class="code">prefers-reduced-motion</code>.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ BUTTONS ══════════ -->
+    <section class="ds-section" id="buttons" data-od-id="section-buttons">
+      <div class="sec-head">
+        <h2>Кнопки и управление</h2>
+        <span class="sec-note">одно первичное действие · деструктив отдельно</span>
+      </div>
+
+      <div class="ds-block">
+        <h3>Иерархия действий</h3>
+        <div class="demo">
+          <div class="demo-cap">Одно первичное действие на экран — самое правое и сильное. Вторичное рядом нейтральное.</div>
+          <div class="demo-row" style="justify-content: flex-end;">
+            <button class="btn">Экспорт</button>
+            <button class="btn primary" data-od-id="btn-primary">
+              <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Создать ВМ
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Панель инструментов · визуальная группировка</h3>
+        <div class="demo" style="padding:0; background:var(--surface); overflow:hidden;">
+          <div class="toolbar" style="border-bottom:0;">
+            <div class="toolbar-group">
+              <div class="btn-group" role="group" aria-label="Вид">
+                <button class="btn sm is-active" aria-pressed="true">Таблица</button>
+                <button class="btn sm" aria-pressed="false">Карточки</button>
+                <button class="btn sm" aria-pressed="false">Граф</button>
+              </div>
+            </div>
+            <div class="toolbar-group">
+              <button class="icon-btn" aria-label="Обновить"><svg viewBox="0 0 16 16" fill="none"><path d="M13 8a5 5 0 1 1-1.5-3.5L13 3M13 3v3h-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="icon-btn" aria-label="Фильтры"><svg viewBox="0 0 16 16" fill="none"><path d="M2 3h12L9.5 8.5v4.5L6.5 12V8.5L2 3Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></button>
+              <button class="icon-btn" aria-label="Колонки"><svg viewBox="0 0 16 16" fill="none"><path d="M3 5h10M5 8h6M7 11h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+            </div>
+            <div class="toolbar-end">
+              <span class="pill idle"><span class="dot"></span>выбрано 2</span>
+              <button class="btn danger sm">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V3h4v1M5 4l1 9h4l1-9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Удалить
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="demo-cap" style="margin-top:var(--s-3)">Группы разделены тонкой линией. Тертичные действия — иконки. Деструктив вынесен вправо и подсвечен красным — не стоит рядом с «Создать».</div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Варианты</h3>
+        <div class="demo">
+          <div class="demo-row">
+            <button class="btn primary">Primary</button>
+            <button class="btn">Secondary</button>
+            <button class="btn ghost">Ghost</button>
+            <button class="btn danger">Danger</button>
+            <button class="btn danger-solid">Удалить навсегда</button>
+            <button class="btn" disabled>Disabled</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Размеры · иконочные кнопки</h3>
+        <div class="demo demo-row" style="gap: var(--s-8)">
+          <div class="demo-row">
+            <button class="btn sm">sm · 24</button>
+            <button class="btn">md · 28</button>
+            <button class="btn lg">lg · 32</button>
+          </div>
+          <div class="demo-row">
+            <button class="icon-btn md" aria-label="Ещё"><svg viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="13" cy="8" r="1.2" fill="currentColor"/></svg></button>
+            <button class="icon-btn md primary" aria-label="Запустить" title="Наведи — зелёный"><svg viewBox="0 0 16 16" fill="none"><path d="M5 3.5v9l7-4.5-7-4.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></button>
+            <button class="icon-btn md danger" aria-label="Удалить" title="Наведи — красный"><svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V3h4v1M5 4l1 9h4l1-9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ INPUTS ══════════ -->
+    <section class="ds-section" id="inputs" data-od-id="section-inputs">
+      <div class="sec-head">
+        <h2>Поля ввода</h2>
+        <span class="sec-note">высота 28px · фокус-ринг зелёный</span>
+      </div>
+      <div class="demo">
+        <div class="demo-stack">
+          <div class="field">
+            <label for="f-name">Имя ВМ</label>
+            <input class="input" id="f-name" type="text" value="vm-prod-07" />
+            <span class="field-hint">Строчные буквы, цифры и дефис. До 63 символов.</span>
+          </div>
+
+          <div class="field">
+            <label for="f-search">Поиск</label>
+            <div class="input-wrap" style="width:100%">
+              <svg class="input-search-icon" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="m11 11 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <input class="input is-search" id="f-search" type="search" placeholder="Найти ВМ, IP, тег…" style="width:100%" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="f-zone">Зона доступности</label>
+            <div class="select-wrap" style="width:100%">
+              <select class="select" id="f-zone" style="width:100%">
+                <option>eu-central-1-a</option>
+                <option>eu-central-1-b</option>
+                <option>eu-central-1-c</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="f-cidr">CIDR подсети</label>
+            <input class="input mono" id="f-cidr" type="text" value="10.128.20.0/24" aria-invalid="true" style="border-color:var(--err)" />
+            <span class="field-error">Пересекается с подсетью app-net (10.128.20.0/24).</span>
+          </div>
+
+          <div class="field">
+            <label for="f-note">Описание</label>
+            <textarea class="textarea" id="f-note" rows="3" style="height:auto; padding:8px 12px; resize:vertical;" placeholder="Необязательно">Реплика Postgres для аналитики.</textarea>
+          </div>
+
+          <div class="demo-row" style="gap: var(--s-6)">
+            <label class="check"><input type="checkbox" checked /> Защита от удаления</label>
+            <label class="radio"><input type="radio" name="ip" checked /> Авто-IP</label>
+            <label class="radio"><input type="radio" name="ip" /> Из списка</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ STATUS ══════════ -->
+    <section class="ds-section" id="status" data-od-id="section-status">
+      <div class="sec-head">
+        <h2>Статусы и теги</h2>
+        <span class="sec-note">мягкий тон + дот, без свечения</span>
+      </div>
+      <div class="demo">
+        <div class="demo-cap">Пилюли статуса</div>
+        <div class="demo-row" style="gap: var(--s-6)">
+          <span class="pill ok"><span class="dot"></span>running</span>
+          <span class="pill err"><span class="dot"></span>error</span>
+          <span class="pill warn"><span class="dot"></span>paused</span>
+          <span class="pill idle"><span class="dot"></span>stopped</span>
+        </div>
+      </div>
+      <div class="demo">
+        <div class="demo-cap">Теги · инлайн-код · клавиши</div>
+        <div class="demo-row" style="gap: var(--s-5)">
+          <span><span class="pill tag">prod</span> <span class="pill tag">api</span> <span class="pill tag">db</span></span>
+          <span class="code">s5.large</span>
+          <span><span class="kbd">/</span> <span class="kbd">esc</span> <span class="kbd">g</span> <span class="kbd">c</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ TABS ══════════ -->
+    <section class="ds-section" id="tabs" data-od-id="section-tabs">
+      <div class="sec-head">
+        <h2>Табы</h2>
+        <span class="sec-note">4+ раздела ресурса → табы</span>
+      </div>
+      <div class="demo" style="padding:0; background:var(--surface)" data-tabs>
+        <div class="tabs">
+          <button class="tab is-active" aria-selected="true">Обзор</button>
+          <button class="tab" aria-selected="false">Сеть <span class="tab-badge">3</span></button>
+          <button class="tab" aria-selected="false">Диски <span class="tab-badge">2</span></button>
+          <button class="tab" aria-selected="false">Активность</button>
+        </div>
+        <div style="padding: var(--s-5)">
+          <div class="tab-panel is-active">
+            <dl class="kv-list">
+              <dt>Статус</dt><dd><span class="pill ok"><span class="dot"></span>running</span></dd>
+              <dt>Тип</dt><dd class="mono">s5.large · 2 vCPU · 8 GB</dd>
+              <dt>Внутренний IP</dt><dd class="mono">10.128.4.21</dd>
+            </dl>
+          </div>
+          <div class="tab-panel"><div class="empty-state">Панель «Сеть» — интерфейсы, security groups, floating IP.</div></div>
+          <div class="tab-panel"><div class="empty-state">Панель «Диски» — тома, снапшоты, IOPS.</div></div>
+          <div class="tab-panel"><div class="empty-state">Панель «Активность» — лента событий ВМ.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ FILTERS ══════════ -->
+    <section class="ds-section" id="filters" data-od-id="section-filters">
+      <div class="sec-head">
+        <h2>Фильтры</h2>
+        <span class="sec-note">чипы одиночного выбора в группе</span>
+      </div>
+      <div class="demo" style="padding:0; background:var(--surface)">
+        <div class="toolbar">
+          <div class="toolbar-group">
+            <button class="chip is-on" aria-pressed="true">Все <span class="chip-count">14</span></button>
+            <button class="chip" aria-pressed="false"><span class="pill ok"><span class="dot"></span>running</span> <span class="chip-count">9</span></button>
+            <button class="chip" aria-pressed="false"><span class="pill idle"><span class="dot"></span>stopped</span> <span class="chip-count">3</span></button>
+            <button class="chip" aria-pressed="false"><span class="pill err"><span class="dot"></span>error</span> <span class="chip-count">1</span></button>
+          </div>
+          <div class="toolbar-end">
+            <div class="cluster-switcher" role="group" aria-label="Период">
+              <button class="cs-pill" aria-pressed="false">24ч</button>
+              <button class="cs-pill" aria-pressed="true">7д</button>
+              <button class="cs-pill" aria-pressed="false">30д</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ TABLE ══════════ -->
+    <section class="ds-section" id="table" data-od-id="section-table">
+      <div class="sec-head">
+        <h2>Таблица</h2>
+        <span class="sec-note">строка 30px · числа справа, моно</span>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl tbl-compact">
+          <thead>
+            <tr>
+              <th>Имя</th><th>Статус</th><th>Внутренний IP</th><th>Тип</th>
+              <th class="num">vCPU</th><th class="num">RAM</th><th>Создана</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="is-clickable">
+              <td style="font-weight:500">vm-prod-01</td>
+              <td><span class="pill ok"><span class="dot"></span>running</span></td>
+              <td class="mono">10.128.4.21</td>
+              <td><span class="code">s5.large</span></td>
+              <td class="num">2</td><td class="num">8&nbsp;GB</td>
+              <td class="mono" style="color:var(--muted); font-size:12px">12.06.2026</td>
+            </tr>
+            <tr class="is-selected is-clickable">
+              <td style="font-weight:500">vm-staging-web</td>
+              <td><span class="pill warn"><span class="dot"></span>paused</span></td>
+              <td class="mono">10.128.5.10</td>
+              <td><span class="code">s5.xlarge</span></td>
+              <td class="num">4</td><td class="num">16&nbsp;GB</td>
+              <td class="mono" style="color:var(--muted); font-size:12px">04.07.2026</td>
+            </tr>
+            <tr class="is-clickable">
+              <td style="font-weight:500">vm-cache-1</td>
+              <td><span class="pill err"><span class="dot"></span>error</span></td>
+              <td class="mono">10.128.7.40</td>
+              <td><span class="code">m5.xlarge</span></td>
+              <td class="num">4</td><td class="num">32&nbsp;GB</td>
+              <td class="mono" style="color:var(--muted); font-size:12px">12.06.2026</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <div class="pg-info">Показано <strong>1–3</strong> из <strong>14</strong></div>
+          <div class="pg-controls">
+            <button class="pg-page" aria-label="Перв.">«</button>
+            <button class="pg-page is-active">1</button>
+            <button class="pg-page">2</button>
+            <button class="pg-page" aria-label="Посл.">»</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ KPI ══════════ -->
+    <section class="ds-section" id="kpi" data-od-id="section-kpi">
+      <div class="sec-head">
+        <h2>KPI-карточки</h2>
+        <span class="sec-note">биллинг · большие моно-числа</span>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi">
+          <span class="kpi-label">Расход за месяц</span>
+          <span class="kpi-value">$243.10</span>
+          <span class="kpi-trend up"><svg viewBox="0 0 16 16" fill="none"><path d="M3 11l4-4 3 3 3-4M13 6V9m0-3h-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>+12% к прошлому</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Прогноз</span>
+          <span class="kpi-value">$389</span>
+          <span class="kpi-trend"><span style="color:var(--muted)">к концу месяца</span></span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Бюджет</span>
+          <span class="kpi-value">$500</span>
+          <span class="kpi-trend down"><svg viewBox="0 0 16 16" fill="none"><path d="M3 5l4 4 3-3 3 4M13 10V7m0 3h-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>49% свободно</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Активных ВМ</span>
+          <span class="kpi-value">9<span style="color:var(--muted); font-size:var(--fs-14)"> / 14</span></span>
+          <span class="kpi-trend"><span style="color:var(--muted)">3 региона</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ WIZARD ══════════ -->
+    <section class="ds-section" id="wizard" data-od-id="section-wizard">
+      <div class="sec-head">
+        <h2>Степпер мастера</h2>
+        <span class="sec-note">создание VM · создание VPC</span>
+      </div>
+      <div class="demo" style="padding:0; background:var(--surface)">
+        <div class="wizard-stepper">
+          <div class="wizard-step is-done"><span class="step-num"><span class="step-num-text">1</span></span> Основное</div>
+          <div class="wizard-step is-done"><span class="step-num"><span class="step-num-text">2</span></span> Образ</div>
+          <div class="wizard-step is-active"><span class="step-num"><span class="step-num-text">3</span></span> Конфигурация</div>
+          <div class="wizard-step"><span class="step-num"><span class="step-num-text">4</span></span> Сеть</div>
+          <div class="wizard-step"><span class="step-num"><span class="step-num-text">5</span></span> Обзор</div>
+        </div>
+        <div style="padding: var(--s-6)">
+          <div class="wizard-type-grid">
+            <div class="wizard-type-card is-selected" aria-pressed="true"><div class="type-name">s5.large</div><div class="type-spec">2 vCPU · 8 GB · $0.06/hr</div></div>
+            <div class="wizard-type-card"><div class="type-name">s5.xlarge</div><div class="type-spec">4 vCPU · 16 GB · $0.12/hr</div></div>
+            <div class="wizard-type-card"><div class="type-name">m5.large</div><div class="type-spec">2 vCPU · 16 GB · $0.10/hr</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ DRAWER ══════════ -->
+    <section class="ds-section" id="drawer" data-od-id="section-drawer">
+      <div class="sec-head">
+        <h2>Дровер</h2>
+        <span class="sec-note">выезжает справа · Esc / клик по фону</span>
+      </div>
+      <div class="demo demo-row">
+        <button class="btn" data-drawer-open="#ds-drawer">
+          <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M10 3v10" stroke="currentColor" stroke-width="1.3"/></svg>
+          Открыть панель ВМ
+        </button>
+        <span style="color:var(--muted); font-size:var(--fs-12)">Тот же дровер, что для serial-консоли и деталей ресурса.</span>
+      </div>
+    </section>
+
+    <!-- ══════════ CONSOLE / KV ══════════ -->
+    <section class="ds-section" id="console" data-od-id="section-console">
+      <div class="sec-head">
+        <h2>Консоль · список ключ-значение</h2>
+      </div>
+      <div class="ds-block">
+        <h3>Serial-консоль</h3>
+        <div class="console">[  <span class="line-ok">OK</span>  ] Reached target Multi-User System.
+[  <span class="line-ok">OK</span>  ] Started Docker Application Container Engine.
+[ <span class="line-err">FAIL</span> ] Failed to start myapp.service — see 'journalctl -xe'.
+plexor@vm-prod-01:~$ sudo systemctl restart myapp<span class="line-cursor"></span></div>
+      </div>
+      <div class="ds-block">
+        <h3>Ключ-значение</h3>
+        <div class="demo">
+          <dl class="kv-list">
+            <dt>ID ресурса</dt><dd class="mono">vm-a8c91f2e</dd>
+            <dt>Проект</dt><dd>default-project</dd>
+            <dt>Зона</dt><dd class="mono">eu-central-1-a</dd>
+            <dt>Стоимость</dt><dd class="mono">$0.06 / час</dd>
+            <dt>Создана</dt><dd class="mono">12.06.2026 14:03 UTC</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ STATES ══════════ -->
+    <section class="ds-section" id="states" data-od-id="section-states">
+      <div class="sec-head">
+        <h2>Состояния</h2>
+        <span class="sec-note">empty · loading · error</span>
+      </div>
+
+      <div class="ds-block">
+        <h3>Пусто</h3>
+        <div class="panel">
+          <div class="empty-state">
+            <div style="font-weight:600; color:var(--fg); margin-bottom:6px;">В проекте пока нет ВМ</div>
+            <div style="margin-bottom:var(--s-4)">Создайте первую машину — провижн занимает около 30 секунд.</div>
+            <button class="btn primary" style="margin:0 auto"><svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Создать ВМ</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Загрузка</h3>
+        <div class="table-wrap">
+          <table class="tbl tbl-compact">
+            <thead><tr><th>Имя</th><th>Статус</th><th>IP</th><th class="num">RAM</th></tr></thead>
+            <tbody>
+              <tr><td><div class="skeleton line" style="width:120px"></div></td><td><div class="skeleton line" style="width:64px"></div></td><td><div class="skeleton line" style="width:88px"></div></td><td><div class="skeleton line" style="width:40px; margin-left:auto"></div></td></tr>
+              <tr><td><div class="skeleton line" style="width:150px"></div></td><td><div class="skeleton line" style="width:64px"></div></td><td><div class="skeleton line" style="width:88px"></div></td><td><div class="skeleton line" style="width:40px; margin-left:auto"></div></td></tr>
+              <tr><td><div class="skeleton line" style="width:100px"></div></td><td><div class="skeleton line" style="width:64px"></div></td><td><div class="skeleton line" style="width:88px"></div></td><td><div class="skeleton line" style="width:40px; margin-left:auto"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="ds-block">
+        <h3>Ошибка</h3>
+        <div class="panel">
+          <div class="panel-body" style="display:flex; gap:var(--s-4); align-items:flex-start;">
+            <span class="pill err" style="margin-top:2px"><span class="dot"></span></span>
+            <div style="flex:1">
+              <div style="font-weight:600; margin-bottom:2px;">Не удалось удалить VPC</div>
+              <div style="color:var(--muted); margin-bottom:var(--s-4)">К сети всё ещё подключено 2 подсети. Сначала удалите или отсоедините их: <span class="code">app-net</span>, <span class="code">db-net</span>.</div>
+              <div class="demo-row">
+                <button class="btn sm">Показать подсети</button>
+                <button class="btn sm ghost">Повторить</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ VOICE ══════════ -->
+    <section class="ds-section" id="voice" data-od-id="section-voice">
+      <div class="sec-head">
+        <h2>Голос и микрокопия</h2>
+        <span class="sec-note">спокойный · точный · технический</span>
+      </div>
+      <div class="rule-grid">
+        <div class="rule good">
+          <div class="r-head">
+            <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="m3 8 3.5 3.5L13 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Так
+          </div>
+          <ul>
+            <li>«Provision VM in 30 seconds»</li>
+            <li>«Cluster state synced via NATS»</li>
+            <li>«Failed to delete VPC: 2 networks still attached»</li>
+            <li>Кнопки — императив: <code>Создать ВМ</code>, <code>Удалить</code></li>
+          </ul>
+        </div>
+        <div class="rule bad">
+          <div class="r-head">
+            <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Не так
+          </div>
+          <ul>
+            <li>«🚀 Launch blazingly fast VMs!»</li>
+            <li>«Revolutionize your cloud experience»</li>
+            <li>«Oopsie! Something went wrong 😱»</li>
+            <li>Эмодзи-иконки и маркетинговый пафос в продукте</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Drawer (demo) -->
+<div class="drawer-scrim" data-drawer-scrim></div>
+<aside class="drawer" id="ds-drawer" aria-label="Панель ВМ">
+  <div class="drawer-header">
+    <h2>vm-prod-01</h2>
+    <span class="pill ok"><span class="dot"></span>running</span>
+    <button class="icon-btn" data-drawer-close aria-label="Закрыть">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <dl class="kv-list">
+      <dt>ID</dt><dd class="mono">vm-a8c91f2e</dd>
+      <dt>Тип</dt><dd class="mono">s5.large · 2 vCPU · 8 GB</dd>
+      <dt>Внутренний IP</dt><dd class="mono">10.128.4.21</dd>
+      <dt>Зона</dt><dd class="mono">eu-central-1-a</dd>
+      <dt>Теги</dt><dd><span class="pill tag">prod</span> <span class="pill tag">api</span></dd>
+    </dl>
+    <div class="divider-h"></div>
+    <div class="console">plexor@vm-prod-01:~$ uptime
+ 14:22:07 up 21 days,  3:14,  1 user<span class="line-cursor"></span></div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn ghost" data-drawer-close>Закрыть</button>
+    <button class="btn">Перезагрузить</button>
+    <button class="btn primary">Открыть консоль</button>
+  </div>
+</aside>
+
+<script src="app.js"></script>
+</body>
+</html>

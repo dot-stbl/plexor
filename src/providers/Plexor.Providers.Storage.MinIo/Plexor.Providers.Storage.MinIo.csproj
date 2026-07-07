@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <Tier>production</Tier>
+    <ProviderPrimitive>object-storage</ProviderPrimitive>
+  </PropertyGroup>
+
+  <!--
+    Plexor.Providers.Storage.MinIo — S3-compatible object storage via MinIO.
+    Production default for single-node or small clusters. Ceph is the
+    recommended tier for ≥3-node clusters with replication.
+
+    Wraps the MinIO admin API (mc) for bucket provisioning, IAM keys,
+    lifecycle policies. Used both as standalone S3 and as backend for
+    Plexor's "Object Storage" tenant feature.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Id\Plexor.Shared.Id.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
+  </ItemGroup>
+
+</Project>

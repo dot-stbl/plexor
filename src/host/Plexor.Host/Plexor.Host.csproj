@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!--
+      OpenAPI document generation runs on every `dotnet build`. Emits
+      artifacts/openapi.json at repo root, consumed by frontend `pnpm codegen`
+      (openapi-typescript + kubb). Resolved relative to the csproj:
+      src/host/Plexor.Host -> ../../../artifacts.
+    -->
+    <OpenApiDocumentsDirectory>../../../artifacts</OpenApiDocumentsDirectory>
+    <OpenApiGenerateDocumentsOptions>--file-name openapi</OpenApiGenerateDocumentsOptions>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ============ Composition + shared ============ -->
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Http\Plexor.Shared.Http.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Id\Plexor.Shared.Id.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
+
+    <!-- ============ Modules (all wired) ============ -->
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Compute\Plexor.Modules.Compute.Application\Plexor.Modules.Compute.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Compute\Plexor.Modules.Compute.Infrastructure\Plexor.Modules.Compute.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Application\Plexor.Modules.Network.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Infrastructure\Plexor.Modules.Network.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Application\Plexor.Modules.Storage.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Infrastructure\Plexor.Modules.Storage.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Application\Plexor.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Infrastructure\Plexor.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Application\Plexor.Modules.Tenants.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Infrastructure\Plexor.Modules.Tenants.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Application\Plexor.Modules.Billing.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Infrastructure\Plexor.Modules.Billing.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Telemetry\Plexor.Modules.Telemetry.Infrastructure\Plexor.Modules.Telemetry.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Scalar.AspNetCore" Version="2.16.6" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="10.1.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

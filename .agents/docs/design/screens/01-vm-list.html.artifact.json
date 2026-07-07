@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "screens/01-vm-list.html",
+  "entry": "screens/01-vm-list.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-07-07T15:10:34.110Z",
+  "updatedAt": "2026-07-07T15:10:34.110Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

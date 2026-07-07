@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "screens/05-billing-usage.html",
+  "entry": "screens/05-billing-usage.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-07-07T15:13:50.405Z",
+  "updatedAt": "2026-07-07T15:13:50.405Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

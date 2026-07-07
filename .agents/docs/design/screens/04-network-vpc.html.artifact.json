@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "screens/04-network-vpc.html",
+  "entry": "screens/04-network-vpc.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-07-07T15:13:01.777Z",
+  "updatedAt": "2026-07-07T15:13:01.777Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

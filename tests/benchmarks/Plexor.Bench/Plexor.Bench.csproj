@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <!--
+    Plexor.Bench — BenchmarkDotNet-based performance benchmarks. Not a
+    test project (IsTestProject=false) so it doesn't run with `dotnet test`.
+    Run explicitly: `dotnet run -project tests/benchmarks/Plexor.Bench -c Release`
+    (the dotnet CLI's `-project` flag has double-dash, omitted here for XML
+    comment compatibility; on the real CLI use the standard double-dash form).
+
+    Initial scope: VmSpec serialization, provider health-check throughput,
+    idempotency of installer step runner, OpenAPI generation cost.
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Include="BenchmarkDotNet.Annotations" Version="0.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\src\providers\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
+    <ProjectReference Include="..\..\..\src\installer\Plexor.Installer.Cli\Plexor.Installer.Cli.csproj" />
+  </ItemGroup>
+
+</Project>

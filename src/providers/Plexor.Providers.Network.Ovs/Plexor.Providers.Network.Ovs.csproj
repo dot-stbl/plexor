@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <Tier>production</Tier>
+    <ProviderPrimitive>overlay-network</ProviderPrimitive>
+  </PropertyGroup>
+
+  <!--
+    Plexor.Providers.Network.Ovs — Open vSwitch for VPC/subnet/security-group
+    topology. Wraps `ovs-vsctl`, `ovs-ofctl`, `nftables`, and BGP via FRR
+    for floating IPs. Tenant isolation via VLAN or VXLAN overlays.
+
+    Best with: KVM compute, Ceph storage.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Id\Plexor.Shared.Id.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
+  </ItemGroup>
+
+</Project>

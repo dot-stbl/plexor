@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Аудит-лог · Plexor</title>
+<link rel="stylesheet" href="../styles.css" />
+<style>
+  .actor-cell { display: flex; align-items: center; gap: 8px; }
+  .actor-cell .avatar.sm { width: 22px; height: 22px; font-size: 10px; }
+  .action-cell .action-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 4px;
+    background: var(--surface-3); color: var(--muted); margin-right: 6px;
+    vertical-align: middle;
+  }
+  .action-cell .action-icon svg { width: 12px; height: 12px; }
+</style>
+</head>
+<body data-section="observability">
+
+<header class="topnav">
+  <a href="../index.html" class="brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <rect width="22" height="22" rx="4" fill="currentColor"/>
+      <path d="M6 6h10M6 11h10M6 16h6" stroke="var(--surface)" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-name">Plexor</span>
+  </a>
+  <span class="brand-tag">cluster prod-eu-1</span>
+  <button class="selector" type="button"><span class="selector-key">проект</span><span class="mono">default-project</span><span class="selector-caret">▾</span></button>
+  <button class="selector" type="button"><span class="selector-key">регион</span><span class="mono">eu-central-1</span><span class="selector-caret">▾</span></button>
+  <span class="topnav-spacer"></span>
+  <div class="topnav-right">
+    <button class="icon-btn md" aria-label="Уведомления"><svg viewBox="0 0 16 16" fill="none"><path d="M3 12h10l-1-2V7a4 4 0 1 0-8 0v3l-1 2Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+    <div class="avatar" title="Иван Петров">ИП</div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="sidebar" aria-label="Главная навигация">
+    <div class="sidebar-nav">
+      <a class="sidebar-link" href="01-vm-list.html" data-section="compute" data-tip="Compute · ВМ"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="04-network-vpc.html" data-section="network" data-tip="Network · VPC"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2C6 4 6 12 8 14" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="#" data-section="storage" data-tip="Storage · S3"><svg viewBox="0 0 16 16" fill="none"><ellipse cx="8" cy="4" rx="6" ry="2" stroke="currentColor" stroke-width="1.3"/><path d="M2 4v4c0 1.1 2.7 2 6 2s6-.9 6-2V4M2 8v4c0 1.1 2.7 2 6 2s6-.9 6-2V8" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="#" data-section="identity" data-tip="Identity · IAM"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1 2 3v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V3l-6-2Z" stroke="currentColor" stroke-width="1.3"/><path d="m5.5 8 2 2 3-3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="sidebar-link" href="05-billing-usage.html" data-section="billing" data-tip="Billing · Расход"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 6h12M5 11h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></a>
+      <a class="sidebar-link" href="06-audit-log.html" data-section="observability" data-tip="Observability · Аудит"><svg viewBox="0 0 16 16" fill="none"><path d="M2 13 5 9l3 3 6-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 5h5v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-footer">
+      <a class="sidebar-link" href="#" data-tip="Настройки"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></a>
+    </div>
+  </nav>
+
+  <main class="page">
+    <div class="bc-row">
+      <div class="bc">
+        <a class="bc-item" href="../index.html">Plexor</a>
+        <span class="bc-sep">/</span>
+        <a class="bc-item" href="#">default-project</a>
+        <span class="bc-sep">/</span>
+        <a class="bc-item" href="#">Observability</a>
+        <span class="bc-sep">/</span>
+        <span class="bc-item is-current">Аудит-лог</span>
+      </div>
+      <div class="bc-actions">
+        <button class="icon-btn" aria-label="Live"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" fill="var(--ok)"/><circle cx="8" cy="8" r="6" stroke="var(--ok)" stroke-width="1.3" stroke-opacity="0.4"/></svg></button>
+        <a class="btn sm" href="#">Экспорт JSONL</a>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="page-header">
+        <div>
+          <h1>Аудит-лог</h1>
+          <div class="page-subtitle">3 421 событий за последние 7 дней · live · ретенция 365 дн.</div>
+        </div>
+        <div class="page-meta">
+          <button class="btn">Подписка (webhook)</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="toolbar" style="flex-wrap: wrap;">
+          <div class="toolbar-search">
+            <div class="input-wrap" style="width:100%">
+              <svg class="input-search-icon" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="m11 11 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <input class="input is-search" type="search" placeholder="actor.email, resource.id, action.id…" />
+            </div>
+          </div>
+          <div class="toolbar-group">
+            <span class="eyebrow">action</span>
+            <button class="chip is-on" aria-pressed="true">все <span class="chip-count">3 421</span></button>
+            <button class="chip" aria-pressed="false">create <span class="chip-count">412</span></button>
+            <button class="chip" aria-pressed="false">update <span class="chip-count">881</span></button>
+            <button class="chip" aria-pressed="false">delete <span class="chip-count">47</span></button>
+            <button class="chip" aria-pressed="false">start / stop <span class="chip-count">1 580</span></button>
+            <button class="chip" aria-pressed="false">auth <span class="chip-count">501</span></button>
+          </div>
+          <div class="toolbar-end">
+            <select class="select"><option>actor · все</option></select>
+            <input class="input mono" type="text" value="06.07.2026 — 06.07.2026" style="width: 200px;" />
+            <button class="btn">Сбросить</button>
+          </div>
+        </div>
+
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Время</th>
+              <th>Actor</th>
+              <th>Действие</th>
+              <th>Ресурс</th>
+              <th>IP / регион</th>
+              <th>Результат</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono" style="font-size: 12px; color: var(--fg);">14:08:21.412</td>
+              <td>
+                <div class="actor-cell">
+                  <div class="avatar sm">ИП</div>
+                  <div>
+                    <div>ivan@platform.team</div>
+                    <div class="mono" style="font-size: 11px; color: var(--muted);">Иван Петров · admin</div>
+                  </div>
+                </div>
+              </td>
+              <td class="action-cell"><span class="action-icon"><svg viewBox="0 0 12 12" fill="none"><path d="M3 6h6m-3-3 3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>stop</td>
+              <td><a href="02-vm-detail.html" style="font-weight: 500;">vm-ml-trainer-1</a><div class="mono" style="font-size: 11px; color: var(--muted);">vm-e21b6c84</div></td>
+              <td class="mono" style="color: var(--muted);">203.0.113.42 · eu</td>
+              <td><span class="pill ok"><span class="dot"></span>ok</span></td>
+              <td class="actions"><button class="icon-btn sm"><svg viewBox="0 0 16 16" fill="none"><path d="m5 5 6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="mono" style="font-size: 12px; color: var(--fg);">14:07:55.038</td>
+              <td>
+                <div class="actor-cell">
+                  <div class="avatar sm" style="background: oklch(85% 0.10 220); color: oklch(20% 0.10 220);">MC</div>
+                  <div>
+                    <div>ci-runner@platform.team</div>
+                    <div class="mono" style="font-size: 11px; color: var(--muted);">service-account · build-bot</div>
+                  </div>
+                </div>
+              </td>
+              <td class="action-cell"><span class="action-icon"><svg viewBox="0 0 12 12" fill="none"><rect x="2" y="3" width="8" height="6" rx="0.5" stroke="currentColor" stroke-width="1.3"/><path d="m5 5 3 1-3 1V5Z" fill="currentColor"/></svg></span>start</td>
+              <td><a href="02-vm-detail.html" style="font-weight: 500;">vm-build-runner-2</a><div class="mono" style="font-size: 11px; color: var(--muted);">vm-3e7ac2d1</div></td>
+              <td class="mono" style="color: var(--muted);">internal · 10.128.6.05</td>
+              <td><span class="pill ok"><span class="dot"></span>ok</span></td>
+              <td class="actions"><button class="icon-btn sm"><svg viewBox="0 0 16 16" fill="none"><path d="m5 5 6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="mono" style="font-size: 12px; color: var(--fg);">14:06:12.220</td>
+              <td>
+                <div class="actor-cell">
+                  <div class="avatar sm">АП</div>
+                  <div>
+                    <div>andrey@platform.team</div>
+                    <div class="mono" style="font-size: 11px; color: var(--muted);">Андрей Попов · billing-admin</div>
+                  </div>
+                </div>
+              </td>
+              <td class="action-cell"><span class="action-icon"><svg viewBox="0 0 12 12" fill="none"><path d="M2 4h8M2 8h5M11 4v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>update budget</td>
+              <td><span style="font-weight:500;">budget:default-project</span><div class="mono" style="font-size: 11px; color: var(--muted);">budget-1f3c</div></td>
+              <td class="mono" style="color: var(--muted);">203.0.113.7 · eu</td>
+              <td><span class="pill ok"><span class="dot"></span>ok</span></td>
+              <td class="actions"><button class="icon-btn sm"><svg viewBox="0 0 16 16" fill="none"><path d="m5 5 6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="mono" style="font-size: 12px; color: var(--fg);">14:05:33.101</td>
+              <td>
+                <div class="actor-cell">
+                  <div class="avatar sm" style="background: oklch(85% 0.10 80); color: oklch(35% 0.15 60);">ВС</div>
+                  <div>
+                    <div>vasya@security.team</div>
+                    <div class="mono" style="font-size: 11px; color: var(--muted);">Вася Савин · security</div>
+                  </div>
+                </div>
+              </td>
+              <td class="action-cell"><span class="action-icon"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M6 1v2M6 9v2M1 6h2M9 6h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>update</td>
+              <td><span style="font-weight:500;">sg:ssh-sg</span><div class="mono" style="font-size: 11px; color: var(--muted);">sg-9c0d</div></td>
+              <td class="mono" style="color: var(--muted);">198.51.100.10 · eu</td>
+              <td><span class="pill ok"><span class="dot"></span>ok</span></td>
+              <td class="actions"><button class="icon-btn sm"><svg viewBox="0 0 16 16" fill="none"><path d="m5 5 6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></td>
+            </tr>
+            <tr class="is-selected">
+              <td class="mono" style="font-size: 12px; color: var(--fg);">14:04:58.812</td>
+              <td>
+                <div class="actor-cell">
+                  <div class="avatar sm">ИП</div>
+                  <div>
+                    <div>ivan@platform.team</div>
+                    <div class="mono" style="font-size: 11px; color: var(--muted);">Иван Петров · admin</div>
+                  </div>
+                </div>
+              </td>
+              <td class="action-cell"><span class="action-icon"><svg viewBox="0 0 12 12" fill="none"><path d="M3 4h6m-6 4h6M3 8h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>delete</td>
+              <td><span style="font-weight:500;">subnet:test-staging-b</span><div class="mono" style="font-size: 11px; color: var(--muted);">subnet-7f8e</div></td>
+              <td class="mono" style="color: var(--muted);">203.0.113.42 · eu</td>
+              <td><span class="pill err"><span class="dot"></span>denied</span></td>
+              <td class="actions"><button class="icon-btn sm"><svg viewBox="0 0 16 16" fill="none"><path d="m5 5 6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="mono" style="font-size: 12px; color: var(--fg);">14:04:30.500</td>
+              <td>
+                <div class="actor-cell">
+                  <div class="avatar sm" style="background: oklch(85% 0.14 30); color: oklch(40% 0.18 25);">?</div>
+                  <div>
+                    <div>unknown</div>
+                    <div class="mono" style="font-size: 11px; color: var(--muted);">api-key:sk-***3a7d (не опознан)</div>
+                  </div>
+                </div>
+              </td>
+              <td class="action-cell"><span class="action-icon"><svg viewBox="0 0 12 12" fill="none"><rect x="2" y="5" width="8" height="6" rx="0.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 5V3h4v2" stroke="currentColor" stroke-width="1.3"/></svg></span>auth login</td>
+              <td><span style="font-weight:500;">— / project scope</span></td>
+              <td class="mono" style="color: var(--err);">45.155.205.99 · cn</td>
+              <td><span class="pill err"><span class="dot"></span>denied · 401</span></td>
+              <td class="actions"><button class="icon-btn sm"><svg viewBox="0 0 16 16" fill="none"><path d="m5 5 6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="mono" style="font-size: 12px; color: var(--fg);">14:03:44.281</td>
+              <td>
+                <div class="actor-cell">
+                  <div class="avatar sm">ИП</div>
+                  <div>
+                    <div>ivan@platform.team</div>
+                    <div class="mono" style="font-size: 11px; color: var(--muted);">Иван Петров · admin</div>
+                  </div>
+                </div>
+              </td>
+              <td class="action-cell"><span class="action-icon"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6h6m-3-3 3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>create</td>
+              <td><a href="02-vm-detail.html" style="font-weight:500;">vm-staging-web</a><div class="mono" style="font-size: 11px; color: var(--muted);">vm-c0f2a114</div></td>
+              <td class="mono" style="color: var(--muted);">203.0.113.42 · eu</td>
+              <td><span class="pill ok"><span class="dot"></span>ok</span></td>
+              <td class="actions"><button class="icon-btn sm"><svg viewBox="0 0 16 16" fill="none"><path d="m5 5 6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="mono" style="font-size: 12px; color: var(--fg);">14:02:11.077</td>
+              <td>
+                <div class="actor-cell">
+                  <div class="avatar sm">МК</div>
+                  <div>
+                    <div>maria@platform.team</div>
+                    <div class="mono" style="font-size: 11px; color: var(--muted);">Мария Кузнецова · dev</div>
+                  </div>
+                </div>
+              </td>
+              <td class="action-cell"><span class="action-icon"><svg viewBox="0 0 12 12" fill="none"><path d="M2 4h8M2 8h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>update</td>
+              <td><a href="02-vm-detail.html" style="font-weight:500;">vm-staging-web</a><div class="mono" style="font-size: 11px; color: var(--muted);">vm-c0f2a114 · meta.labels</div></td>
+              <td class="mono" style="color: var(--muted);">198.51.100.13 · eu</td>
+              <td><span class="pill ok"><span class="dot"></span>ok</span></td>
+              <td class="actions"><button class="icon-btn sm"><svg viewBox="0 0 16 16" fill="none"><path d="m5 5 6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></td>
+            </tr>
+            <tr>
+              <td class="mono" style="font-size: 12px; color: var(--fg);">14:00:00.001</td>
+              <td>
+                <div class="actor-cell">
+                  <div class="avatar sm" style="background: var(--surface-3); color: var(--muted);">⚙</div>
+                  <div>
+                    <div>system:cron</div>
+                    <div class="mono" style="font-size: 11px; color: var(--muted);">ScheduledWorker · snapshot-rotate</div>
+                  </div>
+                </div>
+              </td>
+              <td class="action-cell"><span class="action-icon"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M6 4v2l1.5 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>delete (cron)</td>
+              <td><span style="font-weight:500;">snapshot:db-replica-1-weekly</span><div class="mono" style="font-size: 11px; color: var(--muted);">snap-2e8b</div></td>
+              <td class="mono" style="color: var(--muted);">internal</td>
+              <td><span class="pill ok"><span class="dot"></span>ok</span></td>
+              <td class="actions"><button class="icon-btn sm"><svg viewBox="0 0 16 16" fill="none"><path d="m5 5 6 6M11 5l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pagination">
+          <div class="pg-info">Показано <strong>1–9</strong> из <strong>3 421</strong> · автообновление каждые 5 сек</div>
+          <div class="pg-controls">
+            <button class="pg-page" aria-label="Перв.">«</button>
+            <button class="pg-page is-active">1</button>
+            <button class="pg-page">2</button>
+            <button class="pg-page">3</button>
+            <button class="pg-page">…</button>
+            <button class="pg-page">381</button>
+            <button class="pg-page" aria-label="Посл.">»</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../app.js"></script>
+</body>
+</html>

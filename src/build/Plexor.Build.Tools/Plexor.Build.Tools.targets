@@ -1,0 +1,155 @@
+<Project>
+
+  <!--
+    Plexor.Build.Tools — solution-level build hooks.
+
+    This project owns the VerifyFormatOnBuild and VerifyAntiPatternsOnBuild
+    targets so they run exactly once per solution build (when THIS project is
+    built, not when every project in the solution is built). It is the first
+    project in plexor.slnx and has no ProjectReferences, so MSBuild's
+    topological order builds it before any other project.
+
+    Why not Directory.Build.targets?
+      That file is imported by every .csproj, so a target defined
+      there fires once per project (= N invocations for an N-project
+      solution). Putting the targets in a single project that is built
+      exactly once = 1 invocation.
+
+    Behavior (HARD gate — format drift and anti-patterns FAIL the build):
+      - dotnet build plexor.slnx
+            -> builds Plexor.Build.Tools (no deps, top of topo order)
+            -> runs VerifyFormatOnBuild + VerifyAntiPatternsOnBuild (1 time each)
+            -> drift => build FAILS; clean => builds the rest
+      - dotnet build src/foo/foo.csproj
+            -> Plexor.Build.Tools NOT in the build graph
+            -> VerifyFormatOnBuild does NOT run (per-project = fast)
+
+    `dotnet build plexor.slnx` is THE single verification command:
+    compile + analyzers + format + anti-patterns in one gate, identical to CI.
+
+    To fix drift: dotnet format plexor.slnx severity hidden
+
+    Escape hatches (per-invocation, inner-loop only):
+      DisableFormatOnBuild=true        = skip both gates entirely
+      FormatOnBuildTreatAsWarning=true = downgrade drift to a build warning
+                                         (default: off => drift is an error)
+  -->
+
+  <!-- =================================================================== -->
+  <!-- VerifyFormatOnBuild                                                   -->
+  <!-- =================================================================== -->
+  <Target Name="VerifyFormatOnBuild"
+          BeforeTargets="Build"
+          Condition="'$(DisableFormatOnBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_FormatExcludes>--exclude &quot;**/Migrations/**.cs&quot; --exclude &quot;**/*ModelSnapshot.cs&quot; --exclude &quot;**/*.Designer.cs&quot; --exclude-diagnostics RCS1141 RCS1140 MA0136 RCS1021</_FormatExcludes>
+      <_FormatSolution>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../../plexor.slnx'))</_FormatSolution>
+    </PropertyGroup>
+
+    <Message Text="[VerifyFormatOnBuild] dotnet format verify-mode running (this adds ~10-30s to the build)..."
+             Importance="High"/>
+
+    <!--
+      dotnet format writes violations to stderr; MSBuild `<Exec>` ConsoleToMSBuild
+      captures stdout only, and on SDK 10.0.109 the exit code is sometimes
+      unreliable (returns 0 even with drift under cmd/PowerShell). So: redirect
+      both streams to a log file, then parse it for diagnostic lines.
+
+      RCS1141/RCS1140 (param/typeparam doc comments) are intentionally
+      `dotnet_diagnostic.*.severity = none` in .editorconfig, but the
+      `severity hidden` flag re-enables them — exclude explicitly so the gate
+      respects that decision.
+    -->
+    <PropertyGroup>
+      <_FormatLogFile>$(MSBuildThisFileDirectory)../../../obj/format-verify.log</_FormatLogFile>
+    </PropertyGroup>
+    <Exec Command="dotnet format plexor.slnx verify-no-changes severity hidden no-restore $(_FormatExcludes) &gt; &quot;$(_FormatLogFile)&quot; 2&gt;&amp;1"
+          WorkingDirectory="$(MSBuildThisFileDirectory)../../.."
+          IgnoreExitCode="true"/>
+    <ReadLinesFromFile File="$(_FormatLogFile)">
+      <Output TaskParameter="Lines" ItemName="_FormatLogLines"/>
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <_FormatOutput>@(_FormatLogLines)</_FormatOutput>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <_FormatDriftCount>$([System.Text.RegularExpressions.Regex]::Matches(&quot;$(_FormatOutput)&quot;, &quot;(?i):\s+(error|warning|hidden|info|silent)\s+(IDE|RCS|MA|CA|VSTHRD|CS|SA)[0-9]+:&quot;).Count)</_FormatDriftCount>
+    </PropertyGroup>
+
+    <Message Text="[VerifyFormatOnBuild] Format check passed."
+             Importance="High"
+             Condition="'$(_FormatDriftCount)' == '0'"/>
+
+    <Error Condition="'$(_FormatDriftCount)' != '0' AND '$(FormatOnBuildTreatAsWarning)' != 'true'"
+           Text="[VerifyFormatOnBuild] Format drift detected: $(_FormatDriftCount) violation(s). Fix: 'dotnet format plexor.slnx severity hidden'. Inner-loop escapes: -p:DisableFormatOnBuild=true (skip) or -p:FormatOnBuildTreatAsWarning=true (warn). Re-run with -v:n for the file:line list."/>
+
+    <Warning Condition="'$(_FormatDriftCount)' != '0' AND '$(FormatOnBuildTreatAsWarning)' == 'true'"
+             Text="[VerifyFormatOnBuild] Format drift detected (downgraded to warning by FormatOnBuildTreatAsWarning): $(_FormatDriftCount) violation(s). Fix: 'dotnet format plexor.slnx severity hidden'. Re-run with -v:n for the file:line list."/>
+  </Target>
+
+  <!-- =================================================================== -->
+  <!-- VerifyAntiPatternsOnBuild                                             -->
+  <!-- =================================================================== -->
+  <!--
+    Two style anti-patterns that NO analyzer (Roslynator / CA / Meziantou /
+    VSTHRD) covers:
+      1. `.ConfigureAwait(false)` in app code — plain `await` in .NET 8+.
+      2. `var x = ...;` then `if (x is null)` on separate lines — the
+         assignment + null-check belong in one inline pattern.
+    Implemented as an inline RoslynCodeTaskFactory task so it runs on every
+    solution build, cross-platform, with no scripts / no bash. Same escapes
+    as the format gate (DisableFormatOnBuild / FormatOnBuildTreatAsWarning).
+  -->
+  <UsingTask TaskName="CheckAntiPatterns"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)/Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <RepoRoot ParameterType="System.String" Required="true"/>
+      <Violations ParameterType="System.String" Output="true"/>
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System"/>
+      <Using Namespace="System.IO"/>
+      <Using Namespace="System.Text"/>
+      <Using Namespace="System.Text.RegularExpressions"/>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var sb = new StringBuilder();
+        var configureAwait = new Regex(@"\.ConfigureAwait\(false\)");
+        var varIfNull = new Regex(@"var\s+(\w+)\s*=[^;]+;[ \t]*\r?\n[ \t]*if\s*\(?\s*\1\s+(is\s+null|==\s*null)\b");
+        var sep = Path.DirectorySeparatorChar.ToString();
+        foreach (var root in new[] { "src", "tests" })
+        {
+            var dir = Path.Combine(RepoRoot, root);
+            if (!Directory.Exists(dir)) { continue; }
+            foreach (var file in Directory.EnumerateFiles(dir, "*.cs", SearchOption.AllDirectories))
+            {
+                if (file.Contains(sep + "bin" + sep) || file.Contains(sep + "obj" + sep)) { continue; }
+                var text = File.ReadAllText(file);
+                if (configureAwait.IsMatch(text)) { sb.AppendLine(file + ": '.ConfigureAwait(false)' is forbidden in app code (use plain await)."); }
+                if (varIfNull.IsMatch(text)) { sb.AppendLine(file + ": 'var x = ...;' then 'if (x is null)' on separate lines (use inline 'if (expr is not { } x)')."); }
+            }
+        }
+        Violations = sb.ToString();
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="VerifyAntiPatternsOnBuild"
+          BeforeTargets="Build"
+          Condition="'$(DisableFormatOnBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'">
+    <CheckAntiPatterns RepoRoot="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../..'))">
+      <Output TaskParameter="Violations" PropertyName="_AntiPatternViolations"/>
+    </CheckAntiPatterns>
+
+    <Error Condition="'$(_AntiPatternViolations)' != '' AND '$(FormatOnBuildTreatAsWarning)' != 'true'"
+           Text="[VerifyAntiPatternsOnBuild] Forbidden style anti-patterns:%0A$(_AntiPatternViolations)"/>
+    <Warning Condition="'$(_AntiPatternViolations)' != '' AND '$(FormatOnBuildTreatAsWarning)' == 'true'"
+           Text="[VerifyAntiPatternsOnBuild] Forbidden style anti-patterns (downgraded to warning):%0A$(_AntiPatternViolations)"/>
+
+    <Message Text="[VerifyAntiPatternsOnBuild] Anti-pattern check passed."
+             Importance="High"
+             Condition="'$(_AntiPatternViolations)' == ''"/>
+  </Target>
+
+</Project>

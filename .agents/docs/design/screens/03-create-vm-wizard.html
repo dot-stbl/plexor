@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Создание ВМ · Plexor</title>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-section="compute">
+
+<header class="topnav">
+  <a href="../index.html" class="brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <rect width="22" height="22" rx="4" fill="currentColor"/>
+      <path d="M6 6h10M6 11h10M6 16h6" stroke="var(--surface)" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-name">Plexor</span>
+  </a>
+  <span class="brand-tag">cluster prod-eu-1</span>
+  <button class="selector" type="button"><span class="selector-key">проект</span><span class="mono">default-project</span><span class="selector-caret">▾</span></button>
+  <button class="selector" type="button"><span class="selector-key">регион</span><span class="mono">eu-central-1</span><span class="selector-caret">▾</span></button>
+  <span class="topnav-spacer"></span>
+  <div class="topnav-right">
+    <button class="icon-btn md" aria-label="Уведомления"><svg viewBox="0 0 16 16" fill="none"><path d="M3 12h10l-1-2V7a4 4 0 1 0-8 0v3l-1 2Zm4-9a1 1 0 0 0-2 0v1a1 1 0 0 0 2 0V3Zm-2 12a2 2 0 1 0 4 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="avatar" title="Иван Петров">ИП</div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="sidebar" aria-label="Главная навигация">
+    <div class="sidebar-nav">
+      <a class="sidebar-link" href="01-vm-list.html" data-section="compute" data-tip="Compute · ВМ"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="04-network-vpc.html" data-section="network" data-tip="Network · VPC"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2C6 4 6 12 8 14" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="#" data-section="storage" data-tip="Storage · S3"><svg viewBox="0 0 16 16" fill="none"><ellipse cx="8" cy="4" rx="6" ry="2" stroke="currentColor" stroke-width="1.3"/><path d="M2 4v4c0 1.1 2.7 2 6 2s6-.9 6-2V4M2 8v4c0 1.1 2.7 2 6 2s6-.9 6-2V8" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="#" data-section="identity" data-tip="Identity · IAM"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1 2 3v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V3l-6-2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="m5.5 8 2 2 3-3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="sidebar-link" href="05-billing-usage.html" data-section="billing" data-tip="Billing · Расход"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 6h12M5 11h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></a>
+      <a class="sidebar-link" href="06-audit-log.html" data-section="observability" data-tip="Observability · Аудит"><svg viewBox="0 0 16 16" fill="none"><path d="M2 13 5 9l3 3 6-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 5h5v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-footer">
+      <a class="sidebar-link" href="#" data-tip="Настройки"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></a>
+    </div>
+  </nav>
+
+  <main class="page">
+    <div class="bc-row">
+      <div class="bc">
+        <a class="bc-item" href="../index.html">Plexor</a>
+        <span class="bc-sep">/</span>
+        <a class="bc-item" href="#">default-project</a>
+        <span class="bc-sep">/</span>
+        <a class="bc-item" href="01-vm-list.html">Compute</a>
+        <span class="bc-sep">/</span>
+        <span class="bc-item is-current">Создание ВМ</span>
+      </div>
+      <div class="bc-actions">
+        <a class="btn sm" href="01-vm-list.html">Отмена</a>
+      </div>
+    </div>
+
+    <div data-wizard>
+      <div class="wizard-stepper">
+        <div class="wizard-step is-active">
+          <span class="step-num"><span class="step-num-text">1</span></span>
+          <span>Имя и проект</span>
+        </div>
+        <div class="wizard-step">
+          <span class="step-num"><span class="step-num-text">2</span></span>
+          <span>Образ ОС</span>
+        </div>
+        <div class="wizard-step">
+          <span class="step-num"><span class="step-num-text">3</span></span>
+          <span>Конфигурация</span>
+        </div>
+        <div class="wizard-step">
+          <span class="step-num"><span class="step-num-text">4</span></span>
+          <span>Сеть</span>
+        </div>
+        <div class="wizard-step">
+          <span class="step-num"><span class="step-num-text">5</span></span>
+          <span>Обзор</span>
+        </div>
+      </div>
+
+      <!-- Step 1: имя и проект -->
+      <div class="wizard-pane is-active">
+        <h3>Имя и проект</h3>
+        <p class="wizard-pane-sub">Используется для отображения в списке и в CLI (plexor compute vm get &lt;name&gt;).</p>
+
+        <div class="input-row" style="max-width: 760px;">
+          <div class="field">
+            <label>Имя ВМ *</label>
+            <input class="input lg mono" type="text" value="vm-prod-03" placeholder="например vm-prod-03" />
+            <span class="field-hint">DNS-127: только строчные латиница, цифры и дефис. Максимум 63 символа.</span>
+          </div>
+          <div class="field">
+            <label>Метка (label)</label>
+            <input class="input lg" type="text" placeholder="например worker / api / cron" />
+            <span class="field-hint">Опционально. Видна в таблицах рядом с именем.</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; max-width: 760px;">
+          <div class="field" style="margin-bottom: 16px;">
+            <label>Проект *</label>
+            <select class="select lg" style="width: 100%; max-width: 360px;">
+              <option>default-project</option>
+              <option>research-prod</option>
+              <option>infra-shared</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Описание</label>
+            <textarea class="input" rows="3" style="height: auto; padding: 8px 12px; resize: vertical;" placeholder="Краткое описание для команды"></textarea>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; max-width: 760px;">
+          <label class="eyebrow" style="display: block; margin-bottom: 8px;">Назначить теги</label>
+          <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+            <span class="pill tag">prod <button style="background:none;border:0;padding:0;color:var(--muted);cursor:pointer;">×</button></span>
+            <span class="pill tag">api <button style="background:none;border:0;padding:0;color:var(--muted);cursor:pointer;">×</button></span>
+            <input class="input" placeholder="добавить тег…" style="height: 22px; padding: 0 8px; min-width: 160px; font-size: 12px;" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Образ -->
+      <div class="wizard-pane">
+        <h3>Образ ОС</h3>
+        <p class="wizard-pane-sub">Поддерживаемые семейства: Ubuntu LTS, Debian, CentOS Stream, AlmaLinux, Rocky Linux, Astra Linux, Alt Linux.</p>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 16px; align-items: center;">
+          <span class="eyebrow">Категория</span>
+          <div class="btn-group">
+            <button class="btn is-active" aria-pressed="true">Все</button>
+            <button class="btn" aria-pressed="false">Linux</button>
+            <button class="btn" aria-pressed="false">CIS hardened</button>
+            <button class="btn" aria-pressed="false">Мои образы</button>
+          </div>
+          <span style="margin-left:auto; color: var(--muted); font-size: 12px;">12 образов · обновлено сегодня</span>
+        </div>
+
+        <div class="wizard-image-grid" data-card-group>
+          <div class="wizard-image-card is-selected" aria-pressed="true">
+            <div class="img-thumb">UBUNTU</div>
+            <div class="img-name">Ubuntu 24.04 LTS</div>
+            <div class="img-meta">v2026.06.18 · 2.4 GB</div>
+          </div>
+          <div class="wizard-image-card" aria-pressed="false">
+            <div class="img-thumb">UBUNTU</div>
+            <div class="img-name">Ubuntu 22.04 LTS</div>
+            <div class="img-meta">v2026.05.21 · 2.2 GB</div>
+          </div>
+          <div class="wizard-image-card" aria-pressed="false">
+            <div class="img-thumb">DEBIAN</div>
+            <div class="img-name">Debian 12 (Bookworm)</div>
+            <div class="img-meta">v2026.06.04 · 1.6 GB</div>
+          </div>
+          <div class="wizard-image-card" aria-pressed="false">
+            <div class="img-thumb">CENTOS</div>
+            <div class="img-name">CentOS Stream 9</div>
+            <div class="img-meta">v2026.06.10 · 1.9 GB</div>
+          </div>
+          <div class="wizard-image-card" aria-pressed="false">
+            <div class="img-thumb">ALMA</div>
+            <div class="img-name">AlmaLinux 9</div>
+            <div class="img-meta">v2026.06.10 · 1.9 GB</div>
+          </div>
+          <div class="wizard-image-card" aria-pressed="false">
+            <div class="img-thumb">ASTRA</div>
+            <div class="img-name">Astra Linux CE 1.8</div>
+            <div class="img-meta">v2026.06.04 · 3.1 GB</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Конфигурация -->
+      <div class="wizard-pane">
+        <h3>Конфигурация</h3>
+        <p class="wizard-pane-sub">Выберите тип ВМ или задайте ресурсы вручную.</p>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <div class="cluster-switcher">
+            <span class="cs-pill" aria-pressed="false">S · общего назначения</span>
+            <span class="cs-pill" aria-pressed="true">M · оптимизированы по RAM</span>
+            <span class="cs-pill" aria-pressed="false">C · compute-bound</span>
+            <span class="cs-pill" aria-pressed="false">G · GPU</span>
+          </div>
+        </div>
+
+        <div class="wizard-type-grid" data-card-group>
+          <div class="wizard-type-card" aria-pressed="false">
+            <div class="type-name">m5.medium</div>
+            <div class="type-spec">1 vCPU · 4 GB · 1 GB/s net</div>
+            <div class="type-spec" style="margin-top: 6px; color: var(--fg-2);">₽ 980 / мес</div>
+          </div>
+          <div class="wizard-type-card is-selected" aria-pressed="true">
+            <div class="type-name">m5.large</div>
+            <div class="type-spec">2 vCPU · 8 GB · 1.25 GB/s net</div>
+            <div class="type-spec" style="margin-top: 6px; color: var(--fg-2);">₽ 1 960 / мес</div>
+          </div>
+          <div class="wizard-type-card" aria-pressed="false">
+            <div class="type-name">m5.xlarge</div>
+            <div class="type-spec">4 vCPU · 16 GB · 2 GB/s net</div>
+            <div class="type-spec" style="margin-top: 6px; color: var(--fg-2);">₽ 3 920 / мес</div>
+          </div>
+          <div class="wizard-type-card" aria-pressed="false">
+            <div class="type-name">m5.2xlarge</div>
+            <div class="type-spec">8 vCPU · 32 GB · 3 GB/s net</div>
+            <div class="type-spec" style="margin-top: 6px; color: var(--fg-2);">₽ 7 840 / мес</div>
+          </div>
+          <div class="wizard-type-card" aria-pressed="false">
+            <div class="type-name">m5.4xlarge</div>
+            <div class="type-spec">16 vCPU · 64 GB · 5 GB/s net</div>
+            <div class="type-spec" style="margin-top: 6px; color: var(--fg-2);">₽ 15 680 / мес</div>
+          </div>
+          <div class="wizard-type-card" aria-pressed="false">
+            <div class="type-name">m6i.large</div>
+            <div class="type-spec">2 vCPU · 8 GB · gen6 · SAP</div>
+            <div class="type-spec" style="margin-top: 6px; color: var(--fg-2);">₽ 2 250 / мес</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; max-width: 760px;">
+          <label class="eyebrow" style="display: block; margin-bottom: 8px;">Диск</label>
+          <div class="input-row">
+            <div class="field">
+              <label>Тип</label>
+              <select class="select" style="width: 100%;">
+                <option>gp3 · баланс (рекомендуется)</option>
+                <option>io2 · высокий IOPS</option>
+                <option>st1 · archive</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Размер, GB</label>
+              <input class="input mono" type="number" value="40" min="10" max="2000" />
+            </div>
+            <div class="field">
+              <label>Шифрование</label>
+              <select class="select" style="width: 100%;">
+                <option>KMS · default key</option>
+                <option>CMK · prod-key-v2</option>
+                <option>Отключено (только для dev)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; max-width: 760px;">
+          <div class="check"><input type="checkbox" checked /> <span>Включить автоматические обновления безопасности</span></div>
+          <div class="check"><input type="checkbox" /> <span>Установить Plexor agent с кастомными метриками</span></div>
+          <div class="check"><input type="checkbox" /> <span>Подключить boot-time-user-data скрипт</span></div>
+        </div>
+      </div>
+
+      <!-- Step 4: Сеть -->
+      <div class="wizard-pane">
+        <h3>Сеть</h3>
+        <p class="wizard-pane-sub">Выберите подсеть и security group.</p>
+
+        <div style="max-width: 760px;">
+          <div class="field" style="margin-bottom: 16px;">
+            <label>VPC</label>
+            <select class="select lg" style="width: 100%;">
+              <option>vpc-prod · 10.128.0.0/16 · eu-central-1</option>
+              <option>vpc-staging · 10.140.0.0/16 · eu-central-1</option>
+            </select>
+          </div>
+
+          <div class="field" style="margin-bottom: 16px;">
+            <label>Подсеть *</label>
+            <select class="select lg" style="width: 100%;">
+              <option>prod-subnet-a · 10.128.4.0/24 · eu-central-1-a · 64 свободно</option>
+              <option>prod-subnet-b · 10.128.5.0/24 · eu-central-1-b · 47 свободно</option>
+              <option>prod-subnet-c · 10.128.6.0/24 · eu-central-1-c · 89 свободно</option>
+            </select>
+            <span class="field-hint">В выбранной подсети у ВМ будет статический внутренний IP из диапазона.</span>
+          </div>
+
+          <div class="field" style="margin-bottom: 16px;">
+            <label>Security groups</label>
+            <div style="display:flex; flex-direction:column; gap: 8px;">
+              <label class="check"><input type="checkbox" checked /> <span><span class="code">web-sg</span> — HTTP/HTTPS из интернета</span></label>
+              <label class="check"><input type="checkbox" checked /> <span><span class="code">internal-sg</span> — любой трафик внутри VPC</span></label>
+              <label class="check"><input type="checkbox" /> <span><span class="code">ssh-sg</span> — SSH с ivan@jump</span></label>
+            </div>
+          </div>
+
+          <div class="check"><input type="checkbox" /> <span>Назначить публичный (floating) IP — для входящего трафика из интернета</span></div>
+        </div>
+      </div>
+
+      <!-- Step 5: Обзор -->
+      <div class="wizard-pane">
+        <h3>Обзор и подтверждение</h3>
+        <p class="wizard-pane-sub">Проверьте итоговые параметры. После нажатия «Создать» начнётся provisioning, обычно 30–60 секунд.</p>
+
+        <div class="split-2">
+          <div>
+            <div class="panel">
+              <div class="panel-header"><h2>Параметры</h2></div>
+              <div class="panel-body">
+                <dl class="kv-list">
+                  <dt>Имя</dt>           <dd class="mono">vm-prod-03</dd>
+                  <dt>Проект</dt>         <dd>default-project</dd>
+                  <dt>Образ</dt>          <dd>Ubuntu 24.04 LTS · v2026.06.18</dd>
+                  <dt>Тип</dt>            <dd><span class="code">m5.large</span> · 2 vCPU · 8 GB</dd>
+                  <dt>Диск</dt>           <dd class="mono">40 GB · gp3 · KMS default</dd>
+                  <dt>VPC / Subnet</dt>   <dd class="mono">vpc-prod / prod-subnet-a (10.128.4.0/24, eu-central-1-a)</dd>
+                  <dt>Security groups</dt><dd><span class="code">web-sg</span>, <span class="code">internal-sg</span></dd>
+                  <dt>Floating IP</dt>    <dd>не назначается</dd>
+                  <dt>Теги</dt>           <dd><span class="pill tag">prod</span> <span class="pill tag">api</span></dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="panel">
+              <div class="panel-header"><h2>Стоимость</h2></div>
+              <div class="panel-body">
+                <div style="display:flex; flex-direction:column; gap: 8px;">
+                  <div style="display:flex; justify-content:space-between;"><span style="color: var(--muted);">ВМ (m5.large)</span> <span class="num">₽ 1 960 / мес</span></div>
+                  <div style="display:flex; justify-content:space-between;"><span style="color: var(--muted);">Диск 40 GB gp3</span> <span class="num">₽ 320 / мес</span></div>
+                  <div style="display:flex; justify-content:space-between;"><span style="color: var(--muted);">Egress (прогноз 5 GB/день)</span> <span class="num">₽ 240 / мес</span></div>
+                  <div style="border-top: 1px solid var(--border); padding-top: 8px; display:flex; justify-content:space-between; font-weight: 500;"><span>Итого / мес</span> <span class="num" style="font-size: 16px;">₽ 2 520</span></div>
+                </div>
+                <div style="margin-top: 16px; padding: 10px 12px; background: var(--ok-soft); border-radius: 4px; font-size: 12px; color: oklch(40% 0.10 145);">
+                  <strong>Бюджет проекта:</strong> ₽ 120 000 / мес. После создания: ₽ 78 440 (остаток 35%).
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-footer">
+        <button class="btn" style="justify-content: flex-start;">
+          <svg viewBox="0 0 16 16" fill="none" style="width: 14px; height: 14px;"><path d="M3 8h10m-3-3 3 3-3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          К списку ВМ (отмена)
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" data-wizard-prev disabled>← Назад</button>
+          <button class="btn primary" data-wizard-next>Далее →</button>
+          <button class="btn primary" data-wizard-submit style="display: none;">Создать ВМ</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../app.js"></script>
+</body>
+</html>

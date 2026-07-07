@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>vm-prod-01 · Plexor</title>
+<link rel="stylesheet" href="../styles.css" />
+</head>
+<body data-section="compute">
+
+<header class="topnav">
+  <a href="../index.html" class="brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+      <rect width="22" height="22" rx="4" fill="currentColor"/>
+      <path d="M6 6h10M6 11h10M6 16h6" stroke="var(--surface)" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-name">Plexor</span>
+  </a>
+  <span class="brand-tag">cluster prod-eu-1</span>
+
+  <button class="selector" type="button">
+    <span class="selector-key">проект</span>
+    <span class="mono">default-project</span>
+    <span class="selector-caret">▾</span>
+  </button>
+  <button class="selector" type="button">
+    <span class="selector-key">регион</span>
+    <span class="mono">eu-central-1</span>
+    <span class="selector-caret">▾</span>
+  </button>
+  <span class="topnav-spacer"></span>
+  <div class="topnav-search">
+    <div class="input-wrap" style="width:100%">
+      <svg class="input-search-icon" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="m11 11 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input class="input is-search" type="search" placeholder="Найти ВМ, IP, тег…" data-search />
+    </div>
+  </div>
+  <div class="topnav-right">
+    <button class="icon-btn md" aria-label="Уведомления"><svg viewBox="0 0 16 16" fill="none"><path d="M3 12h10l-1-2V7a4 4 0 1 0-8 0v3l-1 2Zm4-9a1 1 0 0 0-2 0v1a1 1 0 0 0 2 0V3Zm-2 12a2 2 0 1 0 4 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="avatar" title="Иван Петров">ИП</div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="sidebar" aria-label="Главная навигация">
+    <div class="sidebar-nav">
+      <a class="sidebar-link" href="01-vm-list.html" data-section="compute" data-tip="Compute · ВМ"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="9" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.3"/><circle cx="4" cy="5" r="0.6" fill="currentColor"/><circle cx="4" cy="11" r="0.6" fill="currentColor"/></svg></a>
+      <a class="sidebar-link" href="04-network-vpc.html" data-section="network" data-tip="Network · VPC"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2C6 4 6 12 8 14" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="#" data-section="storage" data-tip="Storage · S3"><svg viewBox="0 0 16 16" fill="none"><ellipse cx="8" cy="4" rx="6" ry="2" stroke="currentColor" stroke-width="1.3"/><path d="M2 4v4c0 1.1 2.7 2 6 2s6-.9 6-2V4M2 8v4c0 1.1 2.7 2 6 2s6-.9 6-2V8" stroke="currentColor" stroke-width="1.3"/></svg></a>
+      <a class="sidebar-link" href="#" data-section="identity" data-tip="Identity · IAM"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1 2 3v5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V3l-6-2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="m5.5 8 2 2 3-3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="sidebar-link" href="05-billing-usage.html" data-section="billing" data-tip="Billing · Расход"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 6h12M5 11h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></a>
+      <a class="sidebar-link" href="06-audit-log.html" data-section="observability" data-tip="Observability · Аудит"><svg viewBox="0 0 16 16" fill="none"><path d="M2 13 5 9l3 3 6-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 5h5v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-footer">
+      <a class="sidebar-link" href="#" data-tip="Настройки"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2m-2.6-5.4-1.4 1.4M3 12l1.4-1.4M3 4l1.4 1.4M12.4 12.4 11 11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></a>
+      <a class="sidebar-link" href="#" data-tip="CLI · docs"><svg viewBox="0 0 16 16" fill="none"><path d="m4 5 3 3-3 3M9 11h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    </div>
+  </nav>
+
+  <main class="page">
+
+    <div class="bc-row">
+      <div class="bc">
+        <a class="bc-item" href="../index.html">Plexor</a>
+        <span class="bc-sep">/</span>
+        <a class="bc-item" href="#">default-project</a>
+        <span class="bc-sep">/</span>
+        <a class="bc-item" href="01-vm-list.html">Compute</a>
+        <span class="bc-sep">/</span>
+        <span class="bc-item is-current">vm-prod-01</span>
+      </div>
+      <div class="bc-actions">
+        <button class="icon-btn" aria-label="Копировать ID">
+          <svg viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M3 11V3a1 1 0 0 1 1-1h7" stroke="currentColor" stroke-width="1.3"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Обновить">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M13 8a5 5 0 1 1-1.5-3.5L13 3M13 3v3h-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Ещё">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="13" cy="8" r="1.2" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="page-body">
+
+      <div class="page-header">
+        <div>
+          <h1 style="display:flex; align-items:center; gap: 12px;">
+            vm-prod-01
+            <span class="pill ok"><span class="dot"></span>running</span>
+          </h1>
+          <div class="page-subtitle" style="font-family: var(--font-mono);">vm-a8c91f2e · <span style="color: var(--fg-2);">10.128.4.21</span> · eu-central-1-a · s5.large</div>
+        </div>
+        <div class="page-meta">
+          <button class="btn">Перезагрузить</button>
+          <button class="btn">Стоп</button>
+          <button class="btn" data-drawer-open="#console-drawer">
+            <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="m6 7 3 2-3 2V7Z" fill="currentColor"/><path d="M5 14h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Консоль
+          </button>
+          <button class="btn danger">Удалить</button>
+        </div>
+      </div>
+
+      <div data-tabs>
+        <div class="tabs" role="tablist">
+          <button class="tab is-active" role="tab" aria-selected="true">Обзор</button>
+          <button class="tab" role="tab">Сеть <span class="tab-badge">2</span></button>
+          <button class="tab" role="tab">Диски <span class="tab-badge">2</span></button>
+          <button class="tab" role="tab">Метрики</button>
+          <button class="tab" role="tab">Снапшоты <span class="tab-badge">3</span></button>
+          <button class="tab" role="tab">Аудит</button>
+        </div>
+
+        <!-- Tab: Обзор -->
+        <div class="tab-panel is-active" style="padding: 24px;">
+          <div class="split-2">
+
+            <div>
+              <div class="panel">
+                <div class="panel-header">
+                  <h2>Системная информация</h2>
+                  <span class="panel-meta">обновлено 4 сек назад</span>
+                </div>
+                <div class="panel-body">
+                  <dl class="kv-list">
+                    <dt>ID</dt>          <dd class="mono">vm-a8c91f2e</dd>
+                    <dt>Имя</dt>         <dd>vm-prod-01</dd>
+                    <dt>Образ</dt>       <dd>ubuntu-24-04-lts · v2026.06.18</dd>
+                    <dt>Тип</dt>         <dd><span class="code">s5.large</span></dd>
+                    <dt>vCPU / RAM</dt>  <dd class="mono">2 / 8 GB</dd>
+                    <dt>Корневой диск</dt><dd class="mono">40 GB · NVMe · gp3</dd>
+                    <dt>Зона</dt>        <dd class="mono">eu-central-1-a</dd>
+                    <dt>Подсеть</dt>     <dd class="mono">prod-subnet-a · 10.128.4.0/24</dd>
+                    <dt>Внутренний IP</dt><dd class="mono">10.128.4.21</dd>
+                    <dt>Публичный IP</dt>  <dd class="mono">—</dd>
+                    <dt>Теги</dt>        <dd><span class="pill tag">prod</span> <span class="pill tag">api</span> <span class="pill tag">team:platform</span></dd>
+                    <dt>Создана</dt>     <dd class="mono">12.06.2026 14:03 (25 дн.)</dd>
+                    <dt>Пользователь</dt>  <dd>Иван Петров (ivan@platform.team)</dd>
+                  </dl>
+                </div>
+              </div>
+
+              <div class="panel" style="margin-top:16px;">
+                <div class="panel-header">
+                  <h2>Метрики — последний час</h2>
+                  <span class="panel-meta"><span class="kbd">5m</span> <span class="kbd is-active">1h</span> <span class="kbd">6h</span> <span class="kbd">24h</span></span>
+                </div>
+                <div class="panel-body is-pad-0">
+                  <!-- Two simple inline SVG sparklines for CPU + MEM -->
+                  <div style="display: grid; grid-template-columns: 60px 1fr 80px; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border);">
+                    <span class="eyebrow">CPU</span>
+                    <svg viewBox="0 0 360 36" preserveAspectRatio="none" style="height: 32px; width: 100%; display:block;">
+                      <polyline fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-linejoin="round" points="0,22 18,16 36,18 54,8 72,11 90,15 108,12 126,9 144,14 162,11 180,7 198,10 216,5 234,8 252,12 270,9 288,6 306,8 324,5 342,7 360,4"/>
+                    </svg>
+                    <span class="num" style="text-align:right; font-size: 13px;">avg <strong>18.4%</strong></span>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 60px 1fr 80px; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border);">
+                    <span class="eyebrow">MEM</span>
+                    <svg viewBox="0 0 360 36" preserveAspectRatio="none" style="height: 32px; width: 100%; display:block;">
+                      <polyline fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linejoin="round" points="0,12 18,14 36,12 54,11 72,12 90,13 108,12 126,11 144,12 162,13 180,12 198,11 216,12 234,13 252,12 270,11 288,12 306,13 324,12 342,11 360,12"/>
+                    </svg>
+                    <span class="num" style="text-align:right; font-size: 13px;">avg <strong>62.1%</strong></span>
+                  </div>
+                  <div style="display: grid; grid-template-columns: 60px 1fr 80px; gap: 12px; align-items: center; padding: 10px 16px;">
+                    <span class="eyebrow">NET</span>
+                    <svg viewBox="0 0 360 36" preserveAspectRatio="none" style="height: 32px; width: 100%; display:block;">
+                      <polyline fill="none" stroke="var(--muted-2, var(--muted))" stroke-width="1.4" stroke-linejoin="round" points="0,18 18,20 36,22 54,21 72,18 90,15 108,12 126,9 144,7 162,5 180,4 198,5 216,6 234,4 252,5 270,3 288,4 306,5 324,3 342,4 360,5"/>
+                    </svg>
+                    <span class="num" style="text-align:right; font-size: 13px;">↑ 1.2 MB/s</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col">
+              <div class="panel">
+                <div class="panel-header"><h2>Связанные ресурсы</h2></div>
+                <div class="panel-body">
+                  <div style="display:flex; flex-direction:column; gap: 10px;">
+                    <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;">
+                      <div><div style="font-weight:500;">Default VPC</div><div class="mono" style="font-size:11px; color: var(--muted);">vpc-prod</div></div>
+                      <a href="04-network-vpc.html" style="color: var(--fg-2);">→</a>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;">
+                      <div><div style="font-weight:500;">Security group · web-sg</div><div class="mono" style="font-size:11px; color: var(--muted);">sg-1f2a3b4c</div></div>
+                      <a href="#" style="color: var(--fg-2);">→</a>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;">
+                      <div><div style="font-weight:500;">Subnetwork · prod-subnet-a</div><div class="mono" style="font-size:11px; color: var(--muted);">subnet-a8c1</div></div>
+                      <a href="#" style="color: var(--fg-2);">→</a>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding: 8px 0; font-size: 13px;">
+                      <div><div style="font-weight:500;">S3 bucket · plexor-logs-prod</div><div class="mono" style="font-size:11px; color: var(--muted);">logs-prod-eu-c1</div></div>
+                      <a href="#" style="color: var(--fg-2);">→</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel" style="margin-top:16px;">
+                <div class="panel-header"><h2>Внутренний статус</h2></div>
+                <div class="panel-body" style="display: flex; flex-direction: column; gap: 6px;">
+                  <div style="display:flex; justify-content:space-between; font-size: 13px;"><span style="color: var(--muted);">Health check</span> <span class="pill ok"><span class="dot"></span>healthy</span></div>
+                  <div style="display:flex; justify-content:space-between; font-size: 13px;"><span style="color: var(--muted);">Plexor agent</span> <span class="pill ok"><span class="dot"></span>online</span></div>
+                  <div style="display:flex; justify-content:space-between; font-size: 13px;"><span style="color: var(--muted);">Cloud-init</span> <span class="pill ok"><span class="dot"></span>complete</span></div>
+                  <div style="display:flex; justify-content:space-between; font-size: 13px;"><span style="color: var(--muted);">Watchdog</span> <span class="pill ok"><span class="dot"></span>armed</span></div>
+                </div>
+              </div>
+
+              <div class="panel" style="margin-top:16px;">
+                <div class="panel-header"><h2>Быстрые действия</h2></div>
+                <div class="panel-body" style="display: flex; flex-direction: column; gap: 6px;">
+                  <button class="btn" style="justify-content: flex-start;">Создать снапшот</button>
+                  <button class="btn" style="justify-content: flex-start;">Добавить тег</button>
+                  <button class="btn" style="justify-content: flex-start;">Подключить диск</button>
+                  <button class="btn" style="justify-content: flex-start;">Назначить floating IP</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Other tab panels just hint at content -->
+        <div class="tab-panel" style="padding: 24px;">
+          <div class="panel"><div class="empty-state">Сеть: 2 интерфейса, 1 floating IP, 1 security group. Содержимое этого таба будет раскрыто дальше.</div></div>
+        </div>
+        <div class="tab-panel" style="padding: 24px;">
+          <div class="panel"><div class="empty-state">Диски: root 40 GB, опционально подключённый 100 GB. Содержимое этого таба будет раскрыто дальше.</div></div>
+        </div>
+        <div class="tab-panel" style="padding: 24px;">
+          <div class="panel"><div class="empty-state">Расширенные метрики (Prometheus-style). Содержимое этого таба будет раскрыто дальше.</div></div>
+        </div>
+        <div class="tab-panel" style="padding: 24px;">
+          <div class="panel"><div class="empty-state">Снапшоты: 3 шт., последний 06.07.2026 04:00. Содержимое этого таба будет раскрыто дальше.</div></div>
+        </div>
+        <div class="tab-panel" style="padding: 24px;">
+          <div class="panel"><div class="empty-state">Аудит-лог по этому ресурсу будет открыт на странице /observability/audit с предустановленным фильтром resource_id=vm-a8c91f2e.</div></div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="drawer-scrim" data-drawer-scrim></div>
+<aside class="drawer" id="console-drawer" role="dialog" aria-label="Serial console">
+  <div class="drawer-header">
+    <h2>Serial console · vm-prod-01</h2>
+    <button class="icon-btn" data-drawer-close aria-label="Закрыть">
+      <svg viewBox="0 0 16 16" fill="none"><path d="m3 3 10 10M13 3 3 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" style="padding: 12px;">
+    <div style="display:flex; justify-content:space-between; margin-bottom: 12px; font-size: 12px; color: var(--muted);">
+      <div class="mono">ttyS0 · 115200 8N1</div>
+      <div>connected · <span class="mono" style="color: var(--ok);">live</span></div>
+    </div>
+    <div class="console"><span style="color: oklch(70% 0.10 145);">$</span> systemctl status nginx
+<span style="color: oklch(60% 0.012 240);">●</span> nginx.service - A high performance web server and a reverse proxy server
+   Loaded: loaded (/lib/systemd/system/nginx.service; enabled; preset: enabled)
+   Active: <span class="line-ok">active (running)</span> since Thu 2026-07-02 14:03:12 UTC; 4 days ago
+
+<span style="color: oklch(70% 0.10 145);">$</span> uptime
+ 14:08:21 up 25 days, 13:51,  1 user,  load average: 0.18, 0.22, 0.17
+
+<span style="color: oklch(70% 0.10 145);">$</span> tail -f /var/log/plexor-agent.log
+2026-07-06T14:07:58Z INFO  plexor-agent heartbeat ok
+2026-07-06T14:08:08Z INFO  plexor-agent metrics flushed (124 metrics)
+2026-07-06T14:08:18Z INFO  plexor-agent heartbeat ok
+<span class="line-cursor"></span></div>
+  </div>
+  <div class="drawer-footer">
+    <span style="color: var(--muted); font-size: 12px; margin-right: auto;">
+      <span class="kbd">Ctrl + C</span> прервать · <span class="kbd">Enter</span> отправить
+    </span>
+    <button class="btn">Копировать сессию</button>
+    <button class="btn primary">Отключить</button>
+  </div>
+</aside>
+
+<script src="../app.js"></script>
+</body>
+</html>
