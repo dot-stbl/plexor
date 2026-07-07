@@ -224,7 +224,7 @@
       <div class="ds-block">
         <h3>Статусы</h3>
         <div class="swatch-grid">
-          <div class="swatch"><div class="sw-chip" style="background:var(--ok)"></div><div class="sw-meta"><div class="sw-name">--ok</div><div class="sw-val">58% .16 145</div><div class="sw-use">running · success · CTA</div></div></div>
+          <div class="swatch"><div class="sw-chip" style="background:var(--ok)"></div><div class="sw-meta"><div class="sw-name">--ok</div><div class="sw-val">58% .16 145</div><div class="sw-use">running · success · ok</div></div></div>
           <div class="swatch"><div class="sw-chip" style="background:var(--err)"></div><div class="sw-meta"><div class="sw-name">--err</div><div class="sw-val">58% .20 25</div><div class="sw-use">error · stopped · удаление</div></div></div>
           <div class="swatch"><div class="sw-chip" style="background:var(--warn)"></div><div class="sw-meta"><div class="sw-name">--warn</div><div class="sw-val">72% .15 75</div><div class="sw-use">paused · pending</div></div></div>
           <div class="swatch"><div class="sw-chip" style="background:var(--idle)"></div><div class="sw-meta"><div class="sw-name">--idle</div><div class="sw-val">60% .008 240</div><div class="sw-use">neutral · выключено</div></div></div>
@@ -232,7 +232,7 @@
       </div>
 
       <div class="note" data-od-id="accent-note">
-        <b>Один акцент.</b> Первичное действие использует тот же зелёный тон, что и статус <code class="code">ok</code>. Так у консоли ровно один «активный» цвет. Если решим, что CTA не должен нести смысл «успех», сделаем первичную кнопку монохромной (тёмная заливка) и оставим зелёный строго под статус — это правка одного токена <code class="code">--accent</code>.
+        <b>Акцент — монохром.</b> Первичное действие («Создать ВМ») залито ink-тоном <code class="code">--accent</code>: тёмное на светлой теме, светлое на тёмной. Зелёный остаётся <b>только</b> под статус <code class="code">ok</code> / success — «активный» цвет и «успех» больше не путаются.
       </div>
     </section>
 
@@ -410,7 +410,7 @@
           </div>
           <div class="demo-row">
             <button class="icon-btn md" aria-label="Ещё"><svg viewBox="0 0 16 16" fill="none"><circle cx="3" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="13" cy="8" r="1.2" fill="currentColor"/></svg></button>
-            <button class="icon-btn md primary" aria-label="Запустить" title="Наведи — зелёный"><svg viewBox="0 0 16 16" fill="none"><path d="M5 3.5v9l7-4.5-7-4.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></button>
+            <button class="icon-btn md" aria-label="Запустить" title="Запустить"><svg viewBox="0 0 16 16" fill="none"><path d="M5 3.5v9l7-4.5-7-4.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></button>
             <button class="icon-btn md danger" aria-label="Удалить" title="Наведи — красный"><svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V3h4v1M5 4l1 9h4l1-9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
         </div>

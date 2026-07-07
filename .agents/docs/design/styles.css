@@ -36,9 +36,9 @@
   --idle-soft:   oklch(95% 0.006 240);
   --idle-ink:    oklch(45% 0.012 240);
 
-  /* Single primary accent — same hue as --ok; CTA color */
-  --accent:      var(--ok);
-  --accent-hover: oklch(50% 0.16 145);
+  /* Primary action — monochrome ink. Green is reserved for success status only. */
+  --accent:      oklch(28% 0.02 255);
+  --accent-hover: oklch(20% 0.02 255);
   --accent-fg:   oklch(100% 0 0);
 
   /* Type */
@@ -117,9 +117,9 @@
   --idle-soft:   oklch(30% 0.006 250);
   --idle-ink:    oklch(72% 0.01 250);
 
-  --accent:      var(--ok);
-  --accent-hover: oklch(78% 0.14 145);
-  --accent-fg:   oklch(18% 0.02 250);
+  --accent:      oklch(92% 0.006 250);
+  --accent-hover: oklch(100% 0 0);
+  --accent-fg:   oklch(20% 0.02 250);
 
   /* Floating UI needs deeper shadows on dark surfaces */
   --sh-1: 0 1px 0 oklch(0% 0 0 / 0.30), 0 4px 14px oklch(0% 0 0 / 0.45);
@@ -127,10 +127,10 @@
 }
 
 /* Component fixes that reference literal colors — re-point them in dark */
-:root[data-theme="dark"] ::selection { background: oklch(42% 0.10 145); color: var(--fg); }
+:root[data-theme="dark"] ::selection { background: oklch(38% 0.015 255); color: var(--fg); }
 :root[data-theme="dark"] .sidebar-link[data-tip]::after { background: oklch(90% 0.01 250); color: oklch(18% 0.02 250); }
 :root[data-theme="dark"] .input:focus,
-:root[data-theme="dark"] .select:focus { box-shadow: 0 0 0 2px oklch(72% 0.15 145 / 0.25); }
+:root[data-theme="dark"] .select:focus { box-shadow: 0 0 0 2px oklch(80% 0.02 255 / 0.28); }
 
 /* ─────────────── Reset + base ─────────────── */
 
@@ -155,7 +155,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { background: none; border: 0; padding: 0; cursor: pointer; }
 table { border-collapse: collapse; border-spacing: 0; width: 100%; }
 
-::selection { background: oklch(85% 0.10 145); color: var(--fg); }
+::selection { background: oklch(90% 0.015 255); color: var(--fg); }
 
 /* Numeric / monospace helpers */
 .mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
@@ -355,9 +355,8 @@ table { border-collapse: collapse; border-spacing: 0; width: 100%; }
 .btn.ghost { border-color: transparent; }
 .btn:disabled, .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 
-/* Icon buttons carry the same semantics on hover */
+/* Icon buttons carry semantic color on hover — danger only; green is status-only */
 .icon-btn.danger:hover { background: var(--err-soft); color: var(--err-ink); }
-.icon-btn.primary:hover { background: var(--ok-soft); color: var(--ok-ink); }
 
 /* Keyboard focus — one unified ring across interactive elements (WCAG).
    Mouse clicks stay clean; only keyboard nav shows the ring. */
@@ -385,7 +384,7 @@ table { border-collapse: collapse; border-spacing: 0; width: 100%; }
   font-family: var(--font-sans);
 }
 .input:hover, .select:hover { border-color: var(--border-2); }
-.input:focus, .select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px oklch(58% 0.16 145 / 0.15); }
+.input:focus, .select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px oklch(45% 0.02 255 / 0.20); }
 .input::placeholder { color: var(--muted-2); }
 .input.lg { height: 32px; font-size: var(--fs-14); }
 .input.mono { font-family: var(--font-mono); }
@@ -596,7 +595,7 @@ table { border-collapse: collapse; border-spacing: 0; width: 100%; }
   display: flex; flex-direction: column; gap: var(--s-2);
 }
 .wizard-image-card:hover { border-color: var(--border-2); }
-.wizard-image-card.is-selected { border-color: var(--accent); box-shadow: 0 0 0 2px oklch(58% 0.16 145 / 0.15); }
+.wizard-image-card.is-selected { border-color: var(--accent); box-shadow: 0 0 0 2px oklch(45% 0.02 255 / 0.20); }
 .wizard-image-card .img-name { font-size: var(--fs-13); font-weight: 500; }
 .wizard-image-card .img-meta { font-size: var(--fs-11); color: var(--muted); font-family: var(--font-mono); }
 .wizard-image-card .img-thumb { width: 100%; height: 56px; background: var(--surface-3); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: var(--fs-11); }
@@ -609,7 +608,7 @@ table { border-collapse: collapse; border-spacing: 0; width: 100%; }
   display: grid; grid-template-columns: 1fr; gap: 4px; cursor: pointer; background: var(--surface);
 }
 .wizard-type-card:hover { border-color: var(--border-2); }
-.wizard-type-card.is-selected { border-color: var(--accent); box-shadow: 0 0 0 2px oklch(58% 0.16 145 / 0.15); }
+.wizard-type-card.is-selected { border-color: var(--accent); box-shadow: 0 0 0 2px oklch(45% 0.02 255 / 0.20); }
 .wizard-type-card .type-name { font-size: var(--fs-13); font-weight: 600; font-family: var(--font-mono); }
 .wizard-type-card .type-spec { font-size: var(--fs-12); color: var(--muted); font-family: var(--font-mono); }
 

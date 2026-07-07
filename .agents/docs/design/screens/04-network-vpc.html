@@ -94,7 +94,7 @@
         <dt>Default subnet</dt> <dd>—</dd>
       </dl>
 
-      <div data-tabs>
+      <div class="panel" data-tabs>
         <div class="tabs" role="tablist">
           <button class="tab is-active" role="tab">Подсети <span class="tab-badge">3</span></button>
           <button class="tab" role="tab">Floating IPs <span class="tab-badge">2</span></button>
@@ -103,8 +103,7 @@
           <button class="tab" role="tab">NAT gateways <span class="tab-badge">1</span></button>
         </div>
 
-        <div class="tab-panel is-active" style="padding: 24px;">
-          <div class="panel">
+        <div class="tab-panel is-active">
             <div class="toolbar">
               <div class="toolbar-search">
                 <div class="input-wrap" style="width: 100%;">
@@ -172,17 +171,15 @@
                 </tr>
               </tbody>
             </table>
-          </div>
 
-          <!-- Subnet detail (right-side while one is selected) -->
-          <div class="split-2" style="margin-top: 16px;">
-            <div></div>
-            <div class="panel">
-              <div class="panel-header">
-                <h2>prod-subnet-a</h2>
-                <span class="panel-meta">selected</span>
+            <!-- Детали выбранной подсети — в той же карточке, под таблицей -->
+            <div style="padding: 16px 20px; border-top: 1px solid var(--border); background: var(--surface-2);">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                <strong style="font-size: 13px;">prod-subnet-a</strong>
+                <span class="pill idle"><span class="dot"></span>выбрана</span>
+                <span class="mono" style="margin-left: auto; font-size: 12px; color: var(--muted);">subnet-a8c1</span>
               </div>
-              <div class="panel-body">
+              <div class="split-2">
                 <dl class="kv-list">
                   <dt>CIDR</dt>         <dd class="mono">10.128.4.0/24</dd>
                   <dt>Gateway</dt>      <dd class="mono">10.128.4.1</dd>
@@ -190,9 +187,9 @@
                   <dt>Резерв DHCP</dt> <dd class="mono">.1, .255</dd>
                   <dt>Public IPs</dt>  <dd>отключены</dd>
                 </dl>
-                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
-                  <label class="eyebrow" style="display: block; margin-bottom: 6px;">Подключённые ВМ</label>
-                  <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div>
+                  <label class="eyebrow" style="display: block; margin-bottom: 8px;">Подключённые ВМ · 4</label>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
                     <a href="02-vm-detail.html" style="font-size:13px;">vm-prod-01 <span class="mono" style="color: var(--muted); font-size:11px;">10.128.4.21</span></a>
                     <a href="02-vm-detail.html" style="font-size:13px;">vm-prod-02 <span class="mono" style="color: var(--muted); font-size:11px;">10.128.4.22</span></a>
                     <a href="02-vm-detail.html" style="font-size:13px;">vm-bastion <span class="mono" style="color: var(--muted); font-size:11px;">10.128.4.05</span></a>
@@ -201,21 +198,12 @@
                 </div>
               </div>
             </div>
-          </div>
         </div>
 
-        <div class="tab-panel" style="padding: 24px;">
-          <div class="panel"><div class="empty-state">2 floating IP · 1 назначен на vm-bastion, 1 в резерве. Содержимое таба будет раскрыто дальше.</div></div>
-        </div>
-        <div class="tab-panel" style="padding: 24px;">
-          <div class="panel"><div class="empty-state">4 security groups: web-sg, internal-sg, ssh-sg, db-sg. Содержимое таба будет раскрыто дальше.</div></div>
-        </div>
-        <div class="tab-panel" style="padding: 24px;">
-          <div class="panel"><div class="empty-state">1 route table · default local route. Содержимое таба будет раскрыто дальше.</div></div>
-        </div>
-        <div class="tab-panel" style="padding: 24px;">
-          <div class="panel"><div class="empty-state">1 NAT gateway · gw-1 · 10.128.4.100. Содержимое таба будет раскрыто дальше.</div></div>
-        </div>
+        <div class="tab-panel"><div class="empty-state" style="padding: 48px 24px;">2 floating IP · 1 назначен на vm-bastion, 1 в резерве. Содержимое таба будет раскрыто дальше.</div></div>
+        <div class="tab-panel"><div class="empty-state" style="padding: 48px 24px;">4 security groups: web-sg, internal-sg, ssh-sg, db-sg. Содержимое таба будет раскрыто дальше.</div></div>
+        <div class="tab-panel"><div class="empty-state" style="padding: 48px 24px;">1 route table · default local route. Содержимое таба будет раскрыто дальше.</div></div>
+        <div class="tab-panel"><div class="empty-state" style="padding: 48px 24px;">1 NAT gateway · gw-1 · 10.128.4.100. Содержимое таба будет раскрыто дальше.</div></div>
       </div>
     </div>
   </main>
