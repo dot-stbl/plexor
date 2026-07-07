@@ -7,6 +7,26 @@ import { routeTree } from './routeTree.gen';
 
 import './index.css';
 
+// Theme bootstrap — apply persisted/auto theme BEFORE first render to avoid flash.
+// Mirrors design-system/index.html inline script.
+(function applyThemeEarly() {
+  try {
+    var saved = localStorage.getItem('plexor-theme');
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var theme = saved || (prefersDark ? 'dark' : 'light');
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  } catch (_) {
+    // localStorage unavailable — fall back to system preference
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+  }
+})();
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
