@@ -3,80 +3,37 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-/**
- * Plexor DS Button — sizes mapped to design-system heights:
- *   xs  → h-6  (24px, dense table actions)
- *   sm  → h-7  (28px, default row action)
- *   md  → h-8  (32px, bar component)        ← default
- *   lg  → h-10 (40px, hero CTA)
- *   xl  → h-12 (48px, page hero)
- *
- * Variants match .btn class in styles.css:
- *   primary / outline / secondary / ghost / destructive / link
- *
- * Flat button — no translate on active (Plexor DS is non-translating).
- * Focus uses `outline` (2px solid var(--accent), offset 2px) instead of
- * ring (Border) — matches `--shadow` policy where shadows are reserved
- * for floating UI only.
- */
 const buttonVariants = cva(
-  [
-    // base
-    "group/button inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border bg-clip-padding whitespace-nowrap font-medium transition-colors outline-none select-none",
-    // focus-visible: Plexor DS outline, not ring
-    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-    // disabled
-    "disabled:pointer-events-none disabled:opacity-50",
-    // icon sizing inside
-    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
-  ],
+  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        // Plexor DS primary: bg=accent, text=accent-fg, border=accent
-        default:
-          "bg-primary text-primary-foreground border-primary hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_5%)]",
-        // Plexor DS btn: surface bg, border, ghost hover
+        default: "bg-primary text-primary-foreground hover:bg-primary/80",
         outline:
-          "bg-card text-card-foreground border-border hover:bg-muted aria-expanded:bg-muted",
+          "border-border hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:bg-input/30",
         secondary:
-          "bg-secondary text-secondary-foreground border-transparent hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)]",
+          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
-          "border-transparent hover:bg-muted aria-expanded:bg-muted",
-        // Plexor DS destructive — soft (text-only) and solid forms
+          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
-          "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20 focus-visible:outline-destructive/40 aria-expanded:bg-destructive/20",
-        // Plexor DS danger: text-only, err-ink color, transparent border (sibling to destructive but milder)
-        danger:
-          "text-[var(--err-ink)] border-transparent hover:bg-[var(--err-soft)] hover:border-[var(--err)]",
-        // Plexor DS danger-solid: filled red, white text, used for irreversible confirmations
-        "danger-solid":
-          "bg-[var(--err)] text-white border-[var(--err)] hover:bg-[oklch(52%_0.20_25)] hover:border-[oklch(52%_0.20_25)] focus-visible:outline-[oklch(45%_0.18_25)]",
-        link: "border-transparent text-primary underline-offset-4 hover:underline",
+          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        // xs: dense table button
-        xs: "h-6 px-2 text-xs",
-        // sm: row action button (Plexor DS default row-h=30 plus border = 28)
-        sm: "h-7 px-2.5 text-xs",
-        // md: bar/component button (Plexor DS 32)
-        md: "h-8 px-3 text-xs",
-        // default: alias for md (back-compat with shadcn-generated primitives)
-        default: "h-8 gap-1 px-3 text-xs has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3.5",
-        // lg: hero CTA
-        lg: "h-10 px-4 text-sm",
-        // xl: page hero
-        xl: "h-12 px-6 text-base",
-        // icon-only variants
-        icon: "size-8",
-        "icon-xs": "size-6",
-        "icon-sm": "size-7",
-        "icon-lg": "size-10",
+        default:
+          "h-7 gap-1 px-2 text-xs/relaxed has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        xs: "h-5 gap-1 rounded-sm px-2 text-[0.625rem] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-2.5",
+        sm: "h-6 gap-1 px-2 text-xs/relaxed has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        lg: "h-8 gap-1 px-2.5 text-xs/relaxed has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-4",
+        icon: "size-7 [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-xs": "size-5 rounded-sm [&_svg:not([class*='size-'])]:size-2.5",
+        "icon-sm": "size-6 [&_svg:not([class*='size-'])]:size-3",
+        "icon-lg": "size-8 [&_svg:not([class*='size-'])]:size-4",
       },
     },
     defaultVariants: {
       variant: "default",
-      size: "md",
+      size: "default",
     },
   }
 )
@@ -84,7 +41,7 @@ const buttonVariants = cva(
 function Button({
   className,
   variant = "default",
-  size = "md",
+  size = "default",
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
