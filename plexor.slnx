@@ -76,9 +76,11 @@
     <Project Path="src/host/Plexor.NodeAgent/Plexor.NodeAgent.csproj" />
   </Folder>
 
-  <!-- ============ Installer (NativeAOT CLI) ============================= -->
+  <!-- ============ Installer (NativeAOT CLI + Engine + Os) ============== -->
   <Folder Name="/src/installer/">
+    <Project Path="src/installer/Plexor.Installer.Engine/Plexor.Installer.Engine.csproj" />
     <Project Path="src/installer/Plexor.Installer.Cli/Plexor.Installer.Cli.csproj" />
+    <Project Path="src/installer/Plexor.Installer.Os/Plexor.Installer.Os.csproj" />
   </Folder>
 
   <!-- ============ Provider plugins ======================================= -->

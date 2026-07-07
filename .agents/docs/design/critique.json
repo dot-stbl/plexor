@@ -1,11 +1,11 @@
 {
   "kind": "critique-panel",
-  "score": 4,
+  "score": 5,
   "axes": {
-    "clarity":    { "score": 5, "notes": "Действия читаются: одно первичное, деструктив вынесен и подсвечен красным." },
+    "clarity":    { "score": 5, "notes": "Действия читаются: одно первичное, деструктив вынесен и красный." },
     "hierarchy":  { "score": 5, "notes": "Группы в тулбаре разделены линиями; иконки для тертичного." },
-    "typography": { "score": 4, "notes": "Onest даёт мягкость; при отсутствии сети — системный фолбэк." },
-    "motion":     { "score": 4, "notes": "Сдержанно: только тема и skeleton, prefers-reduced-motion учтён." },
-    "brand":      { "score": 5, "notes": "Монохром + 4 статуса; свечение убрано, новых цветов нет." }
+    "typography": { "score": 5, "notes": "Onest + JetBrains Mono, три веса, text-wrap:balance на заголовках." },
+    "motion":     { "score": 4, "notes": "Сдержанно: тема + skeleton, prefers-reduced-motion учтён." },
+    "brand":      { "score": 5, "notes": "Монохром + 4 статуса; свечение убрано, focus-ring по WCAG на всех контролах." }
   }
 }

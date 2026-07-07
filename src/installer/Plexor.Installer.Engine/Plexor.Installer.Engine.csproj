@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <RootNamespace>Plexor.Installer.Engine</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    Plexor.Installer.Engine — install state machine shared between CLI mode
+    and OS-image first-boot mode. Stages: Discovery → Resolver → Planner →
+    Apply → Handoff. Implementation deferred; this shell establishes the
+    layering so Plexor.Installer.Cli and Plexor.Installer.Os both reference
+    the same engine without circular dependencies.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+  </ItemGroup>
+
+</Project>

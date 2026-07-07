@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <RootNamespace>Plexor.Installer.Os</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    Plexor.Installer.Os — OS-image builder. Produces ISO/AMI/raw images that
+    boot directly into Plexor (Talos/Flatcar model). First-boot systemd unit
+    invokes Plexor.Installer.Engine to provision the local node.
+
+    Implementation deferred — needs image-craft tooling (e.g. Packer, mkosi)
+    plus a separate OS-image runtime repo. This shell establishes the
+    layering: Installer.Os depends on Installer.Engine (not the other way).
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\Plexor.Installer.Engine\Plexor.Installer.Engine.csproj" />
+  </ItemGroup>
+
+</Project>
