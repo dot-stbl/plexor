@@ -86,8 +86,10 @@ export function BulkActionToolbar({
             onClick={action.onClick}
             disabled={action.disabled}
           >
-            {action.icon}
-            {action.label}
+            <span className="inline-flex items-center gap-1.5">
+              {action.icon}
+              {action.label}
+            </span>
           </Button>
         ))}
       </div>

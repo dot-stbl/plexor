@@ -247,9 +247,9 @@ function BulkActionToolbarDemo() {
   };
 
   const actions: BulkActionAction[] = [
-    { label: 'Suspend', onClick: () => {}, variant: 'outline', icon: <Pause /> },
-    { label: 'Restart', onClick: () => {}, variant: 'outline', icon: <ArrowClockwise /> },
-    { label: 'Delete', onClick: () => {}, variant: 'destructive', icon: <Trash /> },
+    { label: 'Suspend', onClick: () => {}, variant: 'outline', icon: <Pause className="size-4" /> },
+    { label: 'Restart', onClick: () => {}, variant: 'outline', icon: <ArrowClockwise className="size-4" /> },
+    { label: 'Delete', onClick: () => {}, variant: 'destructive', icon: <Trash className="size-4" /> },
   ];
 
   return (
