@@ -20,7 +20,7 @@ import { RadioGroup, RadioGroupItem } from '@/shared/ui/primitives/radio-group';
 import { Switch } from '@/shared/ui/primitives/switch';
 import { Slider } from '@/shared/ui/primitives/slider';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/shared/ui/primitives/input-otp';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/primitives/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/shared/ui/primitives/select';
 
 import { Field, FieldDescription, FieldGroup, FieldLabel, FieldSet, FieldLegend } from '@/shared/ui/primitives/field';
 import { Combobox, ComboboxInput, ComboboxContent, ComboboxEmpty, ComboboxItem, ComboboxList } from '@/shared/ui/primitives/combobox';
@@ -664,22 +664,57 @@ function Component({ id }: { id: string }) {
       );
     case 'select':
       return (
-        <Demo label="Native select via Base UI (long values fit cleanly)">
-          <div className="flex flex-col gap-3">
-            <Select defaultValue="europe-central-1-production">
-              <SelectTrigger>
-                <SelectValue placeholder="Select region" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="europe-central-1-production">europe-central-1 (production)</SelectItem>
-                <SelectItem value="europe-west-1-staging">europe-west-1 (staging)</SelectItem>
-                <SelectItem value="us-east-1-development">us-east-1 (development)</SelectItem>
-                <SelectItem value="asia-northeast-1-canary">asia-northeast-1 (canary)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-muted-foreground text-xs">
-              Trigger width adapts to longest content; items have equal width.
-            </p>
+        <Demo label="Select: trigger content-sized + items tight + check on selected">
+          <div className="flex flex-col gap-6">
+            {/* Simple — fits content, no empty space */}
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">simple</div>
+              <Select defaultValue="dark">
+                <SelectTrigger>
+                  <SelectValue placeholder="Theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="light">Light</SelectItem>
+                  <SelectItem value="dark">Dark</SelectItem>
+                  <SelectItem value="system">System</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* With groups + separators + longer label */}
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">grouped + separator</div>
+              <Select defaultValue="production">
+                <SelectTrigger>
+                  <SelectValue placeholder="Region" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Europe</SelectLabel>
+                    <SelectItem value="production">eu-central-1 (production)</SelectItem>
+                    <SelectItem value="staging">eu-west-1 (staging)</SelectItem>
+                  </SelectGroup>
+                  <SelectSeparator />
+                  <SelectGroup>
+                    <SelectLabel>Americas</SelectLabel>
+                    <SelectItem value="us-prod">us-east-1 (production)</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Disabled state */}
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">disabled</div>
+              <Select disabled>
+                <SelectTrigger>
+                  <SelectValue placeholder="Unavailable" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="x">X</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </Demo>
       );
