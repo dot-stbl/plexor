@@ -391,7 +391,7 @@ function Component({ id }: { id: string }) {
                       { label: 'Dark', value: 'dark' },
                       { label: 'System', value: 'system' },
                     ]}>
-                      <SelectTrigger size="sm" className="w-32">
+                      <SelectTrigger size="sm">
                         <SelectValue placeholder="Theme" />
                       </SelectTrigger>
                       <SelectContent>

@@ -38,7 +38,7 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
-      className={cn("line-clamp-1 text-left", className)}
+      className={cn("truncate text-left", className)}
       {...props}
     />
   );
