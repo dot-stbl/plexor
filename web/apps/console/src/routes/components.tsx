@@ -445,29 +445,17 @@ function Component({ id }: { id: string }) {
       );
     case 'select':
       return (
-        <div className="space-y-4">
-          <Demo label="Plexor DS flat (.select-wrap + native select, 28px)">
-            <div className="select-wrap max-w-xs">
-              <select className="select" defaultValue="eu-central-1">
-                <option value="eu-central-1">eu-central-1</option>
-                <option value="eu-west-1">eu-west-1</option>
-                <option value="us-east-1">us-east-1</option>
-                <option value="ap-south-1">ap-south-1</option>
-              </select>
-            </div>
-          </Demo>
-          <Demo label="Base UI Select (popover, a11y)">
-            <SelectUi defaultValue="running">
-              <SelectTrigger className="max-w-xs"><SelectValue placeholder="Select status" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="running">running</SelectItem>
-                <SelectItem value="stopped">stopped</SelectItem>
-                <SelectItem value="failed">failed</SelectItem>
-                <SelectItem value="pending">pending</SelectItem>
-              </SelectContent>
-            </SelectUi>
-          </Demo>
-        </div>
+        <Demo label="Base UI Select (popover, a11y, searchable)">
+          <SelectUi defaultValue="running">
+            <SelectTrigger className="max-w-xs"><SelectValue placeholder="Select status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="running">running</SelectItem>
+              <SelectItem value="stopped">stopped</SelectItem>
+              <SelectItem value="failed">failed</SelectItem>
+              <SelectItem value="pending">pending</SelectItem>
+            </SelectContent>
+          </SelectUi>
+        </Demo>
       );
     case 'combobox':
       return (
@@ -484,16 +472,10 @@ function Component({ id }: { id: string }) {
       );
     case 'checkbox':
       return (
-        <Demo label="Base UI + Plexor DS flat">
+        <Demo label="Base UI Checkbox (controlled)">
           <div className="flex items-center gap-4">
             <Checkbox id="cb1" defaultChecked />
             <label htmlFor="cb1" className="text-sm">Enable metering</label>
-          </div>
-          <div className="mt-3 flex items-center gap-4">
-            <label className="check">
-              <input type="checkbox" defaultChecked />
-              <span>Plexor DS .check class</span>
-            </label>
           </div>
         </Demo>
       );

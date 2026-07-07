@@ -449,9 +449,10 @@ body,
     cursor: not-allowed;
   }
 
-  /* input / select / textarea (.input .select .textarea — from styles.css) */
+  /* input / textarea (.input .textarea — from styles.css).
+   * Select removed — use Base UI SelectUi instead (native <select> option list
+   * is unstyleable across browsers, accent-color inconsistent). */
   .input,
-  .select,
   .textarea {
     height: 28px;
     padding: 0 12px;
@@ -464,20 +465,17 @@ body,
     font-family: var(--font-sans);
     width: 100%;
   }
-  .input:hover,
-  .select:hover {
+  .input:hover {
     border-color: var(--border-2);
   }
-  .input:focus,
-  .select:focus {
+  .input:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 2px oklch(45% 0.02 255 / 0.2);
   }
   .input::placeholder {
     color: var(--muted-2);
   }
-  .input.mono,
-  .select.mono {
+  .input.mono {
     font-family: var(--font-mono);
   }
   .input.lg {
@@ -489,58 +487,6 @@ body,
     padding: 8px 12px;
     resize: vertical;
     line-height: 1.5;
-  }
-
-  /* select-wrap — chevron via ::after */
-  .select-wrap {
-    position: relative;
-    display: inline-flex;
-    width: 100%;
-  }
-  .select-wrap .select {
-    appearance: none;
-    padding-right: 24px;
-    width: 100%;
-  }
-  .select-wrap::after {
-    content: '';
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    width: 8px;
-    height: 8px;
-    border-right: 1.5px solid var(--muted);
-    border-bottom: 1.5px solid var(--muted);
-    transform: translateY(-70%) rotate(45deg);
-    pointer-events: none;
-  }
-
-  /* checkbox / radio — .check .radio from styles.css */
-  .check {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .check input {
-    width: 14px;
-    height: 14px;
-    margin: 0;
-    accent-color: var(--accent);
-  }
-  .radio {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-size: 13px;
-  }
-  .radio input {
-    width: 14px;
-    height: 14px;
-    margin: 0;
-    accent-color: var(--accent);
   }
 
   /* KPI cards (.kpi + .kpi-grid) — from styles.css */
