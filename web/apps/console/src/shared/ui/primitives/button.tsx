@@ -53,8 +53,10 @@ const buttonVariants = cva(
         xs: "h-6 px-2 text-xs",
         // sm: row action button (Plexor DS default row-h=30 plus border = 28)
         sm: "h-7 px-2.5 text-xs",
-        // md: default — bar/component button (Plexor DS 32)
+        // md: bar/component button (Plexor DS 32)
         md: "h-8 px-3 text-xs",
+        // default: alias for md (back-compat with shadcn-generated primitives)
+        default: "h-8 gap-1 px-3 text-xs has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3.5",
         // lg: hero CTA
         lg: "h-10 px-4 text-sm",
         // xl: page hero

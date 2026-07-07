@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/shared/ui/primitives/button"
-import { CaretLeftIcon, CaretRightIcon, DotsThreeIcon } from "@phosphor-icons/react"
+import { CaretLeft, CaretRight, DotsThree } from "@phosphor-icons/react"
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -74,7 +74,7 @@ function PaginationPrevious({
       className={cn("pl-2!", className)}
       {...props}
     >
-      <CaretLeftIcon data-icon="inline-start" />
+      <CaretLeft data-icon="inline-start" />
       <span className="hidden sm:block">{text}</span>
     </PaginationLink>
   )
@@ -93,7 +93,7 @@ function PaginationNext({
       {...props}
     >
       <span className="hidden sm:block">{text}</span>
-      <CaretRightIcon data-icon="inline-end" />
+      <CaretRight data-icon="inline-end" />
     </PaginationLink>
   )
 }
@@ -112,7 +112,7 @@ function PaginationEllipsis({
       )}
       {...props}
     >
-      <DotsThreeIcon
+      <DotsThree
       />
       <span className="sr-only">More pages</span>
     </span>
