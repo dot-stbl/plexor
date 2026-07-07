@@ -43,7 +43,6 @@
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Compute\Plexor.Modules.Compute.Application\Plexor.Modules.Compute.Application.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Compute\Plexor.Modules.Compute.Infrastructure\Plexor.Modules.Compute.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
-    <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Id\Plexor.Shared.Id.csproj" />
     <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
   </ItemGroup>
 

@@ -27,7 +27,6 @@
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Network\Plexor.Modules.Network.Application\Plexor.Modules.Network.Application.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Network\Plexor.Modules.Network.Infrastructure\Plexor.Modules.Network.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
-    <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Id\Plexor.Shared.Id.csproj" />
     <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
   </ItemGroup>
 
