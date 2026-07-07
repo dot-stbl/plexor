@@ -37,6 +37,61 @@ priority: high
     - Sizes: `xs` (24), `sm` (28), `md` (32, default), `lg` (40), `xl` (48), `icon`/`icon-xs`/`icon-sm`/`icon-md`/`icon-lg` (square)
 16. **Don't re-invent component variants with flat classes.** If a Button variant is missing, add it to the `cva` in `src/shared/ui/primitives/button.tsx`. Don't write a parallel `.btn-danger` flat class.
 
+## IconButton + visual hierarchy
+
+**Not every action is a button. Don't flatten visual hierarchy.**
+
+UI has **5 levels of emphasis**. Each level has a specific role; using the wrong level kills the hierarchy.
+
+| Level | When | Component | Examples |
+|---|---|---|---|
+| **1. Primary** | ONE per view, the main CTA. Black/white button. | `<Button>` variant="default" | Create VM, Save changes, Submit |
+| **2. Secondary** | Other actions in the view. Outlined or text-only. | `<Button>` variant="outline" / "ghost" | Cancel, Reset, Filter |
+| **3. Destructive** | Reversible-with-cost or destructive actions. | `<Button>` variant="destructive" | Delete, Terminate, Force-stop |
+| **4. Tertiary** | Inline links inside paragraphs, table cells, lists. | `<a>` / shadcn `Link` styled | "View details", "Edit", row action labels |
+| **5. Icon-only** | Compact actions in toolbars, table rows. | `<Button size="icon">` | Settings cog, close X, refresh |
+
+### Rules
+
+- **Max ONE `default` button per view** — the primary action. All other actions use `outline`, `ghost`, or `destructive`.
+- **Icon-only buttons use `size="icon"` / `size="icon-sm"`** — never `<Button>⚙</Button>` with text-glyph. Always Phosphor SVG: `<Button size="icon" aria-label="settings"><Gear /></Button>`.
+- **Icon + text in a button** — when the icon helps recognition: `<Button><Pause /> Suspend</Button>`. Icon goes FIRST, then text. Never text + icon in this order (looks weird in RTL or when text is wrapped).
+- **Phosphor icons auto-size** via shadcn's `[&_svg:not([class*='size-'])]:size-4` selector — don't add `className="size-4"` unless overriding. The Button variant `size="icon"` ships its own size.
+- **Inline row actions** (table rows) — use `Button size="icon-sm" variant="ghost"` per action. Up to 3-4 per row; if more, use shadcn `DropdownMenu` triggered by `size="icon"` with `<DotsThree />`.
+- **Tabular action density** — actions that appear in EVERY row (delete, edit, view) belong to a consistent action group at the row's right edge. Not as primary buttons.
+- **Status actions color-code by semantic, not visual** — use variant="destructive" for delete, NEVER `bg-red-500` arbitrary. Variant uses Plexor DS tokens automatically.
+
+### Text alignment — kill the drift
+
+Flex containers with text + icon + button often drift vertically. Common causes and fixes:
+
+```tsx
+// ❌ Wrong — emoji icons have inconsistent baseline (warn: text drifts)
+// ✅ Fix — Phosphor SVG icons, no className size (auto-sized by Button)
+<Button size="icon" aria-label="settings"><Gear /></Button>
+
+// ❌ Wrong — MonoNum digit baseline drifts from surrounding text
+// (font-mono has different cap height than font-sans)
+// ✅ Fix — inline-block align-middle leading-none on MonoNum primitive
+<span className="inline-block align-middle font-mono tabular-nums leading-none">42</span>
+
+// ❌ Wrong — vertical divider in flex bar doesn't stretch, looks off
+<span className="h-5 w-px bg-border" />
+// ✅ Fix — use self-stretch so the divider fills parent height
+<span className="self-stretch w-px bg-border" />
+
+// ❌ Wrong — text-only button with no min-height drifts when wrapping
+<Button className="text-xs">Cancel</Button>
+// ✅ Fix — use a size variant, never override height
+<Button size="sm" variant="ghost">Cancel</Button>
+```
+
+**Rule of thumb:** when mixing fonts (mono + sans), icons + text, or buttons + dividers in a flex container:
+1. Add `items-center` to the parent (vertical centering)
+2. Use `self-stretch` on fixed-height dividers
+3. Use `inline-block align-middle` on text-only inline elements that don't behave like text (MonoNum, code)
+4. Never use emoji as UI icons — always Phosphor SVGs
+
 ## Tailwind v4
 
 17. **Use `@theme inline` in `src/index.css`** to expose design tokens as utilities. The `inline` modifier means utilities resolve to CSS variables at runtime (so they update on theme switch).

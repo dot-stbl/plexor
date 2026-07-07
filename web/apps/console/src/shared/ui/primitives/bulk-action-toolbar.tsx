@@ -65,7 +65,7 @@ export function BulkActionToolbar({
       role="region"
       aria-label={`${count} ${entityLabel}`}
       className={cn(
-        'fixed left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-border bg-card px-5 py-2 shadow-lg',
+        'fixed left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg border border-border bg-card px-4 py-1.5 shadow-lg',
         'animate-in slide-in-from-bottom-4 fade-in duration-200',
         bottomClass,
         className,
@@ -76,7 +76,7 @@ export function BulkActionToolbar({
         <MonoNum>{count}</MonoNum>{' '}
         <span className="text-muted-foreground">{entityLabel}</span>
       </span>
-      <span className="h-5 w-px bg-border" aria-hidden />
+      <span className="self-stretch w-px bg-border" aria-hidden />
       <div className="flex items-center gap-1.5">
         {actions.map((action) => (
           <Button
@@ -91,7 +91,7 @@ export function BulkActionToolbar({
           </Button>
         ))}
       </div>
-      <span className="h-5 w-px bg-border" aria-hidden />
+      <span className="self-stretch w-px bg-border" aria-hidden />
       <Button size="sm" variant="ghost" onClick={onClear}>
         Clear
       </Button>

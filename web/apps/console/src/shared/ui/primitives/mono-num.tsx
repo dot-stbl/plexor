@@ -19,7 +19,7 @@ export function MonoNum({ muted = false, className, children, ...props }: MonoNu
       data-slot="mono-num"
       data-muted={muted || undefined}
       className={cn(
-        'font-mono tracking-tight tabular-nums',
+        'inline-block align-middle font-mono tracking-tight tabular-nums leading-none',
         muted && 'text-muted-foreground',
         className,
       )}

@@ -1,7 +1,7 @@
-// kubb config — generates @plexor/api from Plexor.Host OpenAPI spec.
-// Run: bun run codegen (from web/).
-// Reads: ../../artifacts/openapi.json (built by `dotnet build` of Plexor.Host)
-// Writes: ../shared/api/src/{types,client,hooks,schemas,msw,fixtures}
+// kubb config — generates the console API layer from the Plexor.Host OpenAPI spec.
+// Run: cd web/tooling/codegen && bun run generate
+// Reads:  ../../../artifacts/openapi.json (built by `dotnet build` of Plexor.Host)
+// Writes: ../../apps/console/src/shared/api/src/{types,client,hooks,schemas,fixtures,msw}
 
 import { defineConfig } from '@kubb/core';
 import { pluginOas } from '@kubb/plugin-oas';
@@ -14,10 +14,10 @@ import { pluginFaker } from '@kubb/plugin-faker';
 export default defineConfig({
   root: '.',
   input: {
-    path: '../../artifacts/openapi.json',
+    path: '../../../artifacts/openapi.json',
   },
   output: {
-    path: '../shared/api/src',
+    path: '../../apps/console/src/shared/api/src',
     clean: true,
   },
   plugins: [

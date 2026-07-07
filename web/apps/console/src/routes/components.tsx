@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
+import { Gear, Trash, ArrowClockwise, Pause } from '@phosphor-icons/react';
 
 import { ModeToggle } from '@/shared/ui/primitives/theme-toggle';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
@@ -246,9 +247,9 @@ function BulkActionToolbarDemo() {
   };
 
   const actions: BulkActionAction[] = [
-    { label: 'Suspend', onClick: () => {}, variant: 'outline' },
-    { label: 'Restart', onClick: () => {}, variant: 'outline' },
-    { label: 'Delete', onClick: () => {}, variant: 'destructive' },
+    { label: 'Suspend', onClick: () => {}, variant: 'outline', icon: <Pause /> },
+    { label: 'Restart', onClick: () => {}, variant: 'outline', icon: <ArrowClockwise /> },
+    { label: 'Delete', onClick: () => {}, variant: 'destructive', icon: <Trash /> },
   ];
 
   return (
@@ -545,7 +546,9 @@ function Component({ id }: { id: string }) {
               <Button size="sm">sm</Button>
               <Button>default</Button>
               <Button size="lg">lg</Button>
-              <Button size="icon" aria-label="settings">⚙</Button>
+              <Button size="icon" aria-label="settings">
+                <Gear />
+              </Button>
             </div>
           </div>
         </Demo>
