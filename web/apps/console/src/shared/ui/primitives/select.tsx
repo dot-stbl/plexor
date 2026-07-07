@@ -53,7 +53,7 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "inline-flex h-7 w-fit items-center gap-1.5 rounded-md border border-input bg-input/20 text-xs/relaxed whitespace-nowrap transition-colors outline-none",
+        "inline-flex h-7 w-fit items-center gap-1.5 rounded-md border border-input bg-input/20 px-2 text-xs/relaxed whitespace-nowrap transition-colors outline-none",
         "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20",
@@ -112,7 +112,7 @@ function SelectContent({
           )}
           {...props}
         >
-          <SelectPrimitive.List>
+          <SelectPrimitive.List className="p-1">
             {children}
           </SelectPrimitive.List>
         </SelectPrimitive.Popup>
@@ -130,7 +130,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-sm py-1 pl-8 text-xs/relaxed outline-hidden",
+        "relative flex w-full cursor-default select-none items-center rounded-sm py-1 pl-8 pr-2 text-xs/relaxed outline-hidden",
         "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0",
