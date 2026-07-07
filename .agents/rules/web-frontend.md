@@ -37,7 +37,9 @@ priority: high
     - Sizes: `xs` (24), `sm` (28), `md` (32, default), `lg` (40), `xl` (48), `icon`/`icon-xs`/`icon-sm`/`icon-md`/`icon-lg` (square)
 16. **Don't re-invent component variants with flat classes.** If a Button variant is missing, add it to the `cva` in `src/shared/ui/primitives/button.tsx`. Don't write a parallel `.btn-danger` flat class.
 
-## IconButton + visual hierarchy
+## IconButton + visual hierarchy + action density
+
+**Not every action is a button. Don't flatten visual hierarchy.**
 
 **Not every action is a button. Don't flatten visual hierarchy.**
 
@@ -56,7 +58,7 @@ UI has **5 levels of emphasis**. Each level has a specific role; using the wrong
 - **Max ONE `default` button per view** — the primary action. All other actions use `outline`, `ghost`, or `destructive`.
 - **Icon-only buttons use `size="icon"` / `size="icon-sm"`** — never `<Button>⚙</Button>` with text-glyph. Always Phosphor SVG: `<Button size="icon" aria-label="settings"><Gear /></Button>`.
 - **Icon + text in a button** — when the icon helps recognition: `<Button><Pause /> Suspend</Button>`. Icon goes FIRST, then text. Never text + icon in this order (looks weird in RTL or when text is wrapped).
-- **Phosphor icons auto-size** via shadcn's `[&_svg:not([class*='size-'])]:size-4` selector — don't add `className="size-4"` unless overriding. The Button variant `size="icon"` ships its own size.
+- **Phosphor icons auto-size** via shadcn's `[&_svg:not([class*='size-'])]:size-4` selector as defense-in-depth, but **always pass explicit `className="size-X"`** on icons. Default `size-4` (16px). Use `size-3.5` (14px) inside size=sm button, `size-3` (12px) inside icon-sm, `size-3.5` inside default. Relying on parent selector alone is fragile.
 - **Inline row actions** (table rows) — use `Button size="icon-sm" variant="ghost"` per action. Up to 3-4 per row; if more, use shadcn `DropdownMenu` triggered by `size="icon"` with `<DotsThree />`.
 - **Tabular action density** — actions that appear in EVERY row (delete, edit, view) belong to a consistent action group at the row's right edge. Not as primary buttons.
 - **Status actions color-code by semantic, not visual** — use variant="destructive" for delete, NEVER `bg-red-500` arbitrary. Variant uses Plexor DS tokens automatically.
