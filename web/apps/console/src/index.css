@@ -57,6 +57,48 @@
   --font-sans: 'Onest Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
 
+  /* Spacing (4-base, dense) — from styles.css */
+  --s-1: 2px;
+  --s-2: 4px;
+  --s-3: 8px;
+  --s-4: 12px;
+  --s-5: 16px;
+  --s-6: 20px;
+  --s-7: 24px;
+  --s-8: 32px;
+
+  /* Scale (dense console type) */
+  --fs-10: 10px;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-22: 22px;
+  --fs-28: 28px;
+
+  /* Layout chrome */
+  --topnav-h: 48px;
+  --sidebar-w: 48px;
+  --bc-row-h: 36px;
+  --row-h: 30px;
+
+  /* Plexor DS corner radii (--radius is shadcn default) */
+  --radius-ds-sm: 6px;
+  --radius-ds: 8px;
+  --radius-ds-lg: 12px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --t-fast: 80ms ease;
+  --t-base: 140ms ease;
+
+  /* Shadows (only floating UI) */
+  --sh-1: 0 1px 0 oklch(0% 0 0 / 0.04), 0 4px 12px oklch(0% 0 0 / 0.06);
+  --sh-2: 0 4px 20px oklch(0% 0 0 / 0.10), 0 1px 0 oklch(0% 0 0 / 0.04);
+
   --sidebar: oklch(100% 0 0);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--accent);
@@ -339,9 +381,229 @@ body,
     font-family: var(--font-mono);
   }
 
-  /* Plexor DS button variants on top of shadcn button */
-  /* (shadcn Button already provides default/outline/ghost/secondary/destructive/link;
-     these add the "primary" (DS monochrome accent) and "danger" (DS err tint) aliases) */
+  /* Plexor DS button (.btn) — from styles.css.
+   * Co-exists with shadcn Button component (different markup). Use .btn
+   * for static markup that mirrors design-system.html exactly.
+   * Variants: default | primary | danger | danger-solid | ghost | disabled
+   * Sizes: sm (24px) | default (28px) | lg (32px) */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-ds);
+    background: var(--surface);
+    color: var(--fg);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    background: var(--surface-2);
+  }
+  .btn.primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-color: var(--accent);
+  }
+  .btn.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
+  .btn.lg {
+    height: 32px;
+    padding: 0 16px;
+  }
+  .btn.sm {
+    height: 24px;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+  .btn.ghost {
+    border-color: transparent;
+  }
+  .btn.danger {
+    color: var(--err-ink);
+  }
+  .btn.danger:hover {
+    background: var(--err-soft);
+    border-color: var(--err);
+  }
+  .btn.danger-solid {
+    background: var(--err);
+    color: oklch(100% 0 0);
+    border-color: var(--err);
+  }
+  .btn.danger-solid:hover {
+    background: oklch(52% 0.2 25);
+    border-color: oklch(52% 0.2 25);
+  }
+  .btn:disabled,
+  .btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* input / select / textarea (.input .select .textarea — from styles.css) */
+  .input,
+  .select,
+  .textarea {
+    height: 28px;
+    padding: 0 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-ds);
+    font-size: 13px;
+    color: var(--fg);
+    outline: none;
+    font-family: var(--font-sans);
+    width: 100%;
+  }
+  .input:hover,
+  .select:hover {
+    border-color: var(--border-2);
+  }
+  .input:focus,
+  .select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px oklch(45% 0.02 255 / 0.2);
+  }
+  .input::placeholder {
+    color: var(--muted-2);
+  }
+  .input.mono,
+  .select.mono {
+    font-family: var(--font-mono);
+  }
+  .input.lg {
+    height: 32px;
+    font-size: 14px;
+  }
+  .textarea {
+    height: auto;
+    padding: 8px 12px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  /* select-wrap — chevron via ::after */
+  .select-wrap {
+    position: relative;
+    display: inline-flex;
+    width: 100%;
+  }
+  .select-wrap .select {
+    appearance: none;
+    padding-right: 24px;
+    width: 100%;
+  }
+  .select-wrap::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid var(--muted);
+    border-bottom: 1.5px solid var(--muted);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+
+  /* checkbox / radio — .check .radio from styles.css */
+  .check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .check input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+  .radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .radio input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+
+  /* KPI cards (.kpi + .kpi-grid) — from styles.css */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--s-4);
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-ds-lg);
+    padding: var(--s-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+  }
+  .kpi .kpi-label {
+    font-size: var(--fs-11);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+  .kpi .kpi-value {
+    font-family: var(--font-mono);
+    font-size: var(--fs-22);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi .kpi-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--fs-12);
+    font-family: var(--font-mono);
+  }
+  .kpi .kpi-trend.up {
+    color: var(--err);
+  }
+  .kpi .kpi-trend.down {
+    color: var(--ok);
+  }
+
+  /* Audit row (.audit-row) — fixed-grid timeline, from styles.css */
+  .audit-row {
+    display: grid;
+    grid-template-columns: 160px 140px 140px 1fr 90px;
+    gap: var(--s-3);
+    padding: 6px var(--s-4);
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    font-size: 13px;
+  }
+  .audit-row:hover {
+    background: var(--surface-2);
+  }
+
+  /* Chart wrapper (.chart-wrap) — from styles.css */
+  .chart-wrap {
+    padding: var(--s-4);
+  }
 
   /* icon button */
   .icon-btn {
