@@ -1,5 +1,5 @@
 import { Link, useRouterState } from '@tanstack/react-router';
-import { MagnifyingGlass, Bell } from '@phosphor-icons/react';
+import { Bell } from '@phosphor-icons/react';
 import { SidebarTrigger } from '@/shared/ui/primitives/sidebar';
 import { Separator } from '@/shared/ui/primitives/separator';
 import { Button } from '@/shared/ui/primitives/button';
@@ -23,9 +23,9 @@ import {
 } from '@/shared/ui/primitives/dropdown-menu';
 import { navItems, isActiveRoute } from './nav-config';
 
-export function AppNavbar({ onOpenSearch }: { onOpenSearch: () => void }) {
+export function AppNavbar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const current = navItems.find((item) => isActiveRoute(pathname, item.to)) ?? navItems[0];
+  const current = navItems.find((item) => isActiveRoute(pathname, item.to));
 
   return (
     <header
@@ -37,39 +37,25 @@ export function AppNavbar({ onOpenSearch }: { onOpenSearch: () => void }) {
 
       <Breadcrumb>
         <BreadcrumbList>
-          <BreadcrumbItem className="hidden sm:block">
-            <BreadcrumbLink render={<Link to="/" />}>Plexor</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator className="hidden sm:block" />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{current.title}</BreadcrumbPage>
-          </BreadcrumbItem>
+          {current ? (
+            <>
+              <BreadcrumbItem className="hidden sm:block">
+                <BreadcrumbLink render={<Link to="/" />}>Plexor</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden sm:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{current.title}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </>
+          ) : (
+            <BreadcrumbItem>
+              <BreadcrumbPage>Plexor</BreadcrumbPage>
+            </BreadcrumbItem>
+          )}
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="ml-auto flex items-center gap-1.5">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onOpenSearch}
-          className="hidden gap-2 text-muted-foreground sm:inline-flex"
-        >
-          <MagnifyingGlass className="size-4" />
-          <span className="text-xs">Поиск…</span>
-          <kbd className="ml-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] leading-4">
-            ⌘K
-          </kbd>
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onOpenSearch}
-          aria-label="Поиск"
-          className="sm:hidden"
-        >
-          <MagnifyingGlass className="size-4" />
-        </Button>
-
         <Button variant="ghost" size="icon" aria-label="Уведомления">
           <Bell className="size-4" />
         </Button>

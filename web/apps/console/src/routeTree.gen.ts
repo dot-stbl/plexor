@@ -10,7 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VmsRouteImport } from './routes/vms'
+import { Route as NetworksRouteImport } from './routes/networks'
 import { Route as ComponentsRouteImport } from './routes/components'
+import { Route as BillingRouteImport } from './routes/billing'
+import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
 
 const VmsRoute = VmsRouteImport.update({
@@ -18,9 +21,24 @@ const VmsRoute = VmsRouteImport.update({
   path: '/vms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NetworksRoute = NetworksRouteImport.update({
+  id: '/networks',
+  path: '/networks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComponentsRoute = ComponentsRouteImport.update({
   id: '/components',
   path: '/components',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditRoute = AuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,31 +49,50 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/audit': typeof AuditRoute
+  '/billing': typeof BillingRoute
   '/components': typeof ComponentsRoute
+  '/networks': typeof NetworksRoute
   '/vms': typeof VmsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/audit': typeof AuditRoute
+  '/billing': typeof BillingRoute
   '/components': typeof ComponentsRoute
+  '/networks': typeof NetworksRoute
   '/vms': typeof VmsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/audit': typeof AuditRoute
+  '/billing': typeof BillingRoute
   '/components': typeof ComponentsRoute
+  '/networks': typeof NetworksRoute
   '/vms': typeof VmsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/components' | '/vms'
+  fullPaths: '/' | '/audit' | '/billing' | '/components' | '/networks' | '/vms'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/components' | '/vms'
-  id: '__root__' | '/' | '/components' | '/vms'
+  to: '/' | '/audit' | '/billing' | '/components' | '/networks' | '/vms'
+  id:
+    | '__root__'
+    | '/'
+    | '/audit'
+    | '/billing'
+    | '/components'
+    | '/networks'
+    | '/vms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuditRoute: typeof AuditRoute
+  BillingRoute: typeof BillingRoute
   ComponentsRoute: typeof ComponentsRoute
+  NetworksRoute: typeof NetworksRoute
   VmsRoute: typeof VmsRoute
 }
 
@@ -68,11 +105,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VmsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/networks': {
+      id: '/networks'
+      path: '/networks'
+      fullPath: '/networks'
+      preLoaderRoute: typeof NetworksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/components': {
       id: '/components'
       path: '/components'
       fullPath: '/components'
       preLoaderRoute: typeof ComponentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/audit': {
+      id: '/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -87,7 +145,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuditRoute: AuditRoute,
+  BillingRoute: BillingRoute,
   ComponentsRoute: ComponentsRoute,
+  NetworksRoute: NetworksRoute,
   VmsRoute: VmsRoute,
 }
 export const routeTree = rootRouteImport

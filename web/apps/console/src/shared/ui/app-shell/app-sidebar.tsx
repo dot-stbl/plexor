@@ -12,6 +12,7 @@ import {
   SidebarRail,
 } from '@/shared/ui/primitives/sidebar';
 import { PlexorMark } from './plexor-mark';
+import { ProjectSwitcher } from './project-switcher';
 import { navSections, isActiveRoute } from './nav-config';
 
 export function AppSidebar() {
@@ -27,7 +28,7 @@ export function AppSidebar() {
           <div className="grid gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-semibold tracking-tight">Plexor</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-              cloud console
+              облачная консоль
             </span>
           </div>
         </div>

@@ -1,6 +1,5 @@
 import type { Icon } from '@phosphor-icons/react';
 import {
-  SquaresFour,
   Cube,
   TreeStructure,
   Receipt,
@@ -24,12 +23,6 @@ export type NavSection = {
 
 /** Single source of truth for sidebar groups, breadcrumb, and ⌘K palette. */
 export const navSections: NavSection[] = [
-  {
-    label: 'Обзор',
-    items: [
-      { title: 'Обзор', to: '/', icon: SquaresFour, description: 'Сводка по ресурсам и состоянию' },
-    ],
-  },
   {
     label: 'Ресурсы',
     items: [

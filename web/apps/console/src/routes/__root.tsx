@@ -1,4 +1,5 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { AppShell } from '@/shared/ui/app-shell';
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -6,8 +7,8 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <AppShell>
       <Outlet />
-    </div>
+    </AppShell>
   );
 }
