@@ -84,11 +84,14 @@
   <!-- ============ Provider plugins ======================================= -->
   <Folder Name="/src/providers/">
     <Project Path="src/providers/Plexor.Core.Providers/Plexor.Core.Providers.csproj" />
-    <Project Path="src/providers/Plexor.Providers.Compute.Kvm/Plexor.Providers.Compute.Kvm.csproj" />
-    <Project Path="src/providers/Plexor.Providers.Storage.MinIo/Plexor.Providers.Storage.MinIo.csproj" />
-    <Project Path="src/providers/Plexor.Providers.Network.Ovs/Plexor.Providers.Network.Ovs.csproj" />
-    <Project Path="src/providers/Plexor.Providers.Os.Ubuntu/Plexor.Providers.Os.Ubuntu.csproj" />
-    <Project Path="src/providers/Plexor.Providers.Orchestrator.K3s/Plexor.Providers.Orchestrator.K3s.csproj" />
+    <Folder Name="/src/providers/Substrate/">
+      <Project Path="src/providers/Plexor.Providers.Substrate.Kvm/Plexor.Providers.Substrate.Kvm.csproj" />
+      <Project Path="src/providers/Plexor.Providers.Substrate.Lxd/Plexor.Providers.Substrate.Lxd.csproj" />
+      <Project Path="src/providers/Plexor.Providers.Substrate.K3s/Plexor.Providers.Substrate.K3s.csproj" />
+      <Project Path="src/providers/Plexor.Providers.Substrate.Maas/Plexor.Providers.Substrate.Maas.csproj" />
+      <Project Path="src/providers/Plexor.Providers.Substrate.Tinkerbell/Plexor.Providers.Substrate.Tinkerbell.csproj" />
+      <Project Path="src/providers/Plexor.Providers.Substrate.Pod/Plexor.Providers.Substrate.Pod.csproj" />
+    </Folder>
   </Folder>
 
   <!-- ============ Tests =================================================== -->

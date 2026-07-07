@@ -6,15 +6,12 @@
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <Tier>production</Tier>
-    <ProviderPrimitive>overlay-network</ProviderPrimitive>
   </PropertyGroup>
 
   <!--
-    Plexor.Providers.Network.Ovs — Open vSwitch for VPC/subnet/security-group
-    topology. Wraps `ovs-vsctl`, `ovs-ofctl`, `nftables`, and BGP via FRR
-    for floating IPs. Tenant isolation via VLAN or VXLAN overlays.
-
-    Best with: KVM compute, Ceph storage.
+    Plexor.Providers.Substrate.Pod — substrate provider shell.
+    Implementation deferred until provider is taken into active work.
+    See .agents/docs/providers.md for the SDK contract and capability matrix.
   -->
 
   <ItemGroup>

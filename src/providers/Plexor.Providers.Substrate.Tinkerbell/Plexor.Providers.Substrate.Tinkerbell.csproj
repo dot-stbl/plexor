@@ -6,17 +6,12 @@
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <Tier>production</Tier>
-    <ProviderPrimitive>object-storage</ProviderPrimitive>
   </PropertyGroup>
 
   <!--
-    Plexor.Providers.Storage.MinIo — S3-compatible object storage via MinIO.
-    Production default for single-node or small clusters. Ceph is the
-    recommended tier for ≥3-node clusters with replication.
-
-    Wraps the MinIO admin API (mc) for bucket provisioning, IAM keys,
-    lifecycle policies. Used both as standalone S3 and as backend for
-    Plexor's "Object Storage" tenant feature.
+    Plexor.Providers.Substrate.Tinkerbell — substrate provider shell.
+    Implementation deferred until provider is taken into active work.
+    See .agents/docs/providers.md for the SDK contract and capability matrix.
   -->
 
   <ItemGroup>
