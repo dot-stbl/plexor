@@ -11,6 +11,7 @@ import {
 } from '@/shared/ui/primitives/sidebar';
 import { PlexorMark } from './plexor-mark';
 import { navSections, isActiveRoute } from './nav-config';
+import { cn } from '@/lib/utils';
 
 /**
  * Permanently-collapsed icon rail (non-expandable — see AppShell's controlled
@@ -45,13 +46,22 @@ export function AppSidebar() {
                   const ItemIcon = item.icon;
                   return (
                     <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton isActive={active} render={<Link to={item.to} />}>
+                      <SidebarMenuButton
+                        isActive={active}
+                        className={cn(
+                          'transition-colors data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground',
+                          active
+                            ? 'hover:bg-sidebar-primary hover:text-sidebar-primary-foreground'
+                            : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                        )}
+                        render={<Link to={item.to} />}
+                      >
                         <ItemIcon weight={active ? 'fill' : 'bold'} />
                         <span>{item.title}</span>
                       </SidebarMenuButton>
                       <span
                         aria-hidden="true"
-                        className="pointer-events-none absolute left-full top-1/2 z-50 ml-3.5 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-md bg-foreground/90 px-2 py-1 text-xs font-medium text-background opacity-0 shadow-md transition-all duration-150 ease-out group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/menu-item:ml-2.5 group-hover/menu-item:bg-foreground"
+                        className="pointer-events-none absolute left-full top-1/2 z-50 ml-3.5 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-md bg-foreground/80 px-2 py-1 text-xs font-medium text-background opacity-0 shadow-sm backdrop-blur-sm transition-all duration-150 ease-out group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/menu-item:ml-2.5 group-hover/menu-item:bg-foreground/90"
                       >
                         {item.title}
                       </span>
