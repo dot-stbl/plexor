@@ -112,7 +112,7 @@ function SelectContent({
           )}
           {...props}
         >
-          <SelectPrimitive.List className="p-1">
+          <SelectPrimitive.List>
             {children}
           </SelectPrimitive.List>
         </SelectPrimitive.Popup>
@@ -130,7 +130,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-sm py-1 pl-8 pr-2 text-xs/relaxed outline-hidden",
+        "relative flex w-full cursor-default select-none items-center rounded-sm py-1 pl-8 text-xs/relaxed outline-hidden",
         "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0",
