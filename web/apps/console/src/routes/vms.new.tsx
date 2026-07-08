@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Plus } from '@phosphor-icons/react';
+import { ArrowLeft, Plus, Cube, Stack, BookOpen } from '@phosphor-icons/react';
 import { Button } from '@/shared/ui/primitives/button';
 import { Input } from '@/shared/ui/primitives/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/primitives/select';
@@ -18,6 +18,7 @@ import {
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/shared/ui/primitives/field';
 import { PageHeader } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/shared/ui/primitives/empty';
 import { useListClusters } from '@/features/clusters';
 import type { NodeStatus } from '@/features/clusters';
 
@@ -98,6 +99,55 @@ function CreateVmPage() {
         }
       />
 
+      {/* Empty state: 0 clusters → user hasn't installed Plexor yet. */}
+      {clusters.length === 0 && (
+        <div className="mx-auto w-full max-w-3xl px-6 py-12 lg:px-8">
+          <Empty data-od-id="vms-new-no-cluster">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Cube />
+              </EmptyMedia>
+              <EmptyTitle>Plexor control plane не зарегистрирован</EmptyTitle>
+              <EmptyDescription>
+                Чтобы создавать VM, нужно сначала установить Plexor на сервере. Установка
+                ставит control plane и регистрирует его в UI.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button render={<a href="https://plexor.dev/docs/install" target="_blank" rel="noreferrer" />}>
+                <BookOpen />
+                Документация по установке
+              </Button>
+            </EmptyContent>
+          </Empty>
+        </div>
+      )}
+
+      {/* Empty state: clusters exist, 0 ready nodes → user needs to connect a node. */}
+      {clusters.length > 0 && readyNodes.length === 0 && (
+        <div className="mx-auto w-full max-w-3xl px-6 py-12 lg:px-8">
+          <Empty data-od-id="vms-new-no-ready-nodes">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Stack />
+              </EmptyMedia>
+              <EmptyTitle>Нет ready-нодов</EmptyTitle>
+              <EmptyDescription>
+                Подключите Plexor.NodeAgent к кластеру через join-токен. После heartbeat
+                (≤ 2 мин) нод появится здесь и можно будет создавать VM.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button render={<Link to="/clusters/$id" params={{ id: clusters[0]!.id }} />}>
+                <ArrowLeft />
+                Перейти к кластеру
+              </Button>
+            </EmptyContent>
+          </Empty>
+        </div>
+      )}
+
+      {clusters.length > 0 && readyNodes.length > 0 && (
       <div className="mx-auto w-full max-w-3xl space-y-3 px-6 py-6 lg:px-8">
         {/* Node context — which Plexor.NodeAgent hosts the VM. */}
         <Card data-od-id="vm-node-context" className="gap-0 p-0">
@@ -266,6 +316,7 @@ function CreateVmPage() {
           </Button>
         </div>
       </div>
+      )}
     </main>
   );
 }
