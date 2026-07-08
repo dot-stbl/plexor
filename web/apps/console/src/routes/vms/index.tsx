@@ -19,7 +19,7 @@ import {
 import { toast } from 'sonner';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 
-export const Route = createFileRoute('/vms')({
+export const Route = createFileRoute('/vms/')({
   component: VmsPage,
 });
 

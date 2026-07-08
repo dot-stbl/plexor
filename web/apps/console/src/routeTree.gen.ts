@@ -9,21 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VmsRouteImport } from './routes/vms'
 import { Route as NetworksRouteImport } from './routes/networks'
 import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as ClustersRouteImport } from './routes/clusters'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as VmsNewRouteImport } from './routes/vms.new'
+import { Route as VmsIndexRouteImport } from './routes/vms/index'
+import { Route as VmsNewRouteImport } from './routes/vms/new'
+import { Route as ManagedRedisRouteImport } from './routes/managed.redis'
+import { Route as ManagedPostgresRouteImport } from './routes/managed.postgres'
 import { Route as ClustersIdRouteImport } from './routes/clusters.$id'
 
-const VmsRoute = VmsRouteImport.update({
-  id: '/vms',
-  path: '/vms',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const NetworksRoute = NetworksRouteImport.update({
   id: '/networks',
   path: '/networks',
@@ -54,10 +51,25 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VmsIndexRoute = VmsIndexRouteImport.update({
+  id: '/vms/',
+  path: '/vms/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VmsNewRoute = VmsNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => VmsRoute,
+  id: '/vms/new',
+  path: '/vms/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagedRedisRoute = ManagedRedisRouteImport.update({
+  id: '/managed/redis',
+  path: '/managed/redis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagedPostgresRoute = ManagedPostgresRouteImport.update({
+  id: '/managed/postgres',
+  path: '/managed/postgres',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ClustersIdRoute = ClustersIdRouteImport.update({
   id: '/$id',
@@ -72,9 +84,11 @@ export interface FileRoutesByFullPath {
   '/clusters': typeof ClustersRouteWithChildren
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
-  '/vms': typeof VmsRouteWithChildren
   '/clusters/$id': typeof ClustersIdRoute
+  '/managed/postgres': typeof ManagedPostgresRoute
+  '/managed/redis': typeof ManagedRedisRoute
   '/vms/new': typeof VmsNewRoute
+  '/vms/': typeof VmsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,9 +97,11 @@ export interface FileRoutesByTo {
   '/clusters': typeof ClustersRouteWithChildren
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
-  '/vms': typeof VmsRouteWithChildren
   '/clusters/$id': typeof ClustersIdRoute
+  '/managed/postgres': typeof ManagedPostgresRoute
+  '/managed/redis': typeof ManagedRedisRoute
   '/vms/new': typeof VmsNewRoute
+  '/vms': typeof VmsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,9 +111,11 @@ export interface FileRoutesById {
   '/clusters': typeof ClustersRouteWithChildren
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
-  '/vms': typeof VmsRouteWithChildren
   '/clusters/$id': typeof ClustersIdRoute
+  '/managed/postgres': typeof ManagedPostgresRoute
+  '/managed/redis': typeof ManagedRedisRoute
   '/vms/new': typeof VmsNewRoute
+  '/vms/': typeof VmsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,9 +126,11 @@ export interface FileRouteTypes {
     | '/clusters'
     | '/components'
     | '/networks'
-    | '/vms'
     | '/clusters/$id'
+    | '/managed/postgres'
+    | '/managed/redis'
     | '/vms/new'
+    | '/vms/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,9 +139,11 @@ export interface FileRouteTypes {
     | '/clusters'
     | '/components'
     | '/networks'
-    | '/vms'
     | '/clusters/$id'
+    | '/managed/postgres'
+    | '/managed/redis'
     | '/vms/new'
+    | '/vms'
   id:
     | '__root__'
     | '/'
@@ -130,9 +152,11 @@ export interface FileRouteTypes {
     | '/clusters'
     | '/components'
     | '/networks'
-    | '/vms'
     | '/clusters/$id'
+    | '/managed/postgres'
+    | '/managed/redis'
     | '/vms/new'
+    | '/vms/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -142,18 +166,14 @@ export interface RootRouteChildren {
   ClustersRoute: typeof ClustersRouteWithChildren
   ComponentsRoute: typeof ComponentsRoute
   NetworksRoute: typeof NetworksRoute
-  VmsRoute: typeof VmsRouteWithChildren
+  ManagedPostgresRoute: typeof ManagedPostgresRoute
+  ManagedRedisRoute: typeof ManagedRedisRoute
+  VmsNewRoute: typeof VmsNewRoute
+  VmsIndexRoute: typeof VmsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/vms': {
-      id: '/vms'
-      path: '/vms'
-      fullPath: '/vms'
-      preLoaderRoute: typeof VmsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/networks': {
       id: '/networks'
       path: '/networks'
@@ -196,12 +216,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vms/': {
+      id: '/vms/'
+      path: '/vms'
+      fullPath: '/vms/'
+      preLoaderRoute: typeof VmsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vms/new': {
       id: '/vms/new'
-      path: '/new'
+      path: '/vms/new'
       fullPath: '/vms/new'
       preLoaderRoute: typeof VmsNewRouteImport
-      parentRoute: typeof VmsRoute
+      parentRoute: typeof rootRouteImport
+    }
+    '/managed/redis': {
+      id: '/managed/redis'
+      path: '/managed/redis'
+      fullPath: '/managed/redis'
+      preLoaderRoute: typeof ManagedRedisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/managed/postgres': {
+      id: '/managed/postgres'
+      path: '/managed/postgres'
+      fullPath: '/managed/postgres'
+      preLoaderRoute: typeof ManagedPostgresRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/clusters/$id': {
       id: '/clusters/$id'
@@ -225,16 +266,6 @@ const ClustersRouteWithChildren = ClustersRoute._addFileChildren(
   ClustersRouteChildren,
 )
 
-interface VmsRouteChildren {
-  VmsNewRoute: typeof VmsNewRoute
-}
-
-const VmsRouteChildren: VmsRouteChildren = {
-  VmsNewRoute: VmsNewRoute,
-}
-
-const VmsRouteWithChildren = VmsRoute._addFileChildren(VmsRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
@@ -242,7 +273,10 @@ const rootRouteChildren: RootRouteChildren = {
   ClustersRoute: ClustersRouteWithChildren,
   ComponentsRoute: ComponentsRoute,
   NetworksRoute: NetworksRoute,
-  VmsRoute: VmsRouteWithChildren,
+  ManagedPostgresRoute: ManagedPostgresRoute,
+  ManagedRedisRoute: ManagedRedisRoute,
+  VmsNewRoute: VmsNewRoute,
+  VmsIndexRoute: VmsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
