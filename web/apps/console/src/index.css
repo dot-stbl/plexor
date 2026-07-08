@@ -166,10 +166,13 @@
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-ok-ink: var(--ok-ink);
+  --color-err: var(--err);
   --color-err-soft: var(--err-soft);
   --color-err-ink: var(--err-ink);
+  --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
   --color-warn-ink: var(--warn-ink);
+  --color-idle: var(--idle);
   --color-idle-soft: var(--idle-soft);
   --color-idle-ink: var(--idle-ink);
   --color-info: var(--info);

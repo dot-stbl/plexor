@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "launcher-mockup.html",
+  "entry": "launcher-mockup.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-07-08T05:35:11.399Z",
+  "updatedAt": "2026-07-08T05:35:11.399Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}
