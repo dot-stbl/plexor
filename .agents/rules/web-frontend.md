@@ -33,7 +33,7 @@ priority: high
 
 11. **shadcn-ui primitives in `src/shared/ui/primitives/`** — generated via `bunx --bun shadcn@latest add <name>`. After generation, customize for Plexor DS (add variants, change sizes, swap icon library to Phosphor).
 12. **Custom primitives same location + same pattern** — `StatusPill`, `MonoNum`, `ThemeToggle`. Use `forwardRef` when wrapping native elements that need ref. Use `cva` for variants. Use `cn()` (from `@/lib/utils`) for className merging.
-13. **Icons: `@phosphor-icons/react` only.** v2.1.x exports icons WITHOUT `Icon` suffix (`X`, `CaretDown`, `Check` — not `XIcon`, `CaretDownIcon`, `CheckIcon`). All shadcn-generated `<icon>Icon` imports must be sed-renamed on add.
+13. **Icons: `@phosphor-icons/react` only.** v2.1.x exports icons WITHOUT `Icon` suffix (`X`, `CaretDown`, `Check` — not `XIcon`, `CaretDownIcon`, `CheckIcon`). All shadcn-generated `<icon>Icon` imports must be sed-renamed on add. App-wide default is set in `main.tsx` via `<IconContext.Provider value={{ weight: 'bold' }}>` — every icon renders **bold** by default. Do NOT pass `weight="regular"` to downgrade; if a quieter icon is genuinely needed (rare), pass `weight="regular"` explicitly at the call site with a comment. Status semantically-filled icons (e.g. status pills, check-circles, single-color mark icons) use `weight="fill"` to read more cleanly against soft backgrounds.
 14. **No `lucide-react`, no `react-icons`.** Phosphor is the single icon library.
 15. **Button variants** (custom-adapted for Plexor DS):
     - `default` → Plexor DS primary (bg=accent monochrome dark)
@@ -248,17 +248,18 @@ Required for screen readers to announce purpose.
 33. **shadcn primitives compose, never re-invent.** A table is `<Table>` + `<TableHeader>` + `<TableRow>` + `<TableCell>`. A card is `<Card>` + `<CardHeader>` + `<CardContent>`. A dialog is `<Dialog>` + `<DialogContent>` + `<DialogHeader>` + `<DialogFooter>`. Don't re-style HTML elements when a primitive exists.
 34. **Custom markup only when no primitive covers it.** Allowed structural classes (`.kpi`, `.audit-row`, `.toolbar*`, `.table-wrap/.tbl`, `.pagination/.pg-*`, `.field`, `.empty-state`, `.skeleton*`, `.kv-list`, `.console*`) live in `index.css` for one-off layouts that shadcn can't express. Everything else → shadcn primitive or Tailwind utility.
 35. **Wrap, don't fork.** When a shadcn primitive needs project-specific tweaks (different size, extra padding, role-specific colors), wrap it in a thin local component (`VmFiltersBar` wraps `Select` + `Input`). Don't edit `src/shared/ui/primitives/*` for one-screen needs.
+36. **Collections render as Badge primitives, not as text.** Never render a list of items as a comma-separated string (`items.join(', ')`) or as a plain count sentence (`{n} провайдеров`). Each item gets its own `<Badge>` (or `<StatusPill>` for statuses); overflow collapses into a single `<Badge>+N</Badge>`. The count lives on the container (`flex items-center gap-1` over the badges), never as a sentence before the list.
 
 ## Helper extraction (pure functions live in features/)
 
-36. **Extract a pure helper when** (a) the same branching/lookup appears in 2+ places, OR (b) the logic is independently testable, OR (c) the page JSX becomes unreadable because of inline ternaries. Never extract prematurely — a one-line `switch` inline is fine.
-37. **Pure helpers live in `src/features/<name>/*.ts`** (not `.tsx` if there's no JSX). Exhaustive switches on closed enums (like `VmStatus`) keep the contract safe — adding a value to the API forces a compile error here until mapped.
-38. **Barrel re-exports the feature surface.** `features/vms/index.ts` lists every public name (components + helpers + types). Screens import from `@/features/vms`, not from internal files. Internal helpers stay unexported until a second consumer needs them.
+37. **Extract a pure helper when** (a) the same branching/lookup appears in 2+ places, OR (b) the logic is independently testable, OR (c) the page JSX becomes unreadable because of inline ternaries. Never extract prematurely — a one-line `switch` inline is fine.
+38. **Pure helpers live in `src/features/<name>/*.ts`** (not `.tsx` if there's no JSX). Exhaustive switches on closed enums (like `VmStatus`) keep the contract safe — adding a value to the API forces a compile error here until mapped.
+39. **Barrel re-exports the feature surface.** `features/vms/index.ts` lists every public name (components + helpers + types). Screens import from `@/features/vms`, not from internal files. Internal helpers stay unexported until a second consumer needs them.
 
 ## Forms — FieldGroup + Field + FieldLabel
 
-39. **Form layout is `FieldGroup` + `Field` + `FieldLabel`.** Never use raw `<div className="space-y-4">` or `<div className="grid gap-4">` for form layout — the Field primitive handles vertical/horizontal/responsive orientations, invalid state, label-to-control association.
-40. **Field anatomy:**
+40. **Form layout is `FieldGroup` + `Field` + `FieldLabel`.** Never use raw `<div className="space-y-4">` or `<div className="grid gap-4">` for form layout — the Field primitive handles vertical/horizontal/responsive orientations, invalid state, label-to-control association.
+41. **Field anatomy:**
 
    ```tsx
    <Field data-invalid={hasError}>
@@ -268,8 +269,8 @@ Required for screen readers to announce purpose.
    </Field>
    ```
    `data-invalid` on `<Field>`, `aria-invalid` on the actual control. Disabled → `data-disabled` on `<Field>`, `disabled` on the control.
-41. **No nested interactive elements.** Don't put a `<Button>` inside a `<FieldLabel>` — the `has-[>[data-slot=field]]` selector breaks. Place the action next to the label or above the field.
-42. **Submit button is part of the page footer, not the last Field.** The Dialog's `DialogFooter` or the form's submit row lives outside the FieldGroup.
+42. **No nested interactive elements.** Don't put a `<Button>` inside a `<FieldLabel>` — the `has-[>[data-slot=field]]` selector breaks. Place the action next to the label or above the field.
+43. **Submit button is part of the page footer, not the last Field.** The Dialog's `DialogFooter` or the form's submit row lives outside the FieldGroup.
 
 ## Reusable component design (cva + render + polymorphic)
 
@@ -284,11 +285,12 @@ Required for screen readers to announce purpose.
 48. **Selection state lives in a `Set<string>`**, not an array. `selectedIds.has(id)` is O(1). Build it from `new Set(arr)` — never mutate, always return a new instance in setState.
 49. **Toast for action feedback, not as a primary channel.** Toasts are fire-and-forget; if the user needs the result visible (e.g. "delete" with an undo), use inline state in the row, not a toast.
 50. **Debounce in the parent, not the child.** `<VmFiltersBar onChange />` fires synchronously; the page wraps `setFilters` with a debounced setter if needed. Keeps the child component pure and reusable.
+51. **Resources at the same level live as parallel routes, not nested ones.** VMs and Clusters are first-class resources that the user reaches independently. Creating a VM does NOT route through `/clusters/$id/vms/new` — it lives at `/vms/new` and references a Cluster via an inline `<Select>` (or whichever FK the resource has). A nested route (`/clusters/$id/vms/new`) is wrong because it forces the user through a separate resource to act on a different one. Reserve nested routes for genuine parent/child actions on the SAME resource (e.g. `/clusters/$id/nodes/new`).
 
 ## When in doubt
 
-51. **Is there a shadcn-ui primitive?** Use it. Add Plexor DS-specific variants if needed.
-52. **Is there a Tailwind utility?** Use it. Add `@theme inline` token if needed.
-53. **Is it a one-off static layout?** Use `.kpi` / `.audit-row` / `.toolbar*` / `.table-wrap/.tbl` / `.pagination/.pg-*` / `.field` / `.empty-state` / `.skeleton*` / `.kv-list` / `.console*` from the allowed structural list.
-54. **Is it a tooltip / popover?** Use shadcn Tooltip/Popover. For pure CSS hover-only labels, use `[data-tooltip]` (already defined in `index.css`).
-55. **Is it a domain-specific component (TenantCard, VMList, AuditTimeline)?** Build it in `src/features/<name>/`. Pure helpers next to the components, barrel-exported.
+52. **Is there a shadcn-ui primitive?** Use it. Add Plexor DS-specific variants if needed.
+53. **Is there a Tailwind utility?** Use it. Add `@theme inline` token if needed.
+54. **Is it a one-off static layout?** Use `.kpi` / `.audit-row` / `.toolbar*` / `.table-wrap/.tbl` / `.pagination/.pg-*` / `.field` / `.empty-state` / `.skeleton*` / `.kv-list` / `.console*` from the allowed structural list.
+55. **Is it a tooltip / popover?** Use shadcn Tooltip/Popover. For pure CSS hover-only labels, use `[data-tooltip]` (already defined in `index.css`).
+56. **Is it a domain-specific component (TenantCard, VMList, AuditTimeline)?** Build it in `src/features/<name>/`. Pure helpers next to the components, barrel-exported.
