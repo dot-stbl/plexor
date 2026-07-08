@@ -40,7 +40,7 @@ export function VmErrorBanner({ error, onRetry }: VmErrorBannerProps) {
 }
 
 interface VmEmptyStateProps {
-  onCreate: () => void;
+  onCreate?: () => void;
 }
 
 /** Empty state — zero VMs in the project (before any filter). */
@@ -56,15 +56,21 @@ export function VmEmptyState({ onCreate }: VmEmptyStateProps) {
           Создайте первую ВМ, чтобы начать. Доступны Ubuntu, Debian, Alpine и свои образы.
         </EmptyDescription>
       </EmptyHeader>
-      <EmptyContent>
-        <Button onClick={onCreate}>Создать ВМ</Button>
-      </EmptyContent>
+      {onCreate && (
+        <EmptyContent>
+          <Button onClick={onCreate}>Создать ВМ</Button>
+        </EmptyContent>
+      )}
     </Empty>
   );
 }
 
+interface VmNoResultsStateProps {
+  onReset: () => void;
+}
+
 /** Empty state — filters returned nothing (VMs exist but none match). */
-export function VmNoResultsState() {
+export function VmNoResultsState({ onReset }: VmNoResultsStateProps) {
   return (
     <Empty data-od-id="vms-no-results">
       <EmptyHeader>
@@ -72,8 +78,15 @@ export function VmNoResultsState() {
           <MagnifyingGlass />
         </EmptyMedia>
         <EmptyTitle>Ничего не найдено</EmptyTitle>
-        <EmptyDescription>Попробуйте изменить фильтры или очистить поиск.</EmptyDescription>
+        <EmptyDescription>
+          Попробуйте изменить фильтры или сбросить их.
+        </EmptyDescription>
       </EmptyHeader>
+      <EmptyContent>
+        <Button variant="outline" size="sm" onClick={onReset}>
+          Сбросить фильтры
+        </Button>
+      </EmptyContent>
     </Empty>
   );
 }

@@ -1,13 +1,9 @@
 /**
- * Public surface of the `vms` feature. Components and helpers are flat
- * siblings — no nested dirs while the screen is the only consumer.
+ * Public surface of the `vms` feature. Screens import from
+ * `@/features/vms`; internal helpers stay unexported.
  */
 export { mapVmStatusToVariant } from './vm-status';
-export { filterVms, summarizeStatus, uniqueZones, VM_FILTERS_DEFAULT } from './filter-vms';
-export type { VmFilters } from './filter-vms';
-export { VmFiltersBar } from './vm-filters';
-export { VmTable } from './vm-table';
-export { VmRowActions } from './vm-row-actions';
 export { VmBulkToolbar } from './vm-bulk-toolbar';
+export { VmRowActions } from './vm-row-actions';
 export { VmSkeleton, VmErrorBanner, VmEmptyState, VmNoResultsState } from './vm-states';
-export { CreateVmDialog } from './create-vm-dialog';
+export { vmColumns } from './vm-columns';

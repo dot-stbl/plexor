@@ -1,24 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Plus } from '@phosphor-icons/react';
 import { useListVms } from '@/shared/api';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageHeader } from '@/shared/ui/app-shell';
-import {
-  CreateVmDialog,
-  VmBulkToolbar,
-  VmEmptyState,
-  VmErrorBanner,
-  VmFiltersBar,
-  VmNoResultsState,
-  VmSkeleton,
-  VmTable,
-  filterVms,
-  summarizeStatus,
-  uniqueZones,
-  VM_FILTERS_DEFAULT,
-} from '@/features/vms';
-import type { VmFilters } from '@/features/vms';
+import { DataTable, emptyFilters, compactFilters, type FilterValues } from '@/shared/ui/data-table';
+import { VmBulkToolbar, VmEmptyState, VmErrorBanner, VmNoResultsState, VmSkeleton, vmColumns } from '@/features/vms';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,19 +23,27 @@ export const Route = createFileRoute('/vms')({
   component: VmsPage,
 });
 
+const FILTER_DEFAULT: FilterValues = emptyFilters(vmColumns);
+
 function VmsPage() {
-  const { data, isPending, isError, error, refetch } = useListVms();
-  const [filters, setFilters] = useState<VmFilters>(VM_FILTERS_DEFAULT);
+  const [filters, setFilters] = useState<FilterValues>(FILTER_DEFAULT);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
-  const [createOpen, setCreateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const allItems = data?.items ?? [];
-  const filteredItems = useMemo(() => filterVms(allItems, filters), [allItems, filters]);
-  const zones = useMemo(() => uniqueZones(allItems), [allItems]);
-  const { total, running } = useMemo(() => summarizeStatus(allItems), [allItems]);
+  // Server-side filtering: drop empty filter values, hand the rest to the API.
+  const apiParams = useMemo(() => compactFilters(filters), [filters]);
 
-  const noResults = allItems.length > 0 && filteredItems.length === 0;
+  const { data, isPending, isError, error, refetch } = useListVms(apiParams);
+
+  const allItems = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const running = useMemo(
+    () => allItems.reduce((n, vm) => (vm.status === 'running' ? n + 1 : n), 0),
+    [allItems],
+  );
+
+  const isEmptyFleet = !isPending && !isError && total === 0;
+  const isNoResults = !isPending && !isError && total > 0 && allItems.length === 0;
 
   const toggle = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -59,23 +54,13 @@ function VmsPage() {
     });
   }, []);
 
-  const toggleAll = useCallback(
-    (nextSelected: boolean) => {
-      setSelectedIds((prev) => {
-        if (nextSelected) return new Set(filteredItems.map((vm) => vm.id));
-        if (prev.size === filteredItems.length) return new Set();
-        // Mixed state — selecting all fills with filtered ids.
-        return new Set(filteredItems.map((vm) => vm.id));
-      });
-    },
-    [filteredItems],
-  );
+  const toggleAll = useCallback((nextSelected: boolean) => {
+    setSelectedIds(nextSelected ? new Set(allItems.map((vm) => vm.id)) : new Set());
+  }, [allItems]);
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
   const handleRowClick = useCallback((vm: { id: string; name: string }) => {
-    // VM detail screen is a separate plan. Surface as a toast so the click is
-    // visibly wired without faking the route.
     toast(`Открыть ${vm.name}`, { description: `id=${vm.id}` });
   }, []);
 
@@ -84,6 +69,8 @@ function VmsPage() {
     toast(`Удалено: ${selectedIds.size}`);
     clearSelection();
   }, [selectedIds.size, clearSelection]);
+
+  const resetFilters = useCallback(() => setFilters(FILTER_DEFAULT), []);
 
   return (
     <main data-od-id="vms-list">
@@ -100,36 +87,39 @@ function VmsPage() {
           )
         }
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
+          <Button render={<Link to="/vms/new" />}>
             <Plus />
             Создать ВМ
           </Button>
         }
       />
 
-      <div className="mx-auto w-full max-w-6xl px-6 py-6 lg:px-8">
-        <VmFiltersBar
-          value={filters}
-          onChange={setFilters}
-          zones={zones}
-        />
-
+      <div className="mx-auto w-full max-w-6xl space-y-3 px-6 py-6 lg:px-8">
         {isPending ? (
           <VmSkeleton />
         ) : isError ? (
           <VmErrorBanner error={error} onRetry={() => void refetch()} />
-        ) : allItems.length === 0 ? (
-          <VmEmptyState onCreate={() => setCreateOpen(true)} />
-        ) : noResults ? (
-          <VmNoResultsState />
+        ) : isEmptyFleet ? (
+          <VmEmptyState />
         ) : (
-          <VmTable
-            items={filteredItems}
-            selectedIds={selectedIds}
-            onToggle={toggle}
-            onToggleAll={toggleAll}
-            onRowClick={handleRowClick}
-          />
+          <>
+            <DataTable
+              columns={vmColumns}
+              data={allItems}
+              totalCount={total}
+              filters={filters}
+              onFiltersChange={setFilters}
+              selection={{
+                selectedIds,
+                onToggle: toggle,
+                onToggleAll: toggleAll,
+              }}
+              onRowClick={handleRowClick}
+            />
+            {isNoResults && (
+              <VmNoResultsState onReset={resetFilters} />
+            )}
+          </>
         )}
       </div>
 
@@ -167,8 +157,6 @@ function VmsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <CreateVmDialog open={createOpen} onOpenChange={setCreateOpen} />
     </main>
   );
 }
