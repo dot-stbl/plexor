@@ -5,7 +5,7 @@ import { PageHeader } from '@/shared/ui/app-shell';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { ClusterCard, useListClusters, countNodes } from '@/features/clusters';
 
-export const Route = createFileRoute('/clusters')({
+export const Route = createFileRoute('/clusters/')({
   component: ClustersPage,
 });
 

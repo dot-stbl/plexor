@@ -11,15 +11,19 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as NetworksRouteImport } from './routes/networks'
 import { Route as ComponentsRouteImport } from './routes/components'
-import { Route as ClustersRouteImport } from './routes/clusters'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VmsIndexRouteImport } from './routes/vms/index'
+import { Route as ClustersIndexRouteImport } from './routes/clusters/index'
 import { Route as VmsNewRouteImport } from './routes/vms/new'
 import { Route as ManagedRedisRouteImport } from './routes/managed.redis'
 import { Route as ManagedPostgresRouteImport } from './routes/managed.postgres'
-import { Route as ClustersIdRouteImport } from './routes/clusters.$id'
+import { Route as ManagedNewRouteImport } from './routes/managed.new'
+import { Route as ManagedKafkaRouteImport } from './routes/managed.kafka'
+import { Route as ManagedGarnetRouteImport } from './routes/managed.garnet'
+import { Route as ManagedClickhouseRouteImport } from './routes/managed.clickhouse'
+import { Route as ClustersIdRouteImport } from './routes/clusters/$id'
 
 const NetworksRoute = NetworksRouteImport.update({
   id: '/networks',
@@ -29,11 +33,6 @@ const NetworksRoute = NetworksRouteImport.update({
 const ComponentsRoute = ComponentsRouteImport.update({
   id: '/components',
   path: '/components',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClustersRoute = ClustersRouteImport.update({
-  id: '/clusters',
-  path: '/clusters',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BillingRoute = BillingRouteImport.update({
@@ -56,6 +55,11 @@ const VmsIndexRoute = VmsIndexRouteImport.update({
   path: '/vms/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClustersIndexRoute = ClustersIndexRouteImport.update({
+  id: '/clusters/',
+  path: '/clusters/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VmsNewRoute = VmsNewRouteImport.update({
   id: '/vms/new',
   path: '/vms/new',
@@ -71,36 +75,64 @@ const ManagedPostgresRoute = ManagedPostgresRouteImport.update({
   path: '/managed/postgres',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManagedNewRoute = ManagedNewRouteImport.update({
+  id: '/managed/new',
+  path: '/managed/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagedKafkaRoute = ManagedKafkaRouteImport.update({
+  id: '/managed/kafka',
+  path: '/managed/kafka',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagedGarnetRoute = ManagedGarnetRouteImport.update({
+  id: '/managed/garnet',
+  path: '/managed/garnet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManagedClickhouseRoute = ManagedClickhouseRouteImport.update({
+  id: '/managed/clickhouse',
+  path: '/managed/clickhouse',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClustersIdRoute = ClustersIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ClustersRoute,
+  id: '/clusters/$id',
+  path: '/clusters/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
-  '/clusters': typeof ClustersRouteWithChildren
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
   '/clusters/$id': typeof ClustersIdRoute
+  '/managed/clickhouse': typeof ManagedClickhouseRoute
+  '/managed/garnet': typeof ManagedGarnetRoute
+  '/managed/kafka': typeof ManagedKafkaRoute
+  '/managed/new': typeof ManagedNewRoute
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
   '/vms/new': typeof VmsNewRoute
+  '/clusters/': typeof ClustersIndexRoute
   '/vms/': typeof VmsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
-  '/clusters': typeof ClustersRouteWithChildren
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
   '/clusters/$id': typeof ClustersIdRoute
+  '/managed/clickhouse': typeof ManagedClickhouseRoute
+  '/managed/garnet': typeof ManagedGarnetRoute
+  '/managed/kafka': typeof ManagedKafkaRoute
+  '/managed/new': typeof ManagedNewRoute
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
   '/vms/new': typeof VmsNewRoute
+  '/clusters': typeof ClustersIndexRoute
   '/vms': typeof VmsIndexRoute
 }
 export interface FileRoutesById {
@@ -108,13 +140,17 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
-  '/clusters': typeof ClustersRouteWithChildren
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
   '/clusters/$id': typeof ClustersIdRoute
+  '/managed/clickhouse': typeof ManagedClickhouseRoute
+  '/managed/garnet': typeof ManagedGarnetRoute
+  '/managed/kafka': typeof ManagedKafkaRoute
+  '/managed/new': typeof ManagedNewRoute
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
   '/vms/new': typeof VmsNewRoute
+  '/clusters/': typeof ClustersIndexRoute
   '/vms/': typeof VmsIndexRoute
 }
 export interface FileRouteTypes {
@@ -123,39 +159,51 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/billing'
-    | '/clusters'
     | '/components'
     | '/networks'
     | '/clusters/$id'
+    | '/managed/clickhouse'
+    | '/managed/garnet'
+    | '/managed/kafka'
+    | '/managed/new'
     | '/managed/postgres'
     | '/managed/redis'
     | '/vms/new'
+    | '/clusters/'
     | '/vms/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/audit'
     | '/billing'
-    | '/clusters'
     | '/components'
     | '/networks'
     | '/clusters/$id'
+    | '/managed/clickhouse'
+    | '/managed/garnet'
+    | '/managed/kafka'
+    | '/managed/new'
     | '/managed/postgres'
     | '/managed/redis'
     | '/vms/new'
+    | '/clusters'
     | '/vms'
   id:
     | '__root__'
     | '/'
     | '/audit'
     | '/billing'
-    | '/clusters'
     | '/components'
     | '/networks'
     | '/clusters/$id'
+    | '/managed/clickhouse'
+    | '/managed/garnet'
+    | '/managed/kafka'
+    | '/managed/new'
     | '/managed/postgres'
     | '/managed/redis'
     | '/vms/new'
+    | '/clusters/'
     | '/vms/'
   fileRoutesById: FileRoutesById
 }
@@ -163,12 +211,17 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditRoute: typeof AuditRoute
   BillingRoute: typeof BillingRoute
-  ClustersRoute: typeof ClustersRouteWithChildren
   ComponentsRoute: typeof ComponentsRoute
   NetworksRoute: typeof NetworksRoute
+  ClustersIdRoute: typeof ClustersIdRoute
+  ManagedClickhouseRoute: typeof ManagedClickhouseRoute
+  ManagedGarnetRoute: typeof ManagedGarnetRoute
+  ManagedKafkaRoute: typeof ManagedKafkaRoute
+  ManagedNewRoute: typeof ManagedNewRoute
   ManagedPostgresRoute: typeof ManagedPostgresRoute
   ManagedRedisRoute: typeof ManagedRedisRoute
   VmsNewRoute: typeof VmsNewRoute
+  ClustersIndexRoute: typeof ClustersIndexRoute
   VmsIndexRoute: typeof VmsIndexRoute
 }
 
@@ -186,13 +239,6 @@ declare module '@tanstack/react-router' {
       path: '/components'
       fullPath: '/components'
       preLoaderRoute: typeof ComponentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clusters': {
-      id: '/clusters'
-      path: '/clusters'
-      fullPath: '/clusters'
-      preLoaderRoute: typeof ClustersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/billing': {
@@ -223,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VmsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clusters/': {
+      id: '/clusters/'
+      path: '/clusters'
+      fullPath: '/clusters/'
+      preLoaderRoute: typeof ClustersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vms/new': {
       id: '/vms/new'
       path: '/vms/new'
@@ -244,38 +297,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagedPostgresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/managed/new': {
+      id: '/managed/new'
+      path: '/managed/new'
+      fullPath: '/managed/new'
+      preLoaderRoute: typeof ManagedNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/managed/kafka': {
+      id: '/managed/kafka'
+      path: '/managed/kafka'
+      fullPath: '/managed/kafka'
+      preLoaderRoute: typeof ManagedKafkaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/managed/garnet': {
+      id: '/managed/garnet'
+      path: '/managed/garnet'
+      fullPath: '/managed/garnet'
+      preLoaderRoute: typeof ManagedGarnetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/managed/clickhouse': {
+      id: '/managed/clickhouse'
+      path: '/managed/clickhouse'
+      fullPath: '/managed/clickhouse'
+      preLoaderRoute: typeof ManagedClickhouseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clusters/$id': {
       id: '/clusters/$id'
-      path: '/$id'
+      path: '/clusters/$id'
       fullPath: '/clusters/$id'
       preLoaderRoute: typeof ClustersIdRouteImport
-      parentRoute: typeof ClustersRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface ClustersRouteChildren {
-  ClustersIdRoute: typeof ClustersIdRoute
-}
-
-const ClustersRouteChildren: ClustersRouteChildren = {
-  ClustersIdRoute: ClustersIdRoute,
-}
-
-const ClustersRouteWithChildren = ClustersRoute._addFileChildren(
-  ClustersRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
   BillingRoute: BillingRoute,
-  ClustersRoute: ClustersRouteWithChildren,
   ComponentsRoute: ComponentsRoute,
   NetworksRoute: NetworksRoute,
+  ClustersIdRoute: ClustersIdRoute,
+  ManagedClickhouseRoute: ManagedClickhouseRoute,
+  ManagedGarnetRoute: ManagedGarnetRoute,
+  ManagedKafkaRoute: ManagedKafkaRoute,
+  ManagedNewRoute: ManagedNewRoute,
   ManagedPostgresRoute: ManagedPostgresRoute,
   ManagedRedisRoute: ManagedRedisRoute,
   VmsNewRoute: VmsNewRoute,
+  ClustersIndexRoute: ClustersIndexRoute,
   VmsIndexRoute: VmsIndexRoute,
 }
 export const routeTree = rootRouteImport
