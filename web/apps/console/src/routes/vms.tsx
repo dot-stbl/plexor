@@ -4,7 +4,7 @@ import { Plus } from '@phosphor-icons/react';
 import { useListVms } from '@/shared/api';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageHeader } from '@/shared/ui/app-shell';
-import { DataTable, emptyFilters, compactFilters, type FilterValues } from '@/shared/ui/data-table';
+import { DataTable, DataTableToolbar, emptyFilters, compactFilters, type FilterValues } from '@/shared/ui/data-table';
 import { VmBulkToolbar, VmEmptyState, VmErrorBanner, VmNoResultsState, VmSkeleton, vmColumns } from '@/features/vms';
 import {
   AlertDialog,
@@ -102,13 +102,15 @@ function VmsPage() {
         ) : isEmptyFleet ? (
           <VmEmptyState />
         ) : (
-          <>
+          <div className="space-y-3">
+            <DataTableToolbar
+              columns={vmColumns}
+              filters={filters}
+              onFiltersChange={setFilters}
+            />
             <DataTable
               columns={vmColumns}
               data={allItems}
-              totalCount={total}
-              filters={filters}
-              onFiltersChange={setFilters}
               selection={{
                 selectedIds,
                 onToggle: toggle,
@@ -119,7 +121,7 @@ function VmsPage() {
             {isNoResults && (
               <VmNoResultsState onReset={resetFilters} />
             )}
-          </>
+          </div>
         )}
       </div>
 
