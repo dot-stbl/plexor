@@ -5,6 +5,7 @@ import {
   Image,
   Camera,
   Hexagon,
+  Stack,
   TreeStructure,
   ShieldCheck,
   Globe,
@@ -23,7 +24,7 @@ import {
 } from '@phosphor-icons/react';
 
 /** Registered product routes the shell navigates between. */
-export type AppRoute = '/' | '/vms' | '/networks' | '/audit';
+export type AppRoute = '/' | '/vms' | '/networks' | '/audit' | '/clusters';
 
 export type NavPage = {
   title: string;
@@ -52,10 +53,11 @@ export const SECTIONS: Section[] = [
   {
     id: 'compute',
     label: 'Вычисления',
-    caption: 'ВМ, образы, снапшоты',
+    caption: 'Кластеры, ВМ, образы',
     icon: Cube,
     pages: [
       { title: 'Виртуальные машины', description: 'Инстансы и статусы', icon: Cube, to: '/vms' },
+      { title: 'Вычислительные кластеры', description: 'Пул нод и ресурсы', icon: Stack, to: '/clusters' },
       { title: 'Создать ВМ', description: 'Мастер, 6 шагов', icon: Plus },
       { title: 'Образы', description: 'ОС и свои образы', icon: Image },
       { title: 'Снапшоты ВМ', description: 'Копии дисков', icon: Camera },
