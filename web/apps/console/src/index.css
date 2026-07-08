@@ -236,6 +236,11 @@
   *::-webkit-scrollbar-corner {
     background: transparent;
   }
+  /* Select/Combobox popups: auto gutter (only reserve space when scrollbar is shown) */
+  [data-slot="select-content"] *,
+  [data-slot="combobox-content"] * {
+    scrollbar-gutter: auto;
+  }
   html {
     scroll-behavior: smooth;
   }
