@@ -6,6 +6,7 @@ import { Input } from '@/shared/ui/primitives/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/primitives/select';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Progress } from '@/shared/ui/primitives/progress';
+import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,27 +17,42 @@ import {
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/shared/ui/primitives/field';
 import { PageHeader } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
-import { useGetCluster, useListClusters, clusterFlavors, clusterUtilizationPct } from '@/features/clusters';
+import { useGetCluster, useListNodes } from '@/features/clusters';
+import type { NodeStatus } from '@/features/clusters';
 
 export const Route = createFileRoute('/clusters/$id/vms/new')({
   component: CreateVmPage,
 });
 
+const STATUS_LABEL: Record<NodeStatus, string> = {
+  ready: 'ready',
+  pending: 'pending',
+  draining: 'draining',
+  offline: 'offline',
+};
+
+const STATUS_VARIANT: Record<NodeStatus, 'running' | 'pending' | 'idle' | 'err'> = {
+  ready: 'running',
+  pending: 'pending',
+  draining: 'idle',
+  offline: 'err',
+};
+
 /**
- * Create VM page — Step 1 (the rest of the wizard is a separate plan).
+ * Create VM page — self-hosted Plexor. The cluster is the control plane
+ * we're already inside; the user picks a NODE (Plexor.NodeAgent) to host
+ * the VM, then VM-specific config: image, network, SSH key.
  *
- * Layout: Cluster Context Card on top (which cluster this VM lands on,
- * current capacity, ability to switch clusters), then VM-specific
- * fields (image, network, SSH key, name, labels). Zone + flavor are
- * NOT here — those are cluster concerns, already decided by the
- * cluster context.
+ * No "zone", no "flavor" — those are self-configured on each node at
+ * `plx init` time. Flavor (CPU/RAM) is implicit in the node's capacity.
  */
 function CreateVmPage() {
   const navigate = useNavigate();
   const { id: clusterId } = Route.useParams();
   const { cluster } = useGetCluster(clusterId);
-  const { clusters } = useListClusters();
+  const { nodes } = useListNodes(clusterId);
 
+  const [nodeId, setNodeId] = useState<string>('');
   const [name, setName] = useState('');
   const [image, setImage] = useState<string>('');
   const [network, setNetwork] = useState<string>('');
@@ -54,7 +70,8 @@ function CreateVmPage() {
     );
   }
 
-  const util = clusterUtilizationPct(cluster);
+  const readyNodes = nodes.filter((n) => n.status === 'ready');
+  const selectedNode = nodes.find((n) => n.id === nodeId);
 
   return (
     <main data-od-id="vms-new">
@@ -80,7 +97,7 @@ function CreateVmPage() {
 
       <PageHeader
         title="Создать виртуальную машину"
-        description="VM-specific настройки. Cluster, зона и флейвор уже определены выбранным кластером."
+        description="VM-specific настройки. Cluster уже выбран, нод выбирается ниже."
         actions={
           <Button variant="ghost" render={<Link to="/clusters/$id" params={{ id: cluster.id }} />}>
             <ArrowLeft />
@@ -90,65 +107,69 @@ function CreateVmPage() {
       />
 
       <div className="mx-auto w-full max-w-3xl space-y-3 px-6 py-6 lg:px-8">
-        {/* Cluster Context — which cluster the VM will be created on.
-            Switch cluster via a Select that re-points to the right route. */}
-        <Card data-od-id="vm-cluster-context" className="gap-0 p-0">
+        {/* Node context — which Plexor.NodeAgent hosts the VM. */}
+        <Card data-od-id="vm-node-context" className="gap-0 p-0">
           <CardHeader className="gap-0.5 border-b border-border p-4">
             <div className="flex items-center justify-between gap-2">
               <div className="space-y-0.5">
-                <CardTitle className="text-sm">Кластер</CardTitle>
-                <CardDescription>VM будет создана на этом кластере.</CardDescription>
+                <CardTitle className="text-sm">Нод</CardTitle>
+                <CardDescription>
+                  VM будет размещена на выбранном Plexor.NodeAgent. Только ноды со статусом ready принимают новые VM.
+                </CardDescription>
               </div>
-              <Select
-                items={clusters.map((c) => ({
-                  value: c.id,
-                  label: `${c.name} (${c.zone})`,
-                }))}
-                value={cluster.id}
-                onValueChange={(value) => {
-                  if (value && value !== cluster.id) {
-                    void navigate({ to: '/clusters/$id/vms/new', params: { id: value } });
-                  }
-                }}
-              >
-                <SelectTrigger className="min-w-[200px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {clusters.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name} ({c.zone})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {readyNodes.length > 0 ? (
+                <Select
+                  items={readyNodes.map((n) => ({ value: n.id, label: n.hostname }))}
+                  value={nodeId}
+                  onValueChange={(v) => setNodeId(v ?? '')}
+                >
+                  <SelectTrigger className="min-w-[220px]">
+                    <SelectValue placeholder="Выберите нод" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {readyNodes.map((n) => (
+                      <SelectItem key={n.id} value={n.id}>
+                        {n.hostname}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <span className="text-xs text-muted-foreground">Нет ready нодов</span>
+              )}
             </div>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-3 p-4 md:grid-cols-3">
-            <CapacityCell label="CPU" used={cluster.usedCpu} total={cluster.totalCpu} pct={util.cpu} unit="vCPU" />
-            <CapacityCell label="RAM" used={cluster.usedRamGb} total={cluster.totalRamGb} pct={util.ram} unit="GB" />
-            <div className="space-y-1">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-[0.06em]">
-                Flavors
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {clusterFlavors(cluster).map((f) => (
-                  <span
-                    key={f.id}
-                    className="rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] font-mono"
-                  >
-                    {f.id}
-                  </span>
-                ))}
-              </div>
-              <p className="text-[10px] text-muted-foreground">
-                Флейвор VM будет выбран позже (Screen 03) на основе этих опций.
-              </p>
-            </div>
+            <CapacityCell
+              label="CPU"
+              used={selectedNode ? selectedNode.vmCount * 2 : 0}
+              total={selectedNode?.spec.vcpu ?? 0}
+              unit="vCPU"
+            />
+            <CapacityCell
+              label="RAM"
+              used={selectedNode ? selectedNode.vmCount * 4 : 0}
+              total={selectedNode?.spec.ramGb ?? 0}
+              unit="GB"
+            />
+            <CapacityCell
+              label="Диск"
+              used={selectedNode ? selectedNode.vmCount * 40 : 0}
+              total={selectedNode?.spec.diskGb ?? 0}
+              unit="GB"
+            />
           </CardContent>
+          {selectedNode && (
+            <div className="flex items-center gap-2 border-t border-border p-4 text-xs text-muted-foreground">
+              <StatusPill variant={STATUS_VARIANT[selectedNode.status]} size="sm">
+                {STATUS_LABEL[selectedNode.status]}
+              </StatusPill>
+              <span>ISO v{selectedNode.isoVersion}</span>
+            </div>
+          )}
         </Card>
 
-        {/* VM-specific config — the part that uniquely describes a VM. */}
+        {/* VM-specific config. */}
         <Card className="gap-0 p-0">
           <CardHeader className="gap-0.5 border-b border-border p-4">
             <CardTitle className="text-sm">Параметры ВМ</CardTitle>
@@ -245,7 +266,7 @@ function CreateVmPage() {
           </Button>
           <Button
             onClick={() => navigate({ to: '/clusters/$id', params: { id: cluster.id } })}
-            disabled={!name || !image || !network || !sshKey}
+            disabled={!nodeId || !name || !image || !network || !sshKey}
           >
             <Plus />
             Создать ВМ
@@ -260,15 +281,14 @@ function CapacityCell({
   label,
   used,
   total,
-  pct,
   unit,
 }: {
   label: string;
   used: number;
   total: number;
-  pct: number;
   unit: string;
 }) {
+  const pct = total === 0 ? 0 : Math.round((used / total) * 100);
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between text-[11px] font-medium text-muted-foreground uppercase tracking-[0.06em]">
@@ -285,4 +305,3 @@ function CapacityCell({
     </div>
   );
 }
-
