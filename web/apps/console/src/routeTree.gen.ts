@@ -16,8 +16,8 @@ import { Route as ClustersRouteImport } from './routes/clusters'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VmsNewRouteImport } from './routes/vms.new'
 import { Route as ClustersIdRouteImport } from './routes/clusters.$id'
-import { Route as ClustersIdVmsNewRouteImport } from './routes/clusters.$id.vms.new'
 
 const VmsRoute = VmsRouteImport.update({
   id: '/vms',
@@ -54,15 +54,15 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VmsNewRoute = VmsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => VmsRoute,
+} as any)
 const ClustersIdRoute = ClustersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ClustersRoute,
-} as any)
-const ClustersIdVmsNewRoute = ClustersIdVmsNewRouteImport.update({
-  id: '/vms/new',
-  path: '/vms/new',
-  getParentRoute: () => ClustersIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -72,9 +72,9 @@ export interface FileRoutesByFullPath {
   '/clusters': typeof ClustersRouteWithChildren
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
-  '/vms': typeof VmsRoute
-  '/clusters/$id': typeof ClustersIdRouteWithChildren
-  '/clusters/$id/vms/new': typeof ClustersIdVmsNewRoute
+  '/vms': typeof VmsRouteWithChildren
+  '/clusters/$id': typeof ClustersIdRoute
+  '/vms/new': typeof VmsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,9 +83,9 @@ export interface FileRoutesByTo {
   '/clusters': typeof ClustersRouteWithChildren
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
-  '/vms': typeof VmsRoute
-  '/clusters/$id': typeof ClustersIdRouteWithChildren
-  '/clusters/$id/vms/new': typeof ClustersIdVmsNewRoute
+  '/vms': typeof VmsRouteWithChildren
+  '/clusters/$id': typeof ClustersIdRoute
+  '/vms/new': typeof VmsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,9 +95,9 @@ export interface FileRoutesById {
   '/clusters': typeof ClustersRouteWithChildren
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
-  '/vms': typeof VmsRoute
-  '/clusters/$id': typeof ClustersIdRouteWithChildren
-  '/clusters/$id/vms/new': typeof ClustersIdVmsNewRoute
+  '/vms': typeof VmsRouteWithChildren
+  '/clusters/$id': typeof ClustersIdRoute
+  '/vms/new': typeof VmsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,7 +110,7 @@ export interface FileRouteTypes {
     | '/networks'
     | '/vms'
     | '/clusters/$id'
-    | '/clusters/$id/vms/new'
+    | '/vms/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -121,7 +121,7 @@ export interface FileRouteTypes {
     | '/networks'
     | '/vms'
     | '/clusters/$id'
-    | '/clusters/$id/vms/new'
+    | '/vms/new'
   id:
     | '__root__'
     | '/'
@@ -132,7 +132,7 @@ export interface FileRouteTypes {
     | '/networks'
     | '/vms'
     | '/clusters/$id'
-    | '/clusters/$id/vms/new'
+    | '/vms/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -142,7 +142,7 @@ export interface RootRouteChildren {
   ClustersRoute: typeof ClustersRouteWithChildren
   ComponentsRoute: typeof ComponentsRoute
   NetworksRoute: typeof NetworksRoute
-  VmsRoute: typeof VmsRoute
+  VmsRoute: typeof VmsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -196,6 +196,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vms/new': {
+      id: '/vms/new'
+      path: '/new'
+      fullPath: '/vms/new'
+      preLoaderRoute: typeof VmsNewRouteImport
+      parentRoute: typeof VmsRoute
+    }
     '/clusters/$id': {
       id: '/clusters/$id'
       path: '/$id'
@@ -203,39 +210,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClustersIdRouteImport
       parentRoute: typeof ClustersRoute
     }
-    '/clusters/$id/vms/new': {
-      id: '/clusters/$id/vms/new'
-      path: '/vms/new'
-      fullPath: '/clusters/$id/vms/new'
-      preLoaderRoute: typeof ClustersIdVmsNewRouteImport
-      parentRoute: typeof ClustersIdRoute
-    }
   }
 }
 
-interface ClustersIdRouteChildren {
-  ClustersIdVmsNewRoute: typeof ClustersIdVmsNewRoute
-}
-
-const ClustersIdRouteChildren: ClustersIdRouteChildren = {
-  ClustersIdVmsNewRoute: ClustersIdVmsNewRoute,
-}
-
-const ClustersIdRouteWithChildren = ClustersIdRoute._addFileChildren(
-  ClustersIdRouteChildren,
-)
-
 interface ClustersRouteChildren {
-  ClustersIdRoute: typeof ClustersIdRouteWithChildren
+  ClustersIdRoute: typeof ClustersIdRoute
 }
 
 const ClustersRouteChildren: ClustersRouteChildren = {
-  ClustersIdRoute: ClustersIdRouteWithChildren,
+  ClustersIdRoute: ClustersIdRoute,
 }
 
 const ClustersRouteWithChildren = ClustersRoute._addFileChildren(
   ClustersRouteChildren,
 )
+
+interface VmsRouteChildren {
+  VmsNewRoute: typeof VmsNewRoute
+}
+
+const VmsRouteChildren: VmsRouteChildren = {
+  VmsNewRoute: VmsNewRoute,
+}
+
+const VmsRouteWithChildren = VmsRoute._addFileChildren(VmsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -244,7 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClustersRoute: ClustersRouteWithChildren,
   ComponentsRoute: ComponentsRoute,
   NetworksRoute: NetworksRoute,
-  VmsRoute: VmsRoute,
+  VmsRoute: VmsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
