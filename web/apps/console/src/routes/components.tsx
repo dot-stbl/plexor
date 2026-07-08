@@ -1,6 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Gear, Trash, ArrowClockwise, Pause, Pencil, Copy, Clipboard, Check, Plus } from '@phosphor-icons/react';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+
+
+  Line,
+  LineChart,
+
+
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import { ModeToggle } from '@/shared/ui/primitives/theme-toggle';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
@@ -204,6 +219,25 @@ const NAV: NavGroup[] = [
     ],
   },
 ];
+
+// === Chart mock data ===
+const cpuData = Array.from({ length: 12 }, (_, i) => ({
+  hour: `${i * 2}h`,
+  cpu: 30 + Math.round(40 * Math.sin(i / 2)) + Math.round(Math.random() * 8),
+  mem: 45 + Math.round(20 * Math.cos(i / 3)) + Math.round(Math.random() * 5),
+}));
+
+const statusData = [
+  { region: 'eu-central-1', running: 12, pending: 2, failed: 1, stopped: 3 },
+  { region: 'eu-west-1',    running: 8,  pending: 1, failed: 0, stopped: 2 },
+  { region: 'us-east-1',    running: 15, pending: 0, failed: 2, stopped: 1 },
+  { region: 'asia-northeast-1', running: 6,  pending: 1, failed: 0, stopped: 4 },
+];
+
+const bandwidthData = Array.from({ length: 24 }, (_, i) => ({
+  t: `${i}:00`,
+  bandwidth: 200 + Math.round(150 * Math.sin(i / 3)) + Math.round(Math.random() * 50),
+}));
 
 function ComponentsPage() {
   return (

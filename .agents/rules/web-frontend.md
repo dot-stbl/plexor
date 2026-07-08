@@ -6,6 +6,13 @@ priority: high
 
 # Plexor Web — frontend rules
 
+> **Hard rule (не обсуждается): весь UI — только на shadcn-ui.** Любой видимый
+> элемент строится из shadcn-примитивов в `src/shared/ui/primitives/` (адаптированных
+> под Plexor DS-токены). Запрещено: сторонние UI-киты, «нативная» ручная вёрстка
+> контролов/карточек в обход shadcn, параллельные flat-class системы. Нет нужного
+> примитива — сначала создать его в `primitives/` по shadcn-паттерну, потом использовать.
+> Подробности — правила 1–5 и 11–16 ниже.
+
 ## Architecture
 
 1. **shadcn-ui is the single source of components.** No parallel flat-class system. No custom HTML form controls styled via CSS. shadcn primitives are adapted to Plexor DS tokens, not the other way around.
