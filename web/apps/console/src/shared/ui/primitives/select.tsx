@@ -4,7 +4,7 @@ import * as React from "react";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 
 import { cn } from "@/lib/utils";
-import { CaretDown } from "@phosphor-icons/react";
+import { CaretDown, Check } from "@phosphor-icons/react";
 
 /**
  * Select — Plexor DS wrapper around Base UI Select.
@@ -64,30 +64,6 @@ function SelectTrigger({
   );
 }
 
-/**
- * SelectCheckIcon — shadcn-native check mark for items.
- * Custom SVG (not Phosphor) to match Base UI demos and look proper
- * at the small 14px size. Stroke-based rendering.
- */
-function SelectCheckIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={cn("size-3.5", className)}
-      aria-hidden
-    >
-      <path d="m2.5 8.5 4 4 7-9" />
-    </svg>
-  );
-}
-
 function SelectContent({
   className,
   children,
@@ -140,17 +116,17 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "grid cursor-default grid-cols-[0.875rem_1fr] items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-xs/relaxed outline-hidden select-none",
+        "flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-xs/relaxed outline-hidden select-none",
         "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className,
       )}
       {...props}
     >
-      <SelectPrimitive.ItemIndicator className="col-start-1 flex items-center justify-center">
-        <SelectCheckIcon className="text-foreground" />
+      <SelectPrimitive.ItemIndicator className="ml-auto flex items-center justify-center">
+        <Check className="size-3.5 text-foreground" />
       </SelectPrimitive.ItemIndicator>
-      <SelectPrimitive.ItemText className="col-start-2">
+      <SelectPrimitive.ItemText className="flex-1 whitespace-nowrap">
         {children}
       </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
@@ -195,7 +171,6 @@ function SelectSeparator({
 
 export {
   Select,
-  SelectCheckIcon,
   SelectContent,
   SelectGroup,
   SelectItem,
