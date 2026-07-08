@@ -241,11 +241,54 @@ Required for screen readers to announce purpose.
 29. **`src/routes/`** — TanStack Router file-based routes. `__root.tsx` + per-page files. `index.tsx` is `/`, `components.tsx` is `/components`.
 30. **`src/index.css`** — global styles ONLY. Tokens + base layer + minimal structural utilities.
 31. **No `src/styles/`, `src/css/`, `src/theme/`, etc.** All styles in `index.css`.
+32. **`src/features/<name>/`** — per-screen business logic. Flat siblings (no nested dirs while the screen is the only consumer). Public surface via `index.ts` barrel. Pure helpers and presentational components live side-by-side. When a 2nd screen needs the same helpers, split into `_shared/`.
+
+## Composition over custom markup
+
+33. **shadcn primitives compose, never re-invent.** A table is `<Table>` + `<TableHeader>` + `<TableRow>` + `<TableCell>`. A card is `<Card>` + `<CardHeader>` + `<CardContent>`. A dialog is `<Dialog>` + `<DialogContent>` + `<DialogHeader>` + `<DialogFooter>`. Don't re-style HTML elements when a primitive exists.
+34. **Custom markup only when no primitive covers it.** Allowed structural classes (`.kpi`, `.audit-row`, `.toolbar*`, `.table-wrap/.tbl`, `.pagination/.pg-*`, `.field`, `.empty-state`, `.skeleton*`, `.kv-list`, `.console*`) live in `index.css` for one-off layouts that shadcn can't express. Everything else → shadcn primitive or Tailwind utility.
+35. **Wrap, don't fork.** When a shadcn primitive needs project-specific tweaks (different size, extra padding, role-specific colors), wrap it in a thin local component (`VmFiltersBar` wraps `Select` + `Input`). Don't edit `src/shared/ui/primitives/*` for one-screen needs.
+
+## Helper extraction (pure functions live in features/)
+
+36. **Extract a pure helper when** (a) the same branching/lookup appears in 2+ places, OR (b) the logic is independently testable, OR (c) the page JSX becomes unreadable because of inline ternaries. Never extract prematurely — a one-line `switch` inline is fine.
+37. **Pure helpers live in `src/features/<name>/*.ts`** (not `.tsx` if there's no JSX). Exhaustive switches on closed enums (like `VmStatus`) keep the contract safe — adding a value to the API forces a compile error here until mapped.
+38. **Barrel re-exports the feature surface.** `features/vms/index.ts` lists every public name (components + helpers + types). Screens import from `@/features/vms`, not from internal files. Internal helpers stay unexported until a second consumer needs them.
+
+## Forms — FieldGroup + Field + FieldLabel
+
+39. **Form layout is `FieldGroup` + `Field` + `FieldLabel`.** Never use raw `<div className="space-y-4">` or `<div className="grid gap-4">` for form layout — the Field primitive handles vertical/horizontal/responsive orientations, invalid state, label-to-control association.
+40. **Field anatomy:**
+
+   ```tsx
+   <Field data-invalid={hasError}>
+     <FieldLabel htmlFor="email">Email</FieldLabel>
+     <Input id="email" aria-invalid={hasError} />
+     <FieldDescription>Used for sign-in and alerts.</FieldDescription>
+   </Field>
+   ```
+   `data-invalid` on `<Field>`, `aria-invalid` on the actual control. Disabled → `data-disabled` on `<Field>`, `disabled` on the control.
+41. **No nested interactive elements.** Don't put a `<Button>` inside a `<FieldLabel>` — the `has-[>[data-slot=field]]` selector breaks. Place the action next to the label or above the field.
+42. **Submit button is part of the page footer, not the last Field.** The Dialog's `DialogFooter` or the form's submit row lives outside the FieldGroup.
+
+## Reusable component design (cva + render + polymorphic)
+
+43. **Visual variants via `cva`, not prop sprawl.** A `<Button variant="outline" size="sm">` beats `<Button isOutline isSmall>`. See `src/shared/ui/primitives/button.tsx` for the canonical pattern.
+44. **`render` prop for polymorphic triggers.** shadcn primitives that wrap `<button>` (DropdownMenuTrigger, DialogTrigger, SidebarTrigger) take `render={<Link to="..." />}`. Use this for any non-button trigger — don't reach for `asChild` (it's radix-legacy; base-ui uses `render`).
+45. **Custom primitive goes in `src/shared/ui/primitives/`** when **all three** are true: (a) used by 2+ features, (b) carries its own semantics (not just styling), (c) passes the shadcn rules (one file, no horizontal padding hacks, no `!important`). If only one feature needs it → keep in that feature folder.
+46. **Icon-only controls need `aria-label`.** `<Button size="icon-sm" aria-label="Действия"><DotsThree /></Button>` — never bare icon. Phosphor 2.1.x exports have NO `Icon` suffix (use `DotsThree`, not `DotsThreeIcon`).
+
+## State management
+
+47. **Derived data with `useMemo` only when it costs something.** `filterVms(items, filters)` over 8 items doesn't need memo. A 1000-row filter or a `Set` construction (for O(1) lookup in `every`/`some` over a long array) does.
+48. **Selection state lives in a `Set<string>`**, not an array. `selectedIds.has(id)` is O(1). Build it from `new Set(arr)` — never mutate, always return a new instance in setState.
+49. **Toast for action feedback, not as a primary channel.** Toasts are fire-and-forget; if the user needs the result visible (e.g. "delete" with an undo), use inline state in the row, not a toast.
+50. **Debounce in the parent, not the child.** `<VmFiltersBar onChange />` fires synchronously; the page wraps `setFilters` with a debounced setter if needed. Keeps the child component pure and reusable.
 
 ## When in doubt
 
-32. **Is there a shadcn-ui primitive?** Use it. Add Plexor DS-specific variants if needed.
-33. **Is there a Tailwind utility?** Use it. Add `@theme inline` token if needed.
-34. **Is it a one-off static layout?** Use `.kpi` / `.audit-row` / `.toolbar*` / `.table-wrap/.tbl` / `.pagination/.pg-*` / `.field` / `.empty-state` / `.skeleton*` / `.kv-list` / `.console*` from the allowed structural list.
-35. **Is it a tooltip / popover?** Use shadcn Tooltip/Popover. For pure CSS hover-only labels, use `[data-tooltip]` (already defined in `index.css`).
-36. **Is it a domain-specific component (TenantCard, VMList, AuditTimeline)?** Build it in `src/features/<name>/` (Phase 1.5 — not used in MVP).
+51. **Is there a shadcn-ui primitive?** Use it. Add Plexor DS-specific variants if needed.
+52. **Is there a Tailwind utility?** Use it. Add `@theme inline` token if needed.
+53. **Is it a one-off static layout?** Use `.kpi` / `.audit-row` / `.toolbar*` / `.table-wrap/.tbl` / `.pagination/.pg-*` / `.field` / `.empty-state` / `.skeleton*` / `.kv-list` / `.console*` from the allowed structural list.
+54. **Is it a tooltip / popover?** Use shadcn Tooltip/Popover. For pure CSS hover-only labels, use `[data-tooltip]` (already defined in `index.css`).
+55. **Is it a domain-specific component (TenantCard, VMList, AuditTimeline)?** Build it in `src/features/<name>/`. Pure helpers next to the components, barrel-exported.
