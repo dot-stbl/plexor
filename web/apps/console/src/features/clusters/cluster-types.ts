@@ -1,86 +1,117 @@
 /**
- * Cluster types — physical resource pool that hosts VMs.
+ * Cluster & Node types — self-hosted Plexor topology.
  *
- * NOT kubb-generated yet: the cluster OpenAPI spec is not part of the
- * kubb codegen pipeline (VPS providers haven't shipped the endpoint set
- * yet). When it does, replace this file with `import type { Cluster,
- * ClusterNode, ClusterFlavor } from '@/shared/api'` and drop the local
- * mock data + hooks.
+ * A Cluster = one Plexor.Host control-plane + N Plexor.NodeAgent nodes
+ * that joined via a join token. Users provision the control plane
+ * themselves (ISO / `plx init`); the UI exposes join tokens and the
+ * `plx node join` command so they can register additional nodes.
  *
- * For now: local types + local hooks + hand-curated mock data.
+ * NOT kubb-generated yet: cluster/node OpenAPI endpoints are part of a
+ * later plan. Local types + local hooks + hand-curated mock data.
+ *
+ * Migration path: replace local types with `import type { ... } from
+ * '@/shared/api'` once the kubb pipeline generates them.
  */
 
-export type ClusterStatus = 'healthy' | 'degraded' | 'offline';
-export type ClusterZone = 'eu-central-1' | 'eu-west-1' | 'us-east-1';
+export type NodeStatus = 'pending' | 'ready' | 'draining' | 'offline';
+export type NodeRole = 'control' | 'compute';
+export type TokenStatus = 'active' | 'revoked' | 'expired';
 
-export interface ClusterFlavor {
-  /** Flavor id matches what `useListVms` returns on `vm.machineType`. */
-  id: string;
+export interface NodeSpec {
   vcpu: number;
   ramGb: number;
+  /** Total block storage reachable from the node (Ceph pool, local LVM, etc.). */
   diskGb: number;
+  /** Install providers selected for this node (kvm | lxd | pod, ovs | cilium, …). */
+  providers: string[];
 }
 
-export interface ClusterNode {
+export interface PlexorNode {
   id: string;
+  /** Self-reported hostname (Plexor.NodeAgent populates on join). */
   hostname: string;
-  role: 'control' | 'worker';
-  status: 'ready' | 'draining' | 'offline';
-  vcpu: number;
-  ramGb: number;
-  /** How many VMs are currently running on this node. */
+  role: NodeRole;
+  status: NodeStatus;
+  spec: NodeSpec;
+  /** ISO image the node was provisioned from. */
+  isoVersion: string;
+  /** When the node first joined the cluster. */
+  joinedAt: string;
+  /** Last heartbeat (heartbeat = every 30s from the agent). */
+  lastSeenAt: string;
+  /** Number of VMs currently scheduled on the node. */
   vmCount: number;
 }
 
-export interface Cluster {
+export interface JoinToken {
   id: string;
+  /** Short human label set at issue time. */
+  label: string;
+  status: TokenStatus;
+  /** Token value (opaque, 256 bits). Shown once on issue; revocable. */
+  token: string;
+  /** Restrict the token to a specific role (single-node cluster, control-plane node, …). */
+  intendedRole: NodeRole;
+  /** ISO versions the node must be on. */
+  minIsoVersion: string;
+  /** Issued at + expires at (TTL). */
+  issuedAt: string;
+  expiresAt: string;
+  /** Which node redeemed the token (set after successful join). */
+  redeemedByNodeId?: string;
+}
+
+export interface PlexorCluster {
+  id: string;
+  /** Cluster name as it appears in plx.yaml / 'plx init' output. */
   name: string;
-  zone: ClusterZone;
-  status: ClusterStatus;
-  /** Number of nodes in the cluster. */
-  nodeCount: number;
-  /** Total vCPU available across the cluster. */
-  totalCpu: number;
-  /** Currently allocated vCPU (sum of all running VMs' vcpu). */
-  usedCpu: number;
-  /** Total RAM in GB. */
-  totalRamGb: number;
-  usedRamGb: number;
-  /** Total disk in GB (shared volume). */
-  totalDiskGb: number;
-  usedDiskGb: number;
-  /** How many VMs live on this cluster. */
-  vmCount: number;
-  /** Catalog of machine types that can run on this cluster. */
-  flavors: ClusterFlavor[];
-  nodes: ClusterNode[];
+  /** Which install providers were selected at plx init (e.g. ceph-rbd, ovs, kvm). */
+  installProviders: string[];
+  /** Version of the Plexor.Host binary running the control plane. */
+  hostVersion: string;
+  /** Uptime in seconds (host process start). */
+  uptimeSeconds: number;
+  /** License label (community = AGPL, enterprise = …). */
+  license: 'community' | 'enterprise';
+  /** Where the host is reachable (used in `plx node join <endpoint>`). */
+  endpoint: string;
+  /** Wall-clock the cluster was created (plx init). */
   createdAt: string;
+  nodes: PlexorNode[];
+  tokens: JoinToken[];
 }
 
-export interface ClusterCapacity {
-  totalCpu: number;
-  usedCpu: number;
-  totalRamGb: number;
-  usedRamGb: number;
-  totalDiskGb: number;
-  usedDiskGb: number;
+export interface NodeCounts {
+  total: number;
+  ready: number;
+  pending: number;
+  offline: number;
+  draining: number;
 }
 
-export function clusterCapacity(c: Cluster): ClusterCapacity {
-  return {
-    totalCpu: c.totalCpu,
-    usedCpu: c.usedCpu,
-    totalRamGb: c.totalRamGb,
-    usedRamGb: c.usedRamGb,
-    totalDiskGb: c.totalDiskGb,
-    usedDiskGb: c.usedDiskGb,
-  };
+export function countNodes(nodes: PlexorNode[]): NodeCounts {
+  const c: NodeCounts = { total: 0, ready: 0, pending: 0, offline: 0, draining: 0 };
+  for (const n of nodes) {
+    c.total += 1;
+    if (n.status === 'ready') c.ready += 1;
+    else if (n.status === 'pending') c.pending += 1;
+    else if (n.status === 'offline') c.offline += 1;
+    else if (n.status === 'draining') c.draining += 1;
+  }
+  return c;
 }
 
-export function clusterUtilizationPct(c: Cluster): { cpu: number; ram: number; disk: number } {
-  return {
-    cpu: c.totalCpu === 0 ? 0 : Math.round((c.usedCpu / c.totalCpu) * 100),
-    ram: c.totalRamGb === 0 ? 0 : Math.round((c.usedRamGb / c.totalRamGb) * 100),
-    disk: c.totalDiskGb === 0 ? 0 : Math.round((c.usedDiskGb / c.totalDiskGb) * 100),
-  };
+/** Human-readable uptime ("14d 2h", "3h 12m", "45s"). */
+export function formatUptime(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    const remM = minutes % 60;
+    return remM === 0 ? `${hours}h` : `${hours}h ${remM}m`;
+  }
+  const days = Math.floor(hours / 24);
+  const remH = hours % 24;
+  return remH === 0 ? `${days}d` : `${days}d ${remH}h`;
 }
