@@ -1,9 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Plus, Stack } from '@phosphor-icons/react';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageHeader } from '@/shared/ui/app-shell';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
-import { ClusterCard, useListClusters } from '@/features/clusters';
+import { ClusterCard, useListClusters, countNodes } from '@/features/clusters';
 
 export const Route = createFileRoute('/clusters')({
   component: ClustersPage,
@@ -11,24 +11,32 @@ export const Route = createFileRoute('/clusters')({
 
 function ClustersPage() {
   const { clusters } = useListClusters();
-  const totalVms = clusters.reduce((n, c) => n + c.vmCount, 0);
-  const totalNodes = clusters.reduce((n, c) => n + c.nodeCount, 0);
+  const totals = clusters.reduce(
+    (acc, c) => {
+      const n = countNodes(c.nodes);
+      acc.clusters += 1;
+      acc.nodes += n.total;
+      acc.ready += n.ready;
+      return acc;
+    },
+    { clusters: 0, nodes: 0, ready: 0 },
+  );
 
   return (
     <main data-od-id="clusters-list">
       <PageHeader
-        title="Вычислительные кластеры"
+        title="Кластеры Plexor"
         description={
           <>
-            <MonoNum>{clusters.length}</MonoNum> <span className="text-muted-foreground">кластер(ов) ·</span>{' '}
-            <MonoNum>{totalNodes}</MonoNum> <span className="text-muted-foreground">нод ·</span>{' '}
-            <MonoNum>{totalVms}</MonoNum> <span className="text-muted-foreground">VM</span>
+            <MonoNum>{totals.clusters}</MonoNum> <span className="text-muted-foreground">кластер(ов) ·</span>{' '}
+            <MonoNum>{totals.ready}</MonoNum>/<MonoNum>{totals.nodes}</MonoNum>{' '}
+            <span className="text-muted-foreground">нод(ов) ready</span>
           </>
         }
         actions={
-          <Button>
+          <Button render={<Link to="/clusters" />}>
             <Plus />
-            Создать кластер
+            Документация
           </Button>
         }
       />
@@ -58,14 +66,16 @@ function EmptyClusters() {
         <Stack className="size-5" />
       </span>
       <div className="space-y-0.5">
-        <h3 className="text-sm font-medium">Кластеров пока нет</h3>
-        <p className="text-xs text-muted-foreground">
-          Создайте кластер, чтобы начать размещать ВМ.
+        <h3 className="text-sm font-medium">Нет зарегистрированных кластеров</h3>
+        <p className="max-w-sm text-xs text-muted-foreground">
+          Установите Plexor на своём сервере через{' '}
+          <code className="rounded bg-muted px-1 font-mono text-[11px]">plx init</code>{' '}
+          или ISO-образ, затем зарегистрируйте control-plane здесь.
         </p>
       </div>
-      <Button size="sm">
+      <Button size="sm" render={<Link to="/clusters" />}>
         <Plus />
-        Создать кластер
+        Документация по установке
       </Button>
     </div>
   );
