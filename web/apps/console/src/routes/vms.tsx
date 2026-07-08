@@ -87,7 +87,7 @@ function VmsPage() {
           )
         }
         actions={
-          <Button render={<Link to="/clusters" />}>
+          <Button render={<Link to="/vms/new" />}>
             <Plus />
             Создать ВМ
           </Button>
