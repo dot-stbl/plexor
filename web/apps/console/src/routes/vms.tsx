@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Plus } from '@phosphor-icons/react';
 import { useListVms } from '@/shared/api';
 import { Button } from '@/shared/ui/primitives/button';
@@ -26,6 +26,7 @@ export const Route = createFileRoute('/vms')({
 const FILTER_DEFAULT: FilterValues = emptyFilters(vmColumns);
 
 function VmsPage() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<FilterValues>(FILTER_DEFAULT);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -87,10 +88,7 @@ function VmsPage() {
           )
         }
         actions={
-          <Button
-            render={<Link to="/vms/new" />}
-            size="sm"
-          >
+          <Button onClick={() => navigate({ to: '/vms/new' })} size="sm">
             <Plus />
             Создать ВМ
           </Button>
