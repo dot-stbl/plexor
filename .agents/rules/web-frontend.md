@@ -59,6 +59,25 @@ priority: high
     `<ScrollArea>` primitive and inset the rail instead of relying on native
     scrollbar placement.
 
+## Tables — compact and copyable
+
+19. **Data tables default to `density="compact"`.** Tight rows (`h-8` header,
+    `h-7` cell, `text-[11px]` body). 8+ rows fit comfortably above the fold.
+    Only use `density="comfortable"` for very long content (settings, audit log).
+20. **Copyable values use `<CopyableText value="...">`.** IDs, IPs, hostnames,
+    cluster names — any value a sysadmin will re-type or paste into a terminal —
+    wrap in `<CopyableText>`. The icon button is muted at rest, reveals its
+    background on `hover` (using the wrapper's `group/copy` selector), shows a
+    check tick on success, and toasts a confirmation via `sonner`. Never render
+    a copy icon as a raw `<button>` with a manual `navigator.clipboard.writeText`
+    call — funnel it through the primitive so the affordance is consistent.
+21. **Empty states have a CTA, not just a sentence.** A page that needs the
+    user to take an action before the primary task is possible (e.g. "install
+    Plexor before you can create a VM", "add a node before you can create a
+    VM") renders the `<Empty>` primitive with a `<Button>` that navigates to
+    the prerequisite screen. A disabled form with no path forward is a bug.
+
+
 ## IconButton + visual hierarchy + action density
 
 **Not every action is a button. Don't flatten visual hierarchy.**
