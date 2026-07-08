@@ -160,21 +160,23 @@ export function AppLauncher({
           <Dialog.Title className="sr-only">Центр управления</Dialog.Title>
           <Dialog.Description className="sr-only">Все сервисы и разделы проекта</Dialog.Description>
 
-          {/* Close bar — above the scroll, right-aligned. No title. */}
-          <div className="flex h-10 shrink-0 items-center justify-end px-3">
-            <Dialog.Close
-              aria-label="Закрыть"
-              render={
-                <Button variant="ghost" size="icon-sm" className="border border-border bg-background shadow-sm" />
-              }
-            >
-              <X className="size-4" />
-            </Dialog.Close>
-          </div>
+          {/* Close floats over the scroll's top-right — no reserved top bar. */}
+          <Dialog.Close
+            aria-label="Закрыть"
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="absolute top-2.5 right-2.5 z-20 rounded-md border border-border bg-background/90 shadow-sm backdrop-blur-sm"
+              />
+            }
+          >
+            <X className="size-4" />
+          </Dialog.Close>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">
-            {/* Top region on one big backing card so it doesn't blend with the page. */}
-            <Card className="mb-3 gap-2.5 p-3">
+          <div className="min-h-0 flex-1 overflow-y-auto p-3">
+            {/* Top region on one big backing card; extra top padding clears the floating close. */}
+            <Card className="mb-3 gap-2.5 p-3 pt-8">
               <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
                 {META.map((hub) => (
                   <MetaCard key={hub.name} hub={hub} onNavigate={close} />
