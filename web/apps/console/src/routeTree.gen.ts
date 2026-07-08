@@ -15,6 +15,7 @@ import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VmsNewRouteImport } from './routes/vms.new'
 
 const VmsRoute = VmsRouteImport.update({
   id: '/vms',
@@ -46,6 +47,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VmsNewRoute = VmsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => VmsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,7 +59,8 @@ export interface FileRoutesByFullPath {
   '/billing': typeof BillingRoute
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
-  '/vms': typeof VmsRoute
+  '/vms': typeof VmsRouteWithChildren
+  '/vms/new': typeof VmsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +68,8 @@ export interface FileRoutesByTo {
   '/billing': typeof BillingRoute
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
-  '/vms': typeof VmsRoute
+  '/vms': typeof VmsRouteWithChildren
+  '/vms/new': typeof VmsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,13 +78,28 @@ export interface FileRoutesById {
   '/billing': typeof BillingRoute
   '/components': typeof ComponentsRoute
   '/networks': typeof NetworksRoute
-  '/vms': typeof VmsRoute
+  '/vms': typeof VmsRouteWithChildren
+  '/vms/new': typeof VmsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/audit' | '/billing' | '/components' | '/networks' | '/vms'
+  fullPaths:
+    | '/'
+    | '/audit'
+    | '/billing'
+    | '/components'
+    | '/networks'
+    | '/vms'
+    | '/vms/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/audit' | '/billing' | '/components' | '/networks' | '/vms'
+  to:
+    | '/'
+    | '/audit'
+    | '/billing'
+    | '/components'
+    | '/networks'
+    | '/vms'
+    | '/vms/new'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/components'
     | '/networks'
     | '/vms'
+    | '/vms/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,7 +117,7 @@ export interface RootRouteChildren {
   BillingRoute: typeof BillingRoute
   ComponentsRoute: typeof ComponentsRoute
   NetworksRoute: typeof NetworksRoute
-  VmsRoute: typeof VmsRoute
+  VmsRoute: typeof VmsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -140,8 +164,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vms/new': {
+      id: '/vms/new'
+      path: '/new'
+      fullPath: '/vms/new'
+      preLoaderRoute: typeof VmsNewRouteImport
+      parentRoute: typeof VmsRoute
+    }
   }
 }
+
+interface VmsRouteChildren {
+  VmsNewRoute: typeof VmsNewRoute
+}
+
+const VmsRouteChildren: VmsRouteChildren = {
+  VmsNewRoute: VmsNewRoute,
+}
+
+const VmsRouteWithChildren = VmsRoute._addFileChildren(VmsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -149,7 +190,7 @@ const rootRouteChildren: RootRouteChildren = {
   BillingRoute: BillingRoute,
   ComponentsRoute: ComponentsRoute,
   NetworksRoute: NetworksRoute,
-  VmsRoute: VmsRoute,
+  VmsRoute: VmsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
