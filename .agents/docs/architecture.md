@@ -16,22 +16,19 @@
 │  └────────────┘  └─────────────┘  └─────────────┘  └──────────────────┘  │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │ Modules: Compute / Network / Storage / Identity / Tenants /        │  │
-│  │          Billing / Telemetry                                       │  │
+│  │          Billing / Telemetry / Marketplace                        │  │
 │  └──────────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────────────┘
                               │ NATS     │ PostgreSQL
                               ▼          ▼
 ┌────────────────────────┐  ┌────────────────────────┐
 │  Plexor.NodeAgent #1   │  │  Plexor.NodeAgent #2   │ ... #N
-│  (one per compute node)│  │  on each compute node  │
+│  (one per compute node)│  │  (one per compute node)│
 │  ┌──────────────────┐  │  ┌──────────────────┐  │
 │  │ Task dispatcher  │  │  │ Task dispatcher  │  │
-│  │ + Providers:     │  │  │ + Providers:     │  │
-│  │   • KVM          │  │  │   • KVM          │  │
-│  │   • Ceph RBD     │  │  │   • Ceph RBD     │  │
-│  │   • OVS          │  │  │   • OVS          │  │
-│  │   • MinIO mc     │  │  │   • MinIO mc     │  │
-│  │   • CloudNativePG│  │  │   • Ceph RGW     │  │
+│  │ (runs install     │  │  │ (runs install     │  │
+│  │  provider steps   │  │  │  provider steps   │  │
+│  │  on this node)   │  │  │  on this node)   │  │
 │  └──────────────────┘  │  └──────────────────┘  │
 └────────────────────────┘  └────────────────────────┘
             │       │                │       │
@@ -40,6 +37,10 @@
         │ KVM │ │Ceph │         │ KVM │ │Ceph │
         └─────┘ └─────┘         └─────┘ └─────┘
 ```
+
+**Install providers** (KVM, Ceph, OVS, MinIO) живут в `Plexor.Host` (built-in code). Выбираются при инсталляции.
+
+**App providers** (WordPress, Postgres, custom apps) живут в Plexor.Modules.Marketplace, загружаются из marketplace (git/OCI/tarball, **не NuGet**).
 
 ## Принципы
 
@@ -53,10 +54,15 @@
    state-row → емитит NATS-event → возвращает 202 Accepted. UI получает
    финальный статус через WebSocket / SSE.
 
-4. **Provider-pluggable**: каждое инфраструктурное решение (KVM, Ceph,
-   OVS, Keycloak…) за plugin-ом. Меняешь провайдера — не меняешь ядро.
+4. **Install providers (built-in)** — выбор инфраструктуры при
+   инсталляции (Ceph vs MinIO, OVS vs Cilium, KVM vs LXD). Код в Plexor,
+   выбирается через `plx init` probes + user override в plexor.yaml.
 
-5. **Multi-tenant by default**: всё через `tenant_id`, JWT-claim
+5. **App providers (marketplace)** — шаблоны развертывания приложений
+   (WordPress, Postgres, custom). YAML spec, distributed via git/OCI/tarball.
+   НЕ NuGet, НЕ plugin — просто декларативное описание.
+
+6. **Multi-tenant by default**: всё через `tenant_id`, JWT-claim
    пробрасывается через всю цепочку. Глобальные EF Core query filters.
 
 ## Слои
@@ -71,6 +77,8 @@
 - **Modules**: каждый модуль — три проекта (Domain / Application /
   Infrastructure). Domain — нет зависимостей, Application — на shared,
   Infrastructure — на Application + EF Core + telemetry.
+- **Install providers** (KVM, Ceph, OVS, MinIO) — **built-in code**
+  в Plexor.Host, выбираются при `plx init` через probes.
 - **Composition root** в `Plexor.Host/Program.cs` (через Scrutor +
   Reflection) собирает DI-граф из всех модулей.
 - **OpenAPI source-generator** автоматически эмитит
@@ -80,14 +88,17 @@
 ### 3. Data plane (Plexor.NodeAgent)
 - **Worker Service** на каждом compute-ноде.
 - **gRPC-client** к control plane с mTLS (mtls-ca из cluster bootstrap).
-- **Локальные providers** собраны как DI-контейнер на ноде.
+- **App provider executor** — NodeAgent получает NATS event
+  "provider.install" с shell-командами, запускает их на своей ноде.
+  Каждый provider сам решает, на каких нодах работать (через labels/affinity).
 - **Health-check** loop отправляет состояние каждые 30s (CPU, RAM,
   диски, тенант-локальные VM counts).
 
 ### 4. Event bus
 - **NATS JetStream** для command-events (control → node),
   status-events (node → control), и broadcast-events (broadcast).
-- **Topic-based** routing: `plexor.compute.vm.create`, `plexor.network.lb.scaled`.
+- **Topic-based** routing: `plexor.compute.vm.create`, `plexor.app.deploy`,
+  `plexor.network.lb.scaled`.
 - **Durable subscriptions** для критичных events.
 - **Decoupled** — node может перезагрузиться и catch-up missed events.
 
@@ -95,53 +106,85 @@
 - **PostgreSQL** для control-plane state:
   - `tenants`, `projects`, `users`, `roles`, `role_bindings`
   - `<resource>_spec`, `<resource>_status` (K8s-style pattern)
+  - `app_providers` (catalog of installed app providers)
+  - `provider_instances` (running app deployments)
   - `audit_log` (append-only)
   - `metering` (hourly rollups)
-  - `provider_catalog` (включая сторонние плагины)
 - **Redis** для caches + distributed locks + rate-limiting
 - **MinIO/Ceph RGW** для:
   - Snapshot artifacts (qcow2 диффы)
   - Object storage buckets (для пользователей)
   - Backup archives
+  - **App provider source archives** (git/OCI/tarball cache)
 
-### 6. Infrastructure layer (за провайдерами)
-KVM, Ceph, OVS, MinIO, Keycloak, CloudNativePG и т.д. — каждый через свой
-provider-plugin. См. [providers.md](providers.md).
+### 6. Marketplace (app providers)
+
+App providers НЕ являются .NET-плагинами. Это декларации в YAML
+(как Helm chart). Plexor интерпретирует их и применяет на нужных нодах.
+
+Подробнее: [providers.md](providers.md) (App providers section) и
+[modules.md](modules.md) (Marketplace module).
 
 ## Data flow
 
-### Provision VM
+### Install Plexor (ISO / plx init)
+
+```
+1. User boots ISO (or runs plx init on Ubuntu)
+2. Installer runs SystemProbe:
+   - /dev/kvm exists? libvirtd? VT-x?
+   - openvswitch running? cilium kernel support?
+   - ceph-mon running? OSDs available?
+   - postgresql, nats available?
+3. User picks (or accepts defaults):
+   plexor.yaml: install: { compute: kvm, network: ovs, storage: ceph }
+4. Installer configures /etc/plexor/install.yaml
+5. Plexor.Host starts with selected install providers
+```
+
+### Deploy app via marketplace
+
+```
+1. UI: Marketplace → browse app providers
+   (loaded from local catalog or remote registry)
+
+2. UI: pick provider (e.g. wordpress 0.2.0)
+   - shows resources required, config schema
+
+3. UI: install-instance
+   POST /api/v1/marketplace/instances
+   Body: { provider: 'wordpress', version: '0.2.0', config: { siteTitle: ... } }
+
+4. Plexor.Host:
+   - Plexor.Modules.Marketplace.Application.InstallInstanceHandler:
+       a. validate config against provider schema
+       b. resolve dependencies (postgresql if required)
+       c. select target node (scheduler)
+       d. allocate resources (volume, floating IP, etc.)
+       e. write provider_instances row (status=installing)
+       f. publish "provider.install" to NATS
+   - returns 202 Accepted with instance id
+
+5. Plexor.NodeAgent (subscribed to plexor.app.install):
+   - receives event with provider spec + instance id
+   - pulls provider commands (git clone, helm install, podman run, etc.)
+   - executes install hooks from provider.yaml
+   - publishes "provider.installed" with status
+
+6. Plexor.Host (subscribed to plexor.app.lifecycle):
+   - updates provider_instances.status = running
+   - stores instance metadata (URLs, credentials)
+
+7. UI: see running app in instances list
+```
+
+### Provision VM (still works as before)
 
 ```
 1. UI: POST /api/v1/compute/vms
-   Body: { name, flavor, image, vpc, subnet, sg, user_data }
-   Headers: X-Tenant-Id (or JWT)
-
-2. Plexor.Host: 
-   - auth middleware validates JWT, extracts tenant_id
-   - Plexor.Modules.Compute.Application.CreateVmHandler:
-       a. validates spec via FluentValidation
-       b. calls scheduler (asks "which node?")
-       c. writes vms_spec row + vms_status (phase=Provisioning)
-       d. publishes "VmRequested" to NATS
-   - returns 202 Accepted with VM id + Location header
-
-3. Plexor.NodeAgent (subscribed to plexor.compute.*):
-   - receives VmRequested event
-   - calls Plexor.Providers.Compute.Kvm:
-       a. libvirt define + start
-       b. Plexor.Providers.Storage.Ceph: attach RBD volume
-       c. Plexor.Providers.Network.Ovs: plug to OVS bridge on subnet
-       d. cloud-init apply
-   - publishes "VmRunning" event
-
-4. Plexor.Host (subscribed to plexor.compute.vm.lifecycle):
-   - updates vms_status (phase=Running, internal_ip, node_id)
-   - updates metering counter (+1 vm_running)
-
-5. UI (subscribed via SSE):
-   - sees status change in TanStack Query cache
-   - user sees VM appears as "Running"
+2. Plexor.Host: writes spec + status, emits NATS event
+3. Plexor.NodeAgent: libvirt define + start (built-in KVM install provider)
+4. status event back to Host, update status
 ```
 
 ### User auth
@@ -155,15 +198,16 @@ provider-plugin. См. [providers.md](providers.md).
 
 ## Что НЕ допускается
 
-- ❌ Plugin → ядро зависимости (только Plexor.Core.Providers).
+- ❌ App providers как .NET-сборки (НЕ plugin model, marketplace template).
 - ❌ Module-A → Module-B.Infrastructure зависимости (только .Application или .Contracts).
 - ❌ Прямой PostgreSQL доступ из data plane (только через control plane).
 - ❌ Sync blocking calls в критичных path'ах (всё async + cancellation tokens).
 - ❌ Hardcoded secrets (всё через Plexor.Shared.Configuration + Vault).
+- ❌ NuGet для app providers (только git / OCI / tarball).
 
 ## Подробнее
 
 - [modules.md](modules.md) — каждый модуль детально.
-- [providers.md](providers.md) — как устроен provider SDK.
+- [providers.md](providers.md) — install providers (built-in) + app providers (marketplace).
 - [operations/install.md](operations/install.md) — install flow.
 - [yandex-cloud-parity.md](yandex-cloud-parity.md) — feature parity map.

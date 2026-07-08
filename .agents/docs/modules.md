@@ -40,10 +40,13 @@ Plexor.Modules.<Name>.Infrastructure/ ← DB and infra
 | `Plexor.Modules.Storage` | Volume, Snapshot-of-Volume, Bucket | Shared |
 | `Plexor.Modules.Billing` | Metering record, Invoice | Tenants (read), Identity (read) |
 | `Plexor.Modules.Telemetry` | Logs, metrics, audit event collector | Shared |
+| `Plexor.Modules.Marketplace` | App provider catalog, instance lifecycle | Compute, Network, Storage, Identity |
 
 Phase 2+:
-- `Plexor.Modules.Database` — managed PostgreSQL, Redis, MongoDB, ClickHouse
-- `Plexor.Modules.Container` — Kubernetes cluster, Container Registry
+- Managed PostgreSQL / Redis = app providers (не модули)
+- Managed Kubernetes = app provider (`k8s-cluster`)
+- Container Registry = app provider (`harbor`)
+- Bare-metal provisioning = install provider (`ironic` / `maas`)
 
 ## Plexor.Modules.Tenants
 
@@ -249,3 +252,174 @@ Telemetry     ← все (subscribed to audit + log events)
 - ❌ `Domain` знает про EF Core, ASP.NET, JSON.
 - ❌ Прямой SQL — только через `IRepository<T>` (Dapper или EF Core).
 - ❌ Глобальные statics для состояния (только DI).
+
+## Plexor.Modules.Marketplace
+
+**App provider catalog + instance lifecycle.** Это сердце marketplace
+модели Plexor: позволяет пользователям устанавливать "приложения"
+(WordPress, PostgreSQL, custom webapp) через декларативные templates.
+
+App provider — **НЕ .NET plugin**, это YAML-файл с shell-командами.
+Plexor интерпретирует manifest и применяет install/upgrade/uninstall
+на нужных compute-нодах.
+
+Подробнее о provider format: [providers.md](providers.md#2-app-providers-marketplace).
+
+### Domain
+
+```csharp
+public sealed record AppProvider
+{
+    public required string Name { get; init; }        // 'wordpress'
+    public required string Version { get; init; }     // '0.2.0'
+    public required string DisplayName { get; init; } // 'WordPress'
+    public required AppProviderSpec Spec { get; init; }
+}
+
+public sealed record AppProviderSpec
+{
+    public required ResourceRequirements Resources { get; init; }
+    public required IReadOnlyList<ConfigParam> Config { get; init; }
+    public LifecycleHooks Hooks { get; init; }
+    public HealthCheckSpec? HealthCheck { get; init; }
+}
+
+public sealed record LifecycleHooks
+{
+    public required IReadOnlyList<ShellStep> Install { get; init; }
+    public IReadOnlyList<ShellStep>? Upgrade { get; init; }
+    public IReadOnlyList<ShellStep>? Uninstall { get; init; }
+}
+
+public sealed record ProviderInstance
+{
+    public required Guid Id { get; init; }
+    public required Guid TenantId { get; init; }
+    public required string ProviderName { get; init; }
+    public required string ProviderVersion { get; init; }
+    public required string InstanceName { get; init; }    // 'wp-7f3a2c'
+    public required ProviderStatus Status { get; init; }  // installing | running | upgrading | failed | uninstalling
+    public required JsonDocument Config { get; init; }    // user-supplied config
+    public required JsonDocument Resources { get; init; } // allocated node, IP, ports
+}
+
+public enum ProviderStatus
+{
+    Installing,
+    Running,
+    Upgrading,
+    Failed,
+    Uninstalling,
+}
+```
+
+### Application endpoints
+
+```
+GET    /api/v1/marketplace/providers
+       → List installed app providers (from catalog)
+       Response: [{ name, version, displayName, description, category, tier, icon }]
+
+GET    /api/v1/marketplace/providers/{name}
+       → Get provider details (config schema, resources, healthCheck)
+       Response: { name, version, spec: {...}, dependencies: [...] }
+
+POST   /api/v1/marketplace/providers
+       Body: { source: 'github.com/me/my-provider', version: '0.1.0' }
+       → Install a provider (git clone / OCI pull / tarball extract)
+
+DELETE /api/v1/marketplace/providers/{name}
+       → Uninstall provider (only if no running instances)
+
+POST   /api/v1/marketplace/instances
+       Body: { provider: 'wordpress', version: '0.2.0', config: { siteTitle: 'My Blog' } }
+       → Deploy app instance
+       Response: 202 Accepted with instance id
+
+GET    /api/v1/marketplace/instances
+       → List instances (scoped by tenant from JWT)
+       Response: [{ id, provider, version, instanceName, status, url }]
+
+GET    /api/v1/marketplace/instances/{id}
+       → Get instance details + live status
+
+DELETE /api/v1/marketplace/instances/{id}
+       → Uninstall instance
+
+POST   /api/v1/marketplace/instances/{id}/upgrade
+       Body: { toVersion: '0.3.0' }
+       → Upgrade instance to new provider version
+
+GET    /api/v1/marketplace/instances/{id}/logs
+       ?tail=N
+       → Last N lines of provider install/upgrade logs (for debugging)
+```
+
+### Install workflow (state machine)
+
+```
+POST /instances
+  ↓
+validation (config against provider schema)
+  ↓
+resolve dependencies (auto-install missing providers)
+  ↓
+allocate resources (CPU, RAM, disk, IP, port via Compute/Network/Storage)
+  ↓
+write provider_instances row (status=Installing)
+  ↓
+publish 'plexor.app.install' to NATS
+  ↓
+[async] NodeAgent receives event:
+   - reads provider.yaml from local cache (or pulls from source)
+   - runs install hooks sequentially
+   - publishes 'plexor.app.installed' with status
+  ↓
+control plane receives status event:
+   - updates provider_instances.status
+   - stores instance metadata (URLs, credentials)
+  ↓
+GET /instances/{id} returns 'running' with access URL
+```
+
+### Permission model
+
+- **Provider install**: admin-only (operator role)
+- **Instance install**: any tenant member, but instance is scoped to caller's tenant
+- **Instance delete**: tenant admin or instance creator
+- **Catalog browse**: any authenticated user
+
+### Audit + metering
+
+- Every `plx provider install-instance` writes `audit_log` row
+  (who, what provider, what config)
+- Running instances emit `metering` events for billing
+  (CPU hours, RAM GB-hours, disk GB-hours, network egress)
+
+### Example
+
+```bash
+# 1. Browse available providers
+$ curl -H "Authorization: Bearer $JWT" http://plexor.local/api/v1/marketplace/providers | jq
+[
+  { "name": "wordpress", "version": "0.2.0", "displayName": "WordPress", "category": "cms", "tier": "official" },
+  { "name": "postgresql", "version": "15.3.0", "displayName": "PostgreSQL", "category": "database", "tier": "official" },
+  ...
+]
+
+# 2. Install WordPress
+$ curl -X POST http://plexor.local/api/v1/marketplace/instances     -H "Authorization: Bearer $JWT"     -H "Content-Type: application/json"     -d '{"provider":"wordpress","version":"0.2.0","config":{"siteTitle":"My Blog","adminEmail":"jane@acme.com"}}'
+{"id":"wp-7f3a2c","status":"installing"}
+
+# 3. Wait for running
+$ curl http://plexor.local/api/v1/marketplace/instances/wp-7f3a2c -H "Authorization: Bearer $JWT"
+{"id":"wp-7f3a2c","status":"running","url":"http://203.0.113.42"}
+
+# 4. Upgrade
+$ curl -X POST http://plexor.local/api/v1/marketplace/instances/wp-7f3a2c/upgrade     -d '{"toVersion":"0.3.0"}' -H "Authorization: Bearer $JWT"
+{"status":"upgrading"}
+
+# 5. Delete
+$ curl -X DELETE http://plexor.local/api/v1/marketplace/instances/wp-7f3a2c -H "Authorization: Bearer $JWT"
+{"status":"uninstalling"}
+```

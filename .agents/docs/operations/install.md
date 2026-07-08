@@ -32,13 +32,13 @@ metadata:
   name: company-prod
   endpoint: cloud.acme.internal
 spec:
-  providers:
-    compute: kvm
-    storage: ceph
-    network: ovs
-    os: talos
-    orchestrator: k3s
-    auth: keycloak
+  install:
+    compute: kvm              # kvm | lxd | pod | firecracker
+    network: ovs              # ovs | cilium | host
+    storage-block: ceph-rbd   # ceph-rbd | local-lvm
+    storage-object: ceph-rgw  # ceph-rgw | minio
+    state-db: postgresql      # postgresql (only option MVP)
+    event-bus: nats           # nats (only option MVP)
   bootstrap:
     admin_email: admin@acme.internal
     admin_password: ${ADMIN_PASSWORD}
@@ -50,24 +50,36 @@ curl -fsSL https://get.plexor.dev | bash -s -- init -f -c plexor.yaml
 
 ## Что делает installer
 
-1. **Discovery** — `SystemProbe` проверяет что есть: KVM, OVS, Ceph,
-   Docker, IP addresses, public DNS, etc.
-2. **Resolver** — для каждого слоя (compute/storage/network/os) выбирает
-   провайдера. Если запрошенного провайдера нет — подставляет с
-   предупреждением (interactive) или auto-fallback (non-interactive).
+Plexor installer выбирает **install providers** (infrastructure backends)
+через system probes + user override. **App providers** (WordPress, etc.)
+НЕ выбираются на install — они ставятся позже через marketplace.
+
+1. **Discovery** — `SystemProbe` проверяет что есть в системе:
+   - `/dev/kvm` exists? `libvirtd` running? VT-x support?
+   - `openvswitch-switch` running? `cilium` kernel module loaded?
+   - `ceph-mon` running? OSDs available? `lvm2` with thinpool?
+   - `postgresql` reachable? `nats-server` running?
+
+2. **Resolver** — для каждого install slot (compute / network / storage /
+   state / bus) выбирает built-in provider. Если запрошенного provider
+   нет в SystemProbe — подставляет с предупреждением (interactive)
+   или auto-fallback (non-interactive).
+
 3. **Planner** — генерирует план шагов с estimated duration:
-   - install-k3s
-   - bootstrap-ceph
-   - configure-ovs
-   - install-libvirt
-   - deploy-control-plane
-   - deploy-portal
-   - configure-keycloak
-   - create-default-tenant
-   - issue-tls
+   - enable-kvm-modules
+   - bootstrap-ceph (or local-lvm fallback)
+   - configure-ovs (or cilium fallback)
+   - deploy-control-plane (Plexor.Host)
+   - deploy-node-agent (Plexor.NodeAgent)
+   - deploy-portal (web UI bundle)
+   - configure-keycloak (or local auth)
+   - create-default-tenant + bootstrap-admin
+   - issue-tls (Let's Encrypt or self-signed)
+
 4. **Apply** — выполняет шаги идемпотентно (`/var/lib/plexor/state.json`).
    Можно прервать и продолжить через `plx init` повторно.
-5. **Handoff** — выводит URL, логин, initial credentials, recovery key.
+5. **Handoff** — выводит URL, логин, initial credentials, recovery key,
+   + предлагает установить первый app provider через marketplace.
 
 ## Single-node vs multi-node
 
@@ -78,9 +90,11 @@ Single node provides compute+storage+control-plane
         ↓
 plx init detects:
   - compute: pod → use K8s pod as VM (no real isolation, dev only)
-  - storage: minio → single-node S3
+  - storage-block: local-lvm → single-node, no replication
+  - storage-object: minio → single-node S3
   - network: host → no overlay
-  - os: pod-template → no host OS needed
+  - state-db: postgresql (assumed present via apt)
+  - event-bus: nats (assumed present via apt)
 ```
 
 ### 3-node production
@@ -88,14 +102,33 @@ plx init detects:
 ```
 3 servers (1 control + 2 compute):
   control:  Plexor.Host + NATS + Postgres + Keycloak
-  compute1: Plexor.NodeAgent + KVM + OVS
-  compute2: Plexor.NodeAgent + KVM + OVS
+  compute1: Plexor.NodeAgent + KVM + OVS + Ceph-rbd client
+  compute2: Plexor.NodeAgent + KVM + OVS + Ceph-rbd client
+  + shared: Ceph cluster (3 monitors + OSDs on each)
         ↓
 plx init detects:
   - compute: kvm → production default
-  - storage: ceph → 3-node replicated
+  - storage-block: ceph-rbd → 3-node replicated
+  - storage-object: ceph-rgw → 3-node replicated S3
   - network: ovs → production overlay
-  - os: talos → immutable, API-managed
+  - state-db: postgresql → dedicated node
+  - event-bus: nats → JetStream enabled
+```
+
+### App providers (после Plexor install)
+
+После того как Plexor установлен, юзер идёт в UI Marketplace и
+устанавливает app providers. Эти **НЕ** часть installer — это
+отдельный workflow (см. [providers.md](../providers.md#2-app-providers-marketplace)).
+
+```bash
+# UI: Marketplace → browse providers
+# UI: pick WordPress → fill config → install-instance
+
+# CLI equivalent:
+plx provider list                    # see available providers
+plx provider show wordpress           # see config schema
+plx provider install-instance wordpress     --config siteTitle="My Blog"     --config adminEmail="jane@acme.com"
 ```
 
 ## Air-gapped install
