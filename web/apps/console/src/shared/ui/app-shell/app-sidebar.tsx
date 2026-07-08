@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
-import { MagnifyingGlass } from '@phosphor-icons/react';
+import { MagnifyingGlass, SquaresFour } from '@phosphor-icons/react';
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +14,7 @@ import {
 } from '@/shared/ui/primitives/sidebar';
 import { navSections, isActiveRoute } from './nav-config';
 import { SearchCommand } from './search-command';
+import { AppLauncher } from './app-launcher';
 import { cn } from '@/lib/utils';
 
 /** Label pill revealed on rail hover; the hovered item's pill nudges toward its button. */
@@ -31,6 +32,7 @@ const railPill =
 export function AppSidebar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [searchOpen, setSearchOpen] = useState(false);
+  const [launcherOpen, setLauncherOpen] = useState(false);
 
   // ⌘K / Ctrl+K opens the search modal.
   useEffect(() => {

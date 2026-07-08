@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 
 import { cn } from "@/lib/utils";
@@ -137,7 +136,7 @@ function SelectItem({
       <SelectPrimitive.ItemIndicator className="ml-auto flex shrink-0 items-center justify-center">
         <Check
           weight="bold"
-          className="size-3.5 text-foreground group-data-[highlighted]/select-item:text-accent-foreground"
+          className="size-3.5 text-foreground group-data-highlighted/select-item:text-accent-foreground"
         />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
