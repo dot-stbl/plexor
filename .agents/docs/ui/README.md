@@ -11,35 +11,53 @@
 | [personas.md](personas.md) | 4 типа пользователей и их цели | вторым |
 | [information-architecture.md](information-architecture.md) | sitemap, navigation, routing | третьим |
 | [user-flows.md](user-flows.md) | 5 критичных путей | четвёртым |
-| [screens/](screens/) | брифы для каждого экрана | при работе над конкретным экраном |
+| **[ui-inventory.md](ui-inventory.md)** | **ВСЕ экраны с полями/actions/states — ЕДИНЫЙ каталог** | **при работе над любым экраном** |
+| [ui-state-machines.md](ui-state-machines.md) | State transitions для VM / Volume / Instance / etc. | при работе над статусами / actions |
+| [screens/](screens/) | детальные layout-эскизы (ASCII) каждого экрана | при работе над конкретным экраном |
 | [components/](components/) | component library | при работе над компонентами |
 
 ## Как использовать этот каталог
 
-1. **Начинай с брифа экрана** (`screens/0X-*.md`). Там:
-   - purpose экрана
-   - user goal
-   - entry / exit points
-   - layout structure
-   - content elements
-   - states (empty/loading/error)
-   - open design decisions для тебя
+1. **Начинай с [ui-inventory.md](ui-inventory.md)** — это **главный
+   reference**: список всех экранов, поля, actions, state transitions.
+   Здесь всё, что нужно для макета.
 
-2. **Если нужно понять контекст** — открой [information-architecture.md](information-architecture.md) или [user-flows.md](user-flows.md).
+2. **Для детального layout-эскиза** (ASCII-схема с расположением
+   элементов) — открой `screens/0X-*.md` нужного экрана.
 
-3. **Если нужны constraints** (цвета, размеры, типографика) — [brand.md](brand.md).
+3. **Для state machine конкретного ресурса** (VM, instance, etc.) —
+   [ui-state-machines.md](ui-state-machines.md).
+
+4. **Если нужно понять контекст** — открой [information-architecture.md](information-architecture.md) или [user-flows.md](user-flows.md).
+
+5. **Если нужны constraints** (цвета, размеры, типографика) — [brand.md](brand.md).
+
+## Marketplace (новое)
+
+Plexor Portal имеет **Marketplace** — главный новый раздел для
+установки приложений (WordPress, PostgreSQL, etc.) через шаблоны
+провайдеров. Подробнее:
+
+- [ui-inventory.md §7](ui-inventory.md) — все Marketplace экраны
+- [user-flows.md](user-flows.md) — flow установки приложения
+- [../providers.md](../providers.md) — provider model (install + app)
+- [../modules.md §Plexor.Modules.Marketplace](../modules.md) — backend модуль
 
 ## Что вне scope дизайна
 
 - Реализация компонентов в коде — это для разработчиков (используют
   shadcn/ui как реализационную базу, см. [components/shadcn-mapping.md](components/shadcn-mapping.md))
 - API-контракты — описаны в [../api-contracts.md](../api-contracts.md),
-  но дизайнеру обычно достаточно user-flows.md
+  но дизайнеру обычно достаточно ui-inventory.md
 
 ## Готовые промты для OpenDesign
 
-В каждом экране есть секция **OpenDesign prompt** — это готовая инструкция
-для дизайн-тула, чтобы загрузить её и получить starting point экрана.
+В каждом экране `screens/0X-*.md` есть секция **OpenDesign prompt** — это
+готовая инструкция для дизайн-тула, чтобы загрузить её и получить
+starting point экрана.
+
+Также см. [ui-inventory.md §17 Open design decisions](ui-inventory.md#17-open-design-decisions)
+для списка **нерешённых** UX-вопросов, требующих дизайнерского решения.
 
 ## Reviews
 

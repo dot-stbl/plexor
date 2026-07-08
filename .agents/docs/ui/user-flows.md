@@ -216,3 +216,112 @@ User sees only what's relevant to them:
 - **Audit retention** — UI показывает 365d, больше через API. Document.
 
 Все эти решения в `[screens/0X.md]` когда сделаешь.content>
+## Flow 6: Install first app from Marketplace (new)
+
+**Actor**: Maria — нужно развернуть WordPress для своего блога.
+
+```
+[Project dashboard]                     "Welcome! Let's set up your first app"
+   ↓                                     (or "Apps" sidebar → Marketplace)
+[Marketplace catalog]                   "Browse apps" + filter (cms, db, etc.)
+   ↓
+[Filter: category=Content>CMS]          Sees: WordPress, Ghost, Drupal...
+   ↓ click "WordPress"
+[Provider detail: WordPress]             Description, screenshots,
+                                         "Required: 1 CPU, 512MB RAM,
+                                          10GB disk, port 80"
+                                         Dependencies: postgresql >= 14
+   ↓
+[Click "Install instance"]              → /marketplace/wordpress/install
+[Install form: config schema]           Auto-generated form from
+                                         provider.yaml:
+                                         - Site title (text, required)
+                                         - Admin email (text, required, email)
+                                         - Database size (enum)
+                                         - Replicas (int, 1-5)
+   ↓ click "Install"
+[Confirmation: dependency check]        "PostgreSQL not installed.
+                                          Install first? [Yes / No]"
+   ↓ click "Yes"
+[PostgreSQL instance deploys first]     (status: installing)
+   ↓
+[WordPress instance deploys]            (status: installing → running)
+   ↓ ~2 minutes
+[Provider instance detail]              Status: ● Running
+                                         URL: http://203.0.113.42
+                                         Resource: VPS on node-01
+   ↓ click URL
+[WordPress setup wizard]                (browser-side, not Plexor)
+   ↓
+[Done — Maria has a blog]
+```
+
+**Success criteria**: 5 минут от dashboard до live WordPress.
+**Failure modes**:
+- PostgreSQL install fails → WordPress install blocks, error shown
+  with retry on dependency
+- WordPress install hook errors → status=failed, "View logs" shows
+  exact command + output
+- Port 80 already in use on target node → auto-retry on different node
+
+## Flow 7: Upgrade app to new version (new)
+
+**Actor**: Vasya — security advisory, новая версия WordPress с fix.
+
+```
+[Provider instance list]                "WordPress 0.2.0" highlighted
+                                         because 0.3.1 available
+   ↓ click "Upgrade"
+[Upgrade modal]                          "Available: 0.3.0, 0.3.1
+                                          (recommended: 0.3.1)
+                                          Pre-upgrade backup: enabled
+                                          [Upgrade button]"
+   ↓ select "0.3.1" + click "Upgrade"
+[Status: Upgrading]                      Real-time progress
+                                         - Backing up database
+                                         - Pulling new image
+                                         - Restarting container
+   ↓ ~30 seconds
+[Status: Running]                        Now WordPress 0.3.1
+                                         "Upgrade successful"
+   ↓
+[Activity log: instance.upgraded]        Audit log entry with old/new
+                                         version, who triggered, when
+```
+
+**Success criteria**: upgrade без downtime (rolling restart) or
+documented maintenance window.
+**Failure modes**:
+- New image pull fails → auto-rollback to old version
+- New version incompatible (config schema changed) → block upgrade
+  with explicit error: "Provider 0.3.1 requires new config 'foo',
+  your current config doesn't have it. Update your install."
+
+## Flow 8: Diagnose failed app instance (new)
+
+**Actor**: Dmitriy — on-call, app is down.
+
+```
+[Provider instance list]                Filter: status=Failed
+   ↓
+[Instance detail]                        Status: ✕ Failed
+                                         "install-hook-3 failed:
+                                          podman run exit code 1
+                                          port 80 already in use"
+   ↓ click "View logs"
+[Logs tab]                              Full shell output of every
+                                         install hook with exit codes
+   ↓
+[Activity tab]                           State transitions:
+                                         Installing → Failed
+                                         at 2026-07-08 14:23 UTC
+   ↓ click "Retry"
+[Status: Installing]                    Same hooks re-run
+   ↓ success
+[Status: Running]                        (with note in audit log)
+```
+
+**Success criteria**: root cause diagnosed in < 2 minutes via logs.
+**Failure modes**:
+- Logs truncated (default tail=1000) → "Download full logs" button
+- Retry also fails → "View logs" shows new error, "Uninstall" option
