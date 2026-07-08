@@ -111,6 +111,7 @@ function VmsPage() {
             <DataTable
               columns={vmColumns}
               data={allItems}
+              density="compact"
               selection={{
                 selectedIds,
                 onToggle: toggle,

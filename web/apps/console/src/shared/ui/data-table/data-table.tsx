@@ -55,6 +55,8 @@ export type FilterValues = Record<string, string>;
 export interface DataTableProps<TData> {
   columns: ColumnDef<TData>[];
   data: TData[];
+  /** 'compact' = tight rows (h-8 headers, h-7 cells, text-[11px]); default is comfortable. */
+  density?: 'compact' | 'comfortable';
   selection?: {
     selectedIds: ReadonlySet<string>;
     onToggle: (id: string) => void;
@@ -68,6 +70,7 @@ export interface DataTableProps<TData> {
 export function DataTable<TData>({
   columns,
   data,
+  density = 'comfortable',
   selection,
   onRowClick,
   getRowId,
@@ -117,7 +120,7 @@ export function DataTable<TData>({
 
   return (
     <div className={cn('rounded-lg border border-border bg-card', className)}>
-      <Table>
+      <Table className={cn(density === 'compact' && 'text-[11px]')}>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className="border-b-0">
@@ -126,7 +129,11 @@ export function DataTable<TData>({
                 return (
                   <TableHead
                     key={header.id}
-                    className={cn(meta?.size, meta?.align === 'right' && 'text-right')}
+                    className={cn(
+                      density === 'compact' ? 'h-8 px-2' : 'h-10 px-2',
+                      meta?.size,
+                      meta?.align === 'right' && 'text-right',
+                    )}
                   >
                     {header.isPlaceholder
                       ? null
@@ -148,7 +155,14 @@ export function DataTable<TData>({
               {row.getVisibleCells().map((cell) => {
                 const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
                 return (
-                  <TableCell key={cell.id} className={cn(meta?.size, meta?.align === 'right' && 'text-right')}>
+                  <TableCell
+                    key={cell.id}
+                    className={cn(
+                      density === 'compact' ? 'p-2' : 'p-2',
+                      meta?.size,
+                      meta?.align === 'right' && 'text-right',
+                    )}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 );

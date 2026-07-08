@@ -2,7 +2,7 @@ import type { Vm, VmStatus } from '@/shared/api';
 import type { ColumnDef } from '@/shared/ui/data-table';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
-import { IP } from '@/shared/ui/primitives/ip';
+import { CopyableText } from '@/shared/ui/primitives/copyable-text';
 import { mapVmStatusToVariant } from './vm-status';
 import { VmRowActions } from './vm-row-actions';
 
@@ -28,11 +28,15 @@ export const vmColumns: ColumnDef<Vm>[] = [
     header: 'Имя',
     accessorKey: 'name',
     cell: ({ row }) => (
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-0.5">
         <span className="font-medium text-foreground">{row.original.name}</span>
-        <MonoNum muted className="text-[10px]">
+        <CopyableText
+          value={row.original.id}
+          copyLabel="Скопировать ID"
+          className="text-[10px]"
+        >
           {row.original.id}
-        </MonoNum>
+        </CopyableText>
       </div>
     ),
     meta: {
@@ -49,7 +53,7 @@ export const vmColumns: ColumnDef<Vm>[] = [
       </StatusPill>
     ),
     meta: {
-      size: 'w-[120px]',
+      size: 'w-[110px]',
       filter: { type: 'select', param: 'status', options: STATUS_FILTER_OPTIONS, placeholder: 'Все статусы' },
     },
   },
@@ -57,16 +61,24 @@ export const vmColumns: ColumnDef<Vm>[] = [
     id: 'internalIp',
     header: 'IP',
     accessorKey: 'internalIp',
-    cell: ({ row }) => <IP value={row.original.internalIp} />,
-    meta: { size: 'w-[130px]' },
+    cell: ({ row }) => (
+      <CopyableText value={row.original.internalIp} copyLabel="Скопировать IP">
+        {row.original.internalIp}
+      </CopyableText>
+    ),
+    meta: { size: 'w-[140px]' },
   },
   {
     id: 'zone',
     header: 'Зона',
     accessorKey: 'zone',
-    cell: ({ row }) => <MonoNum muted>{row.original.zone}</MonoNum>,
+    cell: ({ row }) => (
+      <CopyableText value={row.original.zone} copyLabel="Скопировать зону">
+        {row.original.zone}
+      </CopyableText>
+    ),
     meta: {
-      size: 'w-[120px]',
+      size: 'w-[110px]',
       filter: { type: 'text', param: 'zone', placeholder: 'eu-central-1' },
     },
   },
@@ -80,7 +92,7 @@ export const vmColumns: ColumnDef<Vm>[] = [
         <MonoNum>{String(getValue()).split(' ')[2]}</MonoNum> GB
       </span>
     ),
-    meta: { size: 'w-[140px]' },
+    meta: { size: 'w-[130px]' },
   },
   {
     id: 'diskGb',
@@ -92,7 +104,7 @@ export const vmColumns: ColumnDef<Vm>[] = [
         <span className="ml-0.5 text-muted-foreground">GB</span>
       </>
     ),
-    meta: { size: 'w-[80px]', align: 'right' },
+    meta: { size: 'w-[70px]', align: 'right' },
   },
   {
     id: 'actions',
