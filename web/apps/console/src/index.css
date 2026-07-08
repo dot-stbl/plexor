@@ -51,6 +51,10 @@
   --ok: oklch(58% 0.16 145);
   --ok-soft: oklch(95% 0.03 145);
   --ok-ink: oklch(45% 0.13 145);
+  --err: oklch(58% 0.20 25);
+  --warn: oklch(58% 0.10 75);
+  --idle: oklch(50% 0.012 240);
+  --info: oklch(58% 0.14 240);
   --err-soft: oklch(96% 0.03 25);
   --err-ink: oklch(50% 0.17 25);
   --warn-soft: oklch(96% 0.05 75);
@@ -111,6 +115,10 @@
   --ok: oklch(72% 0.15 145);
   --ok-soft: oklch(32% 0.05 145);
   --ok-ink: oklch(85% 0.13 145);
+  --err: oklch(68% 0.18 25);
+  --warn: oklch(75% 0.10 75);
+  --idle: oklch(72% 0.012 240);
+  --info: oklch(72% 0.13 240);
   --err-soft: oklch(33% 0.06 25);
   --err-ink: oklch(83% 0.14 25);
   --warn-soft: oklch(33% 0.05 75);
