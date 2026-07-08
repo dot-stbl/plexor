@@ -30,6 +30,11 @@ export default defineConfig({
     strictPort: true,
     cors: true,
   },
+  // SPA fallback — TanStack Router uses History API navigation, so
+  // direct hits on /vms/new, /clusters/$id etc. need to be served
+  // index.html so the client-side router can take over. Without this
+  // the dev server returns 404 for unknown paths.
+  appType: 'spa',
   build: {
     outDir: 'dist',
     sourcemap: true,
