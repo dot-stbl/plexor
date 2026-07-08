@@ -51,7 +51,7 @@ const railPill =
 
 /**
  * Contextual sidebar (single_contextual): shows the pages of the CURRENT
- * section. Section switching happens through «Все сервисы» (the launcher).
+ * section. Section switching happens through the app launcher.
  * On the overview (`/`) it lists the sections themselves as entry points.
  * User lives at the bottom; its menu opens the Settings modal.
  */
@@ -93,10 +93,10 @@ export function AppSidebar() {
             <SidebarMenuItem className="group/menu-item relative">
               <SidebarMenuButton onClick={() => setLauncherOpen(true)} className="font-medium">
                 <SquaresFour weight="bold" />
-                <span>Все сервисы</span>
+                <span>Приложения</span>
               </SidebarMenuButton>
               <span aria-hidden="true" className={railPill}>
-                Все сервисы
+                Приложения
               </span>
             </SidebarMenuItem>
           </SidebarMenu>

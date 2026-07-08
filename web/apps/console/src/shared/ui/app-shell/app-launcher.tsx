@@ -4,13 +4,12 @@ import type { Icon } from '@phosphor-icons/react';
 import { X, CaretRight, SquaresFour, BookOpen, GearSix, SlidersHorizontal } from '@phosphor-icons/react';
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from '@/shared/ui/primitives/card';
 import { Button } from '@/shared/ui/primitives/button';
 import { useSidebar } from '@/shared/ui/primitives/sidebar';
+import { ScrollArea } from '@/shared/ui/primitives/scroll-area';
 import { Stat } from '@/shared/ui/primitives/stat';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { cn } from '@/lib/utils';
@@ -100,22 +99,22 @@ function FnButton({ page, onNavigate }: { page: NavPage; onNavigate: () => void 
 function BlockCard({ section, onNavigate }: { section: Section; onNavigate: () => void }) {
   const BlockIcon = section.icon;
   return (
-    <Card className="gap-0 py-0" data-od-id={`launcher-block-${section.id}`}>
-      <CardHeader className="flex flex-row items-center gap-2.5 p-3">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
-          <BlockIcon className="size-[18px]" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <CardTitle className="text-[13px]">{section.label}</CardTitle>
-          <CardDescription className="text-[11px]">{section.caption}</CardDescription>
+    <Card className="gap-0 overflow-visible py-0" data-od-id={`launcher-block-${section.id}`}>
+        <div className="flex flex-row items-center gap-2.5 border-b border-border p-3">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
+            <BlockIcon className="size-[18px]" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <CardTitle className="text-[13px]">{section.label}</CardTitle>
+            <CardDescription className="text-[11px]">{section.caption}</CardDescription>
+          </div>
+          {section.soon && <SoonTag />}
         </div>
-        {section.soon && <SoonTag />}
-      </CardHeader>
-      <CardContent className="grid grid-cols-1 gap-0.5 border-t p-2 sm:grid-cols-2">
-        {section.pages.map((page) => (
-          <FnButton key={page.title} page={page} onNavigate={onNavigate} />
-        ))}
-      </CardContent>
+        <div className="grid grid-cols-1 gap-0.5 sm:grid-cols-2">
+          {section.pages.map((page) => (
+            <FnButton key={page.title} page={page} onNavigate={onNavigate} />
+          ))}
+        </div>
     </Card>
   );
 }
@@ -124,7 +123,7 @@ function BlockCard({ section, onNavigate }: { section: Section; onNavigate: () =
  * App launcher — "Центр управления". Non-modal, no panel background (cards float);
  * the sidebar stays clickable. The top region (4 hubs → 3 summary → 1 overview)
  * sits on one big backing card; the full service catalog floats below. Close
- * button sits in a thin bar above the scroll. Docked right of the sidebar.
+ * button sits inset above a custom scroll rail. Docked right of the sidebar.
  */
 export function AppLauncher({
   open,
@@ -146,7 +145,7 @@ export function AppLauncher({
           aria-hidden="true"
           onClick={close}
           className={cn(
-            'fixed inset-y-0 right-0 z-30 bg-black/40 duration-200 animate-in fade-in-0',
+            'fixed inset-y-0 right-0 z-30 bg-black/40 backdrop-blur-sm duration-200 animate-in fade-in-0',
             state === 'collapsed' ? 'left-12' : 'left-64',
           )}
         />
@@ -158,70 +157,82 @@ export function AppLauncher({
           )}
         >
           <Dialog.Title className="sr-only">Центр управления</Dialog.Title>
-          <Dialog.Description className="sr-only">Все сервисы и разделы проекта</Dialog.Description>
+          <Dialog.Description className="sr-only">Разделы проекта и быстрые переходы</Dialog.Description>
 
-          {/* Close floats over the scroll's top-right — no reserved top bar. */}
-          <Dialog.Close
-            aria-label="Закрыть"
-            render={
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="absolute top-2.5 right-2.5 z-20 rounded-md border border-border bg-background/90 shadow-sm backdrop-blur-sm"
-              />
-            }
-          >
-            <X className="size-4" />
-          </Dialog.Close>
-
-          <div className="min-h-0 flex-1 overflow-y-auto p-3">
-            {/* Top region on one big backing card; extra top padding clears the floating close. */}
-            <Card className="mb-3 gap-2.5 p-3 pt-8">
-              <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-                {META.map((hub) => (
-                  <MetaCard key={hub.name} hub={hub} onNavigate={close} />
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-                {SUMMARY.map((s) => (
-                  <Link key={s.to} to={s.to} onClick={close} className={linkRing}>
-                    <Stat
-                      label={s.label}
-                      value="—"
-                      context="нет данных"
-                      className="h-full border-0 bg-muted/60 p-3.5 transition-colors hover:bg-muted"
-                    />
-                  </Link>
-                ))}
-              </div>
-
-              <Link to="/" onClick={close} className={linkRing}>
-                <div className={cn('flex items-center gap-4 px-4 py-3.5', tile, 'hover:bg-muted')}>
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-background text-foreground">
-                    <SquaresFour className="size-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium">Обзор проекта</div>
-                    <p className="text-xs text-muted-foreground">
-                      Сводка ресурсов, метрики и быстрые действия — проект prod-cluster
-                    </p>
-                  </div>
-                  <CaretRight className="size-4 shrink-0 text-muted-foreground" />
+          <div className="flex min-h-0 flex-1">
+            <ScrollArea
+              className="min-h-0 flex-1"
+              viewportClassName="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              scrollBarClassName="data-vertical:mt-3 data-vertical:mr-2 data-vertical:mb-3 data-vertical:rounded-full data-vertical:border-l-0 data-vertical:bg-border/20"
+            >
+              <div className="p-3.5 pr-0">
+              {/* Top region on one big backing card. */}
+              <Card className="mb-3 gap-2.5 p-3.5">
+                <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+                  {META.map((hub) => (
+                    <MetaCard key={hub.name} hub={hub} onNavigate={close} />
+                  ))}
                 </div>
-              </Link>
-            </Card>
 
-            {/* Service catalog */}
-            <div className="mb-3 text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase">
-              Все сервисы
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                  {SUMMARY.map((s) => (
+                    <Link key={s.to} to={s.to} onClick={close} className={linkRing}>
+                      <Stat
+                        label={s.label}
+                        value="—"
+                        context="нет данных"
+                        className="h-full border-0 bg-muted/60 p-3.5 transition-colors hover:bg-muted"
+                      />
+                    </Link>
+                  ))}
+                </div>
+
+                <Link to="/" onClick={close} className={linkRing}>
+                  <div className={cn('flex items-center gap-4 px-4 py-3.5', tile, 'hover:bg-muted')}>
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-background text-foreground">
+                      <SquaresFour className="size-5" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium">Обзор проекта</div>
+                      <p className="text-xs text-muted-foreground">
+                        Сводка ресурсов, метрики и быстрые действия — проект prod-cluster
+                      </p>
+                    </div>
+                    <CaretRight className="size-4 shrink-0 text-muted-foreground" />
+                  </div>
+                </Link>
+              </Card>
+
+              {/* Service catalog */}
+              <div className="grid grid-cols-1 items-start gap-3 xl:grid-cols-2">
+                {SECTIONS.map((section) => (
+                  <BlockCard key={section.id} section={section} onNavigate={close} />
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-1 items-start gap-3 xl:grid-cols-2">
-              {SECTIONS.map((section) => (
-                <BlockCard key={section.id} section={section} onNavigate={close} />
-              ))}
-            </div>
+          </ScrollArea>
+
+          {/* Right-edge breathing room — just enough space for the X so it
+              sits visually separated from the cards without looking like
+              a separate panel or side header. */}
+          <div
+            data-od-id="launcher-rail"
+            className="flex w-10 shrink-0 items-start justify-center pt-2"
+          >
+            <Dialog.Close
+              aria-label="Закрыть"
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="size-7 rounded-md text-muted-foreground"
+                />
+              }
+            >
+              <X className="size-4" />
+            </Dialog.Close>
           </div>
+        </div>
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

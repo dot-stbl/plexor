@@ -28,7 +28,7 @@ export function AppHeader() {
   return (
     <header
       data-od-id="app-topbar"
-      className="sticky top-0 z-10 flex h-11 shrink-0 items-center gap-2.5 border-b border-border bg-background px-3"
+      className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2.5 border-b border-border bg-background px-2"
     >
       <ScopeSwitcher />
       <span aria-hidden="true" className="h-4 w-px bg-border" />
