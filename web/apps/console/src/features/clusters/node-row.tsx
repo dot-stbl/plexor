@@ -1,6 +1,7 @@
-import { Cube, Cpu, Memory, HardDrives, CircleNotch, XCircle } from '@phosphor-icons/react';
+import { Cube, Cpu, Memory, HardDrives, CircleNotch, XCircle } from '@/shared/ui/icon';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
+import { Size, SizeUtils } from '@/shared/ui/primitives/size';
 import type { PlexorNode } from './cluster-types';
 
 const STATUS_VARIANT: Record<PlexorNode['status'], 'running' | 'pending' | 'idle' | 'err'> = {
@@ -54,16 +55,15 @@ export function NodeRow({ node }: NodeRowProps) {
           <span className="inline-flex items-center gap-0.5">
             <Cpu className="size-3" />
             <MonoNum>{node.spec.vcpu}</MonoNum>
+            <span className="ml-0.5 text-[10px] text-muted-foreground">vCPU</span>
           </span>
           <span className="inline-flex items-center gap-0.5">
             <Memory className="size-3" />
-            <MonoNum>{node.spec.ramGb}</MonoNum>
-            <span>GB</span>
+            <Size bytes={SizeUtils.gibToBytes(node.spec.ramGb)} />
           </span>
           <span className="inline-flex items-center gap-0.5">
             <HardDrives className="size-3" />
-            <MonoNum>{node.spec.diskGb}</MonoNum>
-            <span>GB</span>
+            <Size bytes={SizeUtils.gibToBytes(node.spec.diskGb)} />
           </span>
           <span className="inline-flex items-center gap-0.5">
             <MonoNum>{node.vmCount}</MonoNum> VM
