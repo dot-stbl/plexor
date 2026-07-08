@@ -4,32 +4,18 @@ import * as React from "react";
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 
 import { cn } from "@/lib/utils";
-import { CaretDown, Check } from "@phosphor-icons/react";
+import { CaretDown } from "@phosphor-icons/react";
 
 /**
  * Select — Plexor DS wrapper around Base UI Select.
  *
- * **Layout pattern (shadcn convention with Base UI):**
- * - Trigger: content-sized (w-fit), value + CaretDown icon
- * - Popup: anchor-width min, item content width
- * - Items: full-width, Check icon on the LEFT (reserved pl-8 space),
- *   text right-aligned to that reservation
+ * Layout follows Base UI canonical pattern:
+ * - Popup: min-w-[var(--anchor-width)] matches trigger width
+ * - Item: grid 1rem_1fr (check icon col + text col)
+ * - Check: custom SVG to match shadcn neutral style
  *
- * **Why Check on LEFT, not right?**
- * The shadcn Select convention puts the selected indicator on the left.
- * This reserves a constant pl-8 (32px) gutter on the left so text
- * is always at the same X position whether item is selected or not.
- *
- * If Check were on the right:
- * - NOT selected: text starts at pl-2 (8px), no Check, pr-2 (8px)
- * - SELECTED: text starts at pl-2 (8px), then gap, then Check, then pr-2
- * - Visual: text X position is same, but right side has different stuff
- *   (icon vs nothing) — user perceives asymmetric padding
- *
- * With Check on LEFT + always-on pl-8 reservation:
- * - Both states: text always at 32px from left, 8px from right
- * - Selected state adds visual indicator to the left of text
- * - Padding is symmetric in BOTH states
+ * Anatomy: Trigger → Portal → Positioner → Popup → List → Items
+ *          each Item: ItemIndicator (left col) + ItemText (right col)
  */
 
 const Select = SelectPrimitive.Root;
@@ -38,7 +24,7 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
-      className={cn("truncate text-left", className)}
+      className={cn("line-clamp-1 text-left", className)}
       {...props}
     />
   );
@@ -46,12 +32,16 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
 
 function SelectTrigger({
   className,
+  size = "default",
   children,
   ...props
-}: SelectPrimitive.Trigger.Props) {
+}: SelectPrimitive.Trigger.Props & {
+  size?: "sm" | "default";
+}) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
+      data-size={size}
       className={cn(
         "inline-flex h-7 w-fit items-center gap-1.5 rounded-md border border-input bg-input/20 px-2 text-xs/relaxed whitespace-nowrap transition-colors outline-none",
         "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30",
@@ -74,6 +64,30 @@ function SelectTrigger({
   );
 }
 
+/**
+ * SelectCheckIcon — shadcn-native check mark for items.
+ * Custom SVG (not Phosphor) to match Base UI demos and look proper
+ * at the small 14px size. Stroke-based rendering.
+ */
+function SelectCheckIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("size-3.5", className)}
+      aria-hidden
+    >
+      <path d="m2.5 8.5 4 4 7-9" />
+    </svg>
+  );
+}
+
 function SelectContent({
   className,
   children,
@@ -81,12 +95,11 @@ function SelectContent({
   sideOffset = 4,
   align = "center",
   alignOffset = 0,
-  alignItemWithTrigger = false,
   ...props
 }: SelectPrimitive.Popup.Props &
   Pick<
     SelectPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
+    "align" | "alignOffset" | "side" | "sideOffset"
   >) {
   return (
     <SelectPrimitive.Portal>
@@ -95,18 +108,15 @@ function SelectContent({
         sideOffset={sideOffset}
         align={align}
         alignOffset={alignOffset}
-        alignItemWithTrigger={alignItemWithTrigger}
-        className="isolate z-50"
+        className="isolate z-50 outline-hidden"
       >
         <SelectPrimitive.Popup
           data-slot="select-content"
-          data-align-trigger={alignItemWithTrigger}
           className={cn(
-            "relative isolate z-50 max-h-(--available-height) origin-(--transform-origin)",
+            "min-w-(--anchor-width) origin-(--transform-origin) bg-clip-padding",
             "overflow-hidden rounded-md bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10",
             "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95",
             "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-            "data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1",
             "duration-100",
             className,
           )}
@@ -130,25 +140,19 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-sm py-1 pl-8 pr-2 text-xs/relaxed outline-hidden",
+        "grid cursor-default grid-cols-[1rem_1fr] items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-xs/relaxed outline-hidden select-none",
         "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        "[&_svg]:pointer-events-none [&_svg]:shrink-0",
         className,
       )}
       {...props}
     >
-      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-        <SelectPrimitive.ItemIndicator
-          render={
-            <Check
-              weight="bold"
-              className="pointer-events-none size-3.5 text-foreground"
-            />
-          }
-        />
-      </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemIndicator className="col-start-1 flex items-center justify-center">
+        <SelectCheckIcon className="text-foreground" />
+      </SelectPrimitive.ItemIndicator>
+      <SelectPrimitive.ItemText className="col-start-2">
+        {children}
+      </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
   );
 }
@@ -191,6 +195,7 @@ function SelectSeparator({
 
 export {
   Select,
+  SelectCheckIcon,
   SelectContent,
   SelectGroup,
   SelectItem,

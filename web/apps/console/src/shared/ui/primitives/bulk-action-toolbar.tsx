@@ -1,5 +1,6 @@
 import { Button } from '@/shared/ui/primitives/button';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
+import { X } from '@phosphor-icons/react';
 import { cn } from '@/shared/lib/utils';
 
 import type { ComponentProps, ReactNode } from 'react';
@@ -94,8 +95,13 @@ export function BulkActionToolbar({
         ))}
       </div>
       <span className="self-stretch w-px bg-border" aria-hidden />
-      <Button size="sm" variant="ghost" onClick={onClear}>
-        Clear
+      <Button
+        size="icon-sm"
+        variant="ghost"
+        onClick={onClear}
+        aria-label="Clear selection"
+      >
+        <X className="size-3.5" />
       </Button>
     </div>
   );
