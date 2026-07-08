@@ -9,13 +9,17 @@ import { CaretDown, Check } from "@phosphor-icons/react";
 /**
  * Select — Plexor DS wrapper around Base UI Select.
  *
- * Layout follows Base UI canonical pattern:
- * - Popup: min-w-[var(--anchor-width)] matches trigger width
- * - Item: grid 1rem_1fr (check icon col + text col)
- * - Check: custom SVG to match shadcn neutral style
+ * Layout:
+ * - Trigger: content-sized, value + CaretDown icon
+ * - Popup: min-w-[var(--anchor-width)] (matches trigger width)
+ * - Item: flex with text on left + Check icon on right (when selected)
+ * - Check uses Plexor DS tokens: text-foreground default,
+ *   text-accent-foreground when item is highlighted (hover/focus)
  *
- * Anatomy: Trigger → Portal → Positioner → Popup → List → Items
- *          each Item: ItemIndicator (left col) + ItemText (right col)
+ * alignItemWithTrigger=false: Base UI's default adds +28px
+ * (min-w: calc(anchor + 1.75rem)) when alignItemWithTrigger is on
+ * to align the selected item with the trigger text. We disable
+ * this so popup is exactly trigger width.
  */
 
 const Select = SelectPrimitive.Root;
@@ -71,11 +75,12 @@ function SelectContent({
   sideOffset = 4,
   align = "center",
   alignOffset = 0,
+  alignItemWithTrigger = false,
   ...props
 }: SelectPrimitive.Popup.Props &
   Pick<
     SelectPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset"
+    "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
   >) {
   return (
     <SelectPrimitive.Portal>
@@ -84,6 +89,7 @@ function SelectContent({
         sideOffset={sideOffset}
         align={align}
         alignOffset={alignOffset}
+        alignItemWithTrigger={alignItemWithTrigger}
         className="isolate z-50 outline-hidden"
       >
         <SelectPrimitive.Popup
@@ -116,19 +122,24 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-xs/relaxed outline-hidden select-none",
-        "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground",
-        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        // 'group/select-item' is used to scope the Check color flip
+        // (group-data-[highlighted] targets only this item's children)
+        "group/select-item relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-xs/relaxed outline-hidden select-none",
+        "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
+        "data-disabled:pointer-events-none data-disabled:opacity-50",
         className,
       )}
       {...props}
     >
-      <SelectPrimitive.ItemIndicator className="ml-auto flex items-center justify-center">
-        <Check className="size-3.5 text-foreground" />
-      </SelectPrimitive.ItemIndicator>
       <SelectPrimitive.ItemText className="flex-1 whitespace-nowrap">
         {children}
       </SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemIndicator className="ml-auto flex shrink-0 items-center justify-center">
+        <Check
+          weight="bold"
+          className="size-3.5 text-foreground group-data-[highlighted]/select-item:text-accent-foreground"
+        />
+      </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   );
 }
