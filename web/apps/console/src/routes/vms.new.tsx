@@ -92,7 +92,7 @@ function CreateVmPage() {
         title="Создать виртуальную машину"
         description="VM-specific настройки. Нод и кластер выбираются ниже."
         actions={
-          <Button variant="ghost" render={<Link to="/vms" />}>
+          <Button variant="ghost" nativeButton={false} render={<Link to="/vms" />}>
             <ArrowLeft />
             Назад
           </Button>
@@ -138,7 +138,7 @@ function CreateVmPage() {
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Button render={<Link to="/clusters/$id" params={{ id: clusters[0]!.id }} />}>
+              <Button nativeButton={false} render={<Link to="/clusters/$id" params={{ id: clusters[0]!.id }} />}>
                 <ArrowLeft />
                 Перейти к кластеру
               </Button>
@@ -304,7 +304,7 @@ function CreateVmPage() {
         </Card>
 
         <div className="flex items-center justify-between">
-          <Button variant="outline" render={<Link to="/vms" />}>
+          <Button variant="outline" nativeButton={false} render={<Link to="/vms" />}>
             Отмена
           </Button>
           <Button

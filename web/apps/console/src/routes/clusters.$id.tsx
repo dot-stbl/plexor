@@ -30,7 +30,7 @@ function ClusterDetailPage() {
     return (
       <main className="mx-auto w-full max-w-6xl px-6 py-12 text-center">
         <p className="text-sm text-muted-foreground">Кластер не найден.</p>
-        <Button variant="ghost" render={<Link to="/clusters" />} className="mt-3">
+        <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />} className="mt-3">
           <ArrowLeft />
           Назад к кластерам
         </Button>
@@ -62,7 +62,7 @@ function ClusterDetailPage() {
         }
         actions={
           <>
-            <Button variant="ghost" render={<Link to="/clusters" />}>
+            <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />}>
               <ArrowLeft />
               Назад
             </Button>

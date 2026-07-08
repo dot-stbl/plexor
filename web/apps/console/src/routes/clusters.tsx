@@ -34,7 +34,7 @@ function ClustersPage() {
           </>
         }
         actions={
-          <Button render={<Link to="/clusters" />}>
+          <Button nativeButton={false} render={<Link to="/clusters" />}>
             <Plus />
             Документация
           </Button>
@@ -73,7 +73,7 @@ function EmptyClusters() {
           или ISO-образ, затем зарегистрируйте control-plane здесь.
         </p>
       </div>
-      <Button size="sm" render={<Link to="/clusters" />}>
+      <Button size="sm" nativeButton={false} render={<Link to="/clusters" />}>
         <Plus />
         Документация по установке
       </Button>
