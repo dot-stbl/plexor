@@ -92,7 +92,13 @@ import { ToggleGroup, ToggleGroupItem } from '@/shared/ui/primitives/toggle-grou
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/primitives/table';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/shared/ui/primitives/carousel';
 import { Calendar } from '@/shared/ui/primitives/calendar';
-import { ChartContainer } from '@/shared/ui/primitives/chart';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from '@/shared/ui/primitives/chart';
 
 export const Route = createFileRoute('/components')({
   component: ComponentsPage,
@@ -1371,12 +1377,73 @@ function Component({ id }: { id: string }) {
       );
     case 'chart':
       return (
-        <Demo label="Chart container (Recharts wrapper)">
-          <ChartContainer config={{}} className="h-32 w-full">
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              ChartContainer — wrap your recharts here
+        <Demo label="Recharts via ChartContainer + ChartConfig (--chart-1..5 tokens)">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">Line — CPU usage last 12h</div>
+              <ChartContainer
+                config={{
+                  cpu: { label: 'CPU %', color: 'var(--chart-1)' },
+                  mem: { label: 'Memory %', color: 'var(--chart-2)' },
+                }}
+                className="h-48 w-full"
+              >
+                <LineChart data={cpuData} margin={{ top: 4, right: 8, bottom: 0, left: -8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="hour" tickLine={false} axisLine={false} fontSize={11} stroke="var(--muted-foreground)" />
+                  <YAxis tickLine={false} axisLine={false} fontSize={11} stroke="var(--muted-foreground)" />
+                  <ChartTooltip content={<ChartTooltipContent hideIndicator />} />
+                  <Line type="monotone" dataKey="cpu" stroke="var(--chart-1)" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="mem" stroke="var(--chart-2)" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ChartContainer>
             </div>
-          </ChartContainer>
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">Bar — resource distribution by status</div>
+              <ChartContainer
+                config={{
+                  running: { label: 'Running', color: 'var(--ok)' },
+                  pending: { label: 'Pending', color: 'var(--warn)' },
+                  failed:  { label: 'Failed',  color: 'var(--err)' },
+                  stopped: { label: 'Stopped', color: 'var(--idle)' },
+                }}
+                className="h-48 w-full"
+              >
+                <BarChart data={statusData} margin={{ top: 4, right: 8, bottom: 0, left: -8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="region" tickLine={false} axisLine={false} fontSize={11} stroke="var(--muted-foreground)" />
+                  <YAxis tickLine={false} axisLine={false} fontSize={11} stroke="var(--muted-foreground)" />
+                  <ChartTooltip content={<ChartTooltipContent hideIndicator />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Bar dataKey="running" stackId="a" fill="var(--ok)" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="pending" stackId="a" fill="var(--warn)" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="failed"  stackId="a" fill="var(--err)" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="stopped" stackId="a" fill="var(--idle)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">Area — bandwidth (single)</div>
+              <ChartContainer
+                config={{ bandwidth: { label: 'Mbps', color: 'var(--chart-3)' } }}
+                className="h-40 w-full"
+              >
+                <AreaChart data={bandwidthData} margin={{ top: 4, right: 8, bottom: 0, left: -8 }}>
+                  <defs>
+                    <linearGradient id="bw" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--chart-3)" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="var(--chart-3)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="t" tickLine={false} axisLine={false} fontSize={11} stroke="var(--muted-foreground)" />
+                  <YAxis tickLine={false} axisLine={false} fontSize={11} stroke="var(--muted-foreground)" />
+                  <ChartTooltip content={<ChartTooltipContent hideIndicator />} />
+                  <Area type="monotone" dataKey="bandwidth" stroke="var(--chart-3)" strokeWidth={2} fill="url(#bw)" />
+                </AreaChart>
+              </ChartContainer>
+            </div>
+          </div>
         </Demo>
       );
     case 'carousel':
