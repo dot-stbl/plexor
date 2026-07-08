@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Plus } from '@phosphor-icons/react';
 import { useListVms } from '@/shared/api';
+import { Button } from '@/shared/ui/primitives/button';
 import { PageHeader } from '@/shared/ui/app-shell';
 import { DataTable, DataTableToolbar, emptyFilters, compactFilters, type FilterValues } from '@/shared/ui/data-table';
 import { VmBulkToolbar, VmEmptyState, VmErrorBanner, VmNoResultsState, VmSkeleton, vmColumns } from '@/features/vms';
@@ -86,13 +87,13 @@ function VmsPage() {
           )
         }
         actions={
-          <Link
-            to="/vms/new"
-            className="inline-flex items-center justify-center gap-1.5 h-7 rounded-md border border-transparent bg-primary px-2.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+          <Button
+            render={<Link to="/vms/new" />}
+            size="sm"
           >
-            <Plus className="size-3.5" />
+            <Plus />
             Создать ВМ
-          </Link>
+          </Button>
         }
       />
 
