@@ -1,78 +1,97 @@
-import { Fragment, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
-import { MagnifyingGlass, SquaresFour } from '@phosphor-icons/react';
+import { SquaresFour, GearSix, SignOut } from '@phosphor-icons/react';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
+  SidebarRail,
+  SidebarTrigger,
 } from '@/shared/ui/primitives/sidebar';
-import { navSections, isActiveRoute } from './nav-config';
-import { SearchCommand } from './search-command';
+import { Button } from '@/shared/ui/primitives/button';
+import { Avatar, AvatarFallback } from '@/shared/ui/primitives/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/ui/primitives/dropdown-menu';
+import { StatusPill } from '@/shared/ui/primitives/status-pill';
+import { toast } from 'sonner';
+import type { Icon } from '@phosphor-icons/react';
+import {
+  SECTIONS,
+  isActiveRoute,
+  sectionIdForPathname,
+  sectionPrimaryRoute,
+  type AppRoute,
+} from './nav-config';
 import { AppLauncher } from './app-launcher';
-import { cn } from '@/lib/utils';
+import { AppSettingsDialog } from './app-settings-dialog';
+import { PlexorMark } from './plexor-mark';
 
-/** Label pill revealed on rail hover; the hovered item's pill nudges toward its button. */
-const railPill =
-  'pointer-events-none absolute left-full top-1/2 z-50 ml-3.5 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-md bg-foreground/70 px-2 py-1 text-xs font-medium text-background opacity-0 shadow-sm backdrop-blur-md transition-all duration-150 ease-out group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/menu-item:ml-2.5 group-hover/menu-item:bg-foreground/80';
+type SidebarItem = { title: string; icon: Icon; to?: AppRoute };
 
 /**
- * Permanently-collapsed icon rail (non-expandable — see AppShell's controlled
- * `open={false}`). Hovering the rail reveals a label pill next to every icon.
- *
- * Structure: a top "main" group (brand launcher + search) is divided from the
- * navigation groups by separators. Items inside a group sit closer together
- * (gap-1) than groups are from each other (separator + margin).
+ * Our own rail tooltip (not the shadcn native one): a frosted label pill that
+ * only exists when the rail is collapsed, fades + slides in on rail hover, and
+ * the hovered item's pill nudges toward its icon.
+ */
+const railPill =
+  'pointer-events-none absolute top-1/2 left-full z-50 ml-3.5 hidden -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-md bg-foreground/70 px-2 py-1 text-xs font-medium text-background opacity-0 shadow-sm backdrop-blur-md transition-all duration-150 ease-out group-data-[collapsible=icon]:block group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/menu-item:ml-2.5 group-hover/menu-item:bg-foreground/80';
+
+/**
+ * Contextual sidebar (single_contextual): shows the pages of the CURRENT
+ * section. Section switching happens through «Все сервисы» (the launcher).
+ * On the overview (`/`) it lists the sections themselves as entry points.
+ * User lives at the bottom; its menu opens the Settings modal.
  */
 export function AppSidebar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const [searchOpen, setSearchOpen] = useState(false);
   const [launcherOpen, setLauncherOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // ⌘K / Ctrl+K opens the search modal.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setSearchOpen((prev) => !prev);
-      }
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, []);
+  const section = SECTIONS.find((s) => s.id === sectionIdForPathname(pathname));
+
+  const groupLabel = section ? section.label : 'Разделы';
+  const items: SidebarItem[] = section
+    ? section.pages.map((p) => ({ title: p.title, icon: p.icon, to: p.to }))
+    : SECTIONS.map((s) => ({ title: s.label, icon: s.icon, to: sectionPrimaryRoute(s) }));
 
   return (
     <>
-      {/* group/rail: hovering anywhere on the rail reveals all label pills. */}
+      {/* group/rail: hovering the collapsed rail reveals all label pills. */}
       <Sidebar collapsible="icon" data-od-id="app-sidebar" className="group/rail">
-        <SidebarHeader className="gap-1">
-          <SidebarMenu className="gap-1">
-            {/* Brand launcher — solid token-colored tile (replaces the logo mark), links home. */}
-            <SidebarMenuItem className="group/menu-item relative">
-              <Link
-                to="/"
-                aria-label="Plexor — на главную"
-                className="flex size-8 items-center justify-center rounded-[calc(var(--radius-sm)+2px)] bg-primary text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-              >
-                P
-              </Link>
-              <span aria-hidden="true" className={railPill}>
+        <SidebarHeader className="gap-2 p-2">
+          {/* Expanded: [P] Plexor …… [collapse]. Collapsed: just [P] (rest hidden). */}
+          <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              aria-label="Plexor — на главную"
+              className="flex items-center gap-2 rounded-md p-1 text-foreground outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            >
+              <PlexorMark className="h-6 w-auto shrink-0 group-data-[collapsible=icon]:h-5" />
+              <span className="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
                 Plexor
               </span>
-            </SidebarMenuItem>
-
-            {/* App launcher — opens the "Центр управления" sheet (all services). */}
+            </Link>
+            <SidebarTrigger
+              aria-label="Свернуть меню"
+              className="ml-auto size-7 group-data-[collapsible=icon]:hidden"
+            />
+          </div>
+          <SidebarMenu>
             <SidebarMenuItem className="group/menu-item relative">
-              <SidebarMenuButton
-                onClick={() => setLauncherOpen(true)}
-                aria-label="Все сервисы"
-                className="transition-colors hover:bg-sidebar-foreground/12 hover:text-sidebar-foreground"
-              >
+              <SidebarMenuButton onClick={() => setLauncherOpen(true)} className="font-medium">
                 <SquaresFour weight="bold" />
                 <span>Все сервисы</span>
               </SidebarMenuButton>
@@ -80,69 +99,104 @@ export function AppSidebar() {
                 Все сервисы
               </span>
             </SidebarMenuItem>
-
-            {/* Search — opens the search modal (also ⌘K). */}
-            <SidebarMenuItem className="group/menu-item relative">
-              <SidebarMenuButton
-                onClick={() => setSearchOpen(true)}
-                aria-label="Поиск"
-                className="transition-colors hover:bg-sidebar-foreground/12 hover:text-sidebar-foreground"
-              >
-                <MagnifyingGlass weight="bold" />
-                <span>Поиск</span>
-              </SidebarMenuButton>
-              <span aria-hidden="true" className={railPill}>
-                Поиск&nbsp;&nbsp;⌘K
-              </span>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent className="gap-0 group-data-[collapsible=icon]:overflow-visible">
-          <SidebarSeparator className="my-1.5" />
-          {navSections.map((section, i) => (
-            <Fragment key={section.label}>
-              {i > 0 && <SidebarSeparator className="my-1.5" />}
-              <SidebarGroup className="py-0">
-                <SidebarGroupContent>
-                  <SidebarMenu className="gap-1">
-                    {section.items.map((item) => {
-                      const active = isActiveRoute(pathname, item.to);
-                      const ItemIcon = item.icon;
-                      return (
-                        <SidebarMenuItem key={item.to}>
-                          <SidebarMenuButton
-                            isActive={active}
-                            className={cn(
-                              // Active = solid monochrome ink chip (kept off --sidebar-primary
-                              // because its dark-theme value is the shadcn indigo, not monochrome).
-                              'transition-colors data-active:bg-sidebar-foreground data-active:text-sidebar',
-                              active
-                                ? 'hover:bg-sidebar-foreground hover:text-sidebar'
-                                : // Inactive hover: 12% ink wash — same family as the active chip.
-                                  'hover:bg-sidebar-foreground/12 hover:text-sidebar-foreground',
-                            )}
-                            render={<Link to={item.to} />}
-                          >
-                            <ItemIcon weight={active ? 'fill' : 'bold'} />
-                            <span>{item.title}</span>
-                          </SidebarMenuButton>
-                          <span aria-hidden="true" className={railPill}>
-                            {item.title}
-                          </span>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            </Fragment>
-          ))}
+        <SidebarContent className="group-data-[collapsible=icon]:overflow-visible">
+          <SidebarGroup>
+            <div className="px-2 pb-1 text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase group-data-[collapsible=icon]:hidden">
+              {groupLabel}
+            </div>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {items.map((item) => {
+                  const ItemIcon = item.icon;
+                  const active = !!item.to && isActiveRoute(pathname, item.to);
+                  if (item.to) {
+                    return (
+                      <SidebarMenuItem key={item.title} className="group/menu-item relative">
+                        <SidebarMenuButton isActive={active} render={<Link to={item.to} />}>
+                          <ItemIcon weight={active ? 'fill' : 'bold'} />
+                          <span>{item.title}</span>
+                        </SidebarMenuButton>
+                        <span aria-hidden="true" className={railPill}>
+                          {item.title}
+                        </span>
+                      </SidebarMenuItem>
+                    );
+                  }
+                  return (
+                    <SidebarMenuItem key={item.title} className="group/menu-item relative">
+                      <SidebarMenuButton disabled aria-disabled className="opacity-60">
+                        <ItemIcon />
+                        <span>{item.title}</span>
+                        <StatusPill
+                          variant="idle"
+                          hideDot
+                          className="ml-auto px-1.5 py-0 text-[9.5px] font-normal group-data-[collapsible=icon]:hidden"
+                        >
+                          скоро
+                        </StatusPill>
+                      </SidebarMenuButton>
+                      <span aria-hidden="true" className={railPill}>
+                        {item.title}
+                      </span>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarContent>
+
+        <SidebarFooter className="p-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  aria-label="Аккаунт"
+                  className="h-auto w-full justify-start gap-2 p-2 font-normal group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
+                />
+              }
+            >
+              <Avatar className="size-7">
+                <AvatarFallback className="text-[10px]">АС</AvatarFallback>
+              </Avatar>
+              <span className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
+                <span className="block truncate text-xs font-medium">Алексей Сергеев</span>
+                <span className="block truncate font-mono text-[10px] text-muted-foreground">
+                  a.sergeev@hybrid.ai
+                </span>
+              </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" className="w-56">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="flex flex-col gap-0.5">
+                  <span className="text-sm">Алексей Сергеев</span>
+                  <span className="font-mono text-[11px] font-normal text-muted-foreground">
+                    a.sergeev@hybrid.ai
+                  </span>
+                </DropdownMenuLabel>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+                <GearSix className="size-4" />
+                Настройки
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => toast('Вы вышли из аккаунта')}>
+                <SignOut className="size-4" />
+                Выйти
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarFooter>
+
+        <SidebarRail />
       </Sidebar>
 
-      <SearchCommand open={searchOpen} onOpenChange={setSearchOpen} />
       <AppLauncher open={launcherOpen} onOpenChange={setLauncherOpen} />
+      <AppSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </>
   );
 }

@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { IconContext } from '@phosphor-icons/react';
 import { TooltipProvider } from '@/shared/ui/primitives/tooltip';
 import { Toaster } from '@/shared/ui/primitives/sonner';
 import { ThemeProvider } from '@/shared/lib/theme-provider';
@@ -67,8 +68,11 @@ void enableMocking().then(() => {
       <ThemeProvider defaultTheme="system" storageKey="plexor-theme">
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-            <RouterProvider router={router} />
-            <Toaster />
+            {/* Phosphor icons default to bolder strokes app-wide (explicit weights still win). */}
+            <IconContext.Provider value={{ weight: 'bold' }}>
+              <RouterProvider router={router} />
+              <Toaster />
+            </IconContext.Provider>
           </TooltipProvider>
         </QueryClientProvider>
       </ThemeProvider>

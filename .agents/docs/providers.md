@@ -1,297 +1,409 @@
-# Providers — каталог и SDK
+# Providers — два типа для двух задач
 
-Plexor отделяет **что делать** (resource contract) от **как делать** (provider
-implementation). Каждый ресурс — `I<Resource>Provider`, реализация — NuGet
-пакет, устанавливаемый через `plx provider install`.
+В Plexor есть **два разных типа** провайдеров, которые часто путают:
 
-## Provider SDK — `Plexor.Core.Providers`
+| Тип | Когда | Что | Дистрибуция |
+|---|---|---|---|
+| **Install providers** | При **установке** Plexor (ISO/CLI) | Как Plexor настроить своё хранилище/сеть | **Встроенный код** Plexor (НЕ плагин) |
+| **App providers** | При **развертывании приложений** на Plexor | Как задеплоить user app (WordPress, Postgres, custom) | **Marketplace / template** (внешний автор) |
 
-```csharp
-// Базовый контракт
-public interface IProvider
-{
-    string Id { get; }
-    string DisplayName { get; }
-    ProviderInfo Info { get; }
-    Task<HealthReport> HealthCheckAsync(CancellationToken ct);
-    Task InitializeAsync(IProviderContext ctx, CancellationToken ct);
-}
-
-// Resource provider (базовый)
-public interface IResourceProvider<TResource, TSpec>
-{
-    Task<TResource> CreateAsync(TSpec spec, CancellationToken ct);
-    Task<TResource?> GetAsync(string id, CancellationToken ct);
-    Task<IReadOnlyList<TResource>> ListAsync(ResourceQuery query, CancellationToken ct);
-    Task<TResource> UpdateAsync(string id, TSpec spec, CancellationToken ct);
-    Task DeleteAsync(string id, CancellationToken ct);
-}
-
-// Compute-specific extensions
-public interface IComputeProvider : IResourceProvider<VirtualMachine, VmSpec>
-{
-    Task MigrateAsync(string id, string targetNode, CancellationToken ct);
-    Task<ConsoleHandle> OpenConsoleAsync(string id, CancellationToken ct);
-    Task<SshKeyHandle> InjectSshKeyAsync(string id, string publicKey, CancellationToken ct);
-}
-
-[Flags]
-public enum ComputeFeature
-{
-    None = 0,
-    LiveMigration = 1 << 0,
-    Snapshots = 1 << 1,
-    Console = 1 << 2,
-    CloudInit = 1 << 3,
-    HotResizeCpu = 1 << 4,
-    HotResizeMemory = 1 << 5,
-    GpuSupport = 1 << 6,
-}
-
-public interface IStorageProvider : IProvider
-{
-    IComputeProvider? Compute { get; }   // optional — volume attach
-    Task<VolumeId> CreateVolumeAsync(VolumeSpec spec, CancellationToken ct);
-    Task AttachVolumeAsync(VolumeId v, VmId vm, CancellationToken ct);
-    Task<SnapshotId> SnapshotAsync(VolumeId v, CancellationToken ct);
-    Task<IReadOnlyList<BucketInfo>> ListBucketsAsync(CancellationToken ct);
-    // S3-compatible operations delegated to mc / s3cmd
-}
-
-public interface INetworkProvider : IProvider
-{
-    Task<VpcId> CreateVpcAsync(VpcSpec spec, CancellationToken ct);
-    Task<SubnetId> CreateSubnetAsync(SubnetSpec spec, CancellationToken ct);
-    Task<SecurityGroupId> CreateSecurityGroupAsync(SgSpec spec, CancellationToken ct);
-    Task<FloatingIpId> AllocateFloatingIpAsync(CancellationToken ct);
-    Task AttachFloatingIpAsync(FloatingIpId ip, VmId vm, CancellationToken ct);
-    Task<LoadBalancerId> CreateLoadBalancerAsync(LbSpec spec, CancellationToken ct);
-    Task<DnsZoneId> CreateDnsZoneAsync(DnsSpec spec, CancellationToken ct);
-}
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ISO / plx init / dashboard install                            │
+│  ↓                                                               │
+│  Plexor probes: "у меня есть Ceph или MinIO? OVS или Cilium?" │
+│  ↓ user picks (or default)                                       │
+│  Install provider SELECTED (e.g. ceph + ovs + kvm)              │
+│  ↓ Plexor.Host configured for those backends                     │
+└─────────────────────────────────────────────────────────────────┘
+                                  ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  Plexor running                                                  │
+│  - Compute: KVM (built-in)                                       │
+│  - Network: OVS (selected at install)                            │
+│  - Storage: Ceph (selected at install)                          │
+│  - State DB: PostgreSQL                                          │
+│  - Marketplace: catalog of App providers                        │
+│       ↓ user opens marketplace                                   │
+│       ↓ installs App provider (e.g. wordpress provider)          │
+│       ↓ Plexor deploys WordPress via Ceph volume + OVS network  │
+│         using App provider's install steps                       │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Provider metadata
+---
 
-```csharp
-[Provider("kvm", Tier = ProviderTier.Production)]
-[RequiresBinary("virsh")]
-[RequiresBinary("qemu-img")]
-[RequiresKernelModule("kvm")]
-[RequiresService("libvirtd")]
-[Supports(ComputeFeature.LiveMigration | ComputeFeature.Snapshots
-        | ComputeFeature.Console | ComputeFeature.CloudInit
-        | ComputeFeature.HotResizeCpu)]
-public class KvmComputeProvider : IComputeProvider { ... }
+## 1. Install providers (built-in)
+
+Install providers = **как Plexor настраивает своё окружение**. Они
+**НЕ** плагины и **НЕ** NuGet-пакеты. Это код в Plexor, который
+выбирается при установке через пробы и scoring.
+
+### Доступные install providers (MVP)
+
+| Категория | Provider | Альтернативы | Когда выбирается |
+|---|---|---|---|
+| **Compute** | `kvm` (default) | lxd, pod, firecracker | Linux + есть /dev/kvm |
+| **Network** | `ovs` (default) | cilium, host (bridge-only) | Multi-VM нужен overlay |
+| **Storage (block)** | `ceph-rbd` (default) | local-lvm | Multi-node; replication нужна |
+| **Storage (object)** | `ceph-rgw` (default) | minio | S3-compatible нужен; multi-node |
+| **State DB** | `postgresql` (default) | none в MVP | Всегда (single source of truth) |
+| **Event bus** | `nats` (default) | none в MVP | Всегда |
+
+### Выбор при установке
+
+`plx init` или ISO installer запускает **probes**:
+
+```bash
+# Detect compute backend
+$ plx init --probe
+compute:  kvm (✓ /dev/kvm exists, libvirtd running, VT-x supported)
+           lxd (✓ snap available)
+           pod (✓ containerd available)
+network:  ovs (✓ openvswitch-switch running)
+           cilium (✗ no eBPF support in kernel)
+storage:  ceph-rbd (✓ ceph-mon running, OSDs available: 3)
+           local-lvm (✓ lvm2 + thinpool available)
+...
 ```
 
-### Provider Manifest — автодетект при установке
+User может либо принять defaults, либо override через `plexor.yaml`:
 
 ```yaml
-# provider-manifest.yaml, лежит в корне NuGet package
+# plexor.yaml — на каждом узле или на control plane
+install:
+  compute: kvm              # override default
+  network: cilium           # explicitly choose cilium over ovs
+  storage-block: local-lvm   # single-node setup, no need for ceph
+  storage-object: minio     # single-node, no ceph-rgw
+```
+
+### Architecture: где живёт install provider code
+
+```
+Plexor.Host (control plane)
+  └─ Plexor.Core.Providers/         ← built-in install provider SDK
+       ├─ Compute/KvmComputeProvider.cs
+       ├─ Compute/LxdComputeProvider.cs
+       ├─ Compute/PodComputeProvider.cs
+       ├─ Network/OvsNetworkProvider.cs
+       ├─ Network/CiliumNetworkProvider.cs
+       ├─ Storage/CephRbdStorageProvider.cs
+       ├─ Storage/LocalLvmStorageProvider.cs
+       ├─ Object/CephRgwObjectProvider.cs
+       └─ Object/MinioObjectProvider.cs
+```
+
+Все эти провайдеры **вкомпилированы** в Plexor.Host. Никакой runtime
+plugin loading. `plx init` выбирает между ними по feature probes
++ user override.
+
+### Когда добавлять новый install provider
+
+Только если нужен **новый класс инфры**, не покрытый текущими:
+- `nomad` (orchestrator) — Phase 2
+- `ironic` (bare metal) — Phase 3
+- `vmware` (ESXi) — Phase 2 enterprise
+- и т.д.
+
+Добавление = новый .cs проект в `src/providers/Plexor.Providers.<Category>.<Name>/`,
+реализующий соответствующий интерфейс. НЕ NuGet, НЕ plugin — просто
+новый проект в солюшене.
+
+---
+
+## 2. App providers (marketplace)
+
+App provider = **шаблон развертывания приложения** на Plexor'е.
+Аналог: Helm chart, Replicated app, Coolify one-click.
+
+Автор app provider'а описывает:
+- Что развертывать (container image, helm chart, custom deploy)
+- Какие ресурсы нужны (CPU, RAM, disk, ports)
+- Какие параметры конфигурации
+- Lifecycle: install / upgrade / uninstall
+- Health check
+
+**Распространение** (НЕ NuGet):
+- Git repo (git clone / pull)
+- OCI artifact (`plx provider install oci://ghcr.io/stbl/wordpress:0.2.0`)
+- Tarball (`plx provider install ./wordpress-0.2.0.tar.gz`)
+- Direct folder (`plx provider install ./wordpress-provider/`)
+- HTTP artifact server (internal)
+
+**НЕ NuGet.org** — Plexor providers не .NET-specific, это декларации
+приложений.
+
+### App provider format (YAML)
+
+```yaml
+# wordpress/provider.yaml
 apiVersion: plexor.dev/v1
-kind: ProviderPackage
+kind: AppProvider
 metadata:
-  name: plexor-providers-compute-kvm
-  version: 0.1.0
-  description: "KVM/QEMU provider for Plexor"
+  name: wordpress
+  version: 0.2.0
+  displayName: WordPress
+  description: Popular open-source content management system
+  category: cms
+  icon: https://.../wordpress.svg
+  homepage: https://wordpress.org
+  maintainer: jane.doe@example.com
+
 spec:
-  provides:
-    compute:
-      class: Plexor.Providers.Compute.Kvm.KvmComputeProvider
-      tier: production
-      capabilities: [live-migration, snapshots, console, cloud-init, hot-resize]
-  requires:
-    binaries: [virsh, qemu-img]
-    kernel-modules: [kvm, vhost_net]
-    services: [libvirtd]
+  # Resource requirements (Plexor schedules based on these)
+  resources:
+    cpu: "500m"           # 0.5 cores
+    memory: "512Mi"
+    disk: "10Gi"
+    ports:
+      - port: 80
+        protocol: TCP
+        expose: true       # creates floating IP / ingress
+
+  # Configuration parameters (user fills when installing)
+  config:
+    - name: siteTitle
+      type: string
+      required: true
+      description: "WordPress site title"
+    - name: adminEmail
+      type: string
+      required: true
+      validation: email
+    - name: databaseSize
+      type: enum
+      values: [small, medium, large]
+      default: small
+    - name: replicas
+      type: integer
+      default: 1
+      min: 1
+      max: 5
+
+  # Dependencies on other providers / infrastructure
+  dependencies:
+    services:
+      - name: postgresql
+        provider: postgresql  # or 'mariadb' etc.
+        version: ">=14.0"
+        create: true           # Plexor auto-installs if not present
+    - name: object-storage
+      type: bucket
+      size: 5Gi
+
+  # Lifecycle hooks — shell commands run on the target node
   install:
-    - name: install-kvm
-      type: apt-package
-      packages: [qemu-kvm, libvirt-clients, libvirt-daemon-system]
+    - name: pull-image
+      run: |
+        podman pull docker.io/library/wordpress:$version
+    - name: create-config
+      run: |
+        cat > /var/lib/plexor/instances/$instanceId/wp-config.php <<EOF
+        <?php
+        define('DB_NAME', '$dbName');
+        define('DB_USER', '$dbUser');
+        define('DB_PASSWORD', '$dbPassword');
+        ...
+        EOF
+    - name: start-container
+      run: |
+        podman run -d --name=$instanceId \
+          -v /var/lib/plexor/instances/$instanceId:/var/www/html \
+          -p $port:80 \
+          -e WORDPRESS_DB_HOST=$dbHost \
+          docker.io/library/wordpress:$version
+    - name: wait-ready
+      run: |
+        until curl -sf http://localhost:$port/ > /dev/null; do
+          sleep 2
+        done
+
+  upgrade:
+    - name: backup
+      run: |
+        podman exec $instanceId wp db export > /var/lib/plexor/backups/$instanceId-$(date +%s).sql
+    - name: rolling-update
+      run: podman kill $instanceId && podman run ... (same as install.start-container)
+
+  uninstall:
+    - name: stop-container
+      run: podman stop $instanceId && podman rm $instanceId
+    - name: remove-volumes
+      run: rm -rf /var/lib/plexor/instances/$instanceId
+    - name: remove-floating-ip
+      run: plx network floating-ip release $ipId
+
+  # Health check — Plexor monitors this
+  healthCheck:
+    type: http
+    endpoint: /
+    port: 80
+    expectedStatus: 200
+    intervalSeconds: 30
+
+  # UI metadata (icon, color, tier for marketplace display)
+  ui:
+    icon: wordpress
+    color: "#21759b"
+    tier: official            # official | community | verified
 ```
 
-## Каталог провайдеров
+### Variables in commands
 
-### Compute (VMs, microVMs, containers, bare metal)
+Plexor substitutes before running:
+- `$instanceId` — auto-generated UUID
+- `$version` — provider version
+- `$port` — auto-allocated if config doesn't specify
+- User-defined config values (e.g. `$siteTitle`)
 
-| Provider ID | Primitive | Tier | Capabilities | Статус |
-|---|---|---|---|---|
-| `kvm` | vm-heavy | production | LiveMig, Snap, Console, CloudInit, HotResize | ✅ MVP |
-| `lxd` | system-container | production | Snap, Console, CloudInit, HotResize, Cluster | ✅ MVP |
-| `pod` | app-container | development | Snap, fast boot, high density | ✅ MVP (dev only) |
-| `firecracker` | vm-micro | production | Console, fast-boot, high-density | Phase 2 |
-| `vmware` | vm-heavy | production | LiveMig, Snap, Console, CloudInit, HotResize | Phase 2 (enterprise) |
-| `hyperv` | vm-heavy | production | LiveMig, Snap, Console, CloudInit, HotResize | Phase 2 (enterprise) |
-| `maas` | bare-metal | production | Snap, OS-deploy, IPMI | Phase 3 |
-| `tinkerbell` | bare-metal | production | Snap, OS-deploy, workflows, firmware | Phase 3 |
-| `ironic` | bare-metal | production | Snap, OS-deploy, RAID-config | Phase 3 |
-
-### Storage (block, object, snapshots)
-
-| Provider ID | Layer | Tier | Capabilities | Статус |
-|---|---|---|---|---|
-| `ceph` | block + object + s3 | production | Replication (3x), Snap, S3-compatible | ✅ MVP |
-| `minio` | object | production | S3-compatible, single-node | ✅ MVP |
-| `local-lvm` | block | production | Snap (thin) | ✅ MVP (fallback) |
-| `zfs` | block + snapshots | production | Snap, Replication, thin | Phase 2 |
-| `longhorn` | block | production | Snap, Replication, distributed | Phase 2 |
-
-### Network (overlay, SDN, LB, DNS)
-
-| Provider ID | Layer | Tier | Capabilities | Статус |
-|---|---|---|---|---|
-| `ovs` | overlay-network | production | VXLAN, VLAN, BGP, OVN-control | ✅ MVP |
-| `cilium` | overlay-network | production | eBPF, BGP, L7-policy | ✅ MVP |
-| `host` | bridge-only | development | No isolation | ✅ MVP (dev only) |
-| `haproxy` | load-balancer | production | L4 + L7 (basic), SSL offload | ✅ MVP |
-| `metallb` | floating-ip + lb | production | L2/BGP announce | Phase 2 |
-| `powerdns` | dns | production | API, dynamic updates | Phase 3 |
-| `nsx` | sdn | production | Full SDN (enterprise) | out of scope |
-
-### Identity
-
-| Provider ID | Tier | Notes |
-|---|---|---|
-| `local` | development | built-in users table, dev only |
-| `keycloak` | production | OAuth2/OIDC/OAuth2/SAML/LDAP-federation |
-| `authentik` | production | OAuth2/OIDC, simpler than Keycloak |
-| `ldap` | production | Direct LDAP bind (no OAuth layer) |
-
-### OS (host OS for bare metal)
-
-| Provider ID | Tier | Notes |
-|---|---|---|
-| `ubuntu` | production | PXE + preseed + cloud-init |
-| `talos` | production | Immutable, API-managed, K8s-first |
-| `flatcar` | production | Immutable, Gentoo-based |
-
-### Orchestrator (managed Kubernetes)
-
-| Provider ID | Tier | Notes |
-|---|---|---|
-| `k3s` | production | Single binary, light, edge-friendly |
-| `k0s` | production | Zero-dep binary |
-| `nomad` | production | Mixed workloads (containers + VMs + binaries) |
-
-## Как добавить новый provider
-
-### Шаг 1: Установить SDK
+### Discovery + install workflow
 
 ```bash
-dotnet new classlib -n Plexor.Providers.Compute.Firecracker -o src/providers/Plexor.Providers.Compute.Firecracker --framework net10.0
+# 1. Browse marketplace
+$ plx provider list
+NAME              VERSION  CATEGORY  TIER
+wordpress         0.2.0    cms       official
+postgresql        15.3.0   database  official
+redis             7.2.0    cache     community
+nginx             1.25.2   web       official
+minio             2024.04  object    official
+ghost             5.85.1   cms       community
+keycloak          24.0.5   identity  official
+node-app          1.0.0    runtime   community
+
+# 2. Show provider details
+$ plx provider show wordpress
+wordpress 0.2.0
+  Popular open-source CMS
+  Resources: 500m CPU, 512Mi RAM, 10Gi disk
+  Ports: 80 (TCP, external)
+  Config: siteTitle*, adminEmail*, databaseSize (small), replicas (1)
+  Dependencies: postgresql >=14.0
+
+# 3. Install
+$ plx provider install wordpress
+  ? Site title: My Blog
+  ? Admin email: jane@example.com
+  ? Database size: small
+  ? Replicas: 1
+  → Allocating compute on plexor-node-01
+  → Allocating storage volume (10Gi)
+  → Allocating floating IP
+  → Pulling image wordpress:0.2.0
+  → Starting container...
+  → Health check passing
+  ✓ WordPress instance 'wp-7f3a2c' running at http://203.0.113.42
+
+# 4. List instances
+$ plx provider instances
+NAME          TYPE        VERSION  STATUS   URL
+wp-7f3a2c      wordpress   0.2.0    running  http://203.0.113.42
+pg-primary     postgresql  15.3.0   running  (internal)
+
+# 5. Upgrade
+$ plx provider upgrade wp-7f3a2c --to-version 0.3.0
+  → Backing up database
+  → Pulling image wordpress:0.3.0
+  → Restarting container
+  ✓ wp-7f3a2c now running 0.3.0
+
+# 6. Uninstall
+$ plx provider uninstall wp-7f3a2c
+  → Stopping container
+  → Removing volumes
+  → Releasing floating IP
+  ✓ wp-7f3a2c removed
 ```
 
-### Шаг 2: Реализовать интерфейс
+### State persistence
 
-```csharp
-[Provider("firecracker", Tier = ProviderTier.Production)]
-[RequiresBinary("firecracker")]
-[RequiresKernelModule("kvm")]
-[Supports(ComputeFeature.Console | ComputeFeature.HotResize | ComputeFeature.FastBoot)]
-public sealed class FirecrackerComputeProvider : IComputeProvider
-{
-    public string Id => "firecracker";
-    public string DisplayName => "Firecracker microVM";
-    public ProviderInfo Info { get; } = FirecrackerInfo.Create();
+Plexor tracks provider instances in `provider_instances` table:
 
-    public async Task<VmId> CreateAsync(VmSpec spec, CancellationToken ct)
-    {
-        // 1. Generate firecracker config (JSON on disk)
-        var config = new FirecrackerConfigBuilder(spec).Build();
-        var configPath = $"/var/lib/plexor/vms/{spec.Name}.json";
-        await File.WriteAllTextAsync(configPath, config.ToJson(), ct);
+```sql
+CREATE TABLE provider_instances (
+    id              UUID PRIMARY KEY,
+    tenant_id       UUID NOT NULL,
+    project_id      UUID,
+    provider_name   TEXT NOT NULL,        -- 'wordpress'
+    provider_version TEXT NOT NULL,       -- '0.2.0'
+    instance_name   TEXT NOT NULL,        -- 'wp-7f3a2c'
+    status          TEXT NOT NULL,        -- installing | running | upgrading | failed | uninstalling
+    config          JSONB NOT NULL,       -- { "siteTitle": "My Blog", ... }
+    resources       JSONB NOT NULL,       -- { "nodeId": "...", "ipAddress": "...", "ports": [...] }
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-        // 2. Write rootfs + kernel refs to paths
-        // 3. Launch jailer + firecracker
-        var process = Process.Start(new ProcessStartInfo
-        {
-            FileName = "/usr/bin/jailer",
-            Arguments = $"--id {spec.Name} --exec {configPath}"
-        });
-        // 4. Return VmId, monitor via vsock
-        return new VmId(spec.Name);
-    }
-    // ... other interface methods
-}
+CREATE INDEX idx_provider_instances_tenant ON provider_instances(tenant_id, status);
 ```
 
-### Шаг 3: Provider manifest (provider-manifest.yaml)
+### Catalog of community providers
+
+A reference catalog at `https://catalog.plexor.dev` (or self-hosted):
 
 ```yaml
-apiVersion: plexor.dev/v1
-kind: ProviderPackage
-metadata:
-  name: plexor-providers-compute-firecracker
-  version: 0.1.0
-spec:
-  provides:
-    compute:
-      class: Plexor.Providers.Compute.Firecracker.FirecrackerComputeProvider
-      tier: production
-      capabilities: [console, hot-resize, fast-boot]
-  requires:
-    binaries: [firecracker, jailer]
-    kernel-modules: [kvm]
-    config:
-      - /dev/kvm exists and is rw
+# catalog.yaml (in our org's repo or community-maintained)
+providers:
+  - name: wordpress
+    source: https://github.com/stbl/plexor-provider-wordpress
+    versions: [0.1.0, 0.2.0, 0.3.0]
+    tier: official
+  - name: postgresql
+    source: https://github.com/stbl/plexor-provider-postgresql
+    versions: [15.0, 15.1, 15.2, 15.3.0]
+    tier: official
+  - name: keycloak
+    source: https://github.com/stbl/plexor-provider-keycloak
+    versions: [24.0.5]
+    tier: official
+  - name: ghost
+    source: https://github.com/community/plexor-provider-ghost
+    versions: [5.85.1]
+    tier: community
 ```
 
-### Шаг 4: Опубликовать как NuGet
+`plx provider list` reads this catalog and shows what's available.
+Install pulls the source (git/OCI/tarball) and runs `provider.yaml`.
+
+### Что НЕ в app provider scope
+
+- ❌ Infrastructure drivers (KVM, Ceph, OVS) — это install providers, code в Plexor
+- ❌ NuGet packages — Plexor providers не .NET-specific
+- ❌ Vendor lock-in (cloud-specific runtimes) — providers должны быть portable
+- ❌ Stateful multi-instance orchestration (kubernetes operators) — keep it simple shell-based
+
+### Как автору создать app provider
 
 ```bash
-dotnet pack src/providers/Plexor.Providers.Compute.Firecracker -c Release
-dotnet nuget push bin/Release/Plexor.Providers.Compute.Firecracker.0.1.0.nupkg -s nuget.org
+# 1. Scaffold (template repo)
+git clone https://github.com/stbl/plexor-provider-template
+mv plexor-provider-template my-provider
+cd my-provider
+
+# 2. Edit provider.yaml
+vim provider.yaml
+
+# 3. Test locally
+plx provider install .   # install from local folder
+plx provider show my-provider
+plx provider install-instance my-provider
+plx provider uninstall-instance my-instance
+
+# 4. Publish
+git push origin main
+# (or)
+podman build . -t ghcr.io/me/my-provider:1.0.0
+podman push ghcr.io/me/my-provider:1.0.0
+# (or)
+tar czf my-provider-1.0.0.tar.gz .
 ```
 
-### Шаг 5: Установка через plx
-
-```bash
-# Онлайн-установка с NuGet.org
-plx provider install Plexor.Providers.Compute.Firecracker --version 0.1.0
-
-# Или из локального файла
-plx provider install ./plexor-providers-compute-firecracker-0.1.0.nupkg
-
-# Air-gapped
-plx provider install --offline ./providers/
-```
-
-После install:
-- DLL кладётся в `/var/lib/plexor/providers/`
-- `plx provider list` показывает firecracker как доступный
-- Control plane автоматически подхватывает через DI scan
-
-## Capability negotiation
-
-Когда control plane решает «какой провайдер использовать»:
-
-```
-User request: VM с live-migration
-  ↓
-resolver queries all available IComputeProvider
-  ↓
-each provider's [Supports(...)] attribute matches against requested features
-  ↓
-scored:
-  - tier  (production > development)
-  - capability match (LiveMigration ✓)
-  - environment availability (KVM есть, firecracker нет)
-  - user override (если в plexor.yaml указан provider=KVM)
-  ↓
-winner = best match
-```
-
-## Provider discovery — как autodetect работает
-
-`plx init` запускает пять стадий (см. operations/install.md):
-1. **Discovery** — `SystemProbe` проверяет что есть в системе
-2. **Provider probes** — каждый plugin-provider запускает свой `HealthCheck`
-3. **Resolver** — выбирает лучшие провайдеры по feature/tier/availability
-4. **Plan** — генерирует последовательность шагов установки
-5. **Apply** — выполняет идемпотентно с возможностью прерывания
+---
 
 ## См. также
 
-- [architecture.md](architecture.md) — общая архитектура
-- [operations/install.md](operations/install.md) — install flow
-- [yandex-cloud-parity.md](yandex-cloud-parity.md) — какие сервисы уже покрыты
+- [architecture.md](architecture.md) — где живут provider коды и instances
+- [modules.md](modules.md) — Marketplace module (instance management)
+- [scope.md](scope.md) — какие install + app providers в MVP
+- [operations/install.md](operations/install.md) — `plx init` flow

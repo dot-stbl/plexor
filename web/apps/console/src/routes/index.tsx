@@ -1,46 +1,64 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { PageHeader, navItems } from '@/shared/ui/app-shell';
+import { PageHeader, SECTIONS, sectionPrimaryRoute } from '@/shared/ui/app-shell';
+import { StatusPill } from '@/shared/ui/primitives/status-pill';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
 });
 
+const cardBase =
+  'flex items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-all';
+
 function HomePage() {
   return (
     <main data-od-id="home">
       <PageHeader
-        breadcrumb={['Plexor']}
         title="Обзор"
-        description="Быстрый доступ к разделам проекта. Полный каталог сервисов — в «Центре управления» (кнопка с сеткой в левом рейле)."
+        description="Разделы проекта. Полный каталог сервисов — «Все сервисы» в сайдбаре."
       />
 
       <div className="mx-auto w-full max-w-6xl px-6 py-6 lg:px-8">
-        <section className="space-y-3" data-od-id="home-sections">
-          <h2 className="text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase">
-            Разделы
-          </h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {navItems.map((item) => {
-              const ItemIcon = item.icon;
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {SECTIONS.map((section) => {
+            const SectionIcon = section.icon;
+            const to = sectionPrimaryRoute(section);
+            const inner = (
+              <>
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
+                  <SectionIcon className="size-5" />
+                </div>
+                <div className="min-w-0 space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-medium text-foreground">{section.label}</span>
+                    {!to && (
+                      <StatusPill variant="idle" hideDot className="px-1.5 py-0 text-[9.5px] font-normal">
+                        скоро
+                      </StatusPill>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{section.caption}</p>
+                </div>
+              </>
+            );
+            if (to) {
               return (
                 <Link
-                  key={item.to}
-                  to={item.to}
-                  data-od-id={`home-card-${item.to.slice(1)}`}
-                  className="group flex items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-all hover:-translate-y-px hover:border-foreground/20 hover:shadow-md"
+                  key={section.id}
+                  to={to}
+                  data-od-id={`home-card-${section.id}`}
+                  className={`${cardBase} hover:-translate-y-px hover:border-foreground/20 hover:shadow-md`}
                 >
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
-                    <ItemIcon className="size-5" />
-                  </div>
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="text-sm font-medium text-foreground">{item.title}</div>
-                    <p className="text-xs text-muted-foreground">{item.description}</p>
-                  </div>
+                  {inner}
                 </Link>
               );
-            })}
-          </div>
-        </section>
+            }
+            return (
+              <div key={section.id} data-od-id={`home-card-${section.id}`} className={`${cardBase} opacity-60`}>
+                {inner}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </main>
   );
