@@ -109,7 +109,6 @@ const CLUSTER: PlexorCluster = {
   installProviders: ['kvm', 'ovs', 'ceph-rbd', 'ceph-rgw', 'postgresql', 'nats'],
   hostVersion: '1.2.3',
   uptimeSeconds: 14 * 24 * 3600 + 2 * 3600 + 17 * 60,
-  license: 'community',
   endpoint: 'https://prod-eu-1.acme.internal:8443',
   createdAt: '2025-10-12T09:00:00Z',
   nodes: NODES,

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft, Plus, Key, Stack, ShieldCheck, Clock, Terminal, BookOpen, Lifebuoy } from '@phosphor-icons/react';
 import { Button } from '@/shared/ui/primitives/button';
+import { Badge } from '@/shared/ui/primitives/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { PageHeader } from '@/shared/ui/app-shell';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
@@ -91,12 +92,9 @@ function ClusterDetailPage() {
           </CardHeader>
           <CardContent className="flex flex-wrap items-center gap-1.5 p-4">
             {cluster.installProviders.map((p) => (
-              <span
-                key={p}
-                className="rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] font-mono"
-              >
+              <Badge key={p} variant="secondary">
                 {p}
-              </span>
+              </Badge>
             ))}
           </CardContent>
         </Card>

@@ -1,7 +1,8 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, ShieldCheck, Stack, CircleNotch, Warning } from '@phosphor-icons/react';
+import { ArrowRight, Stack, CircleNotch, Warning } from '@phosphor-icons/react';
 import { Button } from '@/shared/ui/primitives/button';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
+import { Badge } from '@/shared/ui/primitives/badge';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { countNodes, formatUptime } from './cluster-types';
 import type { PlexorCluster } from './cluster-types';
@@ -22,10 +23,13 @@ interface ClusterCardProps {
   cluster: PlexorCluster;
 }
 
+const MAX_VISIBLE_PROVIDERS = 4;
+
 /**
- * Top-level control-plane card. Reads cluster.hostVersion, uptime,
- * install providers, node counts, license. Single drill-in to the
- * detail page where the user manages nodes + tokens.
+ * Top-level control-plane card. Self-hosted Plexor — name, host version,
+ * health pill (healthy/degraded/down from node status mix), uptime,
+ * ready/total nodes, install provider chips. Single drill-in to detail
+ * for node + token management.
  */
 export function ClusterCard({ cluster }: ClusterCardProps) {
   const counts = countNodes(cluster.nodes);
@@ -37,6 +41,9 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         ? 'degraded'
         : 'healthy';
 
+  const visibleProviders = cluster.installProviders.slice(0, MAX_VISIBLE_PROVIDERS);
+  const overflowProviders = cluster.installProviders.length - visibleProviders.length;
+
   return (
     <div
       data-od-id="cluster-card"
@@ -45,17 +52,15 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h3 className="truncate text-sm font-semibold tracking-tight">{cluster.name}</h3>
             <StatusPill variant={HEALTH_VARIANT[health]} size="sm">
               {HEALTH_LABEL[health]}
             </StatusPill>
-            <span className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground uppercase">
-              v{cluster.hostVersion}
-            </span>
+            <Badge variant="outline">v{cluster.hostVersion}</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum> нод(ы) ready ·{' '}
+            <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum> нод(ов) ready ·{' '}
             uptime <MonoNum muted>{formatUptime(cluster.uptimeSeconds)}</MonoNum>
           </p>
         </div>
@@ -65,12 +70,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        <MetricCell
-          icon={<ShieldCheck className="size-3.5" />}
-          label="License"
-          value={cluster.license === 'community' ? 'AGPL' : 'Enterprise'}
-        />
+      <div className="grid grid-cols-2 gap-2">
         <MetricCell
           icon={<Stack className="size-3.5" />}
           label="Ноды"
@@ -90,12 +90,13 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         />
       </div>
 
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>
-          {cluster.installProviders.length} install provider(ов):{' '}
-          {cluster.installProviders.slice(0, 3).join(', ')}
-          {cluster.installProviders.length > 3 ? '…' : ''}
-        </span>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {visibleProviders.map((p) => (
+          <Badge key={p} variant="secondary">
+            {p}
+          </Badge>
+        ))}
+        {overflowProviders > 0 && <Badge variant="secondary">+{overflowProviders}</Badge>}
       </div>
     </div>
   );

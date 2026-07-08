@@ -71,8 +71,6 @@ export interface PlexorCluster {
   hostVersion: string;
   /** Uptime in seconds (host process start). */
   uptimeSeconds: number;
-  /** License label (community = AGPL, enterprise = …). */
-  license: 'community' | 'enterprise';
   /** Where the host is reachable (used in `plx node join <endpoint>`). */
   endpoint: string;
   /** Wall-clock the cluster was created (plx init). */
