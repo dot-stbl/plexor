@@ -1,34 +1,41 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Plus } from '@phosphor-icons/react';
+import { ArrowRight, ShieldCheck, Stack, CircleNotch, Warning } from '@phosphor-icons/react';
 import { Button } from '@/shared/ui/primitives/button';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
-import { Progress } from '@/shared/ui/primitives/progress';
-import { clusterUtilizationPct } from './cluster-types';
-import type { Cluster } from './cluster-types';
+import { countNodes, formatUptime } from './cluster-types';
+import type { PlexorCluster } from './cluster-types';
 
-const STATUS_VARIANT: Record<Cluster['status'], 'running' | 'pending' | 'err'> = {
+const HEALTH_VARIANT: Record<'healthy' | 'degraded' | 'down', 'running' | 'pending' | 'err'> = {
   healthy: 'running',
   degraded: 'pending',
-  offline: 'err',
+  down: 'err',
 };
 
-const STATUS_LABEL: Record<Cluster['status'], string> = {
+const HEALTH_LABEL: Record<'healthy' | 'degraded' | 'down', string> = {
   healthy: 'healthy',
   degraded: 'degraded',
-  offline: 'offline',
+  down: 'down',
 };
 
 interface ClusterCardProps {
-  cluster: Cluster;
+  cluster: PlexorCluster;
 }
 
 /**
- * Compact cluster summary — name, zone, status, node/VM count, capacity
- * bars (CPU/RAM), and two primary actions (drill into detail, create VM).
+ * Top-level control-plane card. Reads cluster.hostVersion, uptime,
+ * install providers, node counts, license. Single drill-in to the
+ * detail page where the user manages nodes + tokens.
  */
 export function ClusterCard({ cluster }: ClusterCardProps) {
-  const util = clusterUtilizationPct(cluster);
+  const counts = countNodes(cluster.nodes);
+  const offlineRatio = counts.total > 0 ? counts.offline / counts.total : 0;
+  const health: 'healthy' | 'degraded' | 'down' =
+    counts.offline > 0 && offlineRatio >= 0.5
+      ? 'down'
+      : counts.offline > 0 || counts.draining > 0
+        ? 'degraded'
+        : 'healthy';
 
   return (
     <div
@@ -37,75 +44,83 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
       className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-all hover:border-foreground/20"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-0.5">
+        <div className="min-w-0 space-y-1">
           <div className="flex items-center gap-2">
             <h3 className="truncate text-sm font-semibold tracking-tight">{cluster.name}</h3>
-            <StatusPill variant={STATUS_VARIANT[cluster.status]} size="sm">
-              {STATUS_LABEL[cluster.status]}
+            <StatusPill variant={HEALTH_VARIANT[health]} size="sm">
+              {HEALTH_LABEL[health]}
             </StatusPill>
+            <span className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground uppercase">
+              v{cluster.hostVersion}
+            </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            <MonoNum>{cluster.nodeCount}</MonoNum> {pluralize(cluster.nodeCount, 'нода', 'ноды', 'нод')} ·{' '}
-            <MonoNum>{cluster.vmCount}</MonoNum> {pluralize(cluster.vmCount, 'VM', 'VM', 'VM')}
+            <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum> нод(ы) ready ·{' '}
+            uptime <MonoNum muted>{formatUptime(cluster.uptimeSeconds)}</MonoNum>
           </p>
         </div>
-        <Button size="sm" render={<Link to="/clusters/$id/vms/new" params={{ id: cluster.id }} />}>
-          <Plus />
-          Создать VM
+        <Button size="sm" render={<Link to="/clusters/$id" params={{ id: cluster.id }} />}>
+          Управлять
+          <ArrowRight className="size-4" />
         </Button>
       </div>
 
-      <div className="space-y-1.5">
-        <CapacityBar label="CPU" pct={util.cpu} used={cluster.usedCpu} total={cluster.totalCpu} unit="vCPU" />
-        <CapacityBar label="RAM" pct={util.ram} used={cluster.usedRamGb} total={cluster.totalRamGb} unit="GB" />
+      <div className="grid grid-cols-3 gap-2">
+        <MetricCell
+          icon={<ShieldCheck className="size-3.5" />}
+          label="License"
+          value={cluster.license === 'community' ? 'AGPL' : 'Enterprise'}
+        />
+        <MetricCell
+          icon={<Stack className="size-3.5" />}
+          label="Ноды"
+          value={
+            <span>
+              <MonoNum>{counts.ready}</MonoNum>
+              <span className="text-muted-foreground"> / </span>
+              <MonoNum>{counts.total}</MonoNum>
+            </span>
+          }
+        />
+        <MetricCell
+          icon={counts.pending > 0 ? <CircleNotch className="size-3.5 animate-spin" /> : <Warning className="size-3.5" />}
+          label="Pending"
+          value={counts.pending}
+          highlight={counts.pending > 0}
+        />
       </div>
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>
-          Зона: <MonoNum muted>{cluster.zone}</MonoNum>
+          {cluster.installProviders.length} install provider(ов):{' '}
+          {cluster.installProviders.slice(0, 3).join(', ')}
+          {cluster.installProviders.length > 3 ? '…' : ''}
         </span>
-        <Link
-          to="/clusters/$id"
-          params={{ id: cluster.id }}
-          className="inline-flex items-center gap-1 font-medium text-foreground transition-colors hover:underline"
-        >
-          Подробнее <ArrowRight className="size-3" />
-        </Link>
       </div>
     </div>
   );
 }
 
-function CapacityBar({
+function MetricCell({
+  icon,
   label,
-  pct,
-  used,
-  total,
-  unit,
+  value,
+  highlight,
 }: {
+  icon: React.ReactNode;
   label: string;
-  pct: number;
-  used: number;
-  total: number;
-  unit: string;
+  value: React.ReactNode;
+  highlight?: boolean;
 }) {
   return (
-    <div className="space-y-0.5">
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>{label}</span>
-        <span>
-          <MonoNum>{used}</MonoNum>/<MonoNum>{total}</MonoNum> {unit} · {pct}%
-        </span>
+    <div
+      className={`rounded-md border p-2 ${highlight ? 'border-warn/40 bg-warn/5' : 'border-border bg-background'}`}
+    >
+      <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.06em]">
+        {icon}
+        {label}
       </div>
-      <Progress value={pct} />
+      <div className="mt-0.5 text-sm font-medium">{value}</div>
     </div>
   );
-}
-
-function pluralize(n: number, one: string, few: string, many: string): string {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return one;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
-  return many;
 }
