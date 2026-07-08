@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Gear, Trash, ArrowClockwise, Pause, Pencil, Copy, Clipboard } from '@phosphor-icons/react';
+import { Gear, Trash, ArrowClockwise, Pause, Pencil, Copy, Clipboard, Check, Plus } from '@phosphor-icons/react';
 
 import { ModeToggle } from '@/shared/ui/primitives/theme-toggle';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
@@ -316,14 +316,76 @@ function Component({ id }: { id: string }) {
       );
     case 'status-pill':
       return (
-        <Demo label="3-token architecture: bg-*-soft + text-*-ink + dot">
-          <div className="flex flex-wrap gap-2">
-            <StatusPill variant="running">running</StatusPill>
-            <StatusPill variant="ok">active</StatusPill>
-            <StatusPill variant="pending">pending</StatusPill>
-            <StatusPill variant="warn">degraded</StatusPill>
-            <StatusPill variant="err">failed</StatusPill>
-            <StatusPill variant="idle">stopped</StatusPill>
+        <Demo label="13 status variants + 2 sizes — token-driven, 3-layer (bg-*-soft + text-*-ink + dot)">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">Core (4 colors)</div>
+              <div className="flex flex-wrap gap-2">
+                <StatusPill variant="ok">healthy</StatusPill>
+                <StatusPill variant="err">error</StatusPill>
+                <StatusPill variant="warn">warning</StatusPill>
+                <StatusPill variant="idle">idle</StatusPill>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">Sync aliases (resource states)</div>
+              <div className="flex flex-wrap gap-2">
+                <StatusPill variant="running">running</StatusPill>
+                <StatusPill variant="pending">pending</StatusPill>
+                <StatusPill variant="failed">failed</StatusPill>
+                <StatusPill variant="stopped">stopped</StatusPill>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">Lifecycle states</div>
+              <div className="flex flex-wrap gap-2">
+                <StatusPill variant="new">new</StatusPill>
+                <StatusPill variant="beta">beta</StatusPill>
+                <StatusPill variant="draft">draft</StatusPill>
+                <StatusPill variant="archived">archived</StatusPill>
+                <StatusPill variant="deprecated">deprecated</StatusPill>
+                <StatusPill variant="info">info</StatusPill>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">Size variants (sm = h-5 / md = h-6)</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusPill variant="ok" size="sm">sm healthy</StatusPill>
+                <StatusPill variant="ok" size="md">md healthy</StatusPill>
+                <StatusPill variant="running" size="sm" hideDot>sm no-dot</StatusPill>
+                <StatusPill variant="err" size="md" hideDot>md no-dot</StatusPill>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">In context — table column</div>
+              <div className="rounded-md border border-border bg-card">
+                <div className="grid grid-cols-3 border-b border-border px-3 py-2 text-xs text-muted-foreground">
+                  <span>Resource</span>
+                  <span>Status</span>
+                  <span>Uptime</span>
+                </div>
+                <div className="grid grid-cols-3 items-center px-3 py-2 text-sm">
+                  <span className="font-medium">vm-prod-01</span>
+                  <span><StatusPill variant="running" size="sm">running</StatusPill></span>
+                  <span className="text-muted-foreground font-mono tabular-nums">12d 4h</span>
+                </div>
+                <div className="grid grid-cols-3 items-center border-t border-border px-3 py-2 text-sm">
+                  <span className="font-medium">vm-prod-02</span>
+                  <span><StatusPill variant="failed" size="sm">failed</StatusPill></span>
+                  <span className="text-muted-foreground font-mono tabular-nums">—</span>
+                </div>
+                <div className="grid grid-cols-3 items-center border-t border-border px-3 py-2 text-sm">
+                  <span className="font-medium">vm-stage-01</span>
+                  <span><StatusPill variant="pending" size="sm">pending</StatusPill></span>
+                  <span className="text-muted-foreground font-mono tabular-nums">—</span>
+                </div>
+                <div className="grid grid-cols-3 items-center border-t border-border px-3 py-2 text-sm">
+                  <span className="font-medium">old-vm-22</span>
+                  <span><StatusPill variant="deprecated" size="sm">deprecated</StatusPill></span>
+                  <span className="text-muted-foreground font-mono tabular-nums">—</span>
+                </div>
+              </div>
+            </div>
           </div>
         </Demo>
       );
@@ -828,12 +890,58 @@ function Component({ id }: { id: string }) {
       );
     case 'badge':
       return (
-        <Demo label="Status / count / dot badges">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge>Default</Badge>
-            <Badge variant="secondary">Secondary</Badge>
-            <Badge variant="outline">Outline</Badge>
-            <Badge variant="destructive">Destructive</Badge>
+        <Demo label="Generic badges — for tags/labels/counts (not status)">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">Variants</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge>Default</Badge>
+                <Badge variant="secondary">Secondary</Badge>
+                <Badge variant="outline">Outline</Badge>
+                <Badge variant="destructive">Destructive</Badge>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">As link</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge>v2.4.0</Badge>
+                <Badge variant="secondary">stable</Badge>
+                <Badge variant="outline">docs</Badge>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">With icon</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge>
+                  <Check className="size-3" />
+                  verified
+                </Badge>
+                <Badge variant="secondary">
+                  <Plus className="size-3" />
+                  new
+                </Badge>
+                <Badge variant="outline">+12</Badge>
+                <Badge variant="destructive">3 errors</Badge>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-eyebrow text-muted-foreground">In context — feature flags row</div>
+              <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-border bg-card p-3">
+                <span className="text-sm">Multi-region:</span>
+                <Badge variant="secondary">enabled</Badge>
+                <span className="text-sm ml-3">Audit log:</span>
+                <Badge>on</Badge>
+                <span className="text-sm ml-3">Beta features:</span>
+                <Badge variant="outline">off</Badge>
+                <span className="text-sm ml-3">Issues:</span>
+                <Badge variant="destructive">3</Badge>
+              </div>
+            </div>
+            <div className="rounded-md border border-border/50 bg-muted/30 p-3 text-xs text-muted-foreground">
+              <strong className="text-foreground">StatusPill vs Badge:</strong> use StatusPill for runtime
+              resource state (running/failed/pending). Use Badge for static labels (versions,
+              tags, counts, feature flags). StatusPill has a colored dot; Badge is a plain pill.
+            </div>
           </div>
         </Demo>
       );

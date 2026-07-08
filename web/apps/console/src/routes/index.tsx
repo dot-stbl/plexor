@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { Link } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { PageHeader, navItems } from '@/shared/ui/app-shell';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -7,19 +7,41 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-8">
-      <header className="space-y-2 border-b border-border pb-6">
-        <div className="text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium">Plexor Portal · welcome</div>
-        <h1 className="text-2xl font-semibold tracking-tight">Plexor Portal</h1>
-        <p className="text-muted-foreground text-sm">
-          Frontend scaffold ready. Plexor DS tokens applied via shadcn-ui defaults.
-        </p>
-        <nav className="flex gap-2 pt-2 text-sm">
-          <Link to="/components" className="underline">
-            /components
-          </Link>
-        </nav>
-      </header>
+    <main data-od-id="home">
+      <PageHeader
+        breadcrumb={['Plexor']}
+        title="Обзор"
+        description="Быстрый доступ к разделам проекта. Полный каталог сервисов — в «Центре управления» (кнопка с сеткой в левом рейле)."
+      />
+
+      <div className="mx-auto w-full max-w-6xl px-6 py-6 lg:px-8">
+        <section className="space-y-3" data-od-id="home-sections">
+          <h2 className="text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase">
+            Разделы
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {navItems.map((item) => {
+              const ItemIcon = item.icon;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  data-od-id={`home-card-${item.to.slice(1)}`}
+                  className="group flex items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-all hover:-translate-y-px hover:border-foreground/20 hover:shadow-md"
+                >
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
+                    <ItemIcon className="size-5" />
+                  </div>
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="text-sm font-medium text-foreground">{item.title}</div>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

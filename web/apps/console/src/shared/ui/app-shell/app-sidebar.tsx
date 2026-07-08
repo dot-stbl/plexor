@@ -66,6 +66,21 @@ export function AppSidebar() {
               </span>
             </SidebarMenuItem>
 
+            {/* App launcher — opens the "Центр управления" sheet (all services). */}
+            <SidebarMenuItem className="group/menu-item relative">
+              <SidebarMenuButton
+                onClick={() => setLauncherOpen(true)}
+                aria-label="Все сервисы"
+                className="transition-colors hover:bg-sidebar-foreground/12 hover:text-sidebar-foreground"
+              >
+                <SquaresFour weight="bold" />
+                <span>Все сервисы</span>
+              </SidebarMenuButton>
+              <span aria-hidden="true" className={railPill}>
+                Все сервисы
+              </span>
+            </SidebarMenuItem>
+
             {/* Search — opens the search modal (also ⌘K). */}
             <SidebarMenuItem className="group/menu-item relative">
               <SidebarMenuButton
@@ -127,6 +142,7 @@ export function AppSidebar() {
       </Sidebar>
 
       <SearchCommand open={searchOpen} onOpenChange={setSearchOpen} />
+      <AppLauncher open={launcherOpen} onOpenChange={setLauncherOpen} />
     </>
   );
 }
