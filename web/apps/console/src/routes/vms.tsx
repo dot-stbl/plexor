@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Plus } from '@phosphor-icons/react';
 import { useListVms } from '@/shared/api';
-import { Button } from '@/shared/ui/primitives/button';
 import { PageHeader } from '@/shared/ui/app-shell';
 import { DataTable, DataTableToolbar, emptyFilters, compactFilters, type FilterValues } from '@/shared/ui/data-table';
 import { VmBulkToolbar, VmEmptyState, VmErrorBanner, VmNoResultsState, VmSkeleton, vmColumns } from '@/features/vms';
@@ -26,7 +25,6 @@ export const Route = createFileRoute('/vms')({
 const FILTER_DEFAULT: FilterValues = emptyFilters(vmColumns);
 
 function VmsPage() {
-  const navigate = useNavigate();
   const [filters, setFilters] = useState<FilterValues>(FILTER_DEFAULT);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -88,10 +86,13 @@ function VmsPage() {
           )
         }
         actions={
-          <Button onClick={() => navigate({ to: '/vms/new' })}>
-            <Plus />
+          <Link
+            to="/vms/new"
+            className="inline-flex items-center justify-center gap-1.5 h-7 rounded-md border border-transparent bg-primary px-2.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+          >
+            <Plus className="size-3.5" />
             Создать ВМ
-          </Button>
+          </Link>
         }
       />
 
