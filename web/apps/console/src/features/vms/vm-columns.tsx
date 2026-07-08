@@ -27,21 +27,21 @@ export const vmColumns: ColumnDef<Vm>[] = [
     id: 'name',
     header: 'Имя',
     accessorKey: 'name',
-    cell: ({ row }) => (
-      <div className="flex flex-col gap-0.5">
-        <span className="font-medium text-foreground">{row.original.name}</span>
-        <CopyableText
-          value={row.original.id}
-          copyLabel="Скопировать ID"
-          className="text-[10px]"
-        >
-          {row.original.id}
-        </CopyableText>
-      </div>
-    ),
+    cell: ({ row }) => <span className="font-medium text-foreground">{row.original.name}</span>,
     meta: {
       filter: { type: 'text', param: 'q', placeholder: 'Поиск по имени, IP или ID' },
     },
+  },
+  {
+    id: 'id',
+    header: 'ID',
+    accessorKey: 'id',
+    cell: ({ row }) => (
+      <CopyableText value={row.original.id} copyLabel="Скопировать ID">
+        {row.original.id}
+      </CopyableText>
+    ),
+    meta: { size: 'w-[160px]' },
   },
   {
     id: 'status',
