@@ -53,12 +53,17 @@ builder.Services
 
 builder.Services.AddSingleton<ICommandTransport, HttpCommandTransport>();
 
-// Workload providers. v0.1: only KVM via libvirt. Add more
-// providers here as the project grows (LXC, k3s, podman).
+// Workload providers. v0.1: KVM and LXC via libvirt (two
+// technologies, two different WorkloadKinds). The
+// InMemoryWorkloadRegistry ctor takes an
+// IEnumerable<IWorkloadProvider> — DI auto-injects every
+// registered provider here. Add more providers as the project
+// grows (QEMU software emulation, k3s, podman).
 builder.Services.AddSingleton<LibvirtKvmProvider>();
-builder.Services.AddSingleton<IWorkloadRegistry>(sp =>
-    new InMemoryWorkloadRegistry());
+builder.Services.AddSingleton<LibvirtLxcProvider>();
 builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<LibvirtKvmProvider>());
+builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<LibvirtLxcProvider>());
+builder.Services.AddSingleton<IWorkloadRegistry, InMemoryWorkloadRegistry>();
 
 // Workload executors — one per wire command type. The
 // dispatcher is built from the registered ICommandExecutor

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
 // InMemoryWorkloadRegistry — IWorkloadRegistry implementation for v0.1.
-// Single dictionary keyed by WorkloadKind; providers register at
-// startup. The agent's command dispatcher doesn't use this directly —
-// it's used by executors that need to look up a provider by kind.
+// DI injects every IWorkloadProvider the agent has registered, and
+// we register each one against its Kind. The agent's command
+// dispatcher doesn't use this directly — it's used by executors
+// that need to look up a provider by kind.
 // ============================================================================
 
-using System.Collections.Concurrent;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
 
@@ -20,7 +20,19 @@ namespace Plexor.NodeAgent.Composition;
 /// </summary>
 internal sealed class InMemoryWorkloadRegistry : IWorkloadRegistry
 {
-    private readonly ConcurrentDictionary<WorkloadKind, IWorkloadProvider> providers = new();
+    private readonly Dictionary<WorkloadKind, IWorkloadProvider> providers = new();
+
+    /// <summary>Build a registry from every <see cref="IWorkloadProvider"/>
+    /// DI knows about. Each provider registers itself for the
+    /// <see cref="WorkloadKind"/> it handles. Duplicate kinds
+    /// throw at startup — pick one technology per Kind.</summary>
+    public InMemoryWorkloadRegistry(IEnumerable<IWorkloadProvider> providers)
+    {
+        foreach (var provider in providers)
+        {
+            Register(provider);
+        }
+    }
 
     /// <inheritdoc />
     public IReadOnlyCollection<WorkloadKind> SupportedKinds
@@ -35,12 +47,14 @@ internal sealed class InMemoryWorkloadRegistry : IWorkloadRegistry
     /// <inheritdoc />
     public void Register(IWorkloadProvider provider)
     {
-        if (!providers.TryAdd(provider.Kind, provider))
+        if (providers.TryGetValue(provider.Kind, out var existing))
         {
-            var existing = providers[provider.Kind].GetType().Name;
             throw new InvalidOperationException(
                 $"InMemoryWorkloadRegistry: provider for kind '{provider.Kind}' " +
-                $"already registered (existing: {existing}, new: {provider.GetType().Name}).");
+                $"already registered (existing: {existing.GetType().Name}, " +
+                $"new: {provider.GetType().Name}).");
         }
+
+        providers[provider.Kind] = provider;
     }
 }
