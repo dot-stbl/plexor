@@ -37,8 +37,6 @@ public static class ProgressRunner
     /// via the Spectre API.</param>
     public static async Task RunAsync(Func<ProgressContext, Task> body)
     {
-        ArgumentNullException.ThrowIfNull(body);
-
         await AnsiConsole.Progress()
             .HideCompleted(false)
             .AutoRefresh(true)

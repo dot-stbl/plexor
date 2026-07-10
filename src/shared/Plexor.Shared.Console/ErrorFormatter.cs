@@ -56,7 +56,6 @@ public static class ErrorFormatter
 
     private static string Render(string severity, string primary, string? because)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(primary);
         var head = $"[{severity}] {MarkupExtensions.B(primary)}";
         return string.IsNullOrWhiteSpace(because)
             ? head

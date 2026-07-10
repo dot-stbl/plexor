@@ -76,7 +76,6 @@ public sealed class TableBuilder
     /// for "what is this listing" headers.</summary>
     public TableBuilder WithTitle(string title)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(title);
         table.Title = new TableTitle(MarkupExtensions.Accent(title));
         return this;
     }

@@ -49,7 +49,6 @@ public static class PlexorCli
     /// passed straight from <c>Main</c>).</param>
     public static PlexorCliBuilder New(string[] args)
     {
-        ArgumentNullException.ThrowIfNull(args);
         return new PlexorCliBuilder(args);
     }
 }
@@ -79,7 +78,6 @@ public sealed class PlexorCliBuilder
     /// messages). Defaults to <c>"plx"</c>.</summary>
     public PlexorCliBuilder Name(string name)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(name);
         toolName = name;
         return this;
     }
@@ -89,7 +87,6 @@ public sealed class PlexorCliBuilder
     /// with a leading <c>v</c> on display.</summary>
     public PlexorCliBuilder Version(string version)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(version);
         toolVersion = version;
         return this;
     }
@@ -128,7 +125,6 @@ public sealed class PlexorCliBuilder
     public PlexorCliBuilder AddCommand<TCommand>(string name, Action<ICommandConfigurator>? configure = null)
         where TCommand : class, ICommandLimiter<CommandSettings>, new()
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(name);
         pendingConfigurations.Add(c =>
         {
             var cmd = c.AddCommand<TCommand>(name);
@@ -141,8 +137,6 @@ public sealed class PlexorCliBuilder
     /// for one-shot commands that don't need a full class.</summary>
     public PlexorCliBuilder AddDelegate(string name, Func<CommandContext, int> handler)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(name);
-        ArgumentNullException.ThrowIfNull(handler);
         pendingConfigurations.Add(c => _ = c.AddDelegate(name, handler));
         return this;
     }
@@ -151,8 +145,6 @@ public sealed class PlexorCliBuilder
     /// The branch lambda configures commands under the branch.</summary>
     public PlexorCliBuilder AddBranch(string name, Action<PlexorBranchBuilder> configure)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(name);
-        ArgumentNullException.ThrowIfNull(configure);
         var branch = new PlexorBranchBuilder(name);
         configure(branch);
         pendingConfigurations.Add(c =>
@@ -269,7 +261,6 @@ public sealed class PlexorBranchBuilder
     /// for <c>plx cluster ls</c>).</summary>
     public PlexorBranchBuilder WithAlias(string alias)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(alias);
         aliases.Add(alias);
         return this;
     }
@@ -280,7 +271,6 @@ public sealed class PlexorBranchBuilder
     public PlexorBranchBuilder AddCommand<TCommand>(string commandName, Action<ICommandConfigurator>? configure = null)
         where TCommand : class, ICommandLimiter<CommandSettings>, new()
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(commandName);
         pendingConfigurations.Add(c =>
         {
             var cmd = c.AddCommand<TCommand>(commandName);
@@ -292,8 +282,6 @@ public sealed class PlexorBranchBuilder
     /// <summary>Add a nested branch (e.g. <c>plx cluster node ls</c>).</summary>
     public PlexorBranchBuilder AddBranch(string nestedName, Action<PlexorBranchBuilder> configure)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(nestedName);
-        ArgumentNullException.ThrowIfNull(configure);
         var nested = new PlexorBranchBuilder(nestedName);
         configure(nested);
         pendingConfigurations.Add(c =>

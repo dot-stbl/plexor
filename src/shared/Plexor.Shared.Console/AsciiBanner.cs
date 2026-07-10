@@ -40,7 +40,6 @@ public static class AsciiBanner
     /// their own banner while staying visually consistent.</summary>
     public static FigletText Custom(string text, Color? style = null)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(text);
         return RenderFiglet(text, style ?? ColorPalette.Accent);
     }
 
@@ -49,7 +48,6 @@ public static class AsciiBanner
     /// downstream parsers.</summary>
     public static FigletText PlainFiglet(string text)
     {
-        ArgumentNullException.ThrowIfNullOrEmpty(text);
         return new FigletText(text);
     }
 
