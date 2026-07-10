@@ -79,6 +79,11 @@ internal sealed class PlexorCliContent
     /// <c>null</c> or empty means no banner.</summary>
     public string? BannerText { get; set; }
 
+    /// <summary>Explicit tagline shown under the banner or in the
+    /// compact mark. <c>null</c> means derive from
+    /// <see cref="ClusterName"/> / <see cref="NodeName"/> / default.</summary>
+    public string? Tagline { get; set; }
+
     /// <summary>Program name used in help and error messages.</summary>
     public string? ToolName { get; set; }
 
@@ -138,6 +143,15 @@ public sealed class PlexorCliBuilder
     public PlexorCliBuilder SetBanner(string? bannerText)
     {
         Content.BannerText = bannerText;
+        return this;
+    }
+
+    /// <summary>Set the explicit tagline shown under the banner or
+    /// in the compact mark. If unset, the tagline is derived from
+    /// <see cref="ForCluster"/> / <see cref="ForNode"/> / default.</summary>
+    public PlexorCliBuilder Tagline(string? tagline)
+    {
+        Content.Tagline = tagline;
         return this;
     }
 
@@ -212,7 +226,8 @@ public sealed class PlexorCliBuilder
     {
         try
         {
-            PrintBanner();
+            var isHelpLike = DetectHelpLike();
+            PrintBanner(isHelpLike);
 
             var app = new CommandApp();
             app.Configure(c =>
@@ -240,7 +255,11 @@ public sealed class PlexorCliBuilder
             });
 
             var exit = app.Run(Content.Args);
-            PrintFooter();
+            if (!isHelpLike)
+            {
+                PrintFooter();
+            }
+
             return exit;
         }
         catch (Exception ex)
@@ -250,13 +269,70 @@ public sealed class PlexorCliBuilder
         }
     }
 
-    private void PrintBanner()
+    /// <summary>Decide whether the current invocation is
+    /// informational (help / version / no args) or an actual
+    /// command execution. Informational invocations get the big
+    /// banner; real commands get the compact mark.</summary>
+    private bool DetectHelpLike()
     {
-        if (!string.IsNullOrEmpty(Content.BannerText))
+        if (Content.Args.Length == 0)
         {
-            AnsiConsole.Write(AsciiBanner.Custom(Content.BannerText));
-            AnsiConsole.WriteLine();
+            return true;
         }
+
+        var first = Content.Args[0];
+        return first is "--help" or "-h" or "--version" or "-V" or "version" or "v" or "help";
+    }
+
+    private void PrintBanner(bool isHelpLike)
+    {
+        var versionMarkup = Content.ToolVersion is null
+            ? string.Empty
+            : MarkupExtensions.Muted($" v{Content.ToolVersion}");
+
+        if (isHelpLike)
+        {
+            // Direction A — big Figlet banner. Used for help/version
+            // invocations where the user is reading the visual
+            // header, not running a command.
+            if (!string.IsNullOrEmpty(Content.BannerText))
+            {
+                AnsiConsole.Write(AsciiBanner.Plexor());
+            }
+
+            var nameMarkup = MarkupExtensions.Accent(Content.ToolName ?? "plexor");
+            AnsiConsole.MarkupLine($"  {nameMarkup}{versionMarkup} \u00b7 {ResolveTagline()}");
+        }
+        else
+        {
+            // Direction C — compact one-line mark. Used for real
+            // command execution. No Figlet, no five lines of
+            // preamble; the user wants to see their command output.
+            var nameMarkup = MarkupExtensions.Accent(Content.ToolName ?? "plexor");
+            AnsiConsole.MarkupLine($"  {nameMarkup}{versionMarkup} \u00b7 {ResolveTagline()}");
+        }
+
+        AnsiConsole.WriteLine();
+    }
+
+    private string ResolveTagline()
+    {
+        if (!string.IsNullOrEmpty(Content.Tagline))
+        {
+            return MarkupExtensions.Muted(Content.Tagline);
+        }
+
+        if (Content.ClusterName is not null)
+        {
+            return MarkupExtensions.Muted($"for cluster {Content.ClusterName}");
+        }
+
+        if (Content.NodeName is not null)
+        {
+            return MarkupExtensions.Muted($"for node {Content.NodeName}");
+        }
+
+        return MarkupExtensions.Muted("self-hosted cloud platform");
     }
 
     private void PrintFooter()
