@@ -504,3 +504,13 @@ dotnet_diagnostic.RCS1141.severity = none
 dotnet_diagnostic.RCS1142.severity = none
 dotnet_diagnostic.RCS1140.severity = none
 dotnet_diagnostic.IDE0370.severity = none
+
+# --- BannerArt ---
+# BannerArt is a string-rendering library; const char vs const string
+# isn't a meaningful distinction (Box/Icon are documented as strings),
+# and `sb.Append(Box.TopLeft)` with `Box.TopLeft` as const string is
+# idiomatic for the call sites. CA1834 (prefer char overload) doesn't
+# apply — perf cost is negligible for art rendering and the rule
+# cascades into CA1305/CS0029 conflicts.
+[src/shared/Plexor.Shared.Console/BannerArt.cs]
+dotnet_diagnostic.CA1834.severity = none

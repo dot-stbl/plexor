@@ -5,7 +5,6 @@
 // every glyph is a raw string literal. Designed for monospace
 // terminals with UTF-8 + Unicode box-drawing support (Windows
 // Terminal, iTerm2, GNOME Terminal, Konsole, modern PuTTY).
-#pragma warning disable CA1834 // Prefer char overload: Box/Icon use const string for inline-call clarity; perf is negligible for art rendering.
 //
 // Why raw strings instead of a font library:
 //   - Zero external dependency, AOT-friendly.
