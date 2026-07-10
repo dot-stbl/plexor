@@ -12,7 +12,7 @@
 
 using Spectre.Console.Cli;
 
-namespace Plexor.Installer.Cli.Commands;
+namespace Plexor.Installer.Commands;
 
 /// <summary>
 /// <c>plx version</c> / <c>plx v</c>. The version is already shown

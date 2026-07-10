@@ -99,6 +99,13 @@ internal sealed class PlexorCliContent
     /// <summary>Deferred <see cref="IConfigurator"/> actions,
     /// flushed during <see cref="PlexorCliBuilder.Run"/>.</summary>
     public List<Action<IConfigurator>> PendingConfigurations { get; set; } = [];
+
+    /// <summary>Metadata for every command registered via
+    /// <c>AddCommand</c> / <c>AddDelegate</c>. Used by
+    /// <see cref="PlexorCliBuilder.PrintBanner"/> to render the
+    /// help-banner command list without re-parsing the
+    /// Spectre configuration lambdas.</summary>
+    public List<CommandSpec> RegisteredCommands { get; set; } = [];
 }
 
 /// <summary>
@@ -178,12 +185,21 @@ public sealed class PlexorCliBuilder
     /// configuration methods (description, alias, examples, ...).</summary>
     /// <typeparam name="TCommand">Closed command type that
     /// implements <see cref="ICommand{T}"/> for some settings.</typeparam>
-    public PlexorCliBuilder AddCommand<TCommand>(string name, Action<ICommandConfigurator>? configure = null)
+    /// <param name="icon">Single-character Unicode glyph shown next
+    /// to the command name in the help-banner command list.</param>
+    /// <param name="description">One-line description shown in the
+    /// help table and the help banner.</param>
+    public PlexorCliBuilder AddCommand<TCommand>(
+        string name,
+        string icon,
+        string description,
+        Action<ICommandConfigurator>? configure = null)
         where TCommand : class, ICommandLimiter<CommandSettings>, new()
     {
+        Content.RegisteredCommands.Add(new CommandSpec(icon, name, description));
         Content.PendingConfigurations.Add(c =>
         {
-            var cmd = c.AddCommand<TCommand>(name);
+            var cmd = c.AddCommand<TCommand>(name).WithDescription(description);
             configure?.Invoke(cmd);
         });
         return this;
@@ -191,9 +207,21 @@ public sealed class PlexorCliBuilder
 
     /// <summary>Add a delegate command at the root level. Used
     /// for one-shot commands that don't need a full class.</summary>
-    public PlexorCliBuilder AddDelegate(string name, Func<CommandContext, int> handler)
+    /// <param name="icon">Single-character Unicode glyph shown next
+    /// to the command name in the help-banner command list.</param>
+    /// <param name="description">One-line description shown in the
+    /// help table and the help banner.</param>
+    public PlexorCliBuilder AddDelegate(
+        string name,
+        string icon,
+        string description,
+        Func<CommandContext, int> handler)
     {
-        Content.PendingConfigurations.Add(c => _ = c.AddDelegate(name, handler));
+        Content.RegisteredCommands.Add(new CommandSpec(icon, name, description));
+        Content.PendingConfigurations.Add(c =>
+        {
+            _ = c.AddDelegate(name, handler).WithDescription(description);
+        });
         return this;
     }
 
@@ -286,33 +314,47 @@ public sealed class PlexorCliBuilder
 
     private void PrintBanner(bool isHelpLike)
     {
-        var versionMarkup = Content.ToolVersion is null
-            ? string.Empty
-            : MarkupExtensions.Muted($" v{Content.ToolVersion}");
+        var toolName = Content.ToolName ?? "plexor";
+        var version = Content.ToolVersion ?? "0.0.0";
+        var tagline = ResolvePlainTagline();
 
         if (isHelpLike)
         {
-            // Direction A — big Figlet banner. Used for help/version
-            // invocations where the user is reading the visual
-            // header, not running a command.
-            if (!string.IsNullOrEmpty(Content.BannerText))
-            {
-                AnsiConsole.Write(AsciiBanner.Plexor());
-            }
-
-            var nameMarkup = MarkupExtensions.Accent(Content.ToolName ?? "plexor");
-            AnsiConsole.MarkupLine($"  {nameMarkup}{versionMarkup} \u00b7 {ResolveTagline()}");
+            // Help-like: full boxed banner with logo, version, tagline,
+            // and the command list.
+            AnsiConsole.WriteLine(BannerArt.FullHelpBanner(
+                toolName,
+                version,
+                tagline,
+                Content.RegisteredCommands));
         }
         else
         {
-            // Direction C — compact one-line mark. Used for real
-            // command execution. No Figlet, no five lines of
-            // preamble; the user wants to see their command output.
-            var nameMarkup = MarkupExtensions.Accent(Content.ToolName ?? "plexor");
-            AnsiConsole.MarkupLine($"  {nameMarkup}{versionMarkup} \u00b7 {ResolveTagline()}");
+            // Real command: one-line compact mark.
+            AnsiConsole.WriteLine(BannerArt.CompactMark(toolName, version, tagline));
+        }
+    }
+
+    /// <summary>Resolve the tagline as plain text (no markup),
+    /// used by the banner renderer.</summary>
+    private string ResolvePlainTagline()
+    {
+        if (!string.IsNullOrEmpty(Content.Tagline))
+        {
+            return Content.Tagline;
         }
 
-        AnsiConsole.WriteLine();
+        if (Content.ClusterName is not null)
+        {
+            return $"for cluster {Content.ClusterName}";
+        }
+
+        if (Content.NodeName is not null)
+        {
+            return $"for node {Content.NodeName}";
+        }
+
+        return "self-hosted cloud platform";
     }
 
     private string ResolveTagline()

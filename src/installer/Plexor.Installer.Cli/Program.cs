@@ -9,9 +9,9 @@
 //
 // The CLI exposes a subcommand tree:
 //
-//   plx                       — show help (banner + usage)
-//   plx --version             — print version
-//   plx --help                — show help
+//   plx                       — show help (full banner)
+//   plx --version             — print version (full banner)
+//   plx --help                — show help (full banner)
 //   plx version               — same as --version
 //   plx init                  — bootstrap a Plexor cluster
 //   plx upgrade               — atomic upgrade
@@ -26,17 +26,31 @@
 // themselves, which can be AsyncCommand<TSettings>.
 // ============================================================================
 
-using Plexor.Installer.Cli.Commands;
+using Plexor.Installer.Commands;
 using Plexor.Shared.Console;
 
 return PlexorCli.New(args)
     .Name("plx")
     .Version("0.2.1")
     .SetBanner("plexor")
-    .AddCommand<VersionCommand>("version", cmd => cmd
-        .WithAlias("v")
-        .WithDescription("Print version and exit"))
-    .AddDelegate("init", _ => 0)   // stub until InitCommand lands
-    .AddDelegate("upgrade", _ => 0) // stub until UpgradeCommand lands
-    .AddDelegate("destroy", _ => 0) // stub until DestroyCommand lands
+    .AddCommand<VersionCommand>(
+        "version",
+        icon: BannerArt.Icon.Version,
+        description: "Print version and exit",
+        cmd => cmd.WithAlias("v"))
+    .AddDelegate(
+        "init",
+        icon: BannerArt.Icon.Init,
+        description: "Bootstrap a Plexor cluster on this host",
+        _ => 0)   // stub until InitCommand lands
+    .AddDelegate(
+        "upgrade",
+        icon: BannerArt.Icon.Upgrade,
+        description: "Atomic in-place upgrade",
+        _ => 0) // stub until UpgradeCommand lands
+    .AddDelegate(
+        "destroy",
+        icon: BannerArt.Icon.Destroy,
+        description: "Tear down the cluster on this host",
+        _ => 0) // stub until DestroyCommand lands
     .Run();
