@@ -166,10 +166,10 @@ public static class BannerArt
         return new string(ProgressFull[0], filledWidth) + new string(ProgressEmpty[0], emptyWidth);
     }
 
-    /// <summary>Render the full help banner — boxed frame
-    /// containing the Plexor logo centered at the top, the
-    /// version + tagline stacked underneath, and the command
-    /// list at the bottom. Used for help-like invocations.</summary>
+    /// <summary>Render the full help banner — the Plexor logo
+    /// centered at the top, the version + tagline stacked
+    /// underneath, and the command list at the bottom. No frame
+    /// or borders; sections are separated by blank lines.</summary>
     public static string FullHelpBanner(
         string toolName,
         string version,
@@ -178,55 +178,44 @@ public static class BannerArt
     {
         var logoLines = PlexorLogo.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-        // Inner width fits the widest logo line (~25 chars) and the
-        // longest command line (~50 chars with icon + branch + name
-        // + description). 56 gives both breathing room and avoids
-        // horizontal scroll in 80-col terminals.
-        const int innerWidth = 56;
+        // Reference width for centering. The widest logo line is
+        // 25 chars; the longest command line is ~50 chars with
+        // icon + branch + name + description. 56 fits both with
+        // breathing room and avoids horizontal scroll in 80-col
+        // terminals.
+        const int width = 56;
 
         var sb = new StringBuilder();
 
-        // Top border
-        sb.Append(Box.TopLeft)
-          .Append(new string(Box.Horizontal[0], innerWidth))
-          .AppendLine(Box.TopRight);
-
-        // Logo — each line centered within the inner width.
+        // Logo — each line centered within the reference width.
         foreach (var line in logoLines)
         {
-            AppendBoxedLine(sb, innerWidth, CenterLine(line, innerWidth));
+            sb.AppendLine(CenterLine(line, width));
         }
 
         // Spacer between logo and tagline.
-        AppendBoxedLine(sb, innerWidth, string.Empty);
+        sb.AppendLine();
 
         // Tool + version (centered).
-        var titleLine = toolName + " v" + version;
-        AppendBoxedLine(sb, innerWidth, CenterLine(titleLine, innerWidth));
+        sb.AppendLine(CenterLine(toolName + " v" + version, width));
 
         // Tagline (centered).
-        AppendBoxedLine(sb, innerWidth, CenterLine(tagline, innerWidth));
+        sb.AppendLine(CenterLine(tagline, width));
 
         // Commands section.
         if (commands is { Count: > 0 })
         {
-            AppendBoxedLine(sb, innerWidth, string.Empty);
+            sb.AppendLine();
 
-            AppendBoxedLine(sb, innerWidth, CenterLine("COMMANDS", innerWidth));
+            sb.AppendLine(CenterLine("COMMANDS", width));
 
             for (var i = 0; i < commands.Count; i++)
             {
                 var cmd = commands[i];
                 var branch = i == commands.Count - 1 ? "└─" : "├─";
-                var line = "  " + branch + " " + cmd.Icon + "  " + cmd.Name + " " + cmd.Description;
-                AppendBoxedLine(sb, innerWidth, line);
+                sb.AppendLine("  " + branch + " " + cmd.Icon + "  " + cmd.Name + " " + cmd.Description);
             }
         }
-
-        // Bottom border
-        sb.Append(Box.BottomLeft)
-          .Append(new string(Box.Horizontal[0], innerWidth))
-          .AppendLine(Box.BottomRight);
 
         return sb.ToString();
     }
