@@ -167,9 +167,9 @@ public static class BannerArt
     }
 
     /// <summary>Render the full help banner — boxed frame
-    /// containing the Plexor logo on the left and the wordmark
-    /// text on the right, with the tagline below. Used for
-    /// help-like invocations.</summary>
+    /// containing the Plexor logo centered at the top, the
+    /// version + tagline stacked underneath, and the command
+    /// list at the bottom. Used for help-like invocations.</summary>
     public static string FullHelpBanner(
         string toolName,
         string version,
@@ -177,66 +177,55 @@ public static class BannerArt
         IReadOnlyList<CommandSpec>? commands = null)
     {
         var logoLines = PlexorLogo.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        const int logoWidth = 26;
-        const int innerWidth = 64;
-        const int totalWidth = innerWidth + 2;
+
+        // Inner width fits the widest logo line (~25 chars) and the
+        // longest command line (~50 chars with icon + branch + name
+        // + description). 56 gives both breathing room and avoids
+        // horizontal scroll in 80-col terminals.
+        const int innerWidth = 56;
 
         var sb = new StringBuilder();
 
         // Top border
         sb.Append(Box.TopLeft)
-          .Append(new string('─', innerWidth))
+          .Append(new string(Box.Horizontal[0], innerWidth))
           .AppendLine(Box.TopRight);
 
-        // Logo + tagline lines, joined with a vertical bar separator
-        // in the middle of the innerWidth.
-        var taglineLine = toolName + " v" + version;
-
-        for (var i = 0; i < logoLines.Length; i++)
+        // Logo — each line centered within the inner width.
+        foreach (var line in logoLines)
         {
-            var logo = PadLine(logoLines[i], logoWidth);
-            string right;
-            if (i == logoLines.Length / 2)
-            {
-                // Center row — write the tool name + version
-                right = PadLine(taglineLine, innerWidth - logoWidth - 2);
-            }
-            else if (i == logoLines.Length / 2 + 1)
-            {
-                // Next row — write the tagline
-                right = PadLine(tagline, innerWidth - logoWidth - 2);
-            }
-            else
-            {
-                right = new string(' ', innerWidth - logoWidth - 2);
-            }
-
-            sb.Append(Box.Vertical)
-              .Append(logo)
-              .Append(Box.Vertical)
-              .Append(right)
-              .AppendLine(Box.Vertical);
+            AppendBoxedLine(sb, innerWidth, CenterLine(line, innerWidth));
         }
 
-        // Empty spacer
-        AppendBoxedLine(sb, totalWidth, string.Empty);
+        // Spacer between logo and tagline.
+        AppendBoxedLine(sb, innerWidth, string.Empty);
 
-        // Command list
+        // Tool + version (centered).
+        var titleLine = toolName + " v" + version;
+        AppendBoxedLine(sb, innerWidth, CenterLine(titleLine, innerWidth));
+
+        // Tagline (centered).
+        AppendBoxedLine(sb, innerWidth, CenterLine(tagline, innerWidth));
+
+        // Commands section.
         if (commands is { Count: > 0 })
         {
-            AppendBoxedLine(sb, totalWidth, "COMMANDS");
+            AppendBoxedLine(sb, innerWidth, string.Empty);
+
+            AppendBoxedLine(sb, innerWidth, CenterLine("COMMANDS", innerWidth));
+
             for (var i = 0; i < commands.Count; i++)
             {
                 var cmd = commands[i];
                 var branch = i == commands.Count - 1 ? "└─" : "├─";
-                var line = $"  {branch} {cmd.Icon}  {cmd.Name,-10} {cmd.Description ?? string.Empty}";
-                AppendBoxedLine(sb, totalWidth, line);
+                var line = "  " + branch + " " + cmd.Icon + "  " + cmd.Name + " " + cmd.Description;
+                AppendBoxedLine(sb, innerWidth, line);
             }
         }
 
         // Bottom border
         sb.Append(Box.BottomLeft)
-          .Append(new string('─', innerWidth))
+          .Append(new string(Box.Horizontal[0], innerWidth))
           .AppendLine(Box.BottomRight);
 
         return sb.ToString();
@@ -273,6 +262,22 @@ public static class BannerArt
         }
 
         return text + new string(' ', width - text.Length);
+    }
+
+    /// <summary>Center a line within the given width by adding
+    /// equal padding on both sides. Truncates if the line is
+    /// longer than the width.</summary>
+    private static string CenterLine(string text, int width)
+    {
+        if (text.Length >= width)
+        {
+            return text[..width];
+        }
+
+        var padding = width - text.Length;
+        var leftPad = padding / 2;
+        var rightPad = padding - leftPad;
+        return new string(' ', leftPad) + text + new string(' ', rightPad);
     }
 }
 
