@@ -4,6 +4,14 @@
 // CLI binary. Wraps Spectre.Console.Cli with Plexor DS defaults
 // (banner, footer, color-aware exception formatting).
 //
+// Architecture (per .agents/rules/coding/code-shape.md §12):
+//   - PlexorCliBuilder / PlexorBranchBuilder are public sealed
+//     classes — the API surface.
+//   - PlexorCliContent / PlexorBranchContent are internal data
+//     holders with public fields. The builder methods mutate the
+//     content, not the builder. The content can be inspected,
+//     tested, and passed to helpers without dragging the builder.
+//
 // Usage in Program.cs:
 //
 //     return PlexorCli.New(args)
@@ -25,10 +33,9 @@
 //   - Each command type must implement ICommand<TSettings> from
 //     Spectre.Console.Cli; the settings type must have a public
 //     parameterless ctor or be a record with init properties.
-//   - Commands inside branches use CommandSettings as their settings
-//     type by default (Spectre's constraint on the typed configurator).
-//     Custom settings branches need a typed branch overload — out of
-//     scope for the first iteration.
+//   - Commands inside branches use CommandSettings (Spectre's
+//     typed-configurator constraint). Custom-settings branches
+//     deferred — out of scope for v0.1.
 // ============================================================================
 
 using System.Diagnostics.CodeAnalysis;
@@ -54,40 +61,71 @@ public static class PlexorCli
 }
 
 /// <summary>
+/// Mutable state of <see cref="PlexorCliBuilder"/>. Fields are
+/// <c>public</c> because the type is <c>internal</c> — the access
+/// modifier means "within this assembly, anyone holding a reference
+/// may set fields directly". Builder methods provide the public API.
+/// </summary>
+internal sealed class PlexorCliContent
+{
+    /// <summary>Raw command-line arguments passed to the CLI.</summary>
+    public string[] Args = [];
+
+    /// <summary>ASCII banner text rendered before the first command.
+    /// <c>null</c> or empty means no banner.</summary>
+    public string? BannerText;
+
+    /// <summary>Program name used in help and error messages.</summary>
+    public string? ToolName;
+
+    /// <summary>Version string used for <c>--version</c>.</summary>
+    public string? ToolVersion;
+
+    /// <summary>Cluster context surfaced in the status footer.</summary>
+    public string? ClusterName;
+
+    /// <summary>Node context surfaced in the status footer.</summary>
+    public string? NodeName;
+
+    /// <summary>Deferred <see cref="IConfigurator"/> actions,
+    /// flushed during <see cref="PlexorCliBuilder.Run"/>.</summary>
+    public List<Action<IConfigurator>> PendingConfigurations = new();
+}
+
+/// <summary>
 /// Fluent builder for a Plexor CLI. Holds the accumulated command
 /// tree; <see cref="Run"/> builds the underlying
 /// <see cref="CommandApp"/>, applies the configuration, and runs it.
+/// State lives on <see cref="Content"/>; methods mutate it.
 /// </summary>
 public sealed class PlexorCliBuilder
 {
-    private readonly string[] args;
-    private readonly CommandApp app = new();
-    private readonly List<Action<IConfigurator>> pendingConfigurations = new();
-    private string? bannerText;
-    private string? toolName;
-    private string? toolVersion;
-    private string? clusterName;
-    private string? nodeName;
+    /// <summary>Mutable state of the builder. Internal data shape
+    /// shared with the branch builder and runner.</summary>
+    internal PlexorCliContent Content { get; }
 
     internal PlexorCliBuilder(string[] args)
     {
-        this.args = args;
+        Content = new PlexorCliContent
+        {
+            Args = args,
+        };
     }
 
     /// <summary>Set the program name (used in help / error
     /// messages). Defaults to <c>"plx"</c>.</summary>
-    public PlexorCliBuilder Name(string name)
+    public PlexorCliBuilder Name(string toolName)
     {
-        toolName = name;
+        Content.ToolName = toolName;
         return this;
     }
 
     /// <summary>Set the version string used for <c>--version</c>.
     /// No leading <c>v</c> prefix — the CLI renders the version
     /// with a leading <c>v</c> on display.</summary>
-    public PlexorCliBuilder Version(string version)
+    public PlexorCliBuilder Version(string toolVersion)
     {
-        toolVersion = version;
+        Content.ToolVersion = toolVersion;
         return this;
     }
 
@@ -95,7 +133,7 @@ public sealed class PlexorCliBuilder
     /// output. Set to <c>null</c> to skip.</summary>
     public PlexorCliBuilder SetBanner(string? bannerText)
     {
-        this.bannerText = bannerText;
+        Content.BannerText = bannerText;
         return this;
     }
 
@@ -104,7 +142,7 @@ public sealed class PlexorCliBuilder
     /// command's output.</summary>
     public PlexorCliBuilder ForCluster(string? clusterName)
     {
-        this.clusterName = clusterName;
+        Content.ClusterName = clusterName;
         return this;
     }
 
@@ -113,7 +151,7 @@ public sealed class PlexorCliBuilder
     /// output.</summary>
     public PlexorCliBuilder ForNode(string? nodeName)
     {
-        this.nodeName = nodeName;
+        Content.NodeName = nodeName;
         return this;
     }
 
@@ -125,7 +163,7 @@ public sealed class PlexorCliBuilder
     public PlexorCliBuilder AddCommand<TCommand>(string name, Action<ICommandConfigurator>? configure = null)
         where TCommand : class, ICommandLimiter<CommandSettings>, new()
     {
-        pendingConfigurations.Add(c =>
+        Content.PendingConfigurations.Add(c =>
         {
             var cmd = c.AddCommand<TCommand>(name);
             configure?.Invoke(cmd);
@@ -137,7 +175,7 @@ public sealed class PlexorCliBuilder
     /// for one-shot commands that don't need a full class.</summary>
     public PlexorCliBuilder AddDelegate(string name, Func<CommandContext, int> handler)
     {
-        pendingConfigurations.Add(c => _ = c.AddDelegate(name, handler));
+        Content.PendingConfigurations.Add(c => _ = c.AddDelegate(name, handler));
         return this;
     }
 
@@ -147,15 +185,15 @@ public sealed class PlexorCliBuilder
     {
         var branch = new PlexorBranchBuilder(name);
         configure(branch);
-        pendingConfigurations.Add(c =>
+        Content.PendingConfigurations.Add(c =>
         {
             var branchConfigurator = c.AddBranch(name, branchConfigurator =>
             {
-                branch.ApplyCommandsTo(branchConfigurator);
+                branch.Content.ApplyCommandsTo(branchConfigurator);
             });
 
             // Aliases hang off the returned IBranchConfigurator.
-            foreach (var alias in branch.Aliases)
+            foreach (var alias in branch.Content.Aliases)
             {
                 _ = branchConfigurator.WithAlias(alias);
             }
@@ -172,16 +210,17 @@ public sealed class PlexorCliBuilder
         {
             PrintBanner();
 
+            var app = new CommandApp();
             app.Configure(c =>
             {
-                if (toolName is not null)
+                if (Content.ToolName is not null)
                 {
-                    _ = c.SetApplicationName(toolName);
+                    _ = c.SetApplicationName(Content.ToolName);
                 }
 
-                if (toolVersion is not null)
+                if (Content.ToolVersion is not null)
                 {
-                    _ = c.SetApplicationVersion(toolVersion);
+                    _ = c.SetApplicationVersion(Content.ToolVersion);
                 }
 
                 _ = c.SetExceptionHandler((ex, _) =>
@@ -190,13 +229,13 @@ public sealed class PlexorCliBuilder
                     return -1;
                 });
 
-                foreach (var cfg in pendingConfigurations)
+                foreach (var cfg in Content.PendingConfigurations)
                 {
                     cfg(c);
                 }
             });
 
-            var exit = app.Run(args);
+            var exit = app.Run(Content.Args);
             PrintFooter();
             return exit;
         }
@@ -209,26 +248,55 @@ public sealed class PlexorCliBuilder
 
     private void PrintBanner()
     {
-        if (!string.IsNullOrEmpty(bannerText))
+        if (!string.IsNullOrEmpty(Content.BannerText))
         {
-            AnsiConsole.Write(AsciiBanner.Custom(bannerText));
+            AnsiConsole.Write(AsciiBanner.Custom(Content.BannerText));
             AnsiConsole.WriteLine();
         }
     }
 
     private void PrintFooter()
     {
-        if (toolName is null && toolVersion is null && clusterName is null && nodeName is null)
+        if (Content.ToolName is null && Content.ToolVersion is null &&
+            Content.ClusterName is null && Content.NodeName is null)
         {
             return;
         }
 
         var footer = new StatusFooter(
-            ToolName: toolName ?? "plx",
-            Version: toolVersion ?? "0.0.0",
-            ClusterName: clusterName,
-            NodeName: nodeName);
+            ToolName: Content.ToolName ?? "plx",
+            Version: Content.ToolVersion ?? "0.0.0",
+            ClusterName: Content.ClusterName,
+            NodeName: Content.NodeName);
         AnsiConsole.MarkupLine(footer.Render());
+    }
+}
+
+/// <summary>
+/// Mutable state of <see cref="PlexorBranchBuilder"/>. Public fields
+/// because the type is internal — see <see cref="PlexorCliContent"/>
+/// for the rationale.
+/// </summary>
+internal sealed class PlexorBranchContent
+{
+    /// <summary>The branch name (e.g. <c>"cluster"</c>).</summary>
+    public string Name = string.Empty;
+
+    /// <summary>Aliases configured via <see cref="PlexorBranchBuilder.WithAlias"/>.</summary>
+    public List<string> Aliases = new();
+
+    /// <summary>Deferred command configurations, flushed when the
+    /// parent builder's <see cref="PlexorCliBuilder.Run"/> executes.</summary>
+    public List<Action<IConfigurator<CommandSettings>>> PendingConfigurations = new();
+
+    /// <summary>Apply the pending command configurations to the
+    /// supplied Spectre branch configurator.</summary>
+    public void ApplyCommandsTo(IConfigurator<CommandSettings> target)
+    {
+        foreach (var cfg in PendingConfigurations)
+        {
+            cfg(target);
+        }
     }
 }
 
@@ -241,27 +309,25 @@ public sealed class PlexorCliBuilder
 /// </summary>
 public sealed class PlexorBranchBuilder
 {
-    private readonly string name;
-    private readonly List<Action<IConfigurator<CommandSettings>>> pendingConfigurations = new();
-    private readonly List<string> aliases = new();
+    /// <summary>Mutable state of the branch builder.</summary>
+    internal PlexorBranchContent Content { get; }
 
     internal PlexorBranchBuilder(string name)
     {
-        this.name = name;
+        Content = new PlexorBranchContent
+        {
+            Name = name,
+        };
     }
 
     /// <summary>The branch name (e.g. <c>"cluster"</c>).</summary>
-    public string Name => name;
-
-    /// <summary>The aliases configured for this branch. Read-only;
-    /// callers configure aliases via <see cref="WithAlias"/>.</summary>
-    public IReadOnlyList<string> Aliases => aliases;
+    public string Name => Content.Name;
 
     /// <summary>Add an alias for the branch itself (e.g. <c>"c"</c>
     /// for <c>plx cluster ls</c>).</summary>
     public PlexorBranchBuilder WithAlias(string alias)
     {
-        aliases.Add(alias);
+        Content.Aliases.Add(alias);
         return this;
     }
 
@@ -271,7 +337,7 @@ public sealed class PlexorBranchBuilder
     public PlexorBranchBuilder AddCommand<TCommand>(string commandName, Action<ICommandConfigurator>? configure = null)
         where TCommand : class, ICommandLimiter<CommandSettings>, new()
     {
-        pendingConfigurations.Add(c =>
+        Content.PendingConfigurations.Add(c =>
         {
             var cmd = c.AddCommand<TCommand>(commandName);
             configure?.Invoke(cmd);
@@ -284,29 +350,18 @@ public sealed class PlexorBranchBuilder
     {
         var nested = new PlexorBranchBuilder(nestedName);
         configure(nested);
-        pendingConfigurations.Add(c =>
+        Content.PendingConfigurations.Add(c =>
         {
             var branchConfigurator = c.AddBranch(nestedName, inner =>
             {
-                nested.ApplyCommandsTo(inner);
+                nested.Content.ApplyCommandsTo(inner);
             });
 
-            foreach (var alias in nested.Aliases)
+            foreach (var alias in nested.Content.Aliases)
             {
                 _ = branchConfigurator.WithAlias(alias);
             }
         });
         return this;
-    }
-
-    /// <summary>Apply the pending command configurations (not
-    /// aliases — those are applied on the parent branch's returned
-    /// configurator) to the supplied Spectre branch configurator.</summary>
-    internal void ApplyCommandsTo(IConfigurator<CommandSettings> target)
-    {
-        foreach (var cfg in pendingConfigurations)
-        {
-            cfg(target);
-        }
     }
 }

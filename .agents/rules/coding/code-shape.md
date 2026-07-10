@@ -1157,6 +1157,117 @@ rg -n 'ArgumentNullException\.ThrowIf|ArgumentException\.ThrowIf' src/ --type cs
 
 ---
 
+## 12. Builder pattern — content struct для состояния, не private fields
+
+Билдеры с `Set*` методами, которые мутируют `private` поля —
+анти-паттерн. Поле спрятано за методом, но метод просто присваивает.
+Используйте `internal sealed class` с публичными полями для
+состояния, а методы билдера делайте тонкой обёрткой над ним.
+
+**Почему:**
+
+1. **Нет `this`-capture церемонии.** Метод становится
+   `Content.X = Y;` вместо `this._x = Y;`. Данные и API — разные
+   объекты.
+2. **Состояние тестируется / инспектируется изолированно.** Unit-тест
+   может создать `BuilderContent` напрямую и assert'ить против него,
+   не прогоняя каждый метод билдера.
+3. **Контент передаётся в helpers без билдера.** `Build()` может
+   принять content параметром — проще рассуждать, чем через `this`.
+4. **`internal`/`file` доступ не загрязняет public API.** Контент
+   не торчит наружу как часть публичной поверхности.
+
+```csharp
+// ❌ Old — private fields, this-capture в каждом setter
+public sealed class PlexorCliBuilder
+{
+    private string? toolName;
+    private string? toolVersion;
+    private string? clusterName;
+
+    public PlexorCliBuilder Name(string name)
+    {
+        toolName = name;       // ← this._toolName = name;
+        return this;
+    }
+}
+
+// ✅ New — internal content struct, public fields (внутри assembly)
+internal sealed class PlexorCliContent
+{
+    public string? ToolName;
+    public string? ToolVersion;
+    public string? ClusterName;
+    public List<Action<IConfigurator>> PendingConfigurations = new();
+}
+
+public sealed class PlexorCliBuilder
+{
+    public PlexorCliContent Content { get; } = new();
+
+    public PlexorCliBuilder Name(string name)
+    {
+        Content.ToolName = name;
+        return this;
+    }
+}
+```
+
+### Visibility rules
+
+| Что | Где живёт | Access |
+|-----|-----------|--------|
+| **Content struct/class** | Тот же файл или `Abstractions/` рядом с билдером | `internal sealed` (по умолчанию), `file sealed` если только в одном файле |
+| **Поля на content** | На content | `public` (внутри internal scope — это «доступно всему, что держит Content instance»). Это **единственное место**, где public fields — норм. |
+| **Builder** | Public API | `public sealed` |
+| **Helper-метод на билдере** | Public API | `public` |
+| **File-local helper** | Один файл | `file static class` или `file sealed class` |
+
+### Параметр-object для many-arg методов
+
+Если метод принимает 3+ связанных параметра — оборачивайте их в
+record/struct и передавайте одной переменной:
+
+```csharp
+// ❌ Many positional parameters
+public void Render(string toolName, string toolVersion, string? clusterName, string? nodeName);
+
+// ✅ Parameter object
+public sealed record FooterRequest(string ToolName, string ToolVersion, string? ClusterName, string? NodeName);
+public void Render(FooterRequest request);
+```
+
+Record может быть `internal sealed` если метод internal, `public sealed`
+если метод public.
+
+### `file` scope для локальных хелперов
+
+Если helper-тип используется только в одном файле — объявляйте
+`file sealed class` / `file static class`. Компилятор enforces:
+никакой consumer вне файла не может его reference. Это
+предотвращает «utils» / «helpers» папки, в которых живут
+shared-утилсы, которые никто не хочет выносить в отдельный модуль.
+
+```csharp
+file static class PlexorCliBuilderHelpers
+{
+    // только для PlexorCliBuilder в этом файле
+    public static void ApplyContent(this PlexorCliContent content, CommandApp app) { ... }
+}
+```
+
+### Self-audit grep
+
+```bash
+# По всему src/ — найти билдеры с private field + setter pattern
+rg -n 'private\s+(string|int|long|bool|Guid|List<|Dictionary<)\s+_\w+\s*[=;]' src/ --type cs
+
+# Должно показать только DTO/entity (где private поля — норма) и
+# не билдеры. Если в билдере private поле + setter — рефактор на Content.
+```
+
+---
+
 ## Связанные правила
 
 - `naming-and-types.md` — naming, sealed, record vs class
