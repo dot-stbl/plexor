@@ -70,6 +70,17 @@ public abstract record WorkloadKind
         public override string Name => "lxc";
     }
 
+    /// <summary>QEMU software-emulated VM via libvirt (uri
+    /// <c>qemu:///system</c>, domain type <c>qemu</c>, no KVM).
+    /// Useful for running VMs on hosts without hardware
+    /// virtualization extensions; significantly slower than
+    /// KVM but functionally equivalent.</summary>
+    public sealed record Qemu : WorkloadKind
+    {
+        /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
+        public override string Name => "qemu";
+    }
+
     /// <summary>Kubernetes pod scheduled by a k3s / upstream k8s API.</summary>
     public sealed record K8sPod : WorkloadKind
     {
