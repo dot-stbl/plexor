@@ -1161,7 +1161,7 @@ rg -n 'ArgumentNullException\.ThrowIf|ArgumentException\.ThrowIf' src/ --type cs
 
 Билдеры с `Set*` методами, которые мутируют `private` поля —
 анти-паттерн. Поле спрятано за методом, но метод просто присваивает.
-Используйте `internal sealed class` с публичными полями для
+Используйте `internal sealed class` с auto-properties для
 состояния, а методы билдера делайте тонкой обёрткой над ним.
 
 **Почему:**
@@ -1176,6 +1176,11 @@ rg -n 'ArgumentNullException\.ThrowIf|ArgumentException\.ThrowIf' src/ --type cs
    принять content параметром — проще рассуждать, чем через `this`.
 4. **`internal`/`file` доступ не загрязняет public API.** Контент
    не торчит наружу как часть публичной поверхности.
+5. **Auto-properties `{ get; set; }` вместо public fields** —
+   соответствует остальному коду (DTO / entity используют
+   auto-properties), соблюдает `CA1051` (visible fields should be
+   encapsulated), и не нарушает правила нейминга/стиля,
+   выставленные в `.editorconfig`.
 
 ```csharp
 // ❌ Old — private fields, this-capture в каждом setter
@@ -1192,13 +1197,13 @@ public sealed class PlexorCliBuilder
     }
 }
 
-// ✅ New — internal content struct, public fields (внутри assembly)
+// ✅ New — internal content struct, auto-properties, collection init через []
 internal sealed class PlexorCliContent
 {
-    public string? ToolName;
-    public string? ToolVersion;
-    public string? ClusterName;
-    public List<Action<IConfigurator>> PendingConfigurations = new();
+    public string? ToolName { get; set; }
+    public string? ToolVersion { get; set; }
+    public string? ClusterName { get; set; }
+    public List<Action<IConfigurator>> PendingConfigurations { get; set; } = [];
 }
 
 public sealed class PlexorCliBuilder
@@ -1213,15 +1218,23 @@ public sealed class PlexorCliBuilder
 }
 ```
 
+**Инициализация коллекций — `[]`, не `new()`** (C# 12 collection
+expressions). Работает для `T[]`, `List<T>`, `IEnumerable<T>`, любого
+типа с `Add` методом. Для непустой инициализации тоже —
+`= [1, 2, 3]` вместо `= new() { 1, 2, 3 }`.
+
 ### Visibility rules
 
 | Что | Где живёт | Access |
 |-----|-----------|--------|
 | **Content struct/class** | Тот же файл или `Abstractions/` рядом с билдером | `internal sealed` (по умолчанию), `file sealed` если только в одном файле |
-| **Поля на content** | На content | `public` (внутри internal scope — это «доступно всему, что держит Content instance»). Это **единственное место**, где public fields — норм. |
+| **Свойства на content** | На content | `public { get; set; }` — auto-property, не field. Внутри internal scope это ОК. |
 | **Builder** | Public API | `public sealed` |
 | **Helper-метод на билдере** | Public API | `public` |
 | **File-local helper** | Один файл | `file static class` или `file sealed class` |
+
+**Никаких public fields.** Даже на internal content-типах —
+auto-properties. Это правило проекта (CA1051 + стиль).
 
 ### Параметр-object для many-arg методов
 
@@ -1264,6 +1277,9 @@ rg -n 'private\s+(string|int|long|bool|Guid|List<|Dictionary<)\s+_\w+\s*[=;]' sr
 
 # Должно показать только DTO/entity (где private поля — норма) и
 # не билдеры. Если в билдере private поле + setter — рефактор на Content.
+
+# Также — найти public fields в content (если кто-то пропустил):
+rg -n 'public\s+(string|int|long|bool|Guid|List<|Dictionary<)[?!]?\s+\w+\s*;' src/ --type cs
 ```
 
 ---

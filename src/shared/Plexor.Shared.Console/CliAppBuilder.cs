@@ -8,9 +8,11 @@
 //   - PlexorCliBuilder / PlexorBranchBuilder are public sealed
 //     classes — the API surface.
 //   - PlexorCliContent / PlexorBranchContent are internal data
-//     holders with public fields. The builder methods mutate the
-//     content, not the builder. The content can be inspected,
-//     tested, and passed to helpers without dragging the builder.
+//     holders with public auto-properties. The builder methods
+//     mutate the content, not the builder. The content can be
+//     inspected, tested, and passed to helpers without dragging
+//     the builder. Auto-properties (not fields) per project style
+//     + CA1051 (see code-shape.md §12).
 //
 // Usage in Program.cs:
 //
@@ -61,35 +63,37 @@ public static class PlexorCli
 }
 
 /// <summary>
-/// Mutable state of <see cref="PlexorCliBuilder"/>. Fields are
-/// <c>public</c> because the type is <c>internal</c> — the access
-/// modifier means "within this assembly, anyone holding a reference
-/// may set fields directly". Builder methods provide the public API.
+/// Mutable state of <see cref="PlexorCliBuilder"/>. Properties are
+/// <c>public</c> auto-properties because the type is <c>internal</c> —
+/// the access means "within this assembly, anyone holding a
+/// reference may read or write these properties". Builder methods
+/// provide the typed API; the properties themselves are not part of
+/// the public surface.
 /// </summary>
 internal sealed class PlexorCliContent
 {
     /// <summary>Raw command-line arguments passed to the CLI.</summary>
-    public string[] Args = [];
+    public string[] Args { get; set; } = [];
 
     /// <summary>ASCII banner text rendered before the first command.
     /// <c>null</c> or empty means no banner.</summary>
-    public string? BannerText;
+    public string? BannerText { get; set; }
 
     /// <summary>Program name used in help and error messages.</summary>
-    public string? ToolName;
+    public string? ToolName { get; set; }
 
     /// <summary>Version string used for <c>--version</c>.</summary>
-    public string? ToolVersion;
+    public string? ToolVersion { get; set; }
 
     /// <summary>Cluster context surfaced in the status footer.</summary>
-    public string? ClusterName;
+    public string? ClusterName { get; set; }
 
     /// <summary>Node context surfaced in the status footer.</summary>
-    public string? NodeName;
+    public string? NodeName { get; set; }
 
     /// <summary>Deferred <see cref="IConfigurator"/> actions,
     /// flushed during <see cref="PlexorCliBuilder.Run"/>.</summary>
-    public List<Action<IConfigurator>> PendingConfigurations = new();
+    public List<Action<IConfigurator>> PendingConfigurations { get; set; } = [];
 }
 
 /// <summary>
@@ -273,21 +277,21 @@ public sealed class PlexorCliBuilder
 }
 
 /// <summary>
-/// Mutable state of <see cref="PlexorBranchBuilder"/>. Public fields
-/// because the type is internal — see <see cref="PlexorCliContent"/>
-/// for the rationale.
+/// Mutable state of <see cref="PlexorBranchBuilder"/>. Properties are
+/// <c>public</c> auto-properties because the type is <c>internal</c> —
+/// see <see cref="PlexorCliContent"/> for the rationale.
 /// </summary>
 internal sealed class PlexorBranchContent
 {
     /// <summary>The branch name (e.g. <c>"cluster"</c>).</summary>
-    public string Name = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>Aliases configured via <see cref="PlexorBranchBuilder.WithAlias"/>.</summary>
-    public List<string> Aliases = new();
+    public List<string> Aliases { get; set; } = [];
 
     /// <summary>Deferred command configurations, flushed when the
     /// parent builder's <see cref="PlexorCliBuilder.Run"/> executes.</summary>
-    public List<Action<IConfigurator<CommandSettings>>> PendingConfigurations = new();
+    public List<Action<IConfigurator<CommandSettings>>> PendingConfigurations { get; set; } = [];
 
     /// <summary>Apply the pending command configurations to the
     /// supplied Spectre branch configurator.</summary>
