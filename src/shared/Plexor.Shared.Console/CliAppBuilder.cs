@@ -322,7 +322,7 @@ public sealed class PlexorCliBuilder
         {
             // Help-like: full boxed banner with logo, version, tagline,
             // and the command list.
-            AnsiConsole.WriteLine(BannerArt.FullHelpBanner(
+            AnsiConsole.MarkupLine(BannerArt.FullHelpBanner(
                 toolName,
                 version,
                 tagline,
@@ -331,7 +331,7 @@ public sealed class PlexorCliBuilder
         else
         {
             // Real command: one-line compact mark.
-            AnsiConsole.WriteLine(BannerArt.CompactMark(toolName, version, tagline));
+            AnsiConsole.MarkupLine(BannerArt.CompactMark(toolName, version, tagline));
         }
     }
 

@@ -149,6 +149,27 @@ public static class BannerArt
     /// <summary>Empty progress block: <c>░</c>.</summary>
     public const string ProgressEmpty = "░";
 
+    /// <summary>Hex color codes used in the Plexor logo
+    /// gradient. Applied per density char (░ lightest → █
+    /// darkest) to give the "purple and black" black-hole
+    /// effect — outer rings glow accent, inner core fades to
+    /// near-black.</summary>
+    public static class LogoColor
+    {
+        /// <summary>Lightest density (░): light purple glow.</summary>
+        public const string Outer = "#a988ee";
+
+        /// <summary>Mid density (▒): accent purple.</summary>
+        public const string Mid = "#8c6ee6";
+
+        /// <summary>Inner density (▓): dark purple.</summary>
+        public const string Inner = "#523990";
+
+        /// <summary>Densest core (█): near-black, matches the
+        /// SVG fill <c>#1C1B1F</c>.</summary>
+        public const string Core = "#1c1b1f";
+    }
+
     /// <summary>Render a horizontal progress bar at the given
     /// fraction in the given width. <paramref name="fraction"/>
     /// is clamped to [0, 1]. The string contains exactly
@@ -167,9 +188,11 @@ public static class BannerArt
     }
 
     /// <summary>Render the full help banner — the Plexor logo
-    /// centered at the top, the version + tagline stacked
-    /// underneath, and the command list at the bottom. No frame
-    /// or borders; sections are separated by blank lines.</summary>
+    /// centered at the top with a purple-to-black density
+    /// gradient, the version + tagline stacked underneath, and
+    /// the command list at the bottom. No frame or borders;
+    /// sections are separated by blank lines. Returns markup
+    /// (consume with <c>AnsiConsole.MarkupLine</c>).</summary>
     public static string FullHelpBanner(
         string toolName,
         string version,
@@ -188,32 +211,45 @@ public static class BannerArt
         var sb = new StringBuilder();
 
         // Logo — each line centered within the reference width.
+        // Apply the per-density gradient via per-char markup tags.
         foreach (var line in logoLines)
         {
-            sb.AppendLine(CenterLine(line, width));
+            sb.AppendLine(CenterLine(ColorizeLogoLine(line), width));
         }
 
         // Spacer between logo and tagline.
         sb.AppendLine();
 
-        // Tool + version (centered).
-        sb.AppendLine(CenterLine(toolName + " v" + version, width));
+        // Tool + version (centered). Tool name in accent, version muted.
+        sb.AppendLine(CenterLine(
+            "[" + LogoColor.Mid + " bold]" + toolName + "[/] [" + ColorPalette.Muted.ToMarkup() + "]v" + version + "[/]",
+            width));
 
-        // Tagline (centered).
-        sb.AppendLine(CenterLine(tagline, width));
+        // Tagline (centered, muted).
+        sb.AppendLine(CenterLine(
+            "[" + ColorPalette.Muted.ToMarkup() + "]" + tagline + "[/]",
+            width));
 
         // Commands section.
         if (commands is { Count: > 0 })
         {
             sb.AppendLine();
 
-            sb.AppendLine(CenterLine("COMMANDS", width));
+            // COMMANDS header — bold accent, centered.
+            sb.AppendLine(CenterLine(
+                "[" + LogoColor.Mid + " bold]COMMANDS[/]",
+                width));
 
             for (var i = 0; i < commands.Count; i++)
             {
                 var cmd = commands[i];
                 var branch = i == commands.Count - 1 ? "└─" : "├─";
-                sb.AppendLine("  " + branch + " " + cmd.Icon + "  " + cmd.Name + " " + cmd.Description);
+                var branchColor = ColorPalette.Muted.ToMarkup();
+                var iconColor = LogoColor.Mid;
+                var line = "  [" + branchColor + "]" + branch + "[/] ["
+                    + iconColor + "]" + cmd.Icon + "[/]  [bold]"
+                    + cmd.Name + "[/] [" + branchColor + "]" + cmd.Description + "[/]";
+                sb.AppendLine(line);
             }
         }
 
@@ -221,10 +257,66 @@ public static class BannerArt
     }
 
     /// <summary>One-line compact mark for real command
-    /// invocations. Logo glyph + tagline joined with separators.</summary>
+    /// invocations. Logo glyph + tagline joined with separators.
+    /// Returns markup (consume with <c>AnsiConsole.MarkupLine</c>).</summary>
     public static string CompactMark(string toolName, string version, string tagline)
     {
-        return $"  {Icon.Version} {toolName} v{version} · {tagline}";
+        var muted = ColorPalette.Muted.ToMarkup();
+        return "  [" + LogoColor.Mid + "]" + Icon.Version + "[/] ["
+            + LogoColor.Mid + " bold]" + toolName + "[/] ["
+            + muted + "]v" + version + "[/] ["
+            + muted + "]\u00b7[/] ["
+            + muted + "]" + tagline + "[/]";
+    }
+
+    /// <summary>Apply the purple-to-black gradient to a single
+    /// line of the Plexor logo. The four density levels map to
+    /// four colors: <c>░</c> outer glow, <c>▒</c> accent,
+    /// <c>▓</c> dark purple, <c>█</c> near-black core. Spaces are
+    /// left uncolored (transparent background).</summary>
+    private static string ColorizeLogoLine(string line)
+    {
+        var sb = new StringBuilder(line.Length + 64);
+        var inTag = false;
+        foreach (var c in line)
+        {
+            var color = c switch
+            {
+                '░' => LogoColor.Outer,
+                '▒' => LogoColor.Mid,
+                '▓' => LogoColor.Inner,
+                '█' => LogoColor.Core,
+                _ => null,
+            };
+
+            if (color is not null)
+            {
+                if (!inTag)
+                {
+                    sb.Append('[').Append(color).Append(']');
+                    inTag = true;
+                }
+
+                sb.Append(c);
+            }
+            else
+            {
+                if (inTag)
+                {
+                    sb.Append("[/]");
+                    inTag = false;
+                }
+
+                sb.Append(c);
+            }
+        }
+
+        if (inTag)
+        {
+            sb.Append("[/]");
+        }
+
+        return sb.ToString();
     }
 
     /// <summary>Append a single line of text inside the boxed
