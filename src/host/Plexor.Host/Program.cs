@@ -2,12 +2,12 @@
 // ============================================================================
 // Plexor.Host — entry point for the Plexor control plane (REST + gRPC API).
 // ============================================================================
-// Skeleton placeholder. The actual Program.cs will be wired with:
-//   - WebApplication.CreateBuilder + OpenAPI + Scalar
-//   - AuthN/AuthZ (Keycloak JWT bearer)
-//   - Module DI composition (Plexor.Shared.Composition)
-//   - Health checks + Prometheus exporter
-//   - OpenTelemetry tracing/metrics
+// Wires:
+//   - WebApplication.CreateBuilder + Microsoft.AspNetCore.OpenApi (source-gen)
+//   - Health probes
+//   - NodeAgent control loop endpoints (Register/Heartbeat/Poll/Result)
+//   - DI for the in-memory node registry (singleton; state is
+//     process-local; v0.2+ swaps to Postgres)
 //
 // AddOpenApi() registers the IDocumentProvider that the
 // Microsoft.Extensions.ApiDescription.Server build target needs to emit
@@ -18,13 +18,24 @@
 // `<Main>$` returning Task, which violates VSTHRD200 (Async suffix rule).
 // ============================================================================
 
+using Plexor.Host.Abstractions;
+using Plexor.Host.Endpoints;
+using Plexor.Host.NodeRegistry;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+
+// NodeAgent control loop. Singleton state — restarting Plexor.Host
+// forgets every node and its pending commands. v0.2+ moves to
+// Postgres + a durable queue (NATS or Postgres LISTEN/NOTIFY).
+builder.Services.AddSingleton<INodeRegistry, InMemoryNodeRegistry>();
 
 var app = builder.Build();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "plexor-host" }));
 app.MapGet("/", () => Results.Ok(new { name = "Plexor Host", version = "0.1.0-dev" }));
+
+app.MapNodeEndpoints();
 
 app.Run();
