@@ -243,6 +243,28 @@ public sealed record CommandResult(
     DateTimeOffset CompletedAt);
 
 /// <summary>
+/// Payload for a <c>workload.create</c> command. Deserialized from
+/// <see cref="CommandEnvelope.PayloadJson"/> when the agent
+/// dispatches a workload-create envelope. Carries the kind, name, and
+/// provider-specific config that the local provider will translate
+/// into its native representation (libvirt XML, k3s Pod spec, etc.).
+/// </summary>
+public sealed record CreateWorkloadPayload(
+    WorkloadSpec Spec);
+
+/// <summary>
+/// Payload for <c>workload.start</c>, <c>workload.stop</c>, and
+/// <c>workload.delete</c> commands. The <see cref="WorkloadId"/> is
+/// the local id assigned by the provider at create-time and returned
+/// to the control plane in the command result.
+/// </summary>
+/// <param name="WorkloadId">Local id assigned by the provider when
+/// the workload was created. Stable across start/stop/delete on the
+/// same workload.</param>
+public sealed record WorkloadActionPayload(
+    Guid WorkloadId);
+
+/// <summary>
 ///     Long-poll request body. Returns immediately if no commands are
 ///     queued; otherwise returns the next batch. The agent issues
 ///     another poll as soon as the response is received.

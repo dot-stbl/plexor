@@ -19,17 +19,19 @@
   -->
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
-    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9"/>
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.7.0"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Http\Plexor.Shared.Http.csproj" />
-    <ProjectReference Include="..\..\providers\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj"/>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj"/>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Http\Plexor.Shared.Http.csproj"/>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj"/>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Workloads\Plexor.Shared.Workloads.csproj"/>
+    <ProjectReference Include="..\..\providers\Plexor.Core.Providers\Plexor.Core.Providers.csproj"/>
   </ItemGroup>
 
 </Project>
