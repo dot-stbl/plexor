@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <!--
+      Plexor.Shared.Workloads — runtime abstractions between the
+      Plexor.NodeAgent dispatcher and the per-kind provider
+      implementations. Defines the IWorkloadProvider / IWorkloadRegistry
+      interfaces plus the LocalWorkload runtime shape. Provider
+      implementations (libvirt/KVM, libvirt/LXC, k3s, podman) live in
+      Plexor.NodeAgent's composition layer; the registry impl lives
+      there too. This library has no implementation — interfaces only.
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj" />
+  </ItemGroup>
+
+</Project>
