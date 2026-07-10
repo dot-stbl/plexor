@@ -19,12 +19,31 @@
 // ============================================================================
 
 using Plexor.Host.Abstractions;
-using Plexor.Host.Endpoints;
+using Plexor.Host.Controllers;
 using Plexor.Host.NodeRegistry;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+
+// Controllers — discovered from the application assembly.
+// AddProblemDetails() (added later in composition) wires the
+// global RFC 7807 error response for unhandled exceptions; the
+// per-endpoint [ProducesResponseType<...>] attributes document
+// the success paths.
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(static options =>
+    {
+        // Accept enums as JSON strings in any case ("succeeded",
+        // "Succeeded", "SUCCEEDED" all bind to CommandResultStatus
+        // .Succeeded). Required because the OpenAPI contract
+        // describes status values in lowercase while the C# enum
+        // uses PascalCase.
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
+    })
+    .AddApplicationPart(typeof(NodeController).Assembly);
 
 // NodeAgent control loop. Singleton state — restarting Plexor.Host
 // forgets every node and its pending commands. v0.2+ moves to
@@ -36,6 +55,6 @@ var app = builder.Build();
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "plexor-host" }));
 app.MapGet("/", () => Results.Ok(new { name = "Plexor Host", version = "0.1.0-dev" }));
 
-app.MapNodeEndpoints();
+app.MapControllers();
 
 app.Run();
