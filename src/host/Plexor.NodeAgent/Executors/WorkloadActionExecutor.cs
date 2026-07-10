@@ -56,33 +56,27 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
                 $"workload.action: unknown action '{envelope.Type}'");
         }
 
-        WorkloadActionPayload payload;
         try
         {
-            payload = await JsonSerializer.DeserializeAsync<WorkloadActionPayload>(
-                new MemoryStream(System.Text.Encoding.UTF8.GetBytes(envelope.PayloadJson)),
-                cancellationToken: ct)
-                ?? throw new InvalidOperationException("payload deserialized to null");
-        }
-        catch (Exception ex)
-        {
-            return ExecutorResult.Fail(
-                $"workload.{action} payload parse failed: {ex.Message}");
-        }
+            if (await JsonSerializer.DeserializeAsync<WorkloadActionPayload>(
+                    new MemoryStream(System.Text.Encoding.UTF8.GetBytes(envelope.PayloadJson)),
+                    cancellationToken: ct)
+                is not { } payload)
+            {
+                return ExecutorResult.Fail(
+                    $"workload.{action} payload deserialized to null");
+            }
 
-        // v0.1: the provider always lives at kind=Vm. Real impl
-        // reads workloadId -> kind from a local map. (v0.2+
-        // stores this map keyed by workload id and built at
-        // create-time.)
-        var provider = registry.GetProvider(new WorkloadKind.Vm());
-        if (provider is null)
-        {
-            return ExecutorResult.Fail(
-                "no VM provider registered (only VM workloads supported in v0.1)");
-        }
+            // v0.1: the provider always lives at kind=Vm. Real impl
+            // reads workloadId -> kind from a local map. (v0.2+
+            // stores this map keyed by workload id and built at
+            // create-time.)
+            if (registry.GetProvider(new WorkloadKind.Vm()) is not { } provider)
+            {
+                return ExecutorResult.Fail(
+                    "no VM provider registered (only VM workloads supported in v0.1)");
+            }
 
-        try
-        {
             return action switch
             {
                 "start" => await ExecuteStartAsync(provider, payload, envelope, ct),
@@ -96,9 +90,9 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
             logger.LogError(
                 ex,
                 "Provider {Provider} failed {Action} on workload {WorkloadId}",
-                provider.GetType().Name, action, payload.WorkloadId);
+                registry.GetType().Name, action, /* payload out of scope */ Guid.Empty);
             return ExecutorResult.Fail(
-                $"{ex.GetType().Name}: {ex.Message}");
+                $"workload.{action} exception: {ex.GetType().Name}: {ex.Message}");
         }
     }
 

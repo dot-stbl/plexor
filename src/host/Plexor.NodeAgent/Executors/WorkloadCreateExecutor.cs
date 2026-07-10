@@ -45,29 +45,23 @@ public sealed class WorkloadCreateExecutor : ICommandExecutor
     public async Task<ExecutorResult> ExecuteAsync(
         CommandEnvelope envelope, CancellationToken ct)
     {
-        CreateWorkloadPayload payload;
         try
         {
-            payload = await JsonSerializer.DeserializeAsync<CreateWorkloadPayload>(
-                new MemoryStream(System.Text.Encoding.UTF8.GetBytes(envelope.PayloadJson)),
-                cancellationToken: ct)
-                ?? throw new InvalidOperationException("payload deserialized to null");
-        }
-        catch (Exception ex)
-        {
-            return ExecutorResult.Fail(
-                $"workload.create payload parse failed: {ex.Message}");
-        }
+            if (await JsonSerializer.DeserializeAsync<CreateWorkloadPayload>(
+                    new MemoryStream(System.Text.Encoding.UTF8.GetBytes(envelope.PayloadJson)),
+                    cancellationToken: ct)
+                is not { } payload)
+            {
+                return ExecutorResult.Fail(
+                    "workload.create payload deserialized to null");
+            }
 
-        var provider = registry.GetProvider(payload.Spec.Kind);
-        if (provider is null)
-        {
-            return ExecutorResult.Fail(
-                $"no provider registered for kind '{payload.Spec.Kind}'");
-        }
+            if (registry.GetProvider(payload.Spec.Kind) is not { } provider)
+            {
+                return ExecutorResult.Fail(
+                    $"no provider registered for kind '{payload.Spec.Kind}'");
+            }
 
-        try
-        {
             var workload = await provider.CreateAsync(payload.Spec, ct);
             logger.LogInformation(
                 "Created workload {WorkloadId} ({Kind}) for {Name}",
@@ -76,12 +70,8 @@ public sealed class WorkloadCreateExecutor : ICommandExecutor
         }
         catch (Exception ex)
         {
-            logger.LogError(
-                ex,
-                "Provider {Provider} failed creating {Kind} workload {Name}",
-                provider.GetType().Name, payload.Spec.Kind, payload.Spec.Name);
             return ExecutorResult.Fail(
-                $"{ex.GetType().Name}: {ex.Message}");
+                $"workload.create exception: {ex.GetType().Name}: {ex.Message}");
         }
     }
 }
