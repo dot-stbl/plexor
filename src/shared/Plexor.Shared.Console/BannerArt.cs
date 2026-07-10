@@ -40,21 +40,23 @@ namespace Plexor.Shared.Console;
 /// </summary>
 public static class BannerArt
 {
-    /// <summary>Plexor logo — hand-rendered 4-petal spiral
-    /// approximation of the master SVG. 9 lines tall, ~22 chars
-    /// wide. The center is intentionally empty so callers can
-    /// overlay the tagline / version on top.</summary>
+    /// <summary>Plexor spiral logo — hand-rendered 4-petal approximation
+    /// of the master SVG (plexor.s2.svg). 9 lines tall, raw shape
+    /// only (no manual leading or trailing whitespace). <see
+    /// cref="FullHelpBanner"/> centers each line via <see
+    /// cref="CenterLine"/> so all shape centers land on the same
+    /// column regardless of per-line width variation.</summary>
     public const string PlexorLogo = """
-               ░▒▓▓▒░
-             ░▒▓██████▓▒░
-           ░▒▓██████████▓▒░
-         ░▒▓███▀    ▀███▓▒░
-        ░▒▓██▀        ▀██▓▒░
-        ░▒▓██          ██▓▒░
-         ░▒▓███▄    ▄███▓▒░
-           ░▒▓██████████▓▒░
-             ░▒▓██████▓▒░
-    """;
+░▒▓▓▒░
+  ░▒▓██████▓▒░
+    ░▒▓██████████▓▒░
+  ░▒▓███▀    ▀███▓▒░
+ ░▒▓██▀        ▀██▓▒░
+ ░▒▓██          ██▓▒░
+  ░▒▓███▄    ▄███▓▒░
+    ░▒▓██████████▓▒░
+  ░▒▓██████▓▒░
+""";
 
     /// <summary>Compact version of the logo (no outer spiral
     /// ring). Used when the logo is rendered inline with text
@@ -210,24 +212,28 @@ public static class BannerArt
 
         var sb = new StringBuilder();
 
-        // Logo — each line centered within the reference width.
-        // Apply the per-density gradient via per-char markup tags.
+        // Logo — center each line FIRST (visible width), then apply
+        // the per-density gradient via per-char markup tags. Doing
+        // the operations in this order keeps the shape's visual
+        // center on a consistent column.
         foreach (var line in logoLines)
         {
-            sb.AppendLine(CenterLine(ColorizeLogoLine(line), width));
+            sb.AppendLine(ColorizeLogoLine(CenterLine(line, width)));
         }
 
         // Spacer between logo and tagline.
         sb.AppendLine();
 
         // Tool + version (centered). Tool name in accent, version muted.
+        var mutedMarkup = ColorPalette.Muted.ToMarkup();
         sb.AppendLine(CenterLine(
-            "[" + LogoColor.Mid + " bold]" + toolName + "[/] [" + ColorPalette.Muted.ToMarkup() + "]v" + version + "[/]",
+            "[" + LogoColor.Mid + " bold]" + toolName + "[/] ["
+            + mutedMarkup + "]v" + version + "[/]",
             width));
 
         // Tagline (centered, muted).
         sb.AppendLine(CenterLine(
-            "[" + ColorPalette.Muted.ToMarkup() + "]" + tagline + "[/]",
+            "[" + mutedMarkup + "]" + tagline + "[/]",
             width));
 
         // Commands section.
@@ -244,11 +250,14 @@ public static class BannerArt
             {
                 var cmd = commands[i];
                 var branch = i == commands.Count - 1 ? "└─" : "├─";
-                var branchColor = ColorPalette.Muted.ToMarkup();
-                var iconColor = LogoColor.Mid;
-                var line = "  [" + branchColor + "]" + branch + "[/] ["
-                    + iconColor + "]" + cmd.Icon + "[/]  [bold]"
-                    + cmd.Name + "[/] [" + branchColor + "]" + cmd.Description + "[/]";
+                // Branch muted, icon accent, name + bold accent,
+                // description muted. Every element has a color so
+                // the command list isn't monochrome.
+                var line = "  ["
+                    + mutedMarkup + "]" + branch + "[/] ["
+                    + LogoColor.Mid + "]" + cmd.Icon + "[/]  ["
+                    + LogoColor.Mid + " bold]" + cmd.Name + "[/] ["
+                    + mutedMarkup + "]" + cmd.Description + "[/]";
                 sb.AppendLine(line);
             }
         }
