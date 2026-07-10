@@ -1,26 +1,25 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
 // LibvirtKvmProvider — IWorkloadProvider impl for KVM virtual
-// machines via libvirt. v0.1 shells out to the `virsh` CLI; the
-// future v0.2+ impl swaps in the libvirt C# binding (LibvirtClient)
-// for richer state, no shell-quoting footguns, and proper async.
+// machines via libvirt. v0.1 shells out to the `virsh` CLI (via
+// LibvirtRunner); the future v0.2+ impl swaps in LibvirtClient.
 //
-// Each Plexor workload maps to a single libvirt domain whose name
-// is the WorkloadSpec.Name. The provider's local id is generated
-// at create-time and tracked in a ConcurrentDictionary so the
-// agent's start/stop/delete calls resolve to the right domain.
+// Each Plexor workload maps to a single libvirt domain whose
+// name is the WorkloadSpec.Name. The provider's local id is
+// generated at create-time and tracked in WorkloadIdMap so
+// the agent's start/stop/delete calls resolve to the right
+// domain.
 //
-// Libvirt is hard-fail loud: every CLI error becomes an exception
-// the executor catches, and the agent reports Failed back to the
-// host. The provider never silently drops a command.
+// v0.1: minimal domain XML — one qcow2 disk, one bridge
+// network, no balloon device. v0.2+ parses the rest of
+// WorkloadSpec.Config.
 // ============================================================================
 
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using System.Xml;
 using Microsoft.Extensions.Logging;
+using Plexor.NodeAgent.Providers.Common;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
 
@@ -32,17 +31,17 @@ namespace Plexor.NodeAgent.Providers;
 /// </summary>
 public sealed class LibvirtKvmProvider : IWorkloadProvider
 {
-    private readonly ILogger<LibvirtKvmProvider> logger;
-    private readonly ConcurrentDictionary<Guid, LocalWorkload> workloads = new();
-
-    /// <summary>The libvirt URI this provider connects to. v0.1
-    /// hardcodes the local system URI; v0.2+ reads it from
+    /// <summary>The libvirt URI for KVM/QEMU on the local
+    /// system. v0.1 hardcodes this; v0.2+ reads it from
     /// configuration so the agent can target remote libvirt
-    /// hosts (e.g. the shared libvirt on a single-host cluster).</summary>
-    public const string LibvirtUri = "qemu:///system";
+    /// hosts.</summary>
+    public static readonly Uri LibvirtUri = new("qemu:///system");
+
+    private readonly ILogger<LibvirtKvmProvider> logger;
+    private readonly WorkloadIdMap workloads = new();
 
     /// <summary>Build a provider that talks to the local
-    /// libvirt system instance.</summary>
+    /// libvirt system instance via KVM.</summary>
     public LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger)
     {
         this.logger = logger;
@@ -64,14 +63,17 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
             // Two-step so the agent can re-define without starting on
             // create-time errors.
             await File.WriteAllTextAsync(xmlPath, xml, ct);
-            await RunVirshAsync($"define {xmlPath}", ct);
-            await RunVirshAsync($"start {spec.Name}", ct);
+            await LibvirtRunner.RunAsync(LibvirtUri, $"define {xmlPath}", ct);
+            await LibvirtRunner.RunAsync(LibvirtUri, $"start {spec.Name}", ct);
         }
         catch
         {
             // Best-effort cleanup: undefine anything that got
             // partially created so we don't leave orphan domains.
-            try { await RunVirshAsync($"undefine {spec.Name}", CancellationToken.None); }
+            try
+            {
+                await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {spec.Name}", CancellationToken.None);
+            }
             catch (Exception cleanup)
             {
                 logger.LogWarning(
@@ -83,7 +85,10 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
         }
         finally
         {
-            try { File.Delete(xmlPath); }
+            try
+            {
+                File.Delete(xmlPath);
+            }
             catch (Exception cleanup)
             {
                 logger.LogDebug(
@@ -93,142 +98,80 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
             }
         }
 
-        var workload = new LocalWorkload(
+        workloads.Register(id, spec.Name, Kind);
+        return new LocalWorkload(
             Id: id,
             Name: spec.Name,
             Kind: Kind,
             State: WorkloadState.Running,
             CreatedAt: DateTimeOffset.UtcNow,
             StartedAt: DateTimeOffset.UtcNow);
-        workloads[id] = workload;
-        return workload;
     }
 
     /// <inheritdoc />
     public async Task<LocalWorkload> StartAsync(Guid id, CancellationToken ct)
     {
-        var workload = GetOrThrow(id);
-        await RunVirshAsync($"start {workload.Name}", ct);
-        return MarkState(workload, WorkloadState.Running, startedAt: DateTimeOffset.UtcNow);
+        var entry = workloads.GetOrThrow(id);
+        await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", ct);
+        workloads.SetState(id, WorkloadState.Running);
+        return Snapshot(id, startedAt: DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />
     public async Task<LocalWorkload> StopAsync(Guid id, CancellationToken ct)
     {
-        var workload = GetOrThrow(id);
+        var entry = workloads.GetOrThrow(id);
         // virsh shutdown is graceful; virsh destroy is forced.
-        // We use shutdown first; if it doesn't transition the
-        // domain to "shut off" within a reasonable window, the
-        // executor should escalate to destroy. v0.1 doesn't escalate
-        // — the host sees a long-running command and can cancel
-        // it. Future: use libvirt's domain events to detect the
-        // transition.
-        await RunVirshAsync($"shutdown {workload.Name}", ct);
-        return MarkState(workload, WorkloadState.Stopped, startedAt: null);
+        // v0.1 doesn't escalate; v0.2+ uses libvirt's domain
+        // events to detect the transition to "shut off".
+        await LibvirtRunner.RunAsync(LibvirtUri, $"shutdown {entry.DomainName}", ct);
+        workloads.SetState(id, WorkloadState.Stopped);
+        return Snapshot(id, startedAt: null);
     }
 
     /// <inheritdoc />
     public async Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken ct)
     {
-        var workload = GetOrThrow(id);
+        var entry = workloads.GetOrThrow(id);
         // undefines the domain (frees its config but does NOT
         // destroy the underlying disk image). The agent's caller
         // is responsible for any disk cleanup.
-        await RunVirshAsync($"undefine {workload.Name}", ct);
-        if (!workloads.TryRemove(id, out _))
+        await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", ct);
+        if (!workloads.Remove(id))
         {
             throw new InvalidOperationException(
                 $"LibvirtKvmProvider: race removing workload {id}.");
         }
-        return workload with { State = WorkloadState.Stopped };
+
+        return new LocalWorkload(
+            Id: id,
+            Name: entry.DomainName,
+            Kind: entry.Kind,
+            State: WorkloadState.Stopped,
+            CreatedAt: DateTimeOffset.UtcNow,
+            StartedAt: null);
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken ct)
+    public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken ct)
     {
-        // v0.1: return our in-memory list. Future: `virsh list
-        // --all` for the full libvirt view.
-        await Task.CompletedTask;
-        return workloads.Values.ToArray();
+        return Task.FromResult<IReadOnlyList<LocalWorkload>>(
+            workloads.Snapshot(Environment.MachineName));
     }
 
-    /// <summary>Look up a workload by id, throw if missing. The
-    /// agent's executor catches this and reports Failed back to
-    /// the host.</summary>
-    private LocalWorkload GetOrThrow(Guid id)
+    /// <summary>Build a <see cref="LocalWorkload"/> snapshot for
+    /// the given id with the given startedAt timestamp. Helper
+    /// used by start/stop/delete to return a value to the agent.</summary>
+    private LocalWorkload Snapshot(Guid id, DateTimeOffset? startedAt)
     {
-        if (!workloads.TryGetValue(id, out var workload))
-        {
-            throw new InvalidOperationException(
-                $"LibvirtKvmProvider: no workload with id {id}.");
-        }
-
-        return workload;
-    }
-
-    /// <summary>Return a copy of <paramref name="workload"/> with
-    /// its state and (optionally) <c>StartedAt</c> updated.
-    /// Tracking happens in-place for the local id; the
-    /// provider keeps the agent's view in sync via the
-    /// returned <see cref="LocalWorkload"/>.</summary>
-    private LocalWorkload MarkState(
-        LocalWorkload workload, WorkloadState state, DateTimeOffset? startedAt)
-    {
-        var updated = workload with { State = state, StartedAt = startedAt };
-        workloads[workload.Id] = updated;
-        return updated;
-    }
-
-    /// <summary>Run <c>virsh &lt;args&gt;</c> with the configured
-    /// URI, fail on non-zero exit, return trimmed stdout.</summary>
-    private static async Task<string> RunVirshAsync(string args, CancellationToken ct)
-    {
-        var psi = new ProcessStartInfo
-        {
-            FileName = "virsh",
-            ArgumentList = { "-c", LibvirtUri },
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-        foreach (var arg in args.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-        {
-            psi.ArgumentList.Add(arg);
-        }
-
-        using var process = Process.Start(psi)
-            ?? throw new InvalidOperationException(
-                "LibvirtKvmProvider: failed to start virsh (process.Start returned null).");
-
-        var stdout = new StringBuilder();
-        var stderr = new StringBuilder();
-        process.OutputDataReceived += (_, e) =>
-        {
-            if (e.Data is not null)
-            {
-                stdout.AppendLine(e.Data);
-            }
-        };
-        process.ErrorDataReceived += (_, e) =>
-        {
-            if (e.Data is not null)
-            {
-                stderr.AppendLine(e.Data);
-            }
-        };
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-
-        await process.WaitForExitAsync(ct);
-
-        if (process.ExitCode != 0)
-        {
-            throw new InvalidOperationException(
-                $"virsh {args} failed (exit {process.ExitCode}): {stderr}".Trim());
-        }
-
-        return stdout.ToString().TrimEnd();
+        var entry = workloads.GetOrThrow(id);
+        return new LocalWorkload(
+            Id: id,
+            Name: entry.DomainName,
+            Kind: entry.Kind,
+            State: entry.State,
+            CreatedAt: DateTimeOffset.UtcNow,
+            StartedAt: startedAt);
     }
 
     /// <summary>Build a minimal libvirt domain XML for the given
