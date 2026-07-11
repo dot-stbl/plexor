@@ -21,6 +21,10 @@
 using Plexor.Host.Abstractions;
 using Plexor.Host.Controllers;
 using Plexor.Host.NodeRegistry;
+using Plexor.Modules.Audit.Domain;
+using Plexor.Modules.Audit.Infrastructure.Persistence;
+using Plexor.Shared.Filtering;
+using Plexor.Shared.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +53,22 @@ builder.Services
 // forgets every node and its pending commands. v0.2+ moves to
 // Postgres + a durable queue (NATS or Postgres LISTEN/NOTIFY).
 builder.Services.AddSingleton<INodeRegistry, InMemoryNodeRegistry>();
+
+// Persistence — schema-per-module DbContexts. Connection string
+// is read from ConnectionStrings:Audit in appsettings. The Migrator
+// CLI applies migrations before Host starts in production; in dev
+// you can run `dotnet ef database update` against the same string.
+// v0.1: registered but no controller is wired yet — Phase 1 of the
+// persistence migration lands the read paths next.
+var auditConnection = builder.Configuration.GetConnectionString("Audit")
+    ?? throw new InvalidOperationException(
+        "ConnectionStrings:Audit missing from configuration.");
+builder.Services.AddModuleDbContext<AuditDbContext>(auditConnection);
+
+// Filterable entities — Plexor.Shared.Filtering registry. Adding
+// AuditEntry makes its properties available to the kubb plugin via
+// x-filterable / x-sortable extensions on the Audit schema.
+builder.Services.AddFiltering().AddFilterableEntity<AuditEntry>();
 
 var app = builder.Build();
 

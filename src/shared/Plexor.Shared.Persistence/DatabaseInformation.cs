@@ -80,5 +80,7 @@ public static class DatabaseInformation
     /// </remarks>
     public static class Tables
     {
+        /// <summary>Audit module — one row per audited action.</summary>
+        public const string AuditEntries = "audit_entries";
     }
 }
