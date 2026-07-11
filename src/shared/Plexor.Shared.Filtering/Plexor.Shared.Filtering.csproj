@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Plexor.Shared.Filtering</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    ASP.NET-aware by design: FilterQuery carries [FromQuery] binding
+    metadata so list endpoints accept the filter/sort/paging DSL
+    straight off the query string. This is an intended dependency,
+    not a layering leak.
+
+    Migrated from Hybrid.Shared.Filtering (Hybrid/console.x).
+    Grammar unchanged. Namespace and types renamed to Plexor.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="MinVer" Version="7.0.0"/>
+  </ItemGroup>
+
+</Project>
