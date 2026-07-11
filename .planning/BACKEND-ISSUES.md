@@ -8,59 +8,51 @@
 
 ## NU1903 — Microsoft.OpenApi ≥ 2.0.0 pinned to 2.4.1 by upstream; CVE GHSA-v5pm-xwqc-g5wc
 
-**Status**: blocked on upstream; mitigation in place.
+**Status**: accepted technical debt — no current exposure.
 
 **CVE**: [GHSA-v5pm-xwqc-g5wc](https://github.com/advisories/GHSA-v5pm-xwqc-g5wc)
 (severity: HIGH). Affects `Microsoft.OpenApi` versions through 2.4.1 inclusive.
 
 **Where it comes from**: `Microsoft.AspNetCore.OpenApi 10.0.9` ships
 `<dependency id="Microsoft.OpenApi" version="2.0.0" exclude="Build,Analyzers" />`
-on `net10.0`. NuGet resolves the floating 2.0.0–latest-2.x constraint to the
-highest available 2.x release, currently `2.4.1`. Both 2.0.0 and 2.4.1 are
-listed in the GHSA-v5pm-xwqc-g5wc advisory.
+on `net10.0`. NuGet resolves the floating 2.0.0–latest-2.x constraint to
+the highest available 2.x release, currently `2.4.1`.
 
 **Why we cannot bump to Microsoft.OpenApi 3.x**: the
-`Microsoft.AspNetCore.OpenApi 10.0.9` source generator emits code targeting
-the v2 wire-format API surface. Specifically, it generates lines like
-`mediaType.Example = xmlCommentExample` against `IOpenApiMediaType.Example`,
-which became a **read-only computed property** in `Microsoft.OpenApi 3.x`.
-Forcing `Microsoft.OpenApi 3.x` via direct `<PackageReference>` produces
-build errors in the generated code:
+`Microsoft.AspNetCore.OpenApi 10.0.9` source generator emits code
+targeting the v2 wire-format API surface (`IOpenApiMediaType.Example`
+setter; became read-only computed in 3.x). Forcing 3.x via direct
+`<PackageReference>` produces build errors in the generated code.
+`Microsoft.AspNetCore.OpenApi 11.0.0-preview.x` is the first version
+where the source generator targets the v3 API surface, but it
+requires .NET 11; we target `net10.0`. There is no `10.0.10+`
+release as of 2026-07-11.
 
-```
-error CS0200: Cannot assign to 'IOpenApiMediaType.Example' — read-only.
-```
+**Exposure assessment in plexor v0.1**: **zero**.
 
-`Microsoft.AspNetCore.OpenApi 11.0.0-preview.x` is the first version where
-the source generator targets the v3 API surface, but it requires .NET 11;
-we target `net10.0`. There is no `10.0.10+` release as of 2026-07-11.
+The CVE is in the library's document parsing pipeline — the vector
+requires an adversary-supplied OpenAPI document to parse. Plexor's
+host both (a) builds its own document from author-controlled
+controller signatures at build time, and (b) serves that document
+back to whoever calls `/openapi/v1.json`. Plexor never **receives**
+an OpenAPI document from the network. Author-controlled source
++ author-controlled consumer = no untrusted input path.
 
-**Mitigation**:
-1. Explicit `<PackageReference Include="Microsoft.OpenApi" Version="2.4.1" />`
-   on `Plexor.Host` and `Plexor.Shared.Filtering` — prevents the version
-   float to 2.0.0 (which has a worse CVE shape than 2.4.1).
-2. `Directory.Build.props` `<NoWarn>` carries `NU1903` with a comment
-   pointing here. After Microsoft ships a `Microsoft.AspNetCore.OpenApi`
-   patch (10.0.10+ or 10.1.x with v3 generator targeting), drop the NoWarn
-   and migrate.
-3. The `Plexor.Shared.Filtering.FilterableSchemaTransformer` uses the v2
-   wire types (`JsonSchemaType`, `JsonNodeExtension`) so it builds against
-   the current `Microsoft.OpenApi 2.4.1`. When the upstream pins lift,
-   rewriting the transformer is a 1-file port (`JsonSchemaType` → break
-   into separate fields, `IOpenApiMediaType.Example` is the only generator
-   breakage).
+The only scenarios where this becomes exploitable are future-phase
+features: MCP server import (`architecture/mcp.md`), third-party
+API catalog integration, anything that feeds a foreign OpenAPI
+document into the host. None scheduled for v0.1 / v0.2.
 
-**Severity assessment**: the CVE is in **the library's serialization
-pipeline** (parsing non-conformant OpenAPI documents). The vector requires
-adversary-supplied OpenAPI input. Plexor.Host does not currently **receive
-** OpenAPI documents from untrusted sources — the only consumers are
-Swashbuckle (`/scalar`) and the build-time codegen (`artifacts/openapi.json`).
-Both are author-controlled. **Real-world impact at plexor.Host is bounded,
-not zero**: a future feature that ingests third-party API specs (e.g.
-import a foreign MCP server's OpenAPI) would expose the surface.
+**Action**: do nothing. The `<NoWarn>NU1903</NoWarn>` entry in
+`Directory.Build.props` is the correct disposition for v0.1. When
+MCP-import or equivalent lands, decide based on (a) what 3.x wire
+types Microsoft ships at that point and (b) whether our exposure
+moved from "zero" to "real".
 
-**Revisit**: re-evaluate on every `Microsoft.AspNetCore.OpenApi` release;
-track via `.planning/STATE.md` infrastructure-decisions table.
+**Revisit**: when (a) Microsoft ships `Microsoft.AspNetCore.OpenApi
+10.0.10+` targeting the v3 API surface **or** `11.0.0` GA — whichever
+comes first; **or** when a phase ships that ingests external OpenAPI
+documents (MCP import, etc.), whichever comes first.
 
 ---
 
