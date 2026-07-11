@@ -48,7 +48,7 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
     /// the executor then re-reads the envelope to find the
     /// concrete action (start / stop / delete).</summary>
     public async Task<ExecutorResult> ExecuteAsync(
-        CommandEnvelope envelope, CancellationToken ct)
+        CommandEnvelope envelope, CancellationToken cancellationToken)
     {
         if (!TryPickAction(envelope.Type, out var action))
         {
@@ -60,7 +60,7 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
         {
             if (await JsonSerializer.DeserializeAsync<WorkloadActionPayload>(
                     new MemoryStream(System.Text.Encoding.UTF8.GetBytes(envelope.PayloadJson)),
-                    cancellationToken: ct)
+                    cancellationToken: cancellationToken)
                 is not { } payload)
             {
                 return ExecutorResult.Fail(
@@ -79,9 +79,9 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
 
             return action switch
             {
-                "start" => await ExecuteStartAsync(provider, payload, envelope, ct),
-                "stop" => await ExecuteStopAsync(provider, payload, envelope, ct),
-                "delete" => await ExecuteDeleteAsync(provider, payload, envelope, ct),
+                "start" => await ExecuteStartAsync(provider, payload, envelope, cancellationToken),
+                "stop" => await ExecuteStopAsync(provider, payload, envelope, cancellationToken),
+                "delete" => await ExecuteDeleteAsync(provider, payload, envelope, cancellationToken),
                 _ => ExecutorResult.Fail($"workload.action: unknown action '{action}'"),
             };
         }
@@ -117,9 +117,9 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
 
     private async Task<ExecutorResult> ExecuteStartAsync(
         IWorkloadProvider provider, WorkloadActionPayload payload,
-        CommandEnvelope envelope, CancellationToken ct)
+        CommandEnvelope envelope, CancellationToken cancellationToken)
     {
-        var workload = await provider.StartAsync(payload.WorkloadId, ct);
+        var workload = await provider.StartAsync(payload.WorkloadId, cancellationToken);
         logger.LogInformation(
             "Started workload {WorkloadId} for command {CommandId}",
             workload.Id, envelope.CommandId);
@@ -128,9 +128,9 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
 
     private async Task<ExecutorResult> ExecuteStopAsync(
         IWorkloadProvider provider, WorkloadActionPayload payload,
-        CommandEnvelope envelope, CancellationToken ct)
+        CommandEnvelope envelope, CancellationToken cancellationToken)
     {
-        var workload = await provider.StopAsync(payload.WorkloadId, ct);
+        var workload = await provider.StopAsync(payload.WorkloadId, cancellationToken);
         logger.LogInformation(
             "Stopped workload {WorkloadId} for command {CommandId}",
             workload.Id, envelope.CommandId);
@@ -139,9 +139,9 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
 
     private async Task<ExecutorResult> ExecuteDeleteAsync(
         IWorkloadProvider provider, WorkloadActionPayload payload,
-        CommandEnvelope envelope, CancellationToken ct)
+        CommandEnvelope envelope, CancellationToken cancellationToken)
     {
-        var workload = await provider.DeleteAsync(payload.WorkloadId, ct);
+        var workload = await provider.DeleteAsync(payload.WorkloadId, cancellationToken);
         logger.LogInformation(
             "Deleted workload {WorkloadId} for command {CommandId}",
             workload.Id, envelope.CommandId);

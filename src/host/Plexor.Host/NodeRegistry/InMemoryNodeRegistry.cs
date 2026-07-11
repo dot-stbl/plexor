@@ -52,7 +52,7 @@ internal sealed class InMemoryNodeRegistry : INodeRegistry
     }
 
     /// <inheritdoc />
-    public Task<JoinResponse> RegisterAsync(JoinRequest request, CancellationToken ct)
+    public Task<JoinResponse> RegisterAsync(JoinRequest request, CancellationToken cancellationToken)
     {
         // v0.1: every join gets a fresh node id. Real impl: verify
         // request.JoinToken against the pool issued by plexor init,
@@ -89,7 +89,7 @@ internal sealed class InMemoryNodeRegistry : INodeRegistry
     }
 
     /// <inheritdoc />
-    public Task TouchHeartbeatAsync(HeartbeatRequest request, CancellationToken ct)
+    public Task TouchHeartbeatAsync(HeartbeatRequest request, CancellationToken cancellationToken)
     {
         if (!nodes.TryGetValue(request.NodeId, out var record))
         {
@@ -114,7 +114,7 @@ internal sealed class InMemoryNodeRegistry : INodeRegistry
     }
 
     /// <inheritdoc />
-    public Task EnqueueCommandAsync(CommandEnvelope envelope, CancellationToken ct)
+    public Task EnqueueCommandAsync(CommandEnvelope envelope, CancellationToken cancellationToken)
     {
         if (!queues.TryGetValue(envelope.NodeId, out var queue))
         {
@@ -146,7 +146,7 @@ internal sealed class InMemoryNodeRegistry : INodeRegistry
     /// <inheritdoc />
     public Task<CommandPollResponse> DequeueCommandsAsync(
         CommandPollRequest request,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         // v0.1 simplification: drain everything queued for this
         // node regardless of the cursor. The returned cursor is
@@ -173,7 +173,7 @@ internal sealed class InMemoryNodeRegistry : INodeRegistry
     }
 
     /// <inheritdoc />
-    public Task SubmitResultAsync(CommandResult result, CancellationToken ct)
+    public Task SubmitResultAsync(CommandResult result, CancellationToken cancellationToken)
     {
         // v0.1: log only. The audit module will pick this up
         // (Audit.Infrastructure subscribes to result events once

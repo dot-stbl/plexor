@@ -8,19 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
-    <ProjectReference Include="..\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" Version="9.3.1" />
-    <PackageReference Include="Dapper" Version="2.1.79" />
-    <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.9" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
-    <PackageReference Include="Npgsql" Version="10.0.3" />
+    <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" Version="9.3.1"/>
+    <PackageReference Include="Dapper" Version="2.1.79"/>
+    <PackageReference Include="EFCore.NamingConventions" Version="10.0.1"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.9"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2"/>
+    <PackageReference Include="Npgsql" Version="10.0.3"/>
   </ItemGroup>
 
 </Project>

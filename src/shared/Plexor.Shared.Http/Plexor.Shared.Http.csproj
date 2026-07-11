@@ -8,20 +8,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
-    <ProjectReference Include="..\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
-    <ProjectReference Include="..\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
+    <ProjectReference Include="..\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="Polly" Version="8.6.5" />
-    <PackageReference Include="Refit" Version="12.1.0" />
-    <PackageReference Include="Refit.HttpClientFactory" Version="12.1.0" />
+    <PackageReference Include="FluentValidation" Version="12.1.1"/>
+    <PackageReference Include="Polly" Version="8.6.5"/>
+    <PackageReference Include="Refit" Version="12.1.0"/>
+    <PackageReference Include="Refit.HttpClientFactory" Version="12.1.0"/>
   </ItemGroup>
 
 </Project>

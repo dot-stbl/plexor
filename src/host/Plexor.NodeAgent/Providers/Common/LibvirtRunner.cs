@@ -35,8 +35,8 @@ public static class LibvirtRunner
     /// The runner splits on whitespace; arguments with embedded
     /// spaces are not supported (real impl uses LibvirtClient
     /// which doesn't have that problem).</param>
-    /// <param name="ct">Cancellation forwarded to the process.</param>
-    public static async Task<string> RunAsync(Uri uri, string args, CancellationToken ct)
+    /// <param name="cancellationToken">Cancellation forwarded to the process.</param>
+    public static async Task<string> RunAsync(Uri uri, string args, CancellationToken cancellationToken)
     {
         var psi = new ProcessStartInfo
         {
@@ -75,7 +75,7 @@ public static class LibvirtRunner
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 
-        await process.WaitForExitAsync(ct);
+        await process.WaitForExitAsync(cancellationToken);
 
         if (process.ExitCode != 0)
         {

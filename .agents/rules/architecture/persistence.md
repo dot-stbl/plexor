@@ -47,12 +47,11 @@ public sealed class NodeRepository : INodeRepository
 // ✅ OK
 public sealed class TenantQueryService(TenantsDbContext db)
 {
-    public async Task<IReadOnlyList<TenantDto>> ListAsync(
-        Specification<TenantRecord> spec, CancellationToken ct)
+    public async Task<IReadOnlyList<TenantSummary>> ListAsync(
+        Specification<TenantRecord, TenantSummary> spec, CancellationToken ct)
     {
         return await spec
             .Apply(db.Tenants.AsNoTracking())
-            .Select(t => new TenantDto(t.Id, t.Name, t.CreatedAt))
             .ToListAsync(ct);
     }
 }
@@ -62,42 +61,68 @@ DbContext инжектится в Application service. Application service **н�
 
 ## Specification pattern — для сложных queries
 
+Два type-параметра всегда: `T` = entity (table row), `TResult` = projection (DTO, или `T` если projection не нужна). Filter + order живут в spec, projection — в spec, paging — в сервисе (не в spec).
+
 ```csharp
 // src/shared/Plexor.Shared.Persistence/Specification.cs
-public abstract class Specification<T> where T : class
+public abstract class Specification<T, TResult> where T : class
 {
-    /// <summary>Apply this spec's filter/order/include to the
-    /// incoming IQueryable. Stateless, composable.</summary>
-    public abstract IQueryable<T> Apply(IQueryable<T> query);
+    /// <summary>Apply this spec's filter/order/projection to the
+    /// incoming IQueryable. Same IQueryable pipeline EF Core
+    /// translates to SQL. Stateless, composable (With* returns
+    /// a new immutable spec wrapping this one).</summary>
+    public abstract IQueryable<TResult> Apply(IQueryable<T> query);
     
-    public Specification<T> Include(Func<IQueryable<T>, IIncludableQueryable<T, object>> include);
-    public Specification<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector);
-    public Specification<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> keySelector);
-    public Specification<T> Skip(int n);
-    public Specification<T> Take(int n);
+    public Specification<T, TResult> WithWhere(Expression<Func<T, bool>> predicate);
+    public Specification<T, TResult> WithOrderBy<TKey>(Expression<Func<T, TKey>> keySelector);
+    public Specification<T, TResult> WithOrderByDescending<TKey>(Expression<Func<T, TKey>> keySelector);
+    public Specification<T, TResult> WithInclude(Func<IQueryable<T>, IIncludableQueryable<T, object>> include);
+    public Specification<T, TResult> AsNoTracking();
+    
+    // Projection only — for the case where the controller just
+    // wants "give me this DTO, no filter/order needed".
+    public static Specification<T, T> Identity() => new IdentitySpec<T>();
+    public static Specification<T, TResult> Default(Expression<Func<T, TResult>> projection);
 }
 ```
 
-**Где НЕ нужен Specification:**
+**Когда НЕ нужен Specification:**
 - Single-entity fetch (`db.Nodes.Find(id)`)
 - Trivial query (`.Where(...).ToListAsync()`)
 - 1-off query, не будет переиспользоваться
 
-**Где Specification помогает:**
+**Когда Specification помогает:**
 - Multi-filter queries ("active tenants, optionally filtered by name, role, date range, paged")
 - Encapsulates query logic away from controller
 - Reused across multiple call sites
+
+**Пример concrete spec (всё в одном immutable object через fluent):**
+
+```csharp
+// ActiveUsers.WithEmail("ex") = base "active" + Where email contains "ex"
+public static class ActiveUsers
+{
+    public static Specification<UserRecord, UserSummary> WithEmail(string emailFragment) =>
+        Specification.Default<UserRecord, UserSummary>(u => new UserSummary(u.Id, u.Email, u.CreatedAt))
+            .AsNoTracking()
+            .WithWhere(u => u.State == UserState.Active)
+            .WithWhere(u => u.Email.Contains(emailFragment))
+            .WithOrderBy(u => u.CreatedAt);
+}
+```
+
+Каждый `With*` возвращает **новую** immutable spec (decorator pattern). Никакого mutable state, никакого subclass explosion.
 
 ## Filtered projections — push `Select` в query
 
 ```csharp
 // ❌ Load full entity, then map
 var entities = await db.Nodes.AsNoTracking().ToListAsync(ct);
-return entities.Select(n => new NodeDto(n.Id, n.Hostname, n.State)).ToList();
+return entities.Select(n => new NodeSummary(n.Id, n.Hostname, n.State)).ToList();
 
 // ✅ Projection в query
 return await db.Nodes.AsNoTracking()
-    .Select(n => new NodeDto(n.Id, n.Hostname, n.State))
+    .Select(n => new NodeSummary(n.Id, n.Hostname, n.State))
     .ToListAsync(ct);
 ```
 
@@ -157,12 +182,12 @@ console.x — см. `git log -- src/shared/Plexor.Shared.Filtering/`):
 
 ```csharp
 [HttpGet("")]
-public async Task<ActionResult<PageResult<UserDto>>> ListAsync(
+public async Task<ActionResult<PageResult<UserSummary>>> ListAsync(
     [FromQuery] FilterQuery query,
     CancellationToken ct = default)
 {
     var fields = UserFieldSet.Instance;  // per-entity, registered at startup
-    var spec = Specification.Default<UserRecord, UserDto>(u => new UserDto(u.Id, u.Email))
+    var spec = Specification.Default<UserRecord, UserSummary>(u => new UserSummary(u.Id, u.Email))
         .AsNoTracking();
     
     var filtered = db.Users
@@ -224,7 +249,10 @@ rg -n "HasDefaultSchema\(" src/ --type cs
 - ❌ `interface IRepository<T>` — generic, leak'ит EF specifics, +1 indirection
 - ❌ Load full entity then project to DTO — `AsNoTracking().Select(...)` лучше
 - ❌ Multiple `SaveChangesAsync` calls in different "repositories" — один DbContext = одна транзакция
-- ❌ `Specification<T>` для trivial queries (1 line) — overkill
-- ❌ `Specification<T>` для write-стороны — DbContext.SaveChanges() + aggregate repository
+- ❌ `Specification<T>` (одно-параметровая) — сбивает с двух-параметровой
+  абстракцией. `Specification<T, T>` (identity) для случая "filter
+  без projection" — единственный валидный случай
+- ❌ `Specification<T, TResult>` для write-стороны — DbContext.SaveChanges() +
+  aggregate repository. Specification про queries, не про mutations
 - ❌ `ToList()` без проекции — load'ит все columns, performance hit
 - ❌ Skip migrations в dev — `Add-Migration` обязателен, schema-per-module — никаких "manual" SQL

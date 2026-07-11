@@ -24,24 +24,45 @@ always: true
 
 ### Postfixes
 
-```csharp
-// ✅ Correct — описательные суффиксы по назначению
-public sealed record UserModel { ... }
-public sealed record TaskRequest { ... }
-public sealed record TaskResponse { ... }
-public sealed record HealthCheckResult { ... }
-public sealed class TaskScheduler { ... }
-public sealed class UserAuthenticator { ... }
+**Главное правило:** суффикс ОБЯЗАН описывать роль / ответственность класса или DTO, не generic-категорию. Если суффикс не добавляет информации о том ЧТО класс делает — он запрещён.
 
-// ❌ Wrong — generic постфикс не несёт смысла
-public sealed record UserDto { ... }
-public sealed class TaskService { ... }
-public sealed class DataHelper { ... }
-```
+**Запрещённые generic-категории** (описывают pattern, не роль — ВСЕГДА):
+- `*Dto` — запрещён. Каждый Web API класс — это "data transfer object" в широком смысле. Суффикс не описывает роль. Используй `*Request` / `*Response` / `*Summary` / `*Detail` / etc., что говорит о позиции в DTO-флоу
+- `*Model` — запрещён в DTO-имени (см. `*Dto`); ДОПУСТИМ как `UserEntity` в DDD-контексте, но не в DTO-имени
+- `*ViewModel` — запрещён всегда (тот же generic-pattern антипаттерн как `*Dto`, но ViewModel ещё и утечка MVVM-pattern'а в наш CQRS/DDD-стек)
+- `*Impl` — Java-стиль, не нужен в C#
 
-**`Response` vs `Result`:**
-- `*Response` — DTO ответа HTTP-эндпоинта.
-- `*Result` — результат внутренней операции (сервис, валидатор).
+**Разрешённые role-specific суффиксы** (описывают роль, не категорию):
+- `*Manager` — управляет чем-то: `EntityManager`, `ConnectionManager`, `ClusterManager`
+- `*Helper` — помогает с чем-то: `HttpHelper`, `JsonHelper`
+- `*Utility` / `*Util` — утилита для чего-то: `StringUtility`, `PathUtil`
+- `*Service` — сервис чего-то: `PaymentService`, `TenantService`
+- `*Scheduler`, `*Authenticator`, `*Calculator` — конкретная ответственность
+
+**Суффиксы DTO / response envelope / query / event:**
+| Суффикс | Когда использовать |
+|---------|------------------|
+| `*Request` | DTO входящего HTTP-запроса (body) |
+| `*Response` | DTO исходящего HTTP-ответа (body) |
+| `*Result` | результат внутренней операции (service / validator / executor) |
+| `*Spec` | DDD Specification — query criteria, immutable, composable |
+| `*Query` | CQRS-query объект (запрос на read-сторону) |
+| `*Command` | CQRS-command объект (запрос на write-сторону) |
+| `*Notification`, `*Event` | DDD domain event |
+| `*Handler` | конкретный command/query handler, названный по тому что обрабатывает |
+| `*Entity` | ДОПУСТИМ в DDD (EF model), не в DTO. `UserEntity` ОК, `UserEntityDto` — НЕ ОК |
+
+`UserDto` — **запрещено**. `UserModel` — **запрещено** в DTO-имени (хоть и в GOOD колонке в исходном примере, это ОШИБКА исходного правила — `Model` такой же generic как `Dto`).
+
+**Хорошие имена говорят роль / позицию:**
+- `TaskRequest` (HTTP DTO запроса) vs `TaskResult` (результат внутренней операции) — НЕ `TaskDto`/`TaskModel`/`TaskService`
+- `TenantSummary` (projection для list) vs `TenantDetail` (projection для single) — НЕ `TenantDto`
+- `NodeHardware` (value object) — имя описывает что представляет, не generic
+- `EntityManager` (управляет entities) — НЕ `Manager` в generic смысле, а конкретная роль
+
+**`Response` vs `Result` различие:**
+- `*Response` — DTO исходящего HTTP body (используется в `ProducesResponseType<T>` контроллера)
+- `*Result` — internal operation result (метод сервиса / валидатора / executor'а)
 
 ### Async suffix
 
@@ -219,3 +240,26 @@ constructor, generic-аргументы, возвращаемые типы, fiel
 - `code-shape.md` — pattern matching, var, braces, XML docs
 - `async-and-tasks.md` — async/await
 - `anti-patterns.md` — enum anti-patterns, tuple ban, validation
+
+## Self-audit grep
+
+Перед коммитом — запрещённые суффиксы (case-insensitive, `\b` word boundary):
+
+```bash
+# Class / record names ending in *Dto — the WORST offender (describes
+# implementation pattern, not role; every Web API class is a DTO)
+rg -in "(class|record)\s+\w+Dto\b" src/ --type cs
+
+# Class names ending in *Model, *Impl — other generic categories
+rg -in "class\s+\w+(Model|Impl)\b" src/ --type cs
+
+# Forbidden generic parameter name (use 'cancellationToken' not 'ct')
+rg -n " ct\b" src/ --type cs
+
+# Underscore-prefixed private fields (forbidden; use primary ctor)
+rg -n "private\s+\w+_\w+\s*=" src/ --type cs
+```
+
+Любой результат grep'а = потенциальный violation. Перед merge'ем каждый результат
+либо fixed (переименовать), либо подавлен в комментарии с обоснованием
+почему конкретное использование допустимо.

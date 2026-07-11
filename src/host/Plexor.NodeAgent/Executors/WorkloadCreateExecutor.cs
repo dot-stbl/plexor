@@ -43,13 +43,13 @@ public sealed class WorkloadCreateExecutor : ICommandExecutor
 
     /// <inheritdoc />
     public async Task<ExecutorResult> ExecuteAsync(
-        CommandEnvelope envelope, CancellationToken ct)
+        CommandEnvelope envelope, CancellationToken cancellationToken)
     {
         try
         {
             if (await JsonSerializer.DeserializeAsync<CreateWorkloadPayload>(
                     new MemoryStream(System.Text.Encoding.UTF8.GetBytes(envelope.PayloadJson)),
-                    cancellationToken: ct)
+                    cancellationToken: cancellationToken)
                 is not { } payload)
             {
                 return ExecutorResult.Fail(
@@ -62,7 +62,7 @@ public sealed class WorkloadCreateExecutor : ICommandExecutor
                     $"no provider registered for kind '{payload.Spec.Kind}'");
             }
 
-            var workload = await provider.CreateAsync(payload.Spec, ct);
+            var workload = await provider.CreateAsync(payload.Spec, cancellationToken);
             logger.LogInformation(
                 "Created workload {WorkloadId} ({Kind}) for {Name}",
                 workload.Id, workload.Kind, workload.Name);

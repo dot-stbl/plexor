@@ -32,20 +32,20 @@ public interface ICommandTransport
     /// <c>NodeId</c> and the control-plane URL the agent should
     /// call back to (used for logging only — the actual endpoints
     /// are pinned at registration time).</summary>
-    public Task<JoinResponse> JoinAsync(JoinRequest request, CancellationToken ct);
+    public Task<JoinResponse> JoinAsync(JoinRequest request, CancellationToken cancellationToken);
 
     /// <summary>POST /api/v1/nodes/{nodeId}/heartbeat. Idempotent
     /// (the host silently ignores heartbeats for unknown nodes).</summary>
-    public Task HeartbeatAsync(HeartbeatRequest request, CancellationToken ct);
+    public Task HeartbeatAsync(HeartbeatRequest request, CancellationToken cancellationToken);
 
     /// <summary>POST /api/v1/nodes/{nodeId}/commands/poll. Returns
     /// any pending commands newer than <c>request.WaitCursor</c>
     /// plus the next cursor the agent should send on the next
     /// poll.</summary>
-    public Task<CommandPollResponse> PollAsync(CommandPollRequest request, CancellationToken ct);
+    public Task<CommandPollResponse> PollAsync(CommandPollRequest request, CancellationToken cancellationToken);
 
     /// <summary>POST /api/v1/nodes/{nodeId}/commands/{commandId}/result.
     /// v0.1: the host logs the result; future iterations persist
     /// it to the audit log.</summary>
-    public Task SubmitResultAsync(CommandResult result, CancellationToken ct);
+    public Task SubmitResultAsync(CommandResult result, CancellationToken cancellationToken);
 }

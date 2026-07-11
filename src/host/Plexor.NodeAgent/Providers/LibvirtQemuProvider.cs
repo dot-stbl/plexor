@@ -62,7 +62,7 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
     public WorkloadKind Kind => new WorkloadKind.Qemu();
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken ct)
+    public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken cancellationToken)
     {
         var id = Guid.NewGuid();
         var xml = BuildDomainXml(spec, id);
@@ -70,9 +70,9 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
 
         try
         {
-            await File.WriteAllTextAsync(xmlPath, xml, ct);
-            await LibvirtRunner.RunAsync(LibvirtUri, $"define {xmlPath}", ct);
-            await LibvirtRunner.RunAsync(LibvirtUri, $"start {spec.Name}", ct);
+            await File.WriteAllTextAsync(xmlPath, xml, cancellationToken);
+            await LibvirtRunner.RunAsync(LibvirtUri, $"define {xmlPath}", cancellationToken);
+            await LibvirtRunner.RunAsync(LibvirtUri, $"start {spec.Name}", cancellationToken);
         }
         catch
         {
@@ -115,28 +115,28 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
     }
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> StartAsync(Guid id, CancellationToken ct)
+    public async Task<LocalWorkload> StartAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
-        await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", ct);
+        await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Running);
         return Snapshot(id, startedAt: DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> StopAsync(Guid id, CancellationToken ct)
+    public async Task<LocalWorkload> StopAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
-        await LibvirtRunner.RunAsync(LibvirtUri, $"shutdown {entry.DomainName}", ct);
+        await LibvirtRunner.RunAsync(LibvirtUri, $"shutdown {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Stopped);
         return Snapshot(id, startedAt: null);
     }
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken ct)
+    public async Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
-        await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", ct);
+        await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", cancellationToken);
         if (!workloads.Remove(id))
         {
             throw new InvalidOperationException(
@@ -153,7 +153,7 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
     }
 
     /// <inheritdoc />
-    public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken ct)
+    public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken cancellationToken)
     {
         return Task.FromResult<IReadOnlyList<LocalWorkload>>(
             workloads.Snapshot(Environment.MachineName));

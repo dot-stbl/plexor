@@ -51,7 +51,7 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
     public WorkloadKind Kind => new WorkloadKind.Vm();
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken ct)
+    public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken cancellationToken)
     {
         var id = Guid.NewGuid();
         var xml = BuildDomainXml(spec, id);
@@ -62,9 +62,9 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
             // Write the domain XML to disk, define it, then start it.
             // Two-step so the agent can re-define without starting on
             // create-time errors.
-            await File.WriteAllTextAsync(xmlPath, xml, ct);
-            await LibvirtRunner.RunAsync(LibvirtUri, $"define {xmlPath}", ct);
-            await LibvirtRunner.RunAsync(LibvirtUri, $"start {spec.Name}", ct);
+            await File.WriteAllTextAsync(xmlPath, xml, cancellationToken);
+            await LibvirtRunner.RunAsync(LibvirtUri, $"define {xmlPath}", cancellationToken);
+            await LibvirtRunner.RunAsync(LibvirtUri, $"start {spec.Name}", cancellationToken);
         }
         catch
         {
@@ -109,34 +109,34 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
     }
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> StartAsync(Guid id, CancellationToken ct)
+    public async Task<LocalWorkload> StartAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
-        await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", ct);
+        await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Running);
         return Snapshot(id, startedAt: DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> StopAsync(Guid id, CancellationToken ct)
+    public async Task<LocalWorkload> StopAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
         // virsh shutdown is graceful; virsh destroy is forced.
         // v0.1 doesn't escalate; v0.2+ uses libvirt's domain
         // events to detect the transition to "shut off".
-        await LibvirtRunner.RunAsync(LibvirtUri, $"shutdown {entry.DomainName}", ct);
+        await LibvirtRunner.RunAsync(LibvirtUri, $"shutdown {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Stopped);
         return Snapshot(id, startedAt: null);
     }
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken ct)
+    public async Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
         // undefines the domain (frees its config but does NOT
         // destroy the underlying disk image). The agent's caller
         // is responsible for any disk cleanup.
-        await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", ct);
+        await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", cancellationToken);
         if (!workloads.Remove(id))
         {
             throw new InvalidOperationException(
@@ -153,7 +153,7 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
     }
 
     /// <inheritdoc />
-    public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken ct)
+    public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken cancellationToken)
     {
         return Task.FromResult<IReadOnlyList<LocalWorkload>>(
             workloads.Snapshot(Environment.MachineName));

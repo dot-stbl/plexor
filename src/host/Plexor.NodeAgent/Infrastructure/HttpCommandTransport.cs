@@ -40,48 +40,48 @@ internal sealed class HttpCommandTransport : ICommandTransport
     }
 
     /// <inheritdoc />
-    public async Task<JoinResponse> JoinAsync(JoinRequest request, CancellationToken ct)
+    public async Task<JoinResponse> JoinAsync(JoinRequest request, CancellationToken cancellationToken)
     {
         return await CallAsync(
-            () => api.JoinAsync(request, ct),
+            () => api.JoinAsync(request, cancellationToken),
             "join",
-            ct);
+            cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task HeartbeatAsync(HeartbeatRequest request, CancellationToken ct)
+    public async Task HeartbeatAsync(HeartbeatRequest request, CancellationToken cancellationToken)
     {
         await CallAsync<object?>(
             async () =>
             {
-                await api.HeartbeatAsync(request.NodeId, request, ct);
+                await api.HeartbeatAsync(request.NodeId, request, cancellationToken);
                 return null;
             },
             "heartbeat",
-            ct);
+            cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<CommandPollResponse> PollAsync(
-        CommandPollRequest request, CancellationToken ct)
+        CommandPollRequest request, CancellationToken cancellationToken)
     {
         return await CallAsync(
-            () => api.PollAsync(request.NodeId, request, ct),
+            () => api.PollAsync(request.NodeId, request, cancellationToken),
             "poll",
-            ct);
+            cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task SubmitResultAsync(CommandResult result, CancellationToken ct)
+    public async Task SubmitResultAsync(CommandResult result, CancellationToken cancellationToken)
     {
         await CallAsync<object?>(
             async () =>
             {
-                await api.SubmitResultAsync(result.NodeId, result.CommandId, result, ct);
+                await api.SubmitResultAsync(result.NodeId, result.CommandId, result, cancellationToken);
                 return null;
             },
             "submit",
-            ct);
+            cancellationToken);
     }
 
     /// <summary>Run a Refit call and translate
@@ -90,7 +90,7 @@ internal sealed class HttpCommandTransport : ICommandTransport
     /// loop catches the latter and decides what to do (skip the
     /// cycle, restart, etc.).</summary>
     private async Task<T> CallAsync<T>(
-        Func<Task<T>> call, string operation, CancellationToken ct)
+        Func<Task<T>> call, string operation, CancellationToken cancellationToken)
     {
         try
         {

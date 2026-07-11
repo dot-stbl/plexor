@@ -135,7 +135,7 @@ internal sealed class NodeAgentWorker : BackgroundService
         logger.LogInformation("plexor-nodeagent stopping");
     }
 
-    private async Task JoinOnceAsync(CancellationToken ct)
+    private async Task JoinOnceAsync(CancellationToken cancellationToken)
     {
         // v0.1: the token is a placeholder; the host stores it
         // but does not verify it. Real impl issues the token
@@ -147,7 +147,7 @@ internal sealed class NodeAgentWorker : BackgroundService
             JoinToken: "v0.1-unverified-token",
             Hardware: hardware);
 
-        var response = await transport.JoinAsync(request, ct);
+        var response = await transport.JoinAsync(request, cancellationToken);
         current = new NodeIdentity(response.NodeId, 0);
         logger.LogInformation(
             "Joined as node {NodeId} (control plane {ControlPlaneUrl})",

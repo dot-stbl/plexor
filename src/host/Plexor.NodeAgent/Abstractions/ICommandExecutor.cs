@@ -36,9 +36,9 @@ public interface ICommandExecutor
     /// <param name="envelope">Full envelope so the executor can
     /// see the issued timestamp and the node id (used for
     /// result metadata).</param>
-    /// <param name="ct">Cancellation tied to the agent's
+    /// <param name="cancellationToken">Cancellation tied to the agent's
     /// shutdown token.</param>
-    public Task<ExecutorResult> ExecuteAsync(CommandEnvelope envelope, CancellationToken ct);
+    public Task<ExecutorResult> ExecuteAsync(CommandEnvelope envelope, CancellationToken cancellationToken);
 }
 
 /// <summary>Outcome of a single command. The dispatcher promotes

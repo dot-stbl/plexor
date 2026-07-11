@@ -38,7 +38,7 @@ public interface INodeApi
     [Post("/nodes/join")]
     public Task<JoinResponse> JoinAsync(
         [Body] JoinRequest request,
-        CancellationToken ct);
+        CancellationToken cancellationToken);
 
     /// <summary>POST /api/v1/nodes/{nodeId}/heartbeat. The
     /// <c>nodeId</c> in the route must match the body's
@@ -48,14 +48,14 @@ public interface INodeApi
     public Task HeartbeatAsync(
         Guid nodeId,
         [Body] HeartbeatRequest request,
-        CancellationToken ct);
+        CancellationToken cancellationToken);
 
     /// <summary>POST /api/v1/nodes/{nodeId}/commands/poll.</summary>
     [Post("/nodes/{nodeId}/commands/poll")]
     public Task<CommandPollResponse> PollAsync(
         Guid nodeId,
         [Body] CommandPollRequest request,
-        CancellationToken ct);
+        CancellationToken cancellationToken);
 
     /// <summary>POST /api/v1/nodes/{nodeId}/commands/{commandId}/result.
     /// No response body.</summary>
@@ -64,5 +64,5 @@ public interface INodeApi
         Guid nodeId,
         Guid commandId,
         [Body] CommandResult result,
-        CancellationToken ct);
+        CancellationToken cancellationToken);
 }

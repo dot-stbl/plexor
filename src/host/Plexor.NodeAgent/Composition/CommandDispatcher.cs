@@ -61,7 +61,7 @@ internal sealed class CommandDispatcher
     /// becomes a <see cref="CommandResultStatus.Failed"/>
     /// result so the host can see the failure cleanly.</summary>
     public async Task<CommandResult> DispatchAsync(
-        CommandEnvelope envelope, CancellationToken ct)
+        CommandEnvelope envelope, CancellationToken cancellationToken)
     {
         if (!executors.TryGetValue(envelope.Type, out var executor))
         {
@@ -74,7 +74,7 @@ internal sealed class CommandDispatcher
 
         try
         {
-            var result = await executor.ExecuteAsync(envelope, ct);
+            var result = await executor.ExecuteAsync(envelope, cancellationToken);
             return new CommandResult(
                 envelope.CommandId,
                 envelope.NodeId,

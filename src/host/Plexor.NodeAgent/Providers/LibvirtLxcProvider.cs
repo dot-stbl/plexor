@@ -64,7 +64,7 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
     public WorkloadKind Kind => new WorkloadKind.Lxc();
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken ct)
+    public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken cancellationToken)
     {
         var id = Guid.NewGuid();
         var rootfs = Path.Combine(DefaultRootfsBase, spec.Name);
@@ -78,9 +78,9 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
             // 'template' = '<image-name>'.
             Directory.CreateDirectory(rootfs);
 
-            await File.WriteAllTextAsync(xmlPath, xml, ct);
-            await LibvirtRunner.RunAsync(LibvirtUri, $"define {xmlPath}", ct);
-            await LibvirtRunner.RunAsync(LibvirtUri, $"start {spec.Name}", ct);
+            await File.WriteAllTextAsync(xmlPath, xml, cancellationToken);
+            await LibvirtRunner.RunAsync(LibvirtUri, $"define {xmlPath}", cancellationToken);
+            await LibvirtRunner.RunAsync(LibvirtUri, $"start {spec.Name}", cancellationToken);
         }
         catch
         {
@@ -123,30 +123,30 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
     }
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> StartAsync(Guid id, CancellationToken ct)
+    public async Task<LocalWorkload> StartAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
-        await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", ct);
+        await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Running);
         return Snapshot(id, startedAt: DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> StopAsync(Guid id, CancellationToken ct)
+    public async Task<LocalWorkload> StopAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
-        await LibvirtRunner.RunAsync(LibvirtUri, $"shutdown {entry.DomainName}", ct);
+        await LibvirtRunner.RunAsync(LibvirtUri, $"shutdown {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Stopped);
         return Snapshot(id, startedAt: null);
     }
 
     /// <inheritdoc />
-    public async Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken ct)
+    public async Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
         // LXC undefines the domain AND we drop the rootfs directory.
         // The rootfs can be large; v0.1 just rm -rf's it.
-        await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", ct);
+        await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", cancellationToken);
 
         var rootfs = Path.Combine(DefaultRootfsBase, entry.DomainName);
         try
@@ -180,7 +180,7 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
     }
 
     /// <inheritdoc />
-    public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken ct)
+    public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken cancellationToken)
     {
         return Task.FromResult<IReadOnlyList<LocalWorkload>>(
             workloads.Snapshot(Environment.MachineName));
