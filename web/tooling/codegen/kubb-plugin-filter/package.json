@@ -1,0 +1,30 @@
+{
+  "name": "@plexor/kubb-plugin-filter",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "devDependencies": {
+    "@kubb/core": "^4.39.2",
+    "@kubb/oas": "^4.39.2",
+    "@kubb/plugin-oas": "^4.39.2",
+    "@types/node": "^26.1.1",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}
