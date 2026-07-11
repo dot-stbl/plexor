@@ -111,6 +111,17 @@ Material Symbols Rounded через `@/shared/ui/icon`, монохром + ст�
   event log. Long-running operation: 202 Accepted + status.
 - **UI/CLI — peer, не UI-primary/CLI-secondary.** Оба = full-featured
   клиента к одному REST API. CLI = GitOps escape hatch (Rancher pattern).
+- **Schema-per-module в одной PostgreSQL базе (Architecture theme):**
+  `sigil` (identity), `realm` (tenants), `ledger` (billing),
+  `atlas` (audit), `forge` (clusters), `outpost` (nodes/workloads),
+  `shard` (workloads/details). Один PostgreSQL кластер на plexus,
+  разные schema per модуль — как OpenStack (nova/neutron/cinder
+  schemas в одном PG). Один connection string, один backup, одна
+  HA-конфигурация; schemas дают изоляцию таблиц per bounded
+  context. EF Core migrations per schema (свой
+  `__EFMigrationsHistory` на каждый). v0.1 работает in-memory,
+  БД приходит в Phase 1 с конкретными DbContext-ами на модуль —
+  schema имена уже зафиксированы.
 - **Route = `/k8s`** (НЕ `/clusters` — `/clusters` уже занят fleet/
   PlexorCluster'ом). Cluster и fleet — параллельные first-class ресурсы.
 - **kubeconfig retrieval** (`GET /k8s/{name}/kubeconfig`) — обязателен
