@@ -142,6 +142,42 @@ public abstract class PlexorDbContext : DbContext
 
 ## Где Repository ОК (aggregate root для write-стороны)
 
+## Filter + sort + paging DSL — `Plexor.Shared.Filtering`
+
+Не пишем свой DSL-парсер. **Используем `Plexor.Shared.Filtering`** (мигрирован из
+console.x — см. `git log -- src/shared/Plexor.Shared.Filtering/`):
+
+- `FilterQuery` envelope с `[FromQuery]` bindings (`Filter`, `Sort`, `Page`, `PageSize`)
+- DSL: `name~John;status==Active` (AND), `(a|b)` (OR), `now(-7d)`, `[]=Active,Trial` (IN)
+- Sort: `name,asc;createdAt,desc` (multi-criteria, OrderBy + ThenBy)
+- `QueryableFilterExtensions.ApplyFilter/ApplySort` — extension на `IQueryable<T>`
+- `FilterableFieldSet<TEntity>` — per-entity field registry с reflection
+
+**Пример controller'а:**
+
+```csharp
+[HttpGet("")]
+public async Task<ActionResult<PageResult<UserDto>>> ListAsync(
+    [FromQuery] FilterQuery query,
+    CancellationToken ct = default)
+{
+    var fields = UserFieldSet.Instance;  // per-entity, registered at startup
+    var spec = Specification.Default<UserRecord, UserDto>(u => new UserDto(u.Id, u.Email))
+        .AsNoTracking();
+    
+    var filtered = db.Users
+        .ApplyFilter(query.Filter, fields)
+        .ApplySort(query.Sort, fields);
+    
+    var paged = await filtered.ToPagedResultAsync(query.Page, query.PageSize, ct);
+    return Ok(paged);
+}
+```
+
+Где `ToPagedResultAsync` — extension из `Plexor.Shared.Persistence` (wraps count + skip/take). Под капотом — `IQueryable.CountAsync()` + `.Skip().Take()`. Реальная paging-библиотека не нужна — spec разбирает DSL, query делает EF.
+
+## Где Repository ОК (aggregate root для write-стороны)
+
 **DDD aggregate repository** — не generic `IRepository<T>`, а специфичный для aggregate root:
 
 ```csharp
