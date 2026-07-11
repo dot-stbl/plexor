@@ -22,6 +22,14 @@
 
   <ItemGroup>
     <PackageReference Update="MinVer" Version="7.0.0"/>
+    <!--
+      FilterableSchemaTransformer implements IOpenApiSchemaTransformer from
+      Microsoft.AspNetCore.OpenApi. The wire-format extensions (OpenApiObject,
+      OpenApiArray, OpenApiString) come from Microsoft.OpenApi, pulled
+      transitively via the framework reference.
+    -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9"/>
+    <PackageReference Include="Microsoft.OpenApi" Version="2.4.1"/>
   </ItemGroup>
 
 </Project>
