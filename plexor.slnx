@@ -11,7 +11,8 @@
     <!--   /src/shared/         — kernel + cross-cutting libraries                -->
     <!--   /src/modules/<M>/     — vertical-slice modules (Domain/Application/    -->
     <!--                           Infrastructure)                                 -->
-    <!--   /src/host/           — host process (Plexor.Host) + NodeAgent + Migrator-->
+    <!--   /src/host/           — control plane (Plexor.Host) + Migrator            -->
+    <!--   /src/agents/         — per-node worker runtime (Plexor.NodeAgent)          -->
     <!--   /src/installer/      — NativeAOT CLI installer                          -->
     <!--   /src/providers/      — pluggable provider plugins                       -->
     <!--   /tests/              — unit / integration / architecture / benchmarks   -->
@@ -88,7 +89,11 @@
     <Folder Name="/src/host/">
         <Project Path="src/host/Plexor.Host/Plexor.Host.csproj"/>
         <Project Path="src/host/Plexor.Migrator/Plexor.Migrator.csproj"/>
-        <Project Path="src/host/Plexor.NodeAgent/Plexor.NodeAgent.csproj"/>
+    </Folder>
+
+    <!-- ============ Agents (per-node workers) ============================== -->
+    <Folder Name="/src/agents/">
+        <Project Path="src/agents/Plexor.NodeAgent/Plexor.NodeAgent.csproj"/>
     </Folder>
 
     <!-- ============ Installer (NativeAOT CLI + Engine + Os) ============== -->
