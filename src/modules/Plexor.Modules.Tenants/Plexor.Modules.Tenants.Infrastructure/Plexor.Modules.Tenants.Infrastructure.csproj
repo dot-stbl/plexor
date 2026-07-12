@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\Plexor.Modules.Tenants.Domain\Plexor.Modules.Tenants.Domain.csproj" />
   </ItemGroup>
 
 </Project>

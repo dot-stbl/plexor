@@ -24,14 +24,33 @@ namespace Plexor.Shared.Persistence;
 ///     <para>
 ///         <b>Module → schema mapping.</b>
 ///         <list type="table">
-///             <listheader><term>Schema</term><description>Module</description></listheader>
-///             <item><term><see cref="Schemes.Identity" /> (sigil)</term><description>Plexor.Modules.Identity</description></item>
-///             <item><term><see cref="Schemes.Tenants" /> (realm)</term><description>Plexor.Modules.Tenants</description></item>
-///             <item><term><see cref="Schemes.Billing" /> (ledger)</term><description>Plexor.Modules.Billing</description></item>
-///             <item><term><see cref="Schemes.Audit" /> (atlas)</term><description>Plexor.Modules.Audit</description></item>
-///             <item><term><see cref="Schemes.Clusters" /> (forge)</term><description>cross-cutting cluster fleet metadata (planned)</description></item>
-///             <item><term><see cref="Schemes.Nodes" /> (outpost)</term><description>cross-cutting node registration metadata (planned)</description></item>
-///             <item><term><see cref="Schemes.Workloads" /> (shard)</term><description>cross-cutting workload catalogue (planned)</description></item>
+///             <listheader>
+///                 <term>Schema</term><description>Module</description>
+///             </listheader>
+///             <item>
+///                 <term><see cref="Schemes.Identity" /> (sigil)</term><description>Plexor.Modules.Identity</description>
+///             </item>
+///             <item>
+///                 <term><see cref="Schemes.Tenants" /> (realm)</term><description>Plexor.Modules.Tenants</description>
+///             </item>
+///             <item>
+///                 <term><see cref="Schemes.Billing" /> (ledger)</term><description>Plexor.Modules.Billing</description>
+///             </item>
+///             <item>
+///                 <term><see cref="Schemes.Audit" /> (atlas)</term><description>Plexor.Modules.Audit</description>
+///             </item>
+///             <item>
+///                 <term><see cref="Schemes.Clusters" /> (forge)</term>
+///                 <description>cross-cutting cluster fleet metadata (planned)</description>
+///             </item>
+///             <item>
+///                 <term><see cref="Schemes.Nodes" /> (outpost)</term>
+///                 <description>cross-cutting node registration metadata (planned)</description>
+///             </item>
+///             <item>
+///                 <term><see cref="Schemes.Workloads" /> (shard)</term>
+///                 <description>cross-cutting workload catalogue (planned)</description>
+///             </item>
 ///         </list>
 ///     </para>
 /// </remarks>
@@ -82,5 +101,8 @@ public static class DatabaseInformation
     {
         /// <summary>Audit module — one row per audited action.</summary>
         public const string AuditEntries = "audit_entries";
+
+        /// <summary>Tenants module — one row per tenant organization.</summary>
+        public const string Tenants = "tenants";
     }
 }

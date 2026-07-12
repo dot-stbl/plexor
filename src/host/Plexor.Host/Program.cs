@@ -18,11 +18,13 @@
 // `<Main>$` returning Task, which violates VSTHRD200 (Async suffix rule).
 // ============================================================================
 
+using System.Text.Json.Serialization;
 using Plexor.Host.Abstractions;
 using Plexor.Host.Controllers;
 using Plexor.Host.NodeRegistry;
 using Plexor.Modules.Audit.Domain;
 using Plexor.Modules.Audit.Infrastructure.Persistence;
+using Plexor.Modules.Tenants.Infrastructure.Persistence;
 using Plexor.Shared.Filtering;
 using Plexor.Shared.Persistence;
 
@@ -36,18 +38,18 @@ builder.Services.AddOpenApi();
 // per-endpoint [ProducesResponseType<...>] attributes document
 // the success paths.
 builder.Services
-    .AddControllers()
-    .AddJsonOptions(static options =>
-    {
-        // Accept enums as JSON strings in any case ("succeeded",
-        // "Succeeded", "SUCCEEDED" all bind to CommandResultStatus
-        // .Succeeded). Required because the OpenAPI contract
-        // describes status values in lowercase while the C# enum
-        // uses PascalCase.
-        options.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter());
-    })
-    .AddApplicationPart(typeof(NodeController).Assembly);
+        .AddControllers()
+        .AddJsonOptions(static options =>
+        {
+            // Accept enums as JSON strings in any case ("succeeded",
+            // "Succeeded", "SUCCEEDED" all bind to CommandResultStatus
+            // .Succeeded). Required because the OpenAPI contract
+            // describes status values in lowercase while the C# enum
+            // uses PascalCase.
+            options.JsonSerializerOptions.Converters.Add(
+                new JsonStringEnumConverter());
+        })
+        .AddApplicationPart(typeof(NodeController).Assembly);
 
 // NodeAgent control loop. Singleton state — restarting Plexor.Host
 // forgets every node and its pending commands. v0.2+ moves to
@@ -61,9 +63,14 @@ builder.Services.AddSingleton<INodeRegistry, InMemoryNodeRegistry>();
 // v0.1: registered but no controller is wired yet — Phase 1 of the
 // persistence migration lands the read paths next.
 var auditConnection = builder.Configuration.GetConnectionString("Audit")
-    ?? throw new InvalidOperationException(
-        "ConnectionStrings:Audit missing from configuration.");
+                      ?? throw new InvalidOperationException(
+                          "ConnectionStrings:Audit missing from configuration.");
 builder.Services.AddModuleDbContext<AuditDbContext>(auditConnection);
+
+var tenantsConnection = builder.Configuration.GetConnectionString("Tenants")
+                        ?? throw new InvalidOperationException(
+                            "ConnectionStrings:Tenants missing from configuration.");
+builder.Services.AddModuleDbContext<TenantsDbContext>(tenantsConnection);
 
 // Filterable entities — Plexor.Shared.Filtering registry. Adding
 // AuditEntry makes its properties available to the kubb plugin via
