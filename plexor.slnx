@@ -117,4 +117,9 @@
         <Project Path="tests/unit/Plexor.Core.Providers.Unit/Plexor.Core.Providers.Unit.csproj"/>
     </Folder>
 
+    <!-- ============ Benchmarks =================================================== -->
+    <Folder Name="/tests/benchmarks/">
+        <Project Path="tests/benchmarks/Plexor.Shared.Filtering.Bench/Plexor.Shared.Filtering.Bench.csproj"/>
+    </Folder>
+
 </Solution>

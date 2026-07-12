@@ -39,12 +39,11 @@ public enum FilterTokenKind
 /// <summary>
 ///     Single token produced by the lexer. <see cref="OperatorPayload" /> carries the
 ///     resolved <see cref="FilterOperator" /> for <see cref="FilterTokenKind.Operator" />.
+///     Value type (readonly record struct) to avoid per-token heap allocations on the
+///     lexer hot path — a typical filter emits 8-16 tokens; with a struct they're
+///     stored inline in the List array, not as individual heap objects.
 /// </summary>
-/// <param name="Kind"></param>
-/// <param name="Text"></param>
-/// <param name="OperatorPayload"></param>
-/// <param name="Position"></param>
-public sealed record FilterToken(FilterTokenKind Kind, string Text, FilterOperator OperatorPayload, int Position);
+public readonly record struct FilterToken(FilterTokenKind Kind, string Text, FilterOperator OperatorPayload, int Position);
 
 /// <summary>
 ///     Splits the DSL source into tokens. Zero-allocation hot path uses a single
