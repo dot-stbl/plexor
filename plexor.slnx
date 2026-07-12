@@ -46,28 +46,19 @@
     </Folder>
 
     <!-- ============ Modules (Domain / Application / Infrastructure) ========== -->
-    <Folder Name="/src/modules/">
-
-        <Folder Name="/src/modules/Plexor.Modules.Sigil/">
-            <Project
-                Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Domain/Plexor.Modules.Sigil.Domain.csproj"/>
-            <Project
-                Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Application/Plexor.Modules.Sigil.Application.csproj"/>
-            <Project
-                Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Infrastructure/Plexor.Modules.Sigil.Infrastructure.csproj"/>
-        </Folder>
-
-        <Folder Name="/src/modules/Plexor.Modules.Realm/">
-            <Project
-                Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Domain/Plexor.Modules.Realm.Domain.csproj"/>
-            <Project
-                Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Application/Plexor.Modules.Realm.Application.csproj"/>
-            <Project
-                Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Infrastructure/Plexor.Modules.Realm.Infrastructure.csproj"/>
-        </Folder>
-
-
-
+    <!-- Two-level folders: outer empty <Folder> for grouping (UI), inner   -->
+    <!-- <Folder Name="...Plexor.Modules.X/"> contains the three project    -->
+    <!-- layers (Domain/Application/Infrastructure). Matches console.x.      -->
+    <Folder Name="/src/modules/"/>
+    <Folder Name="/src/modules/Plexor.Modules.Sigil/">
+        <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Domain/Plexor.Modules.Sigil.Domain.csproj"/>
+        <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Application/Plexor.Modules.Sigil.Application.csproj"/>
+        <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Infrastructure/Plexor.Modules.Sigil.Infrastructure.csproj"/>
+    </Folder>
+    <Folder Name="/src/modules/Plexor.Modules.Realm/">
+        <Project Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Domain/Plexor.Modules.Realm.Domain.csproj"/>
+        <Project Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Application/Plexor.Modules.Realm.Application.csproj"/>
+        <Project Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Infrastructure/Plexor.Modules.Realm.Infrastructure.csproj"/>
     </Folder>
 
     <!-- ============ Hosts (entry points) =================================== -->
@@ -89,16 +80,18 @@
     </Folder>
 
     <!-- ============ Provider plugins ======================================= -->
+    <!-- Same nested pattern as Modules: outer folder for grouping, inner   -->
+    <!-- <Folder Name="...Substrate/"> contains the six substrate plugins.  -->
     <Folder Name="/src/providers/">
         <Project Path="src/providers/Plexor.Core.Providers/Plexor.Core.Providers.csproj"/>
-        <Folder Name="/src/providers/Substrate/">
-            <Project Path="src/providers/Plexor.Providers.Substrate.Kvm/Plexor.Providers.Substrate.Kvm.csproj"/>
-            <Project Path="src/providers/Plexor.Providers.Substrate.Lxd/Plexor.Providers.Substrate.Lxd.csproj"/>
-            <Project Path="src/providers/Plexor.Providers.Substrate.K3s/Plexor.Providers.Substrate.K3s.csproj"/>
-            <Project Path="src/providers/Plexor.Providers.Substrate.Maas/Plexor.Providers.Substrate.Maas.csproj"/>
-            <Project Path="src/providers/Plexor.Providers.Substrate.Tinkerbell/Plexor.Providers.Substrate.Tinkerbell.csproj"/>
-            <Project Path="src/providers/Plexor.Providers.Substrate.Pod/Plexor.Providers.Substrate.Pod.csproj"/>
-        </Folder>
+    </Folder>
+    <Folder Name="/src/providers/Substrate/">
+        <Project Path="src/providers/Plexor.Providers.Substrate.Kvm/Plexor.Providers.Substrate.Kvm.csproj"/>
+        <Project Path="src/providers/Plexor.Providers.Substrate.Lxd/Plexor.Providers.Substrate.Lxd.csproj"/>
+        <Project Path="src/providers/Plexor.Providers.Substrate.K3s/Plexor.Providers.Substrate.K3s.csproj"/>
+        <Project Path="src/providers/Plexor.Providers.Substrate.Maas/Plexor.Providers.Substrate.Maas.csproj"/>
+        <Project Path="src/providers/Plexor.Providers.Substrate.Tinkerbell/Plexor.Providers.Substrate.Tinkerbell.csproj"/>
+        <Project Path="src/providers/Plexor.Providers.Substrate.Pod/Plexor.Providers.Substrate.Pod.csproj"/>
     </Folder>
 
     <!-- ============ Tests =================================================== -->
