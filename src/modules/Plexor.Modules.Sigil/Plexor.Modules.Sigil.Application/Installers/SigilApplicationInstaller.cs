@@ -3,8 +3,11 @@
 // SigilApplicationInstaller — single registration entry for the Sigil
 // (Identity) Application layer. Hosts compose it as
 //   builder.Services.AddSigilApplicationCore(builder.Configuration);
-// Currently empty — Application services (auth, CQRS handlers) get
-// added in 3.2+ as they're built.
+// Reserved for Application-only registrations: validators, pipeline
+// behaviors, command/query handlers. Today this is a no-op; the
+// method exists so the call-site chain
+//   AddSharedInfrastructureCore().AddSigilApplicationCore()
+// stays stable as services are added.
 // ============================================================================
 
 using Microsoft.Extensions.Configuration;
@@ -14,11 +17,8 @@ namespace Plexor.Modules.Sigil.Application.Installers;
 
 /// <summary>
 ///     Registers Application-layer services for the Sigil (Identity)
-///     module. Reserved for Application-only registrations: validators,
-///     pipeline behaviors, command/query handlers. Today this is a
-///     no-op; the method exists so the call-site chain
-///     (<c>AddSharedInfrastructureCore().AddSigilApplicationCore()</c>)
-///     stays stable as services are added.
+///     module. Today this is a no-op; the method exists so the
+///     call-site chain stays stable as services are added.
 /// </summary>
 /// <remarks>
 ///     <para><b>Why the empty method lives here.</b>
@@ -49,8 +49,12 @@ public static class SigilApplicationInstaller
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // configuration is reserved for Options binding. The
+        // variable is unused today; the parameter exists so the
+        // call site is stable when binding lands. Discard
+        // intentionally suppresses "unused parameter" without
+        // changing the public signature.
         _ = configuration;
         return services;
     }
 }
-

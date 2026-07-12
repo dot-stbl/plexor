@@ -3,8 +3,9 @@
 // SigilInfrastructureInstaller — single registration entry for the
 // Sigil (Identity) Infrastructure layer. Hosts compose it as
 //   builder.Services.AddSigilInfrastructureCore(builder.Configuration);
-// Currently wires ICurrentUser only; 3.2.b adds IPasswordHasher,
-// 3.2.c adds IRefreshTokenStore, 3.3.a adds IJwtSigningService.
+// Wires ICurrentUser + IPasswordHasher + IRefreshTokenStore +
+// ISigningKeyRepository + IJwtSigningService + the signing-key
+// bootstrapper hosted service.
 // ============================================================================
 
 using Microsoft.AspNetCore.Identity;
@@ -31,16 +32,13 @@ namespace Plexor.Modules.Sigil.Infrastructure.Installers;
 ///     Application layer defines the interface; Infrastructure binds
 ///     the impl. Both layers' installers live next to each other so
 ///     the call site is one chain: <c>AddSigilApplicationCore().AddSigilInfrastructureCore()</c>.</para>
-///     <para><b>Future additions.</b>
-///     <list type="bullet">
-///       <item>3.2.b — <c>AddSingleton&lt;IPasswordHasher, PlexorPasswordHasher&gt;()</c></item>
-///       <item>3.2.c — <c>AddScoped&lt;IRefreshTokenStore, EfRefreshTokenStore&gt;()</c></item>
-///       <item>3.3.a — <c>AddSingleton&lt;IJwtSigningService, JwtSigningService&gt;()</c></item>
-///       <item>3.3.b — <c>AddScoped&lt;ISigningKeyRepository, EfSigningKeyRepository&gt;()</c></item>
-///       <item>3.4.a — <c>AddHostedService&lt;SigningKeyBootstrapper&gt;()</c></item>
-///     </list>
-///     None of these need their own <c>Add*</c> extension — they
-///     land inside this single method.</para>
+///     <para><b>Why <c>services.AddXxx&lt;&gt;()</c> without
+///     <c>_ = </c>.</b> <c>IServiceCollection.Add*</c> returns the
+///     collection for fluent chaining; this installer doesn't chain,
+///     so the return value is unused. <c>_ = services.AddXxx()</c>
+///     is the meaningless discard pattern banned in
+///     <c>async-and-tasks.md</c> §6 (generalized to "discarded
+///     chained returns") — just call without the discard prefix.</para>
 /// </remarks>
 public static class SigilInfrastructureInstaller
 {
@@ -55,44 +53,49 @@ public static class SigilInfrastructureInstaller
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        _ = configuration;
-
         // ICurrentUser implementation lives in Infrastructure.
         // Lifetime is Scoped because IHttpContextAccessor.HttpContext
         // is per-request; the singleton accessor itself is fine to
         // share across scopes.
-        _ = services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
+        services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
 
         // Built-in PBKDF2 password hasher. Singleton — the underlying
         // Rfc2898DeriveBytes is thread-safe. Wrapped by PlexorPasswordHasher
         // (3.2.b) which exposes the Application-layer interface.
-        _ = services.AddSingleton<PasswordHasher<User>>();
-        _ = services.AddSingleton<IPasswordHasher, PlexorPasswordHasher>();
+        services.AddSingleton<PasswordHasher<User>>();
+        services.AddSingleton<IPasswordHasher, PlexorPasswordHasher>();
 
         // Refresh-token storage. Scoped — DbContext is scoped; the
         // store holds no per-instance state beyond the constructor
         // dependency. Rotation runs inside an explicit transaction
         // (see EfRefreshTokenStore.RotateAsync).
-        _ = services.AddScoped<IRefreshTokenStore, EfRefreshTokenStore>();
+        services.AddScoped<IRefreshTokenStore, EfRefreshTokenStore>();
 
         // Signing key repository. Scoped — DbContext is scoped.
         // JwtSigningService reads public keys; SigningKeyBootstrapper
         // writes the first keypair on startup.
-        _ = services.AddScoped<ISigningKeyRepository, EfSigningKeyRepository>();
+        services.AddScoped<ISigningKeyRepository, EfSigningKeyRepository>();
 
         // JWT signing service. Singleton — holds no per-instance
         // state; every Issue / Verify call reads from the key
         // repository.
-        _ = services.AddSingleton<IJwtSigningService, JwtSigningService>();
+        services.AddSingleton<IJwtSigningService, JwtSigningService>();
 
         // Signing-key bootstrapper. Runs on startup; ensures at
         // least one active signing key exists before the first
         // HTTP request. "First writer wins" — multiple hosts
         // racing on the same empty table are reconciled by the
         // unique kid constraint + a retry-on-conflict path.
-        _ = services.AddHostedService<SigningKeyBootstrapper>();
+        services.AddHostedService<SigningKeyBootstrapper>();
+
+        // configuration is reserved for Options binding (3.2+ may
+        // add AuthOptions for refresh-token lifetime). The variable
+        // is unused today; the parameter exists so the call site
+        // is stable when binding lands. Discard intentionally
+        // suppresses "unused parameter" without changing the
+        // public signature.
+        _ = configuration;
 
         return services;
     }
 }
-
