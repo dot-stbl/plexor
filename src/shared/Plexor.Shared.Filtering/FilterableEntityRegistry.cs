@@ -18,11 +18,11 @@ namespace Plexor.Shared.Filtering;
 ///     </para>
 ///     <para>
 ///         Singleton lifetime — same instance reused across every schema
-///         emission (build-time <see cref="Microsoft.AspNetCore.OpenApi" />
-///         graph + every <c>/openapi/v1.json</c> request).
+///         emission (build-time Microsoft.Extensions.ApiDescription.Server
+///         target + every <c>/openapi/v1.json</c> request).
 ///     </para>
 /// </remarks>
-public sealed class FilterableEntityRegistry
+public sealed class FilterableEntityRegistry()
 {
     private readonly ConcurrentDictionary<string, IReadOnlyList<UntypedFilterableField>> byTypeName = new(StringComparer.Ordinal);
 
