@@ -65,8 +65,8 @@
                 Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Infrastructure/Plexor.Modules.Realm.Infrastructure.csproj"/>
         </Folder>
 
-    
-    
+
+
     </Folder>
 
     <!-- ============ Hosts (entry points) =================================== -->
@@ -95,8 +95,7 @@
             <Project Path="src/providers/Plexor.Providers.Substrate.Lxd/Plexor.Providers.Substrate.Lxd.csproj"/>
             <Project Path="src/providers/Plexor.Providers.Substrate.K3s/Plexor.Providers.Substrate.K3s.csproj"/>
             <Project Path="src/providers/Plexor.Providers.Substrate.Maas/Plexor.Providers.Substrate.Maas.csproj"/>
-            <Project
-                Path="src/providers/Plexor.Providers.Substrate.Tinkerbell/Plexor.Providers.Substrate.Tinkerbell.csproj"/>
+            <Project Path="src/providers/Plexor.Providers.Substrate.Tinkerbell/Plexor.Providers.Substrate.Tinkerbell.csproj"/>
             <Project Path="src/providers/Plexor.Providers.Substrate.Pod/Plexor.Providers.Substrate.Pod.csproj"/>
         </Folder>
     </Folder>

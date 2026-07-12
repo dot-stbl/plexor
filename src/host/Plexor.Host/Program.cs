@@ -28,6 +28,7 @@ using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
 using Plexor.Shared.Filtering;
 using Plexor.Shared.Persistence;
+using Plexor.Shared.Telemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,7 +93,15 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
 builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
 
+// Logging — Plexor console formatter (color-coded by level, formatted
+// for grep-ability). Replaces the default simple formatter so all ASP.NET
+// logs go through PlexorConsoleFormatter at startup. Must be called
+// BEFORE builder.Build() because the logging service collection is
+// frozen once the host is built.
+builder.Logging.AddPlexorConsole();
+
 var app = builder.Build();
+
 app.Logger.LogInformation(
     "Registered {ContextCount} DbContext(s) against ConnectionStrings:Postgres",
     contextCount);
