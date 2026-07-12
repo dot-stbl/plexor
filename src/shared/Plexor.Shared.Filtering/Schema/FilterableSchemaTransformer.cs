@@ -46,16 +46,10 @@ namespace Plexor.Shared.Filtering;
 ///     kubb plugin's <c>FilterOperatorName</c> union; the kubb serializer
 ///     maps them to the DSL symbols (<c>==</c>, <c>~</c>, etc.).</para>
 /// </remarks>
-public sealed class FilterableSchemaTransformer : IOpenApiSchemaTransformer
+/// <remarks>Constructs the transformer with the entity registry it queries for fields.</remarks>
+/// <param name="registry">Registry of filterable entities indexed by CLR full name.</param>
+public sealed class FilterableSchemaTransformer(FilterableEntityRegistry registry) : IOpenApiSchemaTransformer
 {
-    private readonly FilterableEntityRegistry registry;
-
-    /// <summary>Constructs the transformer with the entity registry it queries for fields.</summary>
-    /// <param name="registry">Registry of filterable entities indexed by CLR full name.</param>
-    public FilterableSchemaTransformer(FilterableEntityRegistry registry)
-    {
-        this.registry = registry;
-    }
 
     /// <summary>Adds <c>x-filterable</c> + <c>x-sortable</c> extensions when the schema is a registered filterable entity.</summary>
     /// <param name="schema">OpenAPI schema being processed.</param>
