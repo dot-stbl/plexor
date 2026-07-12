@@ -5,7 +5,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <!-- Benchmark project — not production code. Suppress XML doc + collection rules. -->
-    <NoWarn>$(NoWarn);CS1591;CA1002;CA1826;MA0016</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;CA1002;CA1826;MA0016;IDE0047</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
