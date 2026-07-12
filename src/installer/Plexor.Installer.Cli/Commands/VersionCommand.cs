@@ -15,15 +15,17 @@ using Spectre.Console.Cli;
 namespace Plexor.Installer.Commands;
 
 /// <summary>
-/// <c>plx version</c> / <c>plx v</c>. The version is already shown
-/// in the banner printed by <see cref="Plexor.Shared.Console.PlexorCliBuilder"/>;
-/// this command is a no-op so the explicit-subcommand form has the
-/// same output as <c>--version</c>.
+///     <c>plx version</c> / <c>plx v</c>. The version is already shown
+///     in the banner printed by <see cref="Plexor.Shared.Console.PlexorCliBuilder" />;
+///     this command is a no-op so the explicit-subcommand form has the
+///     same output as <c>--version</c>.
 /// </summary>
 internal sealed class VersionCommand : Command
 {
-    /// <summary>Exit successfully. The banner was printed by the
-    /// builder; nothing else to do.</summary>
+    /// <summary>
+    ///     Exit successfully. The banner was printed by the
+    ///     builder; nothing else to do.
+    /// </summary>
     public override int Execute(CommandContext context)
     {
         return 0;

@@ -9,18 +9,18 @@
 // have. Rendered as Spectre.Console Markup so the colors carry over.
 // ============================================================================
 
-using Spectre.Console;
-
 namespace Plexor.Shared.Console;
 
 /// <summary>
-/// One-line footer summarizing the CLI session: tool name, version,
-/// optionally a cluster or node name, and a duration label. Used
-/// after the last table or rule so users get a "what just happened"
-/// summary without scrolling back.
+///     One-line footer summarizing the CLI session: tool name, version,
+///     optionally a cluster or node name, and a duration label. Used
+///     after the last table or rule so users get a "what just happened"
+///     summary without scrolling back.
 /// </summary>
-/// <param name="Duration">How long the command took. Optional —
-/// null means don't render the timing line at all.</param>
+/// <param name="Duration">
+///     How long the command took. Optional —
+///     null means don't render the timing line at all.
+/// </param>
 public sealed record StatusFooter(
     string ToolName,
     string Version,
@@ -28,14 +28,16 @@ public sealed record StatusFooter(
     string? NodeName = null,
     TimeSpan? Duration = null)
 {
-    /// <summary>Render the footer as a single line of markup.
-    /// Pass to <c>AnsiConsole.MarkupLine</c>.</summary>
+    /// <summary>
+    ///     Render the footer as a single line of markup.
+    ///     Pass to <c>AnsiConsole.MarkupLine</c>.
+    /// </summary>
     public string Render()
     {
         var parts = new List<string>
         {
             MarkupExtensions.Accent(ToolName),
-            MarkupExtensions.Muted($"v{Version}"),
+            MarkupExtensions.Muted($"v{Version}")
         };
 
         if (!string.IsNullOrWhiteSpace(ClusterName))
@@ -66,7 +68,7 @@ public sealed record StatusFooter(
             < 1 => $"{d.TotalMilliseconds:F0}ms",
             < 60 => $"{d.TotalSeconds:F1}s",
             < 3600 => $"{d.TotalMinutes:F0}m {d.Seconds}s",
-            _ => $"{d.TotalHours:F0}h {d.Minutes}m",
+            _ => $"{d.TotalHours:F0}h {d.Minutes}m"
         };
     }
 }

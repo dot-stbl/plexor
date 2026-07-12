@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Plexor.Shared.Persistence;
@@ -12,17 +10,23 @@ namespace Plexor.Shared.Persistence;
 ///     call from the module's installer.
 /// </summary>
 /// <remarks>
-///     <para><b>Why one extension.</b> Every DbContext needs the same
-///     infrastructure (snake_case, Postgres, change-tracking conventions,
-///     interceptors). Centralising the wiring means there is exactly one
-///     place to extend when we add a new module-wide behaviour (e.g.
-///     multi-tenancy filter, audit field auto-population).</para>
-///     <para><b>Why no <c>AddDbContext</c> directly.</b> Direct
-///     <c>AddDbContext</c> skips the naming convention and lets module
-///     code diverge silently from the schema conventions. <c>AddModuleDbContext</c>
-///     enforces both.</para>
-///     <para><b>Scoped lifetime.</b> Matches EF Core's requirement —
-///     DbContext is not thread-safe, must be per-request.</para>
+///     <para>
+///         <b>Why one extension.</b> Every DbContext needs the same
+///         infrastructure (snake_case, Postgres, change-tracking conventions,
+///         interceptors). Centralising the wiring means there is exactly one
+///         place to extend when we add a new module-wide behaviour (e.g.
+///         multi-tenancy filter, audit field auto-population).
+///     </para>
+///     <para>
+///         <b>Why no <c>AddDbContext</c> directly.</b> Direct
+///         <c>AddDbContext</c> skips the naming convention and lets module
+///         code diverge silently from the schema conventions. <c>AddModuleDbContext</c>
+///         enforces both.
+///     </para>
+///     <para>
+///         <b>Scoped lifetime.</b> Matches EF Core's requirement —
+///         DbContext is not thread-safe, must be per-request.
+///     </para>
 /// </remarks>
 public static class PlexorPersistenceServiceCollectionExtensions
 {
@@ -31,23 +35,28 @@ public static class PlexorPersistenceServiceCollectionExtensions
     ///     with PostgreSQL provider, snake_case naming convention, and the
     ///     standard interceptor set.
     /// </summary>
-    /// <typeparam name="TContext">Concrete <see cref="PlexorDbContext" />
-    /// subclass for the module.</typeparam>
+    /// <typeparam name="TContext">
+    ///     Concrete <see cref="PlexorDbContext" />
+    ///     subclass for the module.
+    /// </typeparam>
     /// <param name="services">DI service collection.</param>
-    /// <param name="connectionString">PostgreSQL connection string
-    /// (typically read from <c>IOptions&lt;ConnectionStringsOptions&gt;</c>
-    /// in the host's composition root).</param>
+    /// <param name="connectionString">
+    ///     PostgreSQL connection string
+    ///     (typically read from <c>IOptions&lt;ConnectionStringsOptions&gt;</c>
+    ///     in the host's composition root).
+    /// </param>
     public static IServiceCollection AddModuleDbContext<TContext>(
         this IServiceCollection services,
         string connectionString)
-        where TContext : PlexorDbContext
+            where TContext : PlexorDbContext
     {
         services.AddDbContext<TContext>((sp, options) =>
         {
-            options.UseNpgsql(connectionString, npg =>
-            {
-                npg.MigrationsAssembly(typeof(TContext).Assembly.GetName().Name);
-            });
+            options.UseNpgsql(connectionString,
+                npg =>
+                {
+                    npg.MigrationsAssembly(typeof(TContext).Assembly.GetName().Name);
+                });
 
             // snake_case naming convention (column + table). Runtime safety-net;
             // design-time correctness is enforced via HasColumnName("snake_case")

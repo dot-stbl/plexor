@@ -74,6 +74,27 @@ in `Directory.Build.props`. Analyzers catch:
   components. Mixing modifiers inside one record is a syntax error.
   Rule: `public sealed record X(...)` (modifier on record) and
   `void Method(...)` (no modifier in interface) are the right shapes.
+  Plus strict XML doc convention (CS1591 is an error in this repo):
+  - Every public type and every public member MUST have at least
+    `/// <summary>…</summary>`. The summary is the doc; not a `//`
+    comment.
+  - `/// <param name="X">…</param>` is REQUIRED only when the
+    parameter's purpose is NOT obvious from the name+type. Examples:
+    `string Hostname` (obvious) does NOT need a `<param>`; but
+    `DateTimeOffset SentAt` (why the timestamp, what the control
+    plane uses it for) DOES. Over-documenting is noise; under-
+    documenting breaks CS1591.
+  - `/// <inheritdoc cref="X.Y" />` is the canonical way to inherit
+    the base doc on a property override or constructor override.
+    Inheritdoc does NOT work on property overrides in C# 12 (the
+    compiler reports CS1591 for the override) — for those, write a
+    one-line `<summary>` directly. Use `<inheritdoc />` only on
+    method, constructor, and interface implementation overrides where
+    the compiler accepts it.
+  - XML comments are NOT source code — they live in the docs stream.
+    Escape rules: only `<`, `>`, `&` are special. `cref="…"` uses
+    raw C# identifiers; the C# compiler resolves them at build.
+    Never put `&` or `<` in text content without `&amp;` / `&lt;`.
 - `IDE0011` — add braces to single-line `if`/`foreach`. Never omit.
 - `VSTHRD103` — sync I/O blocks async. Use `await X.ReadAsync(...)`
   on every `StreamReader` / `Process` / `HttpClient` / `JsonSerializer`.

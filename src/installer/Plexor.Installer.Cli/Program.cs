@@ -30,27 +30,27 @@ using Plexor.Installer.Commands;
 using Plexor.Shared.Console;
 
 return PlexorCli.New(args)
-    .Name("plx")
-    .Version("0.2.1")
-    .SetBanner("plexor")
-    .AddCommand<VersionCommand>(
-        "version",
-        icon: BannerArt.Icon.Version,
-        description: "Print version and exit",
-        cmd => cmd.WithAlias("v"))
-    .AddDelegate(
-        "init",
-        icon: BannerArt.Icon.Init,
-        description: "Bootstrap a Plexor cluster on this host",
-        _ => 0)   // stub until InitCommand lands
-    .AddDelegate(
-        "upgrade",
-        icon: BannerArt.Icon.Upgrade,
-        description: "Atomic in-place upgrade",
-        _ => 0) // stub until UpgradeCommand lands
-    .AddDelegate(
-        "destroy",
-        icon: BannerArt.Icon.Destroy,
-        description: "Tear down the cluster on this host",
-        _ => 0) // stub until DestroyCommand lands
-    .Run();
+        .Name("plx")
+        .Version("0.2.1")
+        .SetBanner("plexor")
+        .AddCommand<VersionCommand>(
+            "version",
+            BannerArt.Icon.Version,
+            "Print version and exit",
+            cmd => cmd.WithAlias("v"))
+        .AddDelegate(
+            "init",
+            BannerArt.Icon.Init,
+            "Bootstrap a Plexor cluster on this host",
+            _ => 0) // stub until InitCommand lands
+        .AddDelegate(
+            "upgrade",
+            BannerArt.Icon.Upgrade,
+            "Atomic in-place upgrade",
+            _ => 0) // stub until UpgradeCommand lands
+        .AddDelegate(
+            "destroy",
+            BannerArt.Icon.Destroy,
+            "Tear down the cluster on this host",
+            _ => 0) // stub until DestroyCommand lands
+        .Run();

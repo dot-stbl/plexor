@@ -16,25 +16,31 @@
 namespace Plexor.Shared.Contracts.Routes;
 
 /// <summary>
-/// URL composition for the Plexor public API. Every controller
-/// <c>[Route]</c> attribute starts with <see cref="Base"/> so the
-/// version segment lives in one place.
+///     URL composition for the Plexor public API. Every controller
+///     <c>[Route]</c> attribute starts with <see cref="Base" /> so the
+///     version segment lives in one place.
 /// </summary>
 public static class ApiRoutes
 {
-    /// <summary>The API version segment embedded in every route
-    /// (<c>v1</c>). Bump to <c>"v2"</c> for the next major
-    /// generation; old controllers keep using the old <c>v1</c>
-    /// segment until they migrate.</summary>
+    /// <summary>
+    ///     The API version segment embedded in every route
+    ///     (<c>v1</c>). Bump to <c>"v2"</c> for the next major
+    ///     generation; old controllers keep using the old <c>v1</c>
+    ///     segment until they migrate.
+    /// </summary>
     public const string ApiVersion = "v1";
 
-    /// <summary>The base path prefix (<c>api/v1</c>). Every
-    /// controller route composes its full path from this.</summary>
+    /// <summary>
+    ///     The base path prefix (<c>api/v1</c>). Every
+    ///     controller route composes its full path from this.
+    /// </summary>
     public const string Base = "api/" + ApiVersion;
 
-    /// <summary>Composes a resource route under the API base:
-    /// <c>api/v1/{name}</c>. Use in controller <c>[Route]</c>
-    /// attributes: <c>[Route(ApiRoutes.Resource("advertisers"))]</c>.</summary>
+    /// <summary>
+    ///     Composes a resource route under the API base:
+    ///     <c>api/v1/{name}</c>. Use in controller <c>[Route]</c>
+    ///     attributes: <c>[Route(ApiRoutes.Resource("advertisers"))]</c>.
+    /// </summary>
     public static string Resource(string name)
     {
         return Base + "/" + name;

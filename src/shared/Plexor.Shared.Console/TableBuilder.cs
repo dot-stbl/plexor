@@ -21,8 +21,8 @@ using Spectre.Console;
 namespace Plexor.Shared.Console;
 
 /// <summary>
-/// Horizontal alignment of a column. Mirrors Spectre's enum but
-/// exposes a short name so the fluent API reads cleaner.
+///     Horizontal alignment of a column. Mirrors Spectre's enum but
+///     exposes a short name so the fluent API reads cleaner.
 /// </summary>
 public enum ColumnAlign
 {
@@ -33,21 +33,23 @@ public enum ColumnAlign
     Center,
 
     /// <summary>Right edge (numeric columns).</summary>
-    Right,
+    Right
 }
 
 /// <summary>
-/// Fluent builder for <see cref="Spectre.Console.Table"/>. Each
-/// <see cref="AddColumn"/> returns the same builder so call sites
-/// can chain them. <see cref="Build"/> returns a fully-configured
-/// <see cref="Table"/> ready to receive rows and render.
+///     Fluent builder for <see cref="Spectre.Console.Table" />. Each
+///     <see cref="AddColumn" /> returns the same builder so call sites
+///     can chain them. <see cref="Build" /> returns a fully-configured
+///     <see cref="Table" /> ready to receive rows and render.
 /// </summary>
 public sealed class TableBuilder
 {
     private readonly Table table = new();
 
-    /// <summary>Create a new builder with Plexor DS default borders
-    /// and header style applied.</summary>
+    /// <summary>
+    ///     Create a new builder with Plexor DS default borders
+    ///     and header style applied.
+    /// </summary>
     public TableBuilder()
     {
         _ = table.Border(TableBorder.Rounded);
@@ -55,9 +57,11 @@ public sealed class TableBuilder
         _ = table.Expand();
     }
 
-    /// <summary>Add a column. <paramref name="align"/> defaults to
-    /// left; numeric columns pass <see cref="ColumnAlign.Right"/>
-    /// for the conventional alignment.</summary>
+    /// <summary>
+    ///     Add a column. <paramref name="align" /> defaults to
+    ///     left; numeric columns pass <see cref="ColumnAlign.Right" />
+    ///     for the conventional alignment.
+    /// </summary>
     public TableBuilder AddColumn(string header, ColumnAlign align = ColumnAlign.Left)
     {
         var col = new TableColumn(MarkupExtensions.B(header));
@@ -66,22 +70,27 @@ public sealed class TableBuilder
             ColumnAlign.Left => Justify.Left,
             ColumnAlign.Center => Justify.Center,
             ColumnAlign.Right => Justify.Right,
-            _ => Justify.Left,
+            _ => Justify.Left
         });
+
         _ = table.AddColumn(col);
         return this;
     }
 
-    /// <summary>Set the title that renders above the table. Useful
-    /// for "what is this listing" headers.</summary>
+    /// <summary>
+    ///     Set the title that renders above the table. Useful
+    ///     for "what is this listing" headers.
+    /// </summary>
     public TableBuilder WithTitle(string title)
     {
         table.Title = new TableTitle(MarkupExtensions.Accent(title));
         return this;
     }
 
-    /// <summary>Build the configured table. The caller is responsible
-    /// for adding rows and rendering.</summary>
+    /// <summary>
+    ///     Build the configured table. The caller is responsible
+    ///     for adding rows and rendering.
+    /// </summary>
     public Table Build()
     {
         return table;

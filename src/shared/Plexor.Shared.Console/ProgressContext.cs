@@ -23,29 +23,33 @@ using Spectre.Console;
 namespace Plexor.Shared.Console;
 
 /// <summary>
-/// Static helper for one-shot progress runs. Wraps
-/// <see cref="Progress"/> so call sites only see the async lambda —
-/// no need to manage the builder lifecycle.
+///     Static helper for one-shot progress runs. Wraps
+///     <see cref="Progress" /> so call sites only see the async lambda —
+///     no need to manage the builder lifecycle.
 /// </summary>
 public static class ProgressRunner
 {
-    /// <summary>Start a progress run and run the body. The body
-    /// adds tasks and increments them; the renderer updates the
-    /// terminal in place until the body returns.</summary>
-    /// <param name="body">The work to run with a live progress
-    /// context. Receives the running <see cref="ProgressTask"/>s
-    /// via the Spectre API.</param>
+    /// <summary>
+    ///     Start a progress run and run the body. The body
+    ///     adds tasks and increments them; the renderer updates the
+    ///     terminal in place until the body returns.
+    /// </summary>
+    /// <param name="body">
+    ///     The work to run with a live progress
+    ///     context. Receives the running <see cref="ProgressTask" />s
+    ///     via the Spectre API.
+    /// </param>
     public static async Task RunAsync(Func<ProgressContext, Task> body)
     {
         await AnsiConsole.Progress()
-            .HideCompleted(false)
-            .AutoRefresh(true)
-            .Columns(
-                new TaskDescriptionColumn(),
-                new ProgressBarColumn(),
-                new PercentageColumn(),
-                new RemainingTimeColumn(),
-                new SpinnerColumn())
-            .StartAsync(body);
+                .HideCompleted(false)
+                .AutoRefresh(true)
+                .Columns(
+                    new TaskDescriptionColumn(),
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                    new RemainingTimeColumn(),
+                    new SpinnerColumn())
+                .StartAsync(body);
     }
 }

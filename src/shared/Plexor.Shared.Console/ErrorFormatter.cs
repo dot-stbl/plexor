@@ -28,14 +28,16 @@ using Spectre.Console;
 namespace Plexor.Shared.Console;
 
 /// <summary>
-/// One-line, color-coded error / warning / ok formatter. Keeps
-/// every Plexor CLI's failure output visually consistent.
+///     One-line, color-coded error / warning / ok formatter. Keeps
+///     every Plexor CLI's failure output visually consistent.
 /// </summary>
 public static class ErrorFormatter
 {
-    /// <summary>Format an error. <paramref name="primary"/> is
-    /// the main message; <paramref name="because"/> is the
-    /// optional detail that comes after the separator.</summary>
+    /// <summary>
+    ///     Format an error. <paramref name="primary" /> is
+    ///     the main message; <paramref name="because" /> is the
+    ///     optional detail that comes after the separator.
+    /// </summary>
     public static string Error(string primary, string? because = null)
     {
         return Render(ColorPalette.Error, "err", primary, because);
@@ -47,9 +49,11 @@ public static class ErrorFormatter
         return Render(ColorPalette.Warn, "warn", primary, because);
     }
 
-    /// <summary>Format a successful outcome (rare — usually you'd
-    /// just print the result, but some workflows benefit from a
-    /// one-line "ok" stamp).</summary>
+    /// <summary>
+    ///     Format a successful outcome (rare — usually you'd
+    ///     just print the result, but some workflows benefit from a
+    ///     one-line "ok" stamp).
+    /// </summary>
     public static string Ok(string primary, string? because = null)
     {
         return Render(ColorPalette.Ok, "ok", primary, because);
@@ -66,7 +70,7 @@ public static class ErrorFormatter
         var severity = $"[{severityColor.ToMarkup()}]{severityLabel}[/]";
         var head = $"{severity} {MarkupExtensions.B(primary)}";
         return string.IsNullOrWhiteSpace(because)
-            ? head
-            : $"{head}  {MarkupExtensions.Muted("because:")} {MarkupExtensions.Muted(because)}";
+                ? head
+                : $"{head}  {MarkupExtensions.Muted("because:")} {MarkupExtensions.Muted(because)}";
     }
 }

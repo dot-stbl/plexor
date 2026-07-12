@@ -9,21 +9,27 @@ namespace Plexor.Shared.Persistence;
 ///     pattern: count + skip + take + project to <see cref="PageResult{T}" />.
 /// </summary>
 /// <remarks>
-///     <para><b>Why one extension.</b> Every paged list endpoint in every
-///     module runs the same three-step query (count, slice, project). A
-///     single helper keeps the SQL pattern in lockstep — adding paging
-///     behaviour (e.g. "prefer keyset over offset for tables > 1M rows")
-///     is a one-line change here, not a search across handlers.</para>
-///     <para><b>Two-roundtrip model.</b> <c>Count</c> + <c>ToList</c> are
-///     separate queries because Postgres' <c>COUNT(*) OVER()</c> window
-///     function requires reading every row before slicing, which is
-///     slower for large datasets than a separate count. Splitting the
-///     two lets each query hit the right index.</para>
-///     <para><b>AsNoTracking.</b> Read paths only — the caller opts out
-///     of change tracking so we don't materialise entities in the
-///     tracker. Combined with a projection (<c>.Select(...)</c>) this
-///     means the SQL query selects only the columns the projection
-///     references.</para>
+///     <para>
+///         <b>Why one extension.</b> Every paged list endpoint in every
+///         module runs the same three-step query (count, slice, project). A
+///         single helper keeps the SQL pattern in lockstep — adding paging
+///         behaviour (e.g. "prefer keyset over offset for tables > 1M rows")
+///         is a one-line change here, not a search across handlers.
+///     </para>
+///     <para>
+///         <b>Two-roundtrip model.</b> <c>Count</c> + <c>ToList</c> are
+///         separate queries because Postgres' <c>COUNT(*) OVER()</c> window
+///         function requires reading every row before slicing, which is
+///         slower for large datasets than a separate count. Splitting the
+///         two lets each query hit the right index.
+///     </para>
+///     <para>
+///         <b>AsNoTracking.</b> Read paths only — the caller opts out
+///         of change tracking so we don't materialise entities in the
+///         tracker. Combined with a projection (<c>.Select(...)</c>) this
+///         means the SQL query selects only the columns the projection
+///         references.
+///     </para>
 /// </remarks>
 public static class QueryablePagingExtensions
 {
@@ -47,14 +53,14 @@ public static class QueryablePagingExtensions
 
         var total = await source.CountAsync(cancellationToken);
         var items = await source
-            .Skip(normalized.Skip())
-            .Take(normalized.PageSize)
-            .ToListAsync(cancellationToken);
+                .Skip(normalized.Skip())
+                .Take(normalized.PageSize)
+                .ToListAsync(cancellationToken);
 
         return new PageResult<T>(
-            Items: items,
-            Total: total,
-            Page: normalized.Page,
-            PageSize: normalized.PageSize);
+            items,
+            total,
+            normalized.Page,
+            normalized.PageSize);
     }
 }

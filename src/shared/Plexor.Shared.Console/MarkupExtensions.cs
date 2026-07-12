@@ -13,10 +13,10 @@
 namespace Plexor.Shared.Console;
 
 /// <summary>
-/// Short aliases for Spectre.Console markup tags. <c>B("foo")</c>
-/// produces the same string as <c>"[bold]foo[/]"</c> but reads like
-/// tagged text in call sites. The helpers return strings, not
-/// renderables — pass them to <c>AnsiConsole.MarkupLine</c>.
+///     Short aliases for Spectre.Console markup tags. <c>B("foo")</c>
+///     produces the same string as <c>"[bold]foo[/]"</c> but reads like
+///     tagged text in call sites. The helpers return strings, not
+///     renderables — pass them to <c>AnsiConsole.MarkupLine</c>.
 /// </summary>
 public static class MarkupExtensions
 {
