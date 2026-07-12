@@ -1,6 +1,3 @@
-using Plexor.Shared.Filtering;
-using Plexor.Shared.Filtering.Operators;
-using Plexor.Shared.Filtering.Parser;
 using Shouldly;
 using Xunit;
 

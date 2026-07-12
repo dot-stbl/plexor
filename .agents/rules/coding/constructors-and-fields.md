@@ -96,6 +96,49 @@ public sealed class UserService : IUserService
 }
 ```
 
+### Имя параметра primary ctor — PascalCase (для class), camelCase (для record)
+
+Параметр primary ctor — это по сути обычный параметр конструктора.
+Выбор naming convention зависит от того, объявлен ли тип через
+**record** (который пробрасывает свойства наружу) или через **class**
+(свойство не создаётся автоматически).
+
+**Class с primary ctor** — параметр живёт как backing field, наружу
+не выбрасывается. Поэтому Camel-case в стиле обычного параметра:
+
+```csharp
+// ✅ Correct — class: параметр camelCase, как в любом конструкторе
+public sealed class UserService(IUserRepository repository, ILogger<UserService> logger)
+{
+    public Task<User?> GetAsync(Guid id, CancellationToken token = default)
+        => repository.GetByIdAsync(id, token);
+}
+
+// ❌ Wrong — class: PascalCase параметр. Это не record, поле не экспонируется.
+public sealed class UserService(IUserRepository Repository, ILogger<UserService> Logger)
+{
+    // ...
+}
+```
+
+**Record с primary ctor** — параметр становится публичным свойством с
+init-only setter. Поэтому PascalCase, как у других свойств record'а:
+
+```csharp
+// ✅ Correct — record: PascalCase, пробрасывается как свойство
+public sealed record UserSummary(Guid Id, string Name, string Email);
+
+// ❌ Wrong — record: camelCase ломает convention record'а
+public sealed record UserSummary(Guid id, string name, string email);
+```
+
+Всё производное от этого правила:
+- XML doc `<param name="repository">` (camelCase) для class, `<param name="Id">` (PascalCase) для record.
+- Self-init property в class: `public ILogger Logger { get; } = logger;` (PascalCase, потому что public API). Внутри class имя параметра остаётся camelCase, а assigned property должен иметь другое имя или быть без `private readonly`.
+
+**Class, хранящий primary ctor параметр как mutable property** — нарушение другого правила ("private readonly остаётся только когда..."). Если нужно экспонировать — лучше auto-property без primary ctor или инициализация в методе lifecycle.
+```
+
 ### `private readonly` остаётся **только** когда:
 
 - нужна **мутируемая** внутренняя мутация (`private int counter`).
@@ -132,6 +175,13 @@ rg -n 'public sealed class \w+(?!\()' src/ --type cs
 # Дублирующее поле: primary ctor param + private readonly с тем же именем
 rg -n 'private readonly \w+ (_\w+|\w+) = \w+' src/ --type cs
 #   → Каждый результат = потенциальное нарушение (исключения см. выше).
+
+# Имя параметра primary ctor: PascalCase в class (вместо camelCase).
+# Правило: class → camelCase, record → PascalCase.
+rg -n 'public (?:sealed )?class \w+\(' src/ --type cs
+#   → Для каждого результата проверь параметры — camelCase.
+#   Пример нарушения: 'public sealed class UserService(IUserRepository Repository, ...)' —
+#   'Repository' должно быть 'repository' (это class, не record).
 ```
 
 **Enforcement:** convention + code review + self-audit grep. Нет

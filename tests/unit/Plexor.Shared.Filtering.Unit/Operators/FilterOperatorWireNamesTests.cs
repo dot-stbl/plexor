@@ -6,8 +6,6 @@
 // is locked. Currently this file is a single smoke test to confirm
 // the wire-name conventions stay stable across renames.
 
-using Plexor.Shared.Filtering;
-using Plexor.Shared.Filtering.Operators;
 using Shouldly;
 using Xunit;
 
