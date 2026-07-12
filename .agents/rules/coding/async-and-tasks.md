@@ -114,6 +114,56 @@ repository.GetUserAsync(id).GetAwaiter().GetResult();
 
 ---
 
+## 6. `_ = await X()` — ЗАПРЕЩЁН (бессмысленный discard)
+
+`await` уже синхронно ждёт завершения Task'а и точечно применяет его
+результат (или отбрасывает). Префикс `_ =` не добавляет ничего —
+runtime behavior идентичен голому `await`. Это шум, который
+обманывает читателя: выглядит как «fire-and-forget», но на деле
+ждёт.
+
+```csharp
+// ❌ Wrong — бессмысленный discard поверх await
+_ = await db.Users.AddAsync(user, ct);
+_ = await db.SaveChangesAsync(ct);
+_ = await transaction.CommitAsync(ct);
+
+// ✅ Correct — просто await
+await db.Users.AddAsync(user, ct);
+await db.SaveChangesAsync(ct);
+await transaction.CommitAsync(ct);
+```
+
+**Когда `_ =` оправдан (только в одном случае):** синхронный
+fire-and-forget — запуск `Task`, результат которого читателю не нужен
+**и он не хочет ждать**. В app code такие сценарии редки и должны
+явно аннотироваться комментарием «почему fire-and-forget OK здесь».
+
+```csharp
+// ✅ Допустимо только с обоснованием — fire-and-forget на hot path,
+//    не хотим платить за ожидание логирования.
+_ = telemetryClient.FlushAsync(ct);
+
+// ✅ Допустимо — async-лямбда передаётся как Action (не Task), discard
+//    явно говорит «не интересует возвращаемое значение».
+_ = SomeFuncReturningTask().ContinueWith(...);
+```
+
+**Почему `_ = await` особенно плохо:** визуально он сигнализирует
+«я отбрасываю результат, не дожидаюсь» — это противоположность
+тому, что делает `await`. Следующий читатель тратит 30 секунд на
+вопрос «подожди, я же await'нул, зачем тут discard?» Префикс
+надо убрать, не объяснять.
+
+**Самопроверка перед коммитом:** `rg -n '_ = await' src/ --type cs`
+должен показывать только оправданные случаи с комментарием-обоснованием.
+
+**Enforcement:** convention + `worker-audit.md`. Roslyn не считает это
+error'ом (явный discard синтаксически валиден), поэтому поймает только
+reviewer или self-audit grep.
+
+---
+
 ## Связанные правила
 
 - `naming-and-types.md` — naming (async suffix)

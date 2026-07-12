@@ -53,8 +53,8 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
             CreatedAt = DateTimeOffset.UtcNow,
         };
 
-        _ = await db.RefreshTokens.AddAsync(entity, cancellationToken);
-        _ = await db.SaveChangesAsync(cancellationToken);
+        await db.RefreshTokens.AddAsync(entity, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
         return entity;
     }
 
@@ -107,13 +107,13 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
             CreatedAt = DateTimeOffset.UtcNow,
         };
 
-        _ = await db.RefreshTokens.AddAsync(newEntity, cancellationToken);
+        await db.RefreshTokens.AddAsync(newEntity, cancellationToken);
 
         // Mark the old one consumed. Keep ReplacedBy as a
         // back-pointer for audit / chain traversal. Use raw
         // update because RefreshToken has init-only properties
         // (immutable aggregate).
-        _ = await db.RefreshTokens
+        await db.RefreshTokens
             .Where(token => token.Id == old.Id)
             .ExecuteUpdateAsync(
                 setters => setters

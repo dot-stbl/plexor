@@ -69,7 +69,7 @@ public sealed class EfSigningKeyRepository(IdentityDbContext db) : ISigningKeyRe
         SigningKey key,
         CancellationToken cancellationToken = default)
     {
-        _ = await db.SigningKeys.AddAsync(key, cancellationToken);
-        _ = await db.SaveChangesAsync(cancellationToken);
+        await db.SigningKeys.AddAsync(key, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
     }
 }
