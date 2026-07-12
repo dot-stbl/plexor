@@ -108,3 +108,45 @@ become useful when the first migration runs (Phase 1, planned).
 
 **Action**: none until Phase 1 kicks off. When the first module DbContext is
 introduced, this entry becomes the checklist for the migrator pipeline.
+
+---
+
+## Postgres unreachable during build — OpenAPI source generator fails
+
+**Status**: pre-existing infra gap — build emits 45+ errors that are NOT
+code defects. Affects every `dotnet build plexor.slnx` invocation.
+
+**Where it comes from**: `Microsoft.Extensions.ApiDescription.Server 10.0.9`
+ships a build-time target that runs the host's `Program.Main` to extract the
+OpenAPI spec. During that run, EF Core `IdentityDbContext` + `RealmDbContext`
+attempt to connect to `localhost:5432` (the `ConnectionStrings:Postgres` value
+in `appsettings.json`). The local Postgres is either down or the `plexor`
+role password differs from what's in `appsettings.json`
+(`Host=localhost;Database=plexor;Username=plexor;Password=plexor`).
+
+**Symptom**: build "fails" with stack traces like
+`Npgsql.PostgresException (0x80004005): 28P01: пользователь "plexor" не прошёл
+проверку подлинности (по паролю)`. The actual compile step (warnings/errors)
+is clean — the source generator at `obj/Debug/net10.0/Microsoft.AspNetCore.
+OpenApi.SourceGenerators/` produces its output regardless.
+
+**Workaround until fixed**:
+- Local dev: bring Postgres up and set the `plexor` role password to
+  match `appsettings.json`, OR
+- CI: configure a known-good connection string in the build pipeline.
+- Temporary escape hatch (loses OpenAPI artifact but builds): invoke
+  `dotnet build plexor.slnx -p:OpenApiGenerateDocuments=false` (depends on
+  the project's chosen flag — verify with `dotnet build -h` if not
+  recognised). The build target key may differ across SDK versions.
+
+**Why this is debt and not "fix now"**: making the build tolerant of a
+missing Postgres requires either (a) splitting the host's startup into a
+"minimal mode" that doesn't connect to the DB, or (b) moving the OpenAPI
+extraction to a separate `dotnet run --project src/tools/...` invocation.
+Both are 1+ day refactors; the current pattern matches the .NET
+OpenAPI source-gen docs. Phase 2 may address when the migrator lives
+inside the host's startup path.
+
+**Action**: defer to Phase 4 (endpoints) when we have an integration
+test container that runs Postgres alongside the host. Until then, dev
+runs `docker compose up postgres` (or equivalent) before `dotnet build`.
