@@ -24,6 +24,7 @@ using Plexor.Host.Controllers;
 using Plexor.Host.NodeRegistry;
 using Plexor.Modules.Audit.Domain;
 using Plexor.Modules.Audit.Infrastructure.Persistence;
+using Plexor.Modules.Identity.Infrastructure.Persistence;
 using Plexor.Modules.Tenants.Infrastructure.Persistence;
 using Plexor.Shared.Filtering;
 using Plexor.Shared.Persistence;
@@ -71,6 +72,11 @@ var tenantsConnection = builder.Configuration.GetConnectionString("Tenants")
                         ?? throw new InvalidOperationException(
                             "ConnectionStrings:Tenants missing from configuration.");
 builder.Services.AddModuleDbContext<TenantsDbContext>(tenantsConnection);
+
+var identityConnection = builder.Configuration.GetConnectionString("Identity")
+                         ?? throw new InvalidOperationException(
+                             "ConnectionStrings:Identity missing from configuration.");
+builder.Services.AddModuleDbContext<IdentityDbContext>(identityConnection);
 
 // Filterable entities — Plexor.Shared.Filtering registry. Adding
 // AuditEntry makes its properties available to the kubb plugin via

@@ -104,5 +104,26 @@ public static class DatabaseInformation
 
         /// <summary>Tenants module — one row per tenant organization.</summary>
         public const string Tenants = "tenants";
+
+        /// <summary>Identity module — user accounts.</summary>
+        public const string Users = "users";
+
+        /// <summary>Identity module — named permission sets.</summary>
+        public const string Roles = "roles";
+
+        /// <summary>Identity module — user-to-role attachments, optionally project-scoped.</summary>
+        public const string RoleBindings = "role_bindings";
+
+        /// <summary>Identity module — single-use refresh tokens with rotation chains.</summary>
+        public const string RefreshTokens = "refresh_tokens";
+
+        /// <summary>Identity module — service-to-service credentials.</summary>
+        public const string ApiKeys = "api_keys";
+
+        /// <summary>Identity module — OpenSSH public keys registered per user.</summary>
+        public const string SshKeys = "ssh_keys";
+
+        /// <summary>Identity module — JWT signing keypairs (RS256).</summary>
+        public const string SigningKeys = "signing_keys";
     }
 }
