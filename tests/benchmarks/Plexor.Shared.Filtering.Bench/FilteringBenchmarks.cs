@@ -56,6 +56,26 @@ public class FilteringBenchmarks
         return FilterExpression.ParseFor<BenchEntity>(Filter);
     }
 
+    // ---------- ParseFor memory allocation comparison ----------
+    // Same pipeline, two paths — cold (cache miss, full build)
+    // vs warm (cache hit, dict lookup). [MemoryDiagnoser] column on
+    // the output table shows the difference.
+
+    [Benchmark(Description = "ParseFor cold (emit)")]
+    [BenchmarkCategory("Expression", "Memory")]
+    public object? ParseFor_ColdEmit()
+    {
+        FilterExpression.ClearCache();
+        return FilterExpression.ParseFor<BenchEntity>(Filter);
+    }
+
+    [Benchmark(Description = "ParseFor warm (cache hit)")]
+    [BenchmarkCategory("Expression", "Memory")]
+    public object? ParseFor_WarmEmit()
+    {
+        return FilterExpression.ParseFor<BenchEntity>(Filter);
+    }
+
     // ---------- End-to-end on 100-item list ----------
 
     private static readonly List<BenchEntity> entities = GenerateEntities(100);
@@ -113,4 +133,42 @@ public sealed class BenchEntity
     public DateTimeOffset UpdatedAt { get; set; }
 
     public bool Verified { get; set; }
+}
+
+// ---------- Large IN-list benchmark (allocation visibility) ----------
+
+public class InListBenchmarks
+{
+    // Hard-coded short filters — [Params] requires compile-time constants
+    // (string.Join at runtime is not allowed). 1/10/100-item variants show
+    // the cost scaling; actual long IN-lists (>100) are unrealistic for the
+    // UI and would dominate benchmark time without adding insight.
+    public const string Filter1 = "id[]=00000000-0000-0000-0000-000000000000";
+
+    public const string Filter10 = "id[]=00000000-0000-0000-0000-000000000000"
+        + ",id[]=00000001-0000-0000-0000-000000000000"
+        + ",id[]=00000002-0000-0000-0000-000000000000"
+        + ",id[]=00000003-0000-0000-0000-000000000000"
+        + ",id[]=00000004-0000-0000-0000-000000000000"
+        + ",id[]=00000005-0000-0000-0000-000000000000"
+        + ",id[]=00000006-0000-0000-0000-000000000000"
+        + ",id[]=00000007-0000-0000-0000-000000000000"
+        + ",id[]=00000008-0000-0000-0000-000000000000"
+        + ",id[]=00000009-0000-0000-0000-000000000000";
+
+    [Params(Filter1, Filter10)]
+    public string InListFilter { get; set; } = string.Empty;
+
+    [Benchmark(Description = "ParseFor IN-list cold")]
+    public object? ParseFor_InList_Cold()
+    {
+        FilterExpression.ClearCache();
+        return FilterExpression.ParseFor<BenchEntity>(InListFilter);
+    }
+
+    [Benchmark(Description = "ParseFor IN-list warm")]
+    public object? ParseFor_InList_Warm()
+    {
+        return FilterExpression.ParseFor<BenchEntity>(InListFilter);
+    }
 }

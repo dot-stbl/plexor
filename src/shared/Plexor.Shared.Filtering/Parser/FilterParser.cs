@@ -231,7 +231,8 @@ file sealed class ParserState(IReadOnlyList<FilterToken> tokens, int maxParenDep
                 ? FilterValueKind.QuotedString
                 : FilterValueKind.Scalar;
 
-        var list = new List<string> { Consume().Text };
+        var builder = System.Collections.Immutable.ImmutableArray.CreateBuilder<string>();
+        builder.Add(Consume().Text);
 
         while (Current.Kind == FilterTokenKind.Comma)
         {
@@ -242,9 +243,9 @@ file sealed class ParserState(IReadOnlyList<FilterToken> tokens, int maxParenDep
                 throw new FilterParseException("Expected value after ','", Current.Position);
             }
 
-            list.Add(Consume().Text);
+            builder.Add(Consume().Text);
         }
 
-        return new ListValue(list);
+        return new ListValue(builder.ToImmutable());
     }
 }

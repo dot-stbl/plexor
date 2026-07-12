@@ -53,12 +53,15 @@ public sealed class ScalarValue(string raw) : FilterValue
 }
 
 /// <summary>A list of values for IN/NotIn operators.</summary>
-/// <remarks>Constructs a list value.</remarks>
+/// <remarks>Constructs a list value. <paramref name="items" /> is stored as
+/// <see cref="System.Collections.Immutable.ImmutableArray{T}" /> so repeated
+/// cache hits don't re-allocate the backing array — the lexer builds it once
+/// on cache miss and the value is preserved verbatim on cache hit.</remarks>
 /// <param name="items">Raw string items from the DSL (quotes already stripped per item).</param>
-public sealed class ListValue(IReadOnlyList<string> items) : FilterValue
+public sealed class ListValue(System.Collections.Immutable.ImmutableArray<string> items) : FilterValue
 {
     /// <summary>The raw string items from the DSL.</summary>
-    public IReadOnlyList<string> Items { get; } = items;
+    public System.Collections.Immutable.ImmutableArray<string> Items { get; } = items;
 }
 
 /// <summary>No value — used by IsNull/IsNotNull operators.</summary>

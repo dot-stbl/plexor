@@ -145,6 +145,8 @@ internal sealed class EfFilterTranslator<TEntity>(FilterableFieldSet<TEntity> fi
                 $"got {cmp.Value.GetType().Name}");
         }
 
+        // ImmutableArray<T> implements IList<T> since .NET 8 — can pass
+        // directly to BuildIn which takes an IList. No allocation.
         return FilterValueConverter.ConvertList(list.Items, field.ValueType);
     }
 
