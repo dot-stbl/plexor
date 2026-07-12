@@ -75,6 +75,23 @@ public static class SigilInfrastructureInstaller
         // (see EfRefreshTokenStore.RotateAsync).
         _ = services.AddScoped<IRefreshTokenStore, EfRefreshTokenStore>();
 
+        // Signing key repository. Scoped — DbContext is scoped.
+        // JwtSigningService reads public keys; SigningKeyBootstrapper
+        // writes the first keypair on startup.
+        _ = services.AddScoped<ISigningKeyRepository, EfSigningKeyRepository>();
+
+        // JWT signing service. Singleton — holds no per-instance
+        // state; every Issue / Verify call reads from the key
+        // repository.
+        _ = services.AddSingleton<IJwtSigningService, JwtSigningService>();
+
+        // Signing-key bootstrapper. Runs on startup; ensures at
+        // least one active signing key exists before the first
+        // HTTP request. "First writer wins" — multiple hosts
+        // racing on the same empty table are reconciled by the
+        // unique kid constraint + a retry-on-conflict path.
+        _ = services.AddHostedService<SigningKeyBootstrapper>();
+
         return services;
     }
 }
