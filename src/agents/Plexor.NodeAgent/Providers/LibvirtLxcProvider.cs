@@ -21,10 +21,10 @@
 //     production parses the rest of the spec.Config.
 // ============================================================================
 
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Xml;
-using Microsoft.Extensions.Logging;
 using Plexor.NodeAgent.Providers.Common;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
@@ -32,33 +32,33 @@ using Plexor.Shared.Workloads;
 namespace Plexor.NodeAgent.Providers;
 
 /// <summary>
-/// <see cref="IWorkloadProvider"/> for LXC system containers via
-/// libvirt. Different <see cref="WorkloadKind"/> from KVM (the
-/// agent's dispatcher routes by Kind), so the agent runs the
-/// same commands against fundamentally different technology.
+///     <see cref="IWorkloadProvider" /> for LXC system containers via
+///     libvirt. Different <see cref="WorkloadKind" /> from KVM (the
+///     agent's dispatcher routes by Kind), so the agent runs the
+///     same commands against fundamentally different technology.
 /// </summary>
-public sealed class LibvirtLxcProvider : IWorkloadProvider
+/// <remarks>
+///     Build a provider that talks to the local libvirt
+///     LXC driver.
+/// </remarks>
+public sealed class LibvirtLxcProvider(ILogger<LibvirtLxcProvider> logger) : IWorkloadProvider
 {
-    /// <summary>The libvirt URI for the local LXC driver. v0.1
-    /// hardcodes this; v0.2+ reads it from configuration.</summary>
-    public static readonly Uri LibvirtUri = new("lxc:///system");
-
-    /// <summary>Default rootfs base directory. Each container's
-    /// rootfs is a subdirectory under here. v0.1: every container
-    /// starts from an empty directory; v0.2+ supports cloning a
-    /// base image (Ubuntu 24.04 cloud image, Alpine 3.21, etc.) via
-    /// <c>spec.Config.template</c>.</summary>
+    /// <summary>
+    ///     Default rootfs base directory. Each container's
+    ///     rootfs is a subdirectory under here. v0.1: every container
+    ///     starts from an empty directory; v0.2+ supports cloning a
+    ///     base image (Ubuntu 24.04 cloud image, Alpine 3.21, etc.) via
+    ///     <c>spec.Config.template</c>.
+    /// </summary>
     public const string DefaultRootfsBase = "/var/lib/plx-lxc";
 
-    private readonly ILogger<LibvirtLxcProvider> logger;
-    private readonly WorkloadIdMap workloads = new();
+    /// <summary>
+    ///     The libvirt URI for the local LXC driver. v0.1
+    ///     hardcodes this; v0.2+ reads it from configuration.
+    /// </summary>
+    public static readonly Uri LibvirtUri = new("lxc:///system");
 
-    /// <summary>Build a provider that talks to the local libvirt
-    /// LXC driver.</summary>
-    public LibvirtLxcProvider(ILogger<LibvirtLxcProvider> logger)
-    {
-        this.logger = logger;
-    }
+    private readonly WorkloadIdMap workloads = new();
 
     /// <inheritdoc />
     public WorkloadKind Kind => new WorkloadKind.Lxc();
@@ -95,6 +95,7 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
                     "Best-effort cleanup of {Container} after failed create failed",
                     spec.Name);
             }
+
             throw;
         }
         finally
@@ -114,12 +115,12 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
 
         workloads.Register(id, spec.Name, Kind);
         return new LocalWorkload(
-            Id: id,
-            Name: spec.Name,
-            Kind: Kind,
-            State: WorkloadState.Running,
-            CreatedAt: DateTimeOffset.UtcNow,
-            StartedAt: DateTimeOffset.UtcNow);
+            id,
+            spec.Name,
+            Kind,
+            WorkloadState.Running,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />
@@ -128,7 +129,7 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
         var entry = workloads.GetOrThrow(id);
         await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Running);
-        return Snapshot(id, startedAt: DateTimeOffset.UtcNow);
+        return Snapshot(id, DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />
@@ -137,7 +138,7 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
         var entry = workloads.GetOrThrow(id);
         await LibvirtRunner.RunAsync(LibvirtUri, $"shutdown {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Stopped);
-        return Snapshot(id, startedAt: null);
+        return Snapshot(id, null);
     }
 
     /// <inheritdoc />
@@ -149,11 +150,12 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
         await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", cancellationToken);
 
         var rootfs = Path.Combine(DefaultRootfsBase, entry.DomainName);
+
         try
         {
             if (Directory.Exists(rootfs))
             {
-                Directory.Delete(rootfs, recursive: true);
+                Directory.Delete(rootfs, true);
             }
         }
         catch (Exception cleanup)
@@ -171,12 +173,12 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
         }
 
         return new LocalWorkload(
-            Id: id,
-            Name: entry.DomainName,
-            Kind: entry.Kind,
-            State: WorkloadState.Stopped,
-            CreatedAt: DateTimeOffset.UtcNow,
-            StartedAt: null);
+            id,
+            entry.DomainName,
+            entry.Kind,
+            WorkloadState.Stopped,
+            DateTimeOffset.UtcNow,
+            null);
     }
 
     /// <inheritdoc />
@@ -186,29 +188,33 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
             workloads.Snapshot(Environment.MachineName));
     }
 
-    /// <summary>Build a <see cref="LocalWorkload"/> snapshot for
-    /// the given id with the given startedAt timestamp.</summary>
+    /// <summary>
+    ///     Build a <see cref="LocalWorkload" /> snapshot for
+    ///     the given id with the given startedAt timestamp.
+    /// </summary>
     private LocalWorkload Snapshot(Guid id, DateTimeOffset? startedAt)
     {
         var entry = workloads.GetOrThrow(id);
         return new LocalWorkload(
-            Id: id,
-            Name: entry.DomainName,
-            Kind: entry.Kind,
-            State: entry.State,
-            CreatedAt: DateTimeOffset.UtcNow,
-            StartedAt: startedAt);
+            id,
+            entry.DomainName,
+            entry.Kind,
+            entry.State,
+            DateTimeOffset.UtcNow,
+            startedAt);
     }
 
-    /// <summary>Build the libvirt domain XML for an LXC system
-    /// container. LXC's XML is fundamentally different from KVM:
-    /// no <c>type='hvm'</c>, no <c>disk</c>, the <c>os</c> has
-    /// <c>init</c> instead of a <c>boot dev</c>.</summary>
+    /// <summary>
+    ///     Build the libvirt domain XML for an LXC system
+    ///     container. LXC's XML is fundamentally different from KVM:
+    ///     no <c>type='hvm'</c>, no <c>disk</c>, the <c>os</c> has
+    ///     <c>init</c> instead of a <c>boot dev</c>.
+    /// </summary>
     private static string BuildContainerXml(WorkloadSpec spec, Guid id, string rootfs)
     {
         var config = TryDeserializeConfig(spec.Config, out var c)
-            ? c
-            : new LibvirtLxcConfig();
+                ? c
+                : new LibvirtLxcConfig();
 
         var ramKiB = config.RamBytes / 1024;
         var vcpu = config.CpuCores;
@@ -216,17 +222,19 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
         var settings = new XmlWriterSettings
         {
             Indent = true,
-            OmitXmlDeclaration = true,
+            OmitXmlDeclaration = true
         };
+
         var sb = new StringBuilder();
+
         using (var writer = XmlWriter.Create(sb, settings))
         {
             writer.WriteStartElement("domain");
             writer.WriteAttributeString("type", "lxc");
             writer.WriteElementString("name", spec.Name);
             writer.WriteElementString("uuid", id.ToString());
-            writer.WriteElementString("memory", Convert.ToString(ramKiB, System.Globalization.CultureInfo.InvariantCulture));
-            writer.WriteElementString("vcpu", Convert.ToString(vcpu, System.Globalization.CultureInfo.InvariantCulture));
+            writer.WriteElementString("memory", Convert.ToString(ramKiB, CultureInfo.InvariantCulture));
+            writer.WriteElementString("vcpu", Convert.ToString(vcpu, CultureInfo.InvariantCulture));
 
             writer.WriteStartElement("os");
             writer.WriteElementString("type", "exe");
@@ -274,7 +282,8 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
         try
         {
             result = config.Deserialize<LibvirtLxcConfig>()
-                ?? new LibvirtLxcConfig();
+                     ?? new LibvirtLxcConfig();
+
             return true;
         }
         catch
@@ -284,17 +293,23 @@ public sealed class LibvirtLxcProvider : IWorkloadProvider
         }
     }
 
-    /// <summary>Provider-specific config schema (consumed from
-    /// <see cref="WorkloadSpec.Config"/>). v0.1: defaults if the
-    /// control plane doesn't supply a value, so the agent stays
-    /// functional even with empty Config.</summary>
-    /// <param name="Init">Path to the init binary inside the
-    /// container. Defaults to <c>/sbin/init</c> for systemd-based
-    /// images; set to <c>/sbin/runit</c> or <c>/bin/sh</c> for
-    /// lighter bases (Alpine, etc.).</param>
-    /// <param name="BridgeName">Libvirt network bridge to attach
-    /// the container's veth to. Defaults to <c>virbr0</c> (the
-    /// libvirt default NAT bridge).</param>
+    /// <summary>
+    ///     Provider-specific config schema (consumed from
+    ///     <see cref="WorkloadSpec.Config" />). v0.1: defaults if the
+    ///     control plane doesn't supply a value, so the agent stays
+    ///     functional even with empty Config.
+    /// </summary>
+    /// <param name="Init">
+    ///     Path to the init binary inside the
+    ///     container. Defaults to <c>/sbin/init</c> for systemd-based
+    ///     images; set to <c>/sbin/runit</c> or <c>/bin/sh</c> for
+    ///     lighter bases (Alpine, etc.).
+    /// </param>
+    /// <param name="BridgeName">
+    ///     Libvirt network bridge to attach
+    ///     the container's veth to. Defaults to <c>virbr0</c> (the
+    ///     libvirt default NAT bridge).
+    /// </param>
     private sealed record LibvirtLxcConfig(
         long RamBytes = 1L * 1024 * 1024 * 1024,
         int CpuCores = 2,

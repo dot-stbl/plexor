@@ -23,7 +23,6 @@
 // (the registry logs the warning and the endpoint stays no-op).
 // ============================================================================
 
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Plexor.Host.Abstractions;
 using Plexor.Shared.Contracts.Routes;
@@ -32,27 +31,24 @@ using Plexor.Shared.NodeApi;
 namespace Plexor.Host.Controllers;
 
 /// <summary>
-/// REST surface for the Plexor.NodeAgent control loop. Mounted at
-/// <c>/api/v1/nodes</c> via the <see cref="ApiRoutes.Base"/>
-/// constant; the same prefix every other Plexor controller uses.
+///     REST surface for the Plexor.NodeAgent control loop. Mounted at
+///     <c>/api/v1/nodes</c> via the <see cref="ApiRoutes.Base" />
+///     constant; the same prefix every other Plexor controller uses.
 /// </summary>
+/// <remarks>
+///     DI-injected registry. Per-update synchronization
+///     is owned by the in-memory implementation (v0.1) or
+///     whatever store backs the interface in v0.2+.
+/// </remarks>
 [ApiController]
 [Route($"{ApiRoutes.Base}/nodes")]
 [Tags("nodes")]
-public sealed class NodeController : ControllerBase
+public sealed class NodeController(INodeRegistry registry) : ControllerBase
 {
-    private readonly INodeRegistry registry;
-
-    /// <summary>DI-injected registry. Per-update synchronization
-    /// is owned by the in-memory implementation (v0.1) or
-    /// whatever store backs the interface in v0.2+.</summary>
-    public NodeController(INodeRegistry registry)
-    {
-        this.registry = registry;
-    }
-
-    /// <summary>POST /api/v1/nodes/join — register a compute node
-    /// with the control plane. First call the agent makes.</summary>
+    /// <summary>
+    ///     POST /api/v1/nodes/join — register a compute node
+    ///     with the control plane. First call the agent makes.
+    /// </summary>
     [HttpPost("join", Name = "node-join")]
     [EndpointSummary("Register a compute node with the control plane")]
     [EndpointDescription(
@@ -70,6 +66,7 @@ public sealed class NodeController : ControllerBase
             ModelState.AddModelError(
                 nameof(request.JoinToken),
                 "join_token is required");
+
             return ValidationProblem(ModelState);
         }
 
@@ -78,20 +75,23 @@ public sealed class NodeController : ControllerBase
             ModelState.AddModelError(
                 nameof(request.Hardware),
                 "hardware snapshot is invalid (cpu_cores and ram_bytes must be > 0)");
+
             return ValidationProblem(ModelState);
         }
 
         var response = await registry.RegisterAsync(request, cancellationToken);
         return CreatedAtAction(
-            actionName: null,
-            routeValues: new { nodeId = response.NodeId },
-            value: response);
+            null,
+            new { nodeId = response.NodeId },
+            response);
     }
 
-    /// <summary>POST /api/v1/nodes/{nodeId}/heartbeat — record
-    /// liveness from a registered node. Called on a fixed
-    /// interval (default 30s); three missed intervals flips the
-    /// node to Offline in the future health monitor.</summary>
+    /// <summary>
+    ///     POST /api/v1/nodes/{nodeId}/heartbeat — record
+    ///     liveness from a registered node. Called on a fixed
+    ///     interval (default 30s); three missed intervals flips the
+    ///     node to Offline in the future health monitor.
+    /// </summary>
     [HttpPost("{nodeId:guid}/heartbeat", Name = "node-heartbeat")]
     [EndpointSummary("Record liveness from a registered node")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -108,6 +108,7 @@ public sealed class NodeController : ControllerBase
             ModelState.AddModelError(
                 nameof(request.NodeId),
                 "route nodeId does not match body nodeId");
+
             return ValidationProblem(ModelState);
         }
 
@@ -115,11 +116,13 @@ public sealed class NodeController : ControllerBase
         return Ok();
     }
 
-    /// <summary>POST /api/v1/nodes/{nodeId}/commands/poll —
-    /// long-poll for commands targeted at this node. The agent
-    /// sends a new request on a fixed interval (default 5s) and
-    /// includes the <c>NextCursor</c> from the previous
-    /// response.</summary>
+    /// <summary>
+    ///     POST /api/v1/nodes/{nodeId}/commands/poll —
+    ///     long-poll for commands targeted at this node. The agent
+    ///     sends a new request on a fixed interval (default 5s) and
+    ///     includes the <c>NextCursor</c> from the previous
+    ///     response.
+    /// </summary>
     [HttpPost("{nodeId:guid}/commands/poll", Name = "node-command-poll")]
     [EndpointSummary("Dequeue any commands the control plane has for this node")]
     [ProducesResponseType(typeof(CommandPollResponse), StatusCodes.Status200OK)]
@@ -137,10 +140,12 @@ public sealed class NodeController : ControllerBase
         return Ok(response);
     }
 
-    /// <summary>POST /api/v1/nodes/{nodeId}/commands/{commandId}/result —
-    /// report completion status for a previously-dequeued
-    /// command. v0.1 logs the result; future iterations route
-    /// it to the audit module for persistence.</summary>
+    /// <summary>
+    ///     POST /api/v1/nodes/{nodeId}/commands/{commandId}/result —
+    ///     report completion status for a previously-dequeued
+    ///     command. v0.1 logs the result; future iterations route
+    ///     it to the audit module for persistence.
+    /// </summary>
     [HttpPost("{nodeId:guid}/commands/{commandId:guid}/result", Name = "node-command-result")]
     [EndpointSummary("Report completion status for a previously-dequeued command")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -156,6 +161,7 @@ public sealed class NodeController : ControllerBase
             ModelState.AddModelError(
                 nameof(result.NodeId),
                 "route nodeId/commandId do not match body fields");
+
             return ValidationProblem(ModelState);
         }
 

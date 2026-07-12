@@ -9,14 +9,13 @@
 // XML doc convention (enforced by CS1591, see .agents/rules/
 // engineering-process.md rule 3): every public type/member has at
 
+using System.Text.Json;
 using System.Text.Json.Serialization;
 // least a `<summary>`. `<param>` only when the name+type does not
 // make the purpose obvious. Public modifier goes on the record /
 // interface, NOT on positional record params (that is a C# syntax
 // error).
 // ============================================================================
-
-using System.Text.Json;
 
 namespace Plexor.Shared.NodeApi;
 
@@ -70,11 +69,13 @@ public abstract record WorkloadKind
         public override string Name => "lxc";
     }
 
-    /// <summary>QEMU software-emulated VM via libvirt (uri
-    /// <c>qemu:///system</c>, domain type <c>qemu</c>, no KVM).
-    /// Useful for running VMs on hosts without hardware
-    /// virtualization extensions; significantly slower than
-    /// KVM but functionally equivalent.</summary>
+    /// <summary>
+    ///     QEMU software-emulated VM via libvirt (uri
+    ///     <c>qemu:///system</c>, domain type <c>qemu</c>, no KVM).
+    ///     Useful for running VMs on hosts without hardware
+    ///     virtualization extensions; significantly slower than
+    ///     KVM but functionally equivalent.
+    /// </summary>
     public sealed record Qemu : WorkloadKind
     {
         /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
@@ -254,24 +255,26 @@ public sealed record CommandResult(
     DateTimeOffset CompletedAt);
 
 /// <summary>
-/// Payload for a <c>workload.create</c> command. Deserialized from
-/// <see cref="CommandEnvelope.PayloadJson"/> when the agent
-/// dispatches a workload-create envelope. Carries the kind, name, and
-/// provider-specific config that the local provider will translate
-/// into its native representation (libvirt XML, k3s Pod spec, etc.).
+///     Payload for a <c>workload.create</c> command. Deserialized from
+///     <see cref="CommandEnvelope.PayloadJson" /> when the agent
+///     dispatches a workload-create envelope. Carries the kind, name, and
+///     provider-specific config that the local provider will translate
+///     into its native representation (libvirt XML, k3s Pod spec, etc.).
 /// </summary>
 public sealed record CreateWorkloadPayload(
     WorkloadSpec Spec);
 
 /// <summary>
-/// Payload for <c>workload.start</c>, <c>workload.stop</c>, and
-/// <c>workload.delete</c> commands. The <see cref="WorkloadId"/> is
-/// the local id assigned by the provider at create-time and returned
-/// to the control plane in the command result.
+///     Payload for <c>workload.start</c>, <c>workload.stop</c>, and
+///     <c>workload.delete</c> commands. The <see cref="WorkloadId" /> is
+///     the local id assigned by the provider at create-time and returned
+///     to the control plane in the command result.
 /// </summary>
-/// <param name="WorkloadId">Local id assigned by the provider when
-/// the workload was created. Stable across start/stop/delete on the
-/// same workload.</param>
+/// <param name="WorkloadId">
+///     Local id assigned by the provider when
+///     the workload was created. Stable across start/stop/delete on the
+///     same workload.
+/// </param>
 public sealed record WorkloadActionPayload(
     Guid WorkloadId);
 

@@ -13,19 +13,21 @@ using Plexor.Shared.Workloads;
 namespace Plexor.NodeAgent.Composition;
 
 /// <summary>
-/// In-memory registry of <see cref="IWorkloadProvider"/> instances,
-/// keyed by the <see cref="WorkloadKind"/> they handle. v0.1 keeps
-/// state in-process; restart loses every workload's runtime id
-/// (the provider's local handles die with the process anyway).
+///     In-memory registry of <see cref="IWorkloadProvider" /> instances,
+///     keyed by the <see cref="WorkloadKind" /> they handle. v0.1 keeps
+///     state in-process; restart loses every workload's runtime id
+///     (the provider's local handles die with the process anyway).
 /// </summary>
 internal sealed class InMemoryWorkloadRegistry : IWorkloadRegistry
 {
     private readonly Dictionary<WorkloadKind, IWorkloadProvider> providers = new();
 
-    /// <summary>Build a registry from every <see cref="IWorkloadProvider"/>
-    /// DI knows about. Each provider registers itself for the
-    /// <see cref="WorkloadKind"/> it handles. Duplicate kinds
-    /// throw at startup — pick one technology per Kind.</summary>
+    /// <summary>
+    ///     Build a registry from every <see cref="IWorkloadProvider" />
+    ///     DI knows about. Each provider registers itself for the
+    ///     <see cref="WorkloadKind" /> it handles. Duplicate kinds
+    ///     throw at startup — pick one technology per Kind.
+    /// </summary>
     public InMemoryWorkloadRegistry(IEnumerable<IWorkloadProvider> providers)
     {
         foreach (var provider in providers)

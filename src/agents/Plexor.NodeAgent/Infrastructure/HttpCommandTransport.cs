@@ -13,7 +13,6 @@
 // expected to recover within the configured retry budget.
 // ============================================================================
 
-using Microsoft.Extensions.Logging;
 using Plexor.NodeAgent.Abstractions;
 using Plexor.Shared.NodeApi;
 using Refit;
@@ -21,24 +20,17 @@ using Refit;
 namespace Plexor.NodeAgent.Infrastructure;
 
 /// <summary>
-/// Refit-backed implementation of <see cref="ICommandTransport"/>.
-/// Calls the corresponding <see cref="INodeApi"/> method and
-/// throws <see cref="HttpRequestException"/> on non-2xx so the
-/// worker loop can treat all failures the same way.
+///     Refit-backed implementation of <see cref="ICommandTransport" />.
+///     Calls the corresponding <see cref="INodeApi" /> method and
+///     throws <see cref="HttpRequestException" /> on non-2xx so the
+///     worker loop can treat all failures the same way.
 /// </summary>
-internal sealed class HttpCommandTransport : ICommandTransport
+/// <remarks>
+///     Build a transport over the Refit-generated
+///     <see cref="INodeApi" /> typed client.
+/// </remarks>
+internal sealed class HttpCommandTransport(INodeApi api, ILogger<HttpCommandTransport> logger) : ICommandTransport
 {
-    private readonly INodeApi api;
-    private readonly ILogger<HttpCommandTransport> logger;
-
-    /// <summary>Build a transport over the Refit-generated
-    /// <see cref="INodeApi"/> typed client.</summary>
-    public HttpCommandTransport(INodeApi api, ILogger<HttpCommandTransport> logger)
-    {
-        this.api = api;
-        this.logger = logger;
-    }
-
     /// <inheritdoc />
     public async Task<JoinResponse> JoinAsync(JoinRequest request, CancellationToken cancellationToken)
     {
@@ -63,7 +55,8 @@ internal sealed class HttpCommandTransport : ICommandTransport
 
     /// <inheritdoc />
     public async Task<CommandPollResponse> PollAsync(
-        CommandPollRequest request, CancellationToken cancellationToken)
+        CommandPollRequest request,
+        CancellationToken cancellationToken)
     {
         return await CallAsync(
             () => api.PollAsync(request.NodeId, request, cancellationToken),
@@ -84,13 +77,17 @@ internal sealed class HttpCommandTransport : ICommandTransport
             cancellationToken);
     }
 
-    /// <summary>Run a Refit call and translate
-    /// <see cref="ApiException"/> into the transport's
-    /// <see cref="HttpRequestException"/> contract. The worker
-    /// loop catches the latter and decides what to do (skip the
-    /// cycle, restart, etc.).</summary>
+    /// <summary>
+    ///     Run a Refit call and translate
+    ///     <see cref="ApiException" /> into the transport's
+    ///     <see cref="HttpRequestException" /> contract. The worker
+    ///     loop catches the latter and decides what to do (skip the
+    ///     cycle, restart, etc.).
+    /// </summary>
     private async Task<T> CallAsync<T>(
-        Func<Task<T>> call, string operation, CancellationToken cancellationToken)
+        Func<Task<T>> call,
+        string operation,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -108,8 +105,8 @@ internal sealed class HttpCommandTransport : ICommandTransport
             throw new HttpRequestException(
                 $"Control plane {operation} returned " +
                 $"{(int)ex.StatusCode} {ex.StatusCode}.",
-                inner: ex,
-                statusCode: ex.StatusCode);
+                ex,
+                ex.StatusCode);
         }
     }
 }

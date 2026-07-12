@@ -22,6 +22,7 @@ using Plexor.NodeAgent.Composition;
 using Plexor.NodeAgent.Executors;
 using Plexor.NodeAgent.Infrastructure;
 using Plexor.NodeAgent.Providers;
+using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Workloads;
 using Refit;
 
@@ -40,16 +41,18 @@ var builder = Host.CreateApplicationBuilder(args);
 // heartbeat', etc.) don't include the segment, so the BaseAddress
 // has to.
 builder.Services
-    .AddRefitClient<INodeApi>(NodeApiSettingsFactory.Create())
-    .ConfigureHttpClient(client =>
-    {
-        var baseAddress = builder.Configuration["Plexor:ControlPlaneUrl"]
-            ?? "http://localhost:5000/";
-        var apiBase = baseAddress.TrimEnd('/') + "/" +
-            Plexor.Shared.Contracts.Routes.ApiRoutes.Base;
-        client.BaseAddress = new Uri(apiBase);
-    })
-    .AddStandardResilienceHandler();
+        .AddRefitClient<INodeApi>(NodeApiSettingsFactory.Create())
+        .ConfigureHttpClient(client =>
+        {
+            var baseAddress = builder.Configuration["Plexor:ControlPlaneUrl"]
+                              ?? "http://localhost:5000/";
+
+            var apiBase = baseAddress.TrimEnd('/') + "/" +
+                          ApiRoutes.Base;
+
+            client.BaseAddress = new Uri(apiBase);
+        })
+        .AddStandardResilienceHandler();
 
 builder.Services.AddSingleton<ICommandTransport, HttpCommandTransport>();
 
@@ -79,13 +82,14 @@ builder.Services.AddSingleton<CommandDispatcher>();
 // control-plane URL from configuration; v0.2+ moves to a
 // typed IOptions<NodeConfig> with validation.
 builder.Services.AddSingleton(new NodeAgentWorker.NodeConfig(
-    CpuCores: builder.Configuration.GetValue<int>("Plexor:Node:CpuCores", Environment.ProcessorCount),
-    RamBytes: builder.Configuration.GetValue<long>("Plexor:Node:RamBytes", 8L * 1024 * 1024 * 1024),
-    DiskBytes: builder.Configuration.GetValue<long>("Plexor:Node:DiskBytes", 100L * 1024 * 1024 * 1024),
-    Hostname: builder.Configuration.GetValue<string>("Plexor:Node:Hostname")
-        ?? Environment.MachineName,
-    ControlPlaneUrl: builder.Configuration["Plexor:ControlPlaneUrl"]
-        ?? "http://localhost:5000/"));
+    builder.Configuration.GetValue("Plexor:Node:CpuCores", Environment.ProcessorCount),
+    builder.Configuration.GetValue("Plexor:Node:RamBytes", 8L * 1024 * 1024 * 1024),
+    builder.Configuration.GetValue("Plexor:Node:DiskBytes", 100L * 1024 * 1024 * 1024),
+    builder.Configuration.GetValue<string>("Plexor:Node:Hostname")
+    ?? Environment.MachineName,
+    builder.Configuration["Plexor:ControlPlaneUrl"]
+    ?? "http://localhost:5000/"));
+
 builder.Services.AddHostedService<NodeAgentWorker>();
 
 var app = builder.Build();

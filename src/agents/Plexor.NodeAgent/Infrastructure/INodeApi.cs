@@ -21,16 +21,16 @@
 // HttpRequestException for the worker loop.
 // ============================================================================
 
-using Refit;
 using Plexor.Shared.NodeApi;
+using Refit;
 
 namespace Plexor.NodeAgent.Infrastructure;
 
 /// <summary>
-/// Refit-typed HTTP client for the Plexor.NodeAgent control loop.
-/// Body / response bodies are the wire DTOs from
-/// <see cref="Plexor.Shared.NodeApi"/>; the BaseAddress on the
-/// typed client already includes the <c>api/v1</c> segment.
+///     Refit-typed HTTP client for the Plexor.NodeAgent control loop.
+///     Body / response bodies are the wire DTOs from
+///     <see cref="Plexor.Shared.NodeApi" />; the BaseAddress on the
+///     typed client already includes the <c>api/v1</c> segment.
 /// </summary>
 public interface INodeApi
 {
@@ -40,10 +40,12 @@ public interface INodeApi
         [Body] JoinRequest request,
         CancellationToken cancellationToken);
 
-    /// <summary>POST /api/v1/nodes/{nodeId}/heartbeat. The
-    /// <c>nodeId</c> in the route must match the body's
-    /// <c>NodeId</c> (the host rejects mismatches with 400).
-    /// No response body.</summary>
+    /// <summary>
+    ///     POST /api/v1/nodes/{nodeId}/heartbeat. The
+    ///     <c>nodeId</c> in the route must match the body's
+    ///     <c>NodeId</c> (the host rejects mismatches with 400).
+    ///     No response body.
+    /// </summary>
     [Post("/nodes/{nodeId}/heartbeat")]
     public Task HeartbeatAsync(
         Guid nodeId,
@@ -57,8 +59,10 @@ public interface INodeApi
         [Body] CommandPollRequest request,
         CancellationToken cancellationToken);
 
-    /// <summary>POST /api/v1/nodes/{nodeId}/commands/{commandId}/result.
-    /// No response body.</summary>
+    /// <summary>
+    ///     POST /api/v1/nodes/{nodeId}/commands/{commandId}/result.
+    ///     No response body.
+    /// </summary>
     [Post("/nodes/{nodeId}/commands/{commandId}/result")]
     public Task SubmitResultAsync(
         Guid nodeId,

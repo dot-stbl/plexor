@@ -17,8 +17,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
-    <ProjectReference Include="..\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj" />
+    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj"/>
   </ItemGroup>
 
 </Project>

@@ -17,24 +17,30 @@ using System.Text;
 namespace Plexor.NodeAgent.Providers.Common;
 
 /// <summary>
-/// Run <c>virsh -c &lt;uri&gt; &lt;args&gt;</c> and return trimmed
-/// stdout. Throws <see cref="InvalidOperationException"/> on
-/// non-zero exit (caller decides whether to swallow, retry, or
-/// rethrow).
+///     Run <c>virsh -c &lt;uri&gt; &lt;args&gt;</c> and return trimmed
+///     stdout. Throws <see cref="InvalidOperationException" /> on
+///     non-zero exit (caller decides whether to swallow, retry, or
+///     rethrow).
 /// </summary>
 public static class LibvirtRunner
 {
-    /// <summary>Run the given virsh args against the given URI.
-    /// Returns trimmed stdout; throws on non-zero exit.</summary>
-    /// <param name="uri">Libvirt URI (e.g. <c>qemu:///system</c>,
-    /// <c>lxc:///system</c>). The runner prefixes <c>-c</c> and
-    /// the URI to the command line so the provider doesn't have
-    /// to.</param>
-    /// <param name="args">Virsth command + flags (e.g.
-    /// <c>"start web-prod-01"</c>, <c>"define /tmp/plexor-x.xml"</c>).
-    /// The runner splits on whitespace; arguments with embedded
-    /// spaces are not supported (real impl uses LibvirtClient
-    /// which doesn't have that problem).</param>
+    /// <summary>
+    ///     Run the given virsh args against the given URI.
+    ///     Returns trimmed stdout; throws on non-zero exit.
+    /// </summary>
+    /// <param name="uri">
+    ///     Libvirt URI (e.g. <c>qemu:///system</c>,
+    ///     <c>lxc:///system</c>). The runner prefixes <c>-c</c> and
+    ///     the URI to the command line so the provider doesn't have
+    ///     to.
+    /// </param>
+    /// <param name="args">
+    ///     Virsth command + flags (e.g.
+    ///     <c>"start web-prod-01"</c>, <c>"define /tmp/plexor-x.xml"</c>).
+    ///     The runner splits on whitespace; arguments with embedded
+    ///     spaces are not supported (real impl uses LibvirtClient
+    ///     which doesn't have that problem).
+    /// </param>
     /// <param name="cancellationToken">Cancellation forwarded to the process.</param>
     public static async Task<string> RunAsync(Uri uri, string args, CancellationToken cancellationToken)
     {
@@ -45,16 +51,17 @@ public static class LibvirtRunner
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
-            CreateNoWindow = true,
+            CreateNoWindow = true
         };
+
         foreach (var arg in args.Split(' ', StringSplitOptions.RemoveEmptyEntries))
         {
             psi.ArgumentList.Add(arg);
         }
 
         using var process = Process.Start(psi)
-            ?? throw new InvalidOperationException(
-                "LibvirtRunner: failed to start virsh (Process.Start returned null).");
+                            ?? throw new InvalidOperationException(
+                                "LibvirtRunner: failed to start virsh (Process.Start returned null).");
 
         var stdout = new StringBuilder();
         var stderr = new StringBuilder();
@@ -65,6 +72,7 @@ public static class LibvirtRunner
                 stdout.AppendLine(e.Data);
             }
         };
+
         process.ErrorDataReceived += (_, e) =>
         {
             if (e.Data is not null)
@@ -72,6 +80,7 @@ public static class LibvirtRunner
                 stderr.AppendLine(e.Data);
             }
         };
+
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 

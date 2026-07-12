@@ -24,9 +24,6 @@
 // its own.
 // ============================================================================
 
-using System.Net;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Plexor.NodeAgent.Abstractions;
 using Plexor.NodeAgent.Composition;
 using Plexor.Shared.NodeApi;
@@ -34,44 +31,34 @@ using Plexor.Shared.NodeApi;
 namespace Plexor.NodeAgent;
 
 /// <summary>
-/// BackgroundService that runs the join / heartbeat / poll /
-/// dispatch / submit loop. The transport carries envelopes; the
-/// dispatcher routes them to executors; the loop's only job is
-/// "tick at the right interval and forward".
+///     BackgroundService that runs the join / heartbeat / poll /
+///     dispatch / submit loop. The transport carries envelopes; the
+///     dispatcher routes them to executors; the loop's only job is
+///     "tick at the right interval and forward".
 /// </summary>
-internal sealed class NodeAgentWorker : BackgroundService
+/// <remarks>
+///     Build the worker. Hardware and control-plane URL
+///     come from configuration (Plexor:Node:* keys).
+/// </remarks>
+internal sealed class NodeAgentWorker(
+    ICommandTransport transport,
+    CommandDispatcher dispatcher,
+    ILogger<NodeAgentWorker> logger,
+    NodeAgentWorker.NodeConfig config) : BackgroundService
 {
     private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan JoinRetryInterval = TimeSpan.FromSeconds(30);
+    private readonly Uri controlPlaneUrl = new(config.ControlPlaneUrl);
 
-    private readonly ICommandTransport transport;
-    private readonly CommandDispatcher dispatcher;
-    private readonly ILogger<NodeAgentWorker> logger;
-    private readonly NodeHardware hardware;
-    private readonly Uri controlPlaneUrl;
+    private readonly NodeHardware hardware = new(
+        config.CpuCores,
+        config.RamBytes,
+        config.DiskBytes,
+        config.Hostname,
+        Environment.OSVersion.VersionString);
 
     private volatile NodeIdentity? current;
-
-    /// <summary>Build the worker. Hardware and control-plane URL
-    /// come from configuration (Plexor:Node:* keys).</summary>
-    public NodeAgentWorker(
-        ICommandTransport transport,
-        CommandDispatcher dispatcher,
-        ILogger<NodeAgentWorker> logger,
-        NodeConfig config)
-    {
-        this.transport = transport;
-        this.dispatcher = dispatcher;
-        this.logger = logger;
-        this.hardware = new NodeHardware(
-            CpuCores: config.CpuCores,
-            RamBytes: config.RamBytes,
-            DiskBytes: config.DiskBytes,
-            Hostname: config.Hostname,
-            KernelVersion: Environment.OSVersion.VersionString);
-        this.controlPlaneUrl = new Uri(config.ControlPlaneUrl);
-    }
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -100,6 +87,7 @@ internal sealed class NodeAgentWorker : BackgroundService
                     ex,
                     "Join failed; retrying in {Backoff}",
                     JoinRetryInterval);
+
                 try
                 {
                     await Task.Delay(JoinRetryInterval, stoppingToken);
@@ -144,8 +132,8 @@ internal sealed class NodeAgentWorker : BackgroundService
         // structural validation (non-empty join_token) doesn't
         // reject the join.
         var request = new JoinRequest(
-            JoinToken: "v0.1-unverified-token",
-            Hardware: hardware);
+            "v0.1-unverified-token",
+            hardware);
 
         var response = await transport.JoinAsync(request, cancellationToken);
         current = new NodeIdentity(response.NodeId, 0);
@@ -180,11 +168,12 @@ internal sealed class NodeAgentWorker : BackgroundService
             {
                 await transport.HeartbeatAsync(
                     new HeartbeatRequest(
-                        NodeId: current.NodeId,
-                        SentAt: DateTimeOffset.UtcNow,
-                        Hardware: hardware,
-                        RunningVmCount: 0),
+                        current.NodeId,
+                        DateTimeOffset.UtcNow,
+                        hardware,
+                        0),
                     stoppingToken);
+
                 logger.LogDebug("Heartbeat sent for {NodeId}", current.NodeId);
             }
             catch (Exception ex)
@@ -214,9 +203,9 @@ internal sealed class NodeAgentWorker : BackgroundService
             {
                 var response = await transport.PollAsync(
                     new CommandPollRequest(
-                        NodeId: current.NodeId,
-                        MaxBatch: 16,
-                        WaitCursor: current.Cursor),
+                        current.NodeId,
+                        16,
+                        current.Cursor),
                     stoppingToken);
 
                 current = current with { Cursor = response.NextCursor };
@@ -236,8 +225,11 @@ internal sealed class NodeAgentWorker : BackgroundService
                 // circuit breaker open). Log and back off one
                 // poll interval before trying again.
                 logger.LogWarning(
-                    ex, "Poll failed for {NodeId}; retrying in {Backoff}",
-                    current.NodeId, PollInterval);
+                    ex,
+                    "Poll failed for {NodeId}; retrying in {Backoff}",
+                    current.NodeId,
+                    PollInterval);
+
                 try
                 {
                     await Task.Delay(PollInterval, stoppingToken);
@@ -251,11 +243,13 @@ internal sealed class NodeAgentWorker : BackgroundService
     }
 
     private async Task DispatchOneAsync(
-        CommandEnvelope envelope, CancellationToken stoppingToken)
+        CommandEnvelope envelope,
+        CancellationToken stoppingToken)
     {
         logger.LogInformation(
             "Dispatching command {CommandId} ({Type})",
-            envelope.CommandId, envelope.Type);
+            envelope.CommandId,
+            envelope.Type);
 
         var result = await dispatcher.DispatchAsync(envelope, stoppingToken);
 
@@ -264,7 +258,8 @@ internal sealed class NodeAgentWorker : BackgroundService
             await transport.SubmitResultAsync(result, stoppingToken);
             logger.LogInformation(
                 "Submitted result for {CommandId} -> {Status}",
-                result.CommandId, result.Status);
+                result.CommandId,
+                result.Status);
         }
         catch (Exception ex)
         {
@@ -274,16 +269,19 @@ internal sealed class NodeAgentWorker : BackgroundService
             logger.LogError(
                 ex,
                 "Failed to submit result for {CommandId} ({Status})",
-                result.CommandId, result.Status);
+                result.CommandId,
+                result.Status);
         }
     }
 
     /// <summary>Mutable per-node state held in the worker.</summary>
     private sealed record NodeIdentity(Guid NodeId, long Cursor);
 
-    /// <summary>Configuration surface for the worker. Bound from
-    /// <c>Plexor:Node</c> in appsettings. v0.1 takes the worker
-    /// directly; future moves to IOptions&lt;NodeConfig&gt;.</summary>
+    /// <summary>
+    ///     Configuration surface for the worker. Bound from
+    ///     <c>Plexor:Node</c> in appsettings. v0.1 takes the worker
+    ///     directly; future moves to IOptions&lt;NodeConfig&gt;.
+    /// </summary>
     public sealed record NodeConfig(
         int CpuCores,
         long RamBytes,

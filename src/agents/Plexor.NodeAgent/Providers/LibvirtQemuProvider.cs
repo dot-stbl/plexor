@@ -23,10 +23,10 @@
 // TCG uses a read-only base + per-instance qcow2 overlay).
 // ============================================================================
 
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Xml;
-using Microsoft.Extensions.Logging;
 using Plexor.NodeAgent.Providers.Common;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
@@ -34,29 +34,27 @@ using Plexor.Shared.Workloads;
 namespace Plexor.NodeAgent.Providers;
 
 /// <summary>
-/// <see cref="IWorkloadProvider"/> for QEMU VMs without KVM
-/// acceleration. Same wire format as <see cref="LibvirtKvmProvider"/>
-/// (same xmlwriter template + same virsh CLI) but a different
-/// <see cref="WorkloadKind"/> so the agent's dispatcher routes
-/// the right commands to the right backend.
+///     <see cref="IWorkloadProvider" /> for QEMU VMs without KVM
+///     acceleration. Same wire format as <see cref="LibvirtKvmProvider" />
+///     (same xmlwriter template + same virsh CLI) but a different
+///     <see cref="WorkloadKind" /> so the agent's dispatcher routes
+///     the right commands to the right backend.
 /// </summary>
-public sealed class LibvirtQemuProvider : IWorkloadProvider
+/// <remarks>
+///     Build a provider that talks to the local
+///     libvirt system instance via software-emulated QEMU.
+/// </remarks>
+public sealed class LibvirtQemuProvider(ILogger<LibvirtQemuProvider> logger) : IWorkloadProvider
 {
-    /// <summary>The libvirt URI for QEMU on the local system.
-    /// Same URI as KVM (qemu:///system); what differs is the
-    /// domain type (qemu vs kvm) and the machine type
-    /// (pc-generic vs pc-i440fx).</summary>
+    /// <summary>
+    ///     The libvirt URI for QEMU on the local system.
+    ///     Same URI as KVM (qemu:///system); what differs is the
+    ///     domain type (qemu vs kvm) and the machine type
+    ///     (pc-generic vs pc-i440fx).
+    /// </summary>
     public static readonly Uri LibvirtUri = new("qemu:///system");
 
-    private readonly ILogger<LibvirtQemuProvider> logger;
     private readonly WorkloadIdMap workloads = new();
-
-    /// <summary>Build a provider that talks to the local
-    /// libvirt system instance via software-emulated QEMU.</summary>
-    public LibvirtQemuProvider(ILogger<LibvirtQemuProvider> logger)
-    {
-        this.logger = logger;
-    }
 
     /// <inheritdoc />
     public WorkloadKind Kind => new WorkloadKind.Qemu();
@@ -87,6 +85,7 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
                     "Best-effort cleanup of {Domain} after failed create failed",
                     spec.Name);
             }
+
             throw;
         }
         finally
@@ -106,12 +105,12 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
 
         workloads.Register(id, spec.Name, Kind);
         return new LocalWorkload(
-            Id: id,
-            Name: spec.Name,
-            Kind: Kind,
-            State: WorkloadState.Running,
-            CreatedAt: DateTimeOffset.UtcNow,
-            StartedAt: DateTimeOffset.UtcNow);
+            id,
+            spec.Name,
+            Kind,
+            WorkloadState.Running,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />
@@ -120,7 +119,7 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
         var entry = workloads.GetOrThrow(id);
         await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Running);
-        return Snapshot(id, startedAt: DateTimeOffset.UtcNow);
+        return Snapshot(id, DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />
@@ -129,7 +128,7 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
         var entry = workloads.GetOrThrow(id);
         await LibvirtRunner.RunAsync(LibvirtUri, $"shutdown {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Stopped);
-        return Snapshot(id, startedAt: null);
+        return Snapshot(id, null);
     }
 
     /// <inheritdoc />
@@ -137,6 +136,7 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
     {
         var entry = workloads.GetOrThrow(id);
         await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", cancellationToken);
+
         if (!workloads.Remove(id))
         {
             throw new InvalidOperationException(
@@ -144,12 +144,12 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
         }
 
         return new LocalWorkload(
-            Id: id,
-            Name: entry.DomainName,
-            Kind: entry.Kind,
-            State: WorkloadState.Stopped,
-            CreatedAt: DateTimeOffset.UtcNow,
-            StartedAt: null);
+            id,
+            entry.DomainName,
+            entry.Kind,
+            WorkloadState.Stopped,
+            DateTimeOffset.UtcNow,
+            null);
     }
 
     /// <inheritdoc />
@@ -163,26 +163,28 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
     {
         var entry = workloads.GetOrThrow(id);
         return new LocalWorkload(
-            Id: id,
-            Name: entry.DomainName,
-            Kind: entry.Kind,
-            State: entry.State,
-            CreatedAt: DateTimeOffset.UtcNow,
-            StartedAt: startedAt);
+            id,
+            entry.DomainName,
+            entry.Kind,
+            entry.State,
+            DateTimeOffset.UtcNow,
+            startedAt);
     }
 
-    /// <summary>Build a QEMU domain XML. Same shape as the KVM
-    /// provider's output except:
-    ///   - <c>type="qemu"</c> (not "kvm") — libvirt skips the
+    /// <summary>
+    ///     Build a QEMU domain XML. Same shape as the KVM
+    ///     provider's output except:
+    ///     - <c>type="qemu"</c> (not "kvm") — libvirt skips the
     ///     KVM acceleration path.
-    ///   - <c>machine="pc"</c> — generic PC, not the KVM-optimized
+    ///     - <c>machine="pc"</c> — generic PC, not the KVM-optimized
     ///     <c>pc-i440fx</c>. Compatible with the broadest set of
-    ///     guests; v0.2+ takes this from spec.Config.</summary>
+    ///     guests; v0.2+ takes this from spec.Config.
+    /// </summary>
     private static string BuildDomainXml(WorkloadSpec spec, Guid id)
     {
         var config = TryDeserializeConfig(spec.Config, out var c)
-            ? c
-            : new LibvirtQemuConfig();
+                ? c
+                : new LibvirtQemuConfig();
 
         var ramKiB = config.RamBytes / 1024;
         var vcpu = config.CpuCores;
@@ -190,17 +192,19 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
         var settings = new XmlWriterSettings
         {
             Indent = true,
-            OmitXmlDeclaration = true,
+            OmitXmlDeclaration = true
         };
+
         var sb = new StringBuilder();
+
         using (var writer = XmlWriter.Create(sb, settings))
         {
             writer.WriteStartElement("domain");
             writer.WriteAttributeString("type", "qemu");
             writer.WriteElementString("name", spec.Name);
             writer.WriteElementString("uuid", id.ToString());
-            writer.WriteElementString("memory", Convert.ToString(ramKiB, System.Globalization.CultureInfo.InvariantCulture));
-            writer.WriteElementString("vcpu", Convert.ToString(vcpu, System.Globalization.CultureInfo.InvariantCulture));
+            writer.WriteElementString("memory", Convert.ToString(ramKiB, CultureInfo.InvariantCulture));
+            writer.WriteElementString("vcpu", Convert.ToString(vcpu, CultureInfo.InvariantCulture));
             writer.WriteStartElement("os");
             writer.WriteElementString("type", "hvm");
             writer.WriteElementString("machine", config.Machine);
@@ -242,7 +246,8 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
         try
         {
             result = config.Deserialize<LibvirtQemuConfig>()
-                ?? new LibvirtQemuConfig();
+                     ?? new LibvirtQemuConfig();
+
             return true;
         }
         catch
@@ -252,12 +257,16 @@ public sealed class LibvirtQemuProvider : IWorkloadProvider
         }
     }
 
-    /// <summary>Provider-specific config schema (consumed from
-    /// <see cref="WorkloadSpec.Config"/>).</summary>
-    /// <param name="Machine">QEMU machine type. <c>pc</c> is the
-    /// generic PC, broadly compatible. v0.1 default. Other
-    /// options: <c>q35</c> (modern ICH9 chipset), <c>isapc</c>
-    /// (legacy), arch-specific (<c>virt</c> on aarch64).</param>
+    /// <summary>
+    ///     Provider-specific config schema (consumed from
+    ///     <see cref="WorkloadSpec.Config" />).
+    /// </summary>
+    /// <param name="Machine">
+    ///     QEMU machine type. <c>pc</c> is the
+    ///     generic PC, broadly compatible. v0.1 default. Other
+    ///     options: <c>q35</c> (modern ICH9 chipset), <c>isapc</c>
+    ///     (legacy), arch-specific (<c>virt</c> on aarch64).
+    /// </param>
     private sealed record LibvirtQemuConfig(
         long RamBytes = 1L * 1024 * 1024 * 1024,
         int CpuCores = 2,

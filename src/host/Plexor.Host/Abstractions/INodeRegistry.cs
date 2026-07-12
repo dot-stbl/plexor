@@ -21,40 +21,52 @@ using Plexor.Shared.NodeApi;
 namespace Plexor.Host.Abstractions;
 
 /// <summary>
-/// Tracks compute nodes that have joined the control plane and the
-/// commands waiting to be processed by each one. Methods are async
-/// even when the in-memory implementation is sync — the future
-/// Postgres/NATS-backed implementation will be IO-bound.
+///     Tracks compute nodes that have joined the control plane and the
+///     commands waiting to be processed by each one. Methods are async
+///     even when the in-memory implementation is sync — the future
+///     Postgres/NATS-backed implementation will be IO-bound.
 /// </summary>
 public interface INodeRegistry
 {
-    /// <summary>Register a new node with the control plane. Returns
-    /// the canonical <c>NodeId</c> and the control-plane URL the
-    /// agent should call back to.</summary>
-    /// <param name="request">The agent's join payload. Includes
-    /// the join token (not verified in v0.1) and its hardware
-    /// snapshot.</param>
+    /// <summary>
+    ///     Register a new node with the control plane. Returns
+    ///     the canonical <c>NodeId</c> and the control-plane URL the
+    ///     agent should call back to.
+    /// </summary>
+    /// <param name="request">
+    ///     The agent's join payload. Includes
+    ///     the join token (not verified in v0.1) and its hardware
+    ///     snapshot.
+    /// </param>
     public Task<JoinResponse> RegisterAsync(JoinRequest request, CancellationToken cancellationToken);
 
-    /// <summary>Record liveness from a registered node. Idempotent;
-    /// calls for unknown node ids are a no-op (the node may have
-    /// been forgotten or the call may be a replay).</summary>
+    /// <summary>
+    ///     Record liveness from a registered node. Idempotent;
+    ///     calls for unknown node ids are a no-op (the node may have
+    ///     been forgotten or the call may be a replay).
+    /// </summary>
     public Task TouchHeartbeatAsync(HeartbeatRequest request, CancellationToken cancellationToken);
 
-    /// <summary>Enqueue a command targeted at a specific node. The
-    /// caller (admin / scheduler / API endpoint) provides the
-    /// envelope; the registry assigns it a monotonically-increasing
-    /// sequence number that becomes the agent's cursor for the
-    /// next poll.</summary>
+    /// <summary>
+    ///     Enqueue a command targeted at a specific node. The
+    ///     caller (admin / scheduler / API endpoint) provides the
+    ///     envelope; the registry assigns it a monotonically-increasing
+    ///     sequence number that becomes the agent's cursor for the
+    ///     next poll.
+    /// </summary>
     public Task EnqueueCommandAsync(CommandEnvelope envelope, CancellationToken cancellationToken);
 
-    /// <summary>Dequeue any commands newer than the agent's
-    /// supplied cursor and return them along with the new cursor.
-    /// The agent uses the returned cursor on the next poll.</summary>
+    /// <summary>
+    ///     Dequeue any commands newer than the agent's
+    ///     supplied cursor and return them along with the new cursor.
+    ///     The agent uses the returned cursor on the next poll.
+    /// </summary>
     public Task<CommandPollResponse> DequeueCommandsAsync(CommandPollRequest request, CancellationToken cancellationToken);
 
-    /// <summary>Record the outcome of a command the agent executed.
-    /// In v0.1 the result is logged; future iterations persist it
-    /// to the audit log.</summary>
+    /// <summary>
+    ///     Record the outcome of a command the agent executed.
+    ///     In v0.1 the result is logged; future iterations persist it
+    ///     to the audit log.
+    /// </summary>
     public Task SubmitResultAsync(CommandResult result, CancellationToken cancellationToken);
 }

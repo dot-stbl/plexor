@@ -13,33 +13,34 @@
 //     limit) sits in the resolver, not in the loop
 // ============================================================================
 
-using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Plexor.NodeAgent.Abstractions;
 using Plexor.Shared.NodeApi;
 
 namespace Plexor.NodeAgent.Composition;
 
 /// <summary>
-/// Routes a <see cref="CommandEnvelope"/> to its
-/// <see cref="ICommandExecutor"/> by the wire type, executes it,
-/// and wraps the outcome in a <see cref="CommandResult"/>. Singleton
-/// in DI — the dispatch table is built once at startup.
+///     Routes a <see cref="CommandEnvelope" /> to its
+///     <see cref="ICommandExecutor" /> by the wire type, executes it,
+///     and wraps the outcome in a <see cref="CommandResult" />. Singleton
+///     in DI — the dispatch table is built once at startup.
 /// </summary>
 internal sealed class CommandDispatcher
 {
     private readonly Dictionary<string, ICommandExecutor> executors;
     private readonly ILogger<CommandDispatcher> logger;
 
-    /// <summary>Build a dispatcher from a set of registered
-    /// executors. Duplicate <see cref="ICommandExecutor.Type"/>
-    /// values throw at startup — the dispatch table must be a
-    /// function from type to executor.</summary>
+    /// <summary>
+    ///     Build a dispatcher from a set of registered
+    ///     executors. Duplicate <see cref="ICommandExecutor.Type" />
+    ///     values throw at startup — the dispatch table must be a
+    ///     function from type to executor.
+    /// </summary>
     public CommandDispatcher(
         IEnumerable<ICommandExecutor> executors,
         ILogger<CommandDispatcher> logger)
     {
         var byType = new Dictionary<string, ICommandExecutor>(StringComparer.Ordinal);
+
         foreach (var executor in executors)
         {
             if (!byType.TryAdd(executor.Type, executor))
@@ -55,13 +56,16 @@ internal sealed class CommandDispatcher
         this.logger = logger;
     }
 
-    /// <summary>Execute one command envelope. Returns a
-    /// <see cref="CommandResult"/> with the outcome — never
-    /// throws; a missing executor or a payload parse error
-    /// becomes a <see cref="CommandResultStatus.Failed"/>
-    /// result so the host can see the failure cleanly.</summary>
+    /// <summary>
+    ///     Execute one command envelope. Returns a
+    ///     <see cref="CommandResult" /> with the outcome — never
+    ///     throws; a missing executor or a payload parse error
+    ///     becomes a <see cref="CommandResultStatus.Failed" />
+    ///     result so the host can see the failure cleanly.
+    /// </summary>
     public async Task<CommandResult> DispatchAsync(
-        CommandEnvelope envelope, CancellationToken cancellationToken)
+        CommandEnvelope envelope,
+        CancellationToken cancellationToken)
     {
         if (!executors.TryGetValue(envelope.Type, out var executor))
         {
@@ -69,6 +73,7 @@ internal sealed class CommandDispatcher
                 "No executor for command type '{Type}' (id {CommandId}); failing it",
                 envelope.Type,
                 envelope.CommandId);
+
             return Failed(envelope, $"no executor for type '{envelope.Type}'");
         }
 
@@ -90,12 +95,15 @@ internal sealed class CommandDispatcher
                 executor.GetType().Name,
                 envelope.CommandId,
                 envelope.Type);
+
             return Failed(envelope, $"{ex.GetType().Name}: {ex.Message}");
         }
     }
 
-    /// <summary>Construct a failed <see cref="CommandResult"/>
-    /// for the given envelope.</summary>
+    /// <summary>
+    ///     Construct a failed <see cref="CommandResult" />
+    ///     for the given envelope.
+    /// </summary>
     private static CommandResult Failed(CommandEnvelope envelope, string error)
     {
         return new CommandResult(

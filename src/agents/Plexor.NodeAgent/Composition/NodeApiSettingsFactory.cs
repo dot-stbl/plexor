@@ -12,19 +12,21 @@ using Refit;
 namespace Plexor.NodeAgent.Composition;
 
 /// <summary>
-/// Factory for the <see cref="RefitSettings"/> used when
-/// registering <see cref="Infrastructure.INodeApi"/> via
-/// <c>AddRefitClient&lt;INodeApi&gt;()</c>.
+///     Factory for the <see cref="RefitSettings" /> used when
+///     registering <see cref="Infrastructure.INodeApi" /> via
+///     <c>AddRefitClient&lt;INodeApi&gt;()</c>.
 /// </summary>
 public static class NodeApiSettingsFactory
 {
-    /// <summary>Build the default settings. Source-generator
-    /// based, no reflection at runtime, AOT-friendly.</summary>
+    /// <summary>
+    ///     Build the default settings. Source-generator
+    ///     based, no reflection at runtime, AOT-friendly.
+    /// </summary>
     public static RefitSettings Create()
     {
         return new RefitSettings
         {
-            CollectionFormat = CollectionFormat.Multi,
+            CollectionFormat = CollectionFormat.Multi
         };
     }
 }

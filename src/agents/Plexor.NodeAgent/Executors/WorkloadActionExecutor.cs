@@ -12,8 +12,8 @@
 //     a behavior difference
 // ============================================================================
 
+using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Plexor.NodeAgent.Abstractions;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
@@ -21,34 +21,30 @@ using Plexor.Shared.Workloads;
 namespace Plexor.NodeAgent.Executors;
 
 /// <summary>
-/// Handles <c>workload.start</c>, <c>workload.stop</c>, and
-/// <c>workload.delete</c>. The wire type on the envelope drives
-/// which provider method is called.
+///     Handles <c>workload.start</c>, <c>workload.stop</c>, and
+///     <c>workload.delete</c>. The wire type on the envelope drives
+///     which provider method is called.
 /// </summary>
-public sealed class WorkloadActionExecutor : ICommandExecutor
+/// <remarks>
+///     Build the executor. v0.1 ships with the
+///     KVM/libvirt provider registered as the only provider.
+/// </remarks>
+public sealed class WorkloadActionExecutor(
+    IWorkloadRegistry registry,
+    ILogger<WorkloadActionExecutor> logger) : ICommandExecutor
 {
-    private readonly IWorkloadRegistry registry;
-    private readonly ILogger<WorkloadActionExecutor> logger;
-
-    /// <summary>Build the executor. v0.1 ships with the
-    /// KVM/libvirt provider registered as the only provider.</summary>
-    public WorkloadActionExecutor(
-        IWorkloadRegistry registry,
-        ILogger<WorkloadActionExecutor> logger)
-    {
-        this.registry = registry;
-        this.logger = logger;
-    }
-
     /// <inheritdoc />
     public string Type => "workload.action";
 
-    /// <summary>Dispatch on the envelope's actual type. The
-    /// dispatcher uses <see cref="Type"/> for initial lookup;
-    /// the executor then re-reads the envelope to find the
-    /// concrete action (start / stop / delete).</summary>
+    /// <summary>
+    ///     Dispatch on the envelope's actual type. The
+    ///     dispatcher uses <see cref="Type" /> for initial lookup;
+    ///     the executor then re-reads the envelope to find the
+    ///     concrete action (start / stop / delete).
+    /// </summary>
     public async Task<ExecutorResult> ExecuteAsync(
-        CommandEnvelope envelope, CancellationToken cancellationToken)
+        CommandEnvelope envelope,
+        CancellationToken cancellationToken)
     {
         if (!TryPickAction(envelope.Type, out var action))
         {
@@ -59,7 +55,7 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
         try
         {
             if (await JsonSerializer.DeserializeAsync<WorkloadActionPayload>(
-                    new MemoryStream(System.Text.Encoding.UTF8.GetBytes(envelope.PayloadJson)),
+                    new MemoryStream(Encoding.UTF8.GetBytes(envelope.PayloadJson)),
                     cancellationToken: cancellationToken)
                 is not { } payload)
             {
@@ -82,7 +78,7 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
                 "start" => await ExecuteStartAsync(provider, payload, envelope, cancellationToken),
                 "stop" => await ExecuteStopAsync(provider, payload, envelope, cancellationToken),
                 "delete" => await ExecuteDeleteAsync(provider, payload, envelope, cancellationToken),
-                _ => ExecutorResult.Fail($"workload.action: unknown action '{action}'"),
+                _ => ExecutorResult.Fail($"workload.action: unknown action '{action}'")
             };
         }
         catch (Exception ex)
@@ -90,7 +86,10 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
             logger.LogError(
                 ex,
                 "Provider {Provider} failed {Action} on workload {WorkloadId}",
-                registry.GetType().Name, action, /* payload out of scope */ Guid.Empty);
+                registry.GetType().Name,
+                action, /* payload out of scope */
+                Guid.Empty);
+
             return ExecutorResult.Fail(
                 $"workload.{action} exception: {ex.GetType().Name}: {ex.Message}");
         }
@@ -116,35 +115,47 @@ public sealed class WorkloadActionExecutor : ICommandExecutor
     }
 
     private async Task<ExecutorResult> ExecuteStartAsync(
-        IWorkloadProvider provider, WorkloadActionPayload payload,
-        CommandEnvelope envelope, CancellationToken cancellationToken)
+        IWorkloadProvider provider,
+        WorkloadActionPayload payload,
+        CommandEnvelope envelope,
+        CancellationToken cancellationToken)
     {
         var workload = await provider.StartAsync(payload.WorkloadId, cancellationToken);
         logger.LogInformation(
             "Started workload {WorkloadId} for command {CommandId}",
-            workload.Id, envelope.CommandId);
+            workload.Id,
+            envelope.CommandId);
+
         return ExecutorResult.Ok();
     }
 
     private async Task<ExecutorResult> ExecuteStopAsync(
-        IWorkloadProvider provider, WorkloadActionPayload payload,
-        CommandEnvelope envelope, CancellationToken cancellationToken)
+        IWorkloadProvider provider,
+        WorkloadActionPayload payload,
+        CommandEnvelope envelope,
+        CancellationToken cancellationToken)
     {
         var workload = await provider.StopAsync(payload.WorkloadId, cancellationToken);
         logger.LogInformation(
             "Stopped workload {WorkloadId} for command {CommandId}",
-            workload.Id, envelope.CommandId);
+            workload.Id,
+            envelope.CommandId);
+
         return ExecutorResult.Ok();
     }
 
     private async Task<ExecutorResult> ExecuteDeleteAsync(
-        IWorkloadProvider provider, WorkloadActionPayload payload,
-        CommandEnvelope envelope, CancellationToken cancellationToken)
+        IWorkloadProvider provider,
+        WorkloadActionPayload payload,
+        CommandEnvelope envelope,
+        CancellationToken cancellationToken)
     {
         var workload = await provider.DeleteAsync(payload.WorkloadId, cancellationToken);
         logger.LogInformation(
             "Deleted workload {WorkloadId} for command {CommandId}",
-            workload.Id, envelope.CommandId);
+            workload.Id,
+            envelope.CommandId);
+
         return ExecutorResult.Ok();
     }
 }

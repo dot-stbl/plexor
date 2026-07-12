@@ -15,41 +15,39 @@
 // ============================================================================
 
 using System.Collections.Concurrent;
-using Microsoft.Extensions.Logging;
 using Plexor.Host.Abstractions;
 using Plexor.Shared.NodeApi;
 
 namespace Plexor.Host.NodeRegistry;
 
 /// <summary>
-/// v0.1 in-memory implementation of <see cref="INodeRegistry"/>.
-/// Single-process, no persistence, no auth. v0.2+ moves to
-/// Postgres (node state, result audit log) and a durable queue
-/// (NATS or Postgres LISTEN/NOTIFY) so commands survive restarts.
+///     v0.1 in-memory implementation of <see cref="INodeRegistry" />.
+///     Single-process, no persistence, no auth. v0.2+ moves to
+///     Postgres (node state, result audit log) and a durable queue
+///     (NATS or Postgres LISTEN/NOTIFY) so commands survive restarts.
 /// </summary>
-internal sealed class InMemoryNodeRegistry : INodeRegistry
+/// <remarks>Build an in-memory registry.</remarks>
+/// <param name="logger">
+///     For join / heartbeat / result /
+///     queue-full diagnostics.
+/// </param>
+/// <param name="defaultControlPlaneUrl">
+///     URL returned in
+///     <see cref="JoinResponse.ControlPlaneUrl" />. v0.1 is a
+///     placeholder — production wires this from
+///     <c>IConfiguration["Plexor:PublicUrl"]</c>.
+/// </param>
+internal sealed class InMemoryNodeRegistry(
+    ILogger<InMemoryNodeRegistry> logger,
+    Uri? defaultControlPlaneUrl = null) : INodeRegistry
 {
+    private readonly ConcurrentDictionary<Guid, long> cursors = new();
+
+    private readonly Uri defaultControlPlaneUrl = defaultControlPlaneUrl
+                                                  ?? new Uri("http://localhost:5000/");
+
     private readonly ConcurrentDictionary<Guid, NodeRecord> nodes = new();
     private readonly ConcurrentDictionary<Guid, ConcurrentQueue<CommandEnvelope>> queues = new();
-    private readonly ConcurrentDictionary<Guid, long> cursors = new();
-    private readonly ILogger<InMemoryNodeRegistry> logger;
-    private readonly Uri defaultControlPlaneUrl;
-
-    /// <summary>Build an in-memory registry.</summary>
-    /// <param name="logger">For join / heartbeat / result /
-    /// queue-full diagnostics.</param>
-    /// <param name="defaultControlPlaneUrl">URL returned in
-    /// <see cref="JoinResponse.ControlPlaneUrl"/>. v0.1 is a
-    /// placeholder — production wires this from
-    /// <c>IConfiguration["Plexor:PublicUrl"]</c>.</param>
-    public InMemoryNodeRegistry(
-        ILogger<InMemoryNodeRegistry> logger,
-        Uri? defaultControlPlaneUrl = null)
-    {
-        this.logger = logger;
-        this.defaultControlPlaneUrl = defaultControlPlaneUrl
-            ?? new Uri("http://localhost:5000/");
-    }
 
     /// <inheritdoc />
     public Task<JoinResponse> RegisterAsync(JoinRequest request, CancellationToken cancellationToken)
@@ -65,7 +63,7 @@ internal sealed class InMemoryNodeRegistry : INodeRegistry
             Hardware = request.Hardware,
             JoinedAt = DateTimeOffset.UtcNow,
             LastHeartbeatAt = DateTimeOffset.UtcNow,
-            JoinTokenHash = request.JoinToken,
+            JoinTokenHash = request.JoinToken
         };
 
         if (!nodes.TryAdd(nodeId, record))
@@ -97,7 +95,9 @@ internal sealed class InMemoryNodeRegistry : INodeRegistry
             // been forgotten across a restart). Real impl will
             // return NotFound so the agent knows to re-register.
             logger.LogWarning(
-                "Heartbeat from unknown node {NodeId} ignored", request.NodeId);
+                "Heartbeat from unknown node {NodeId} ignored",
+                request.NodeId);
+
             return Task.CompletedTask;
         }
 
@@ -125,6 +125,7 @@ internal sealed class InMemoryNodeRegistry : INodeRegistry
                 "EnqueueCommand {CommandId} targets unknown node {NodeId}; dropping",
                 envelope.CommandId,
                 envelope.NodeId);
+
             return Task.CompletedTask;
         }
 
@@ -185,8 +186,8 @@ internal sealed class InMemoryNodeRegistry : INodeRegistry
             result.CommandId,
             status,
             string.IsNullOrEmpty(result.ErrorMessage)
-                ? string.Empty
-                : $": {result.ErrorMessage}");
+                    ? string.Empty
+                    : $": {result.ErrorMessage}");
 
         return Task.CompletedTask;
     }

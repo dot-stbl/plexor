@@ -8,8 +8,8 @@
 // handler doesn't double-handle.
 // ============================================================================
 
+using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Plexor.NodeAgent.Abstractions;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
@@ -17,38 +17,32 @@ using Plexor.Shared.Workloads;
 namespace Plexor.NodeAgent.Executors;
 
 /// <summary>
-/// Handles <c>workload.create</c> commands. The executor is
-/// provider-agnostic — it looks the right <see cref="IWorkloadProvider"/>
-/// up by <see cref="WorkloadSpec.Kind"/> and delegates. Adding a new
-/// kind means adding a new <see cref="IWorkloadProvider"/>
-/// registration, not a new executor.
+///     Handles <c>workload.create</c> commands. The executor is
+///     provider-agnostic — it looks the right <see cref="IWorkloadProvider" />
+///     up by <see cref="WorkloadSpec.Kind" /> and delegates. Adding a new
+///     kind means adding a new <see cref="IWorkloadProvider" />
+///     registration, not a new executor.
 /// </summary>
-public sealed class WorkloadCreateExecutor : ICommandExecutor
+/// <remarks>
+///     Build the executor. v0.1 ships with the
+///     KVM/libvirt provider registered as the only provider.
+/// </remarks>
+public sealed class WorkloadCreateExecutor(
+    IWorkloadRegistry registry,
+    ILogger<WorkloadCreateExecutor> logger) : ICommandExecutor
 {
-    private readonly IWorkloadRegistry registry;
-    private readonly ILogger<WorkloadCreateExecutor> logger;
-
-    /// <summary>Build the executor. v0.1 ships with the
-    /// KVM/libvirt provider registered as the only provider.</summary>
-    public WorkloadCreateExecutor(
-        IWorkloadRegistry registry,
-        ILogger<WorkloadCreateExecutor> logger)
-    {
-        this.registry = registry;
-        this.logger = logger;
-    }
-
     /// <inheritdoc />
     public string Type => "workload.create";
 
     /// <inheritdoc />
     public async Task<ExecutorResult> ExecuteAsync(
-        CommandEnvelope envelope, CancellationToken cancellationToken)
+        CommandEnvelope envelope,
+        CancellationToken cancellationToken)
     {
         try
         {
             if (await JsonSerializer.DeserializeAsync<CreateWorkloadPayload>(
-                    new MemoryStream(System.Text.Encoding.UTF8.GetBytes(envelope.PayloadJson)),
+                    new MemoryStream(Encoding.UTF8.GetBytes(envelope.PayloadJson)),
                     cancellationToken: cancellationToken)
                 is not { } payload)
             {
@@ -65,7 +59,10 @@ public sealed class WorkloadCreateExecutor : ICommandExecutor
             var workload = await provider.CreateAsync(payload.Spec, cancellationToken);
             logger.LogInformation(
                 "Created workload {WorkloadId} ({Kind}) for {Name}",
-                workload.Id, workload.Kind, workload.Name);
+                workload.Id,
+                workload.Kind,
+                workload.Name);
+
             return ExecutorResult.Ok();
         }
         catch (Exception ex)

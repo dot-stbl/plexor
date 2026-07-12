@@ -15,10 +15,10 @@
 // WorkloadSpec.Config.
 // ============================================================================
 
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Xml;
-using Microsoft.Extensions.Logging;
 using Plexor.NodeAgent.Providers.Common;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
@@ -26,26 +26,24 @@ using Plexor.Shared.Workloads;
 namespace Plexor.NodeAgent.Providers;
 
 /// <summary>
-/// <see cref="IWorkloadProvider"/> for KVM VMs via libvirt. v0.1
-/// uses the <c>virsh</c> CLI; future v0.2+ uses LibvirtClient.
+///     <see cref="IWorkloadProvider" /> for KVM VMs via libvirt. v0.1
+///     uses the <c>virsh</c> CLI; future v0.2+ uses LibvirtClient.
 /// </summary>
-public sealed class LibvirtKvmProvider : IWorkloadProvider
+/// <remarks>
+///     Build a provider that talks to the local
+///     libvirt system instance via KVM.
+/// </remarks>
+public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWorkloadProvider
 {
-    /// <summary>The libvirt URI for KVM/QEMU on the local
-    /// system. v0.1 hardcodes this; v0.2+ reads it from
-    /// configuration so the agent can target remote libvirt
-    /// hosts.</summary>
+    /// <summary>
+    ///     The libvirt URI for KVM/QEMU on the local
+    ///     system. v0.1 hardcodes this; v0.2+ reads it from
+    ///     configuration so the agent can target remote libvirt
+    ///     hosts.
+    /// </summary>
     public static readonly Uri LibvirtUri = new("qemu:///system");
 
-    private readonly ILogger<LibvirtKvmProvider> logger;
     private readonly WorkloadIdMap workloads = new();
-
-    /// <summary>Build a provider that talks to the local
-    /// libvirt system instance via KVM.</summary>
-    public LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger)
-    {
-        this.logger = logger;
-    }
 
     /// <inheritdoc />
     public WorkloadKind Kind => new WorkloadKind.Vm();
@@ -81,6 +79,7 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
                     "Best-effort cleanup of {Domain} after failed create failed",
                     spec.Name);
             }
+
             throw;
         }
         finally
@@ -100,12 +99,12 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
 
         workloads.Register(id, spec.Name, Kind);
         return new LocalWorkload(
-            Id: id,
-            Name: spec.Name,
-            Kind: Kind,
-            State: WorkloadState.Running,
-            CreatedAt: DateTimeOffset.UtcNow,
-            StartedAt: DateTimeOffset.UtcNow);
+            id,
+            spec.Name,
+            Kind,
+            WorkloadState.Running,
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />
@@ -114,7 +113,7 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
         var entry = workloads.GetOrThrow(id);
         await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Running);
-        return Snapshot(id, startedAt: DateTimeOffset.UtcNow);
+        return Snapshot(id, DateTimeOffset.UtcNow);
     }
 
     /// <inheritdoc />
@@ -126,7 +125,7 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
         // events to detect the transition to "shut off".
         await LibvirtRunner.RunAsync(LibvirtUri, $"shutdown {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Stopped);
-        return Snapshot(id, startedAt: null);
+        return Snapshot(id, null);
     }
 
     /// <inheritdoc />
@@ -137,6 +136,7 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
         // destroy the underlying disk image). The agent's caller
         // is responsible for any disk cleanup.
         await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", cancellationToken);
+
         if (!workloads.Remove(id))
         {
             throw new InvalidOperationException(
@@ -144,12 +144,12 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
         }
 
         return new LocalWorkload(
-            Id: id,
-            Name: entry.DomainName,
-            Kind: entry.Kind,
-            State: WorkloadState.Stopped,
-            CreatedAt: DateTimeOffset.UtcNow,
-            StartedAt: null);
+            id,
+            entry.DomainName,
+            entry.Kind,
+            WorkloadState.Stopped,
+            DateTimeOffset.UtcNow,
+            null);
     }
 
     /// <inheritdoc />
@@ -159,34 +159,38 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
             workloads.Snapshot(Environment.MachineName));
     }
 
-    /// <summary>Build a <see cref="LocalWorkload"/> snapshot for
-    /// the given id with the given startedAt timestamp. Helper
-    /// used by start/stop/delete to return a value to the agent.</summary>
+    /// <summary>
+    ///     Build a <see cref="LocalWorkload" /> snapshot for
+    ///     the given id with the given startedAt timestamp. Helper
+    ///     used by start/stop/delete to return a value to the agent.
+    /// </summary>
     private LocalWorkload Snapshot(Guid id, DateTimeOffset? startedAt)
     {
         var entry = workloads.GetOrThrow(id);
         return new LocalWorkload(
-            Id: id,
-            Name: entry.DomainName,
-            Kind: entry.Kind,
-            State: entry.State,
-            CreatedAt: DateTimeOffset.UtcNow,
-            StartedAt: startedAt);
+            id,
+            entry.DomainName,
+            entry.Kind,
+            entry.State,
+            DateTimeOffset.UtcNow,
+            startedAt);
     }
 
-    /// <summary>Build a minimal libvirt domain XML for the given
-    /// spec. v0.1: one disk, one network interface, no balloon
-    /// device. Real impl reads additional config from
-    /// <see cref="WorkloadSpec.Config"/> (opaque JSON the
-    /// provider owns).</summary>
+    /// <summary>
+    ///     Build a minimal libvirt domain XML for the given
+    ///     spec. v0.1: one disk, one network interface, no balloon
+    ///     device. Real impl reads additional config from
+    ///     <see cref="WorkloadSpec.Config" /> (opaque JSON the
+    ///     provider owns).
+    /// </summary>
     private static string BuildDomainXml(WorkloadSpec spec, Guid id)
     {
         // The spec is opaque to us; we read what we know and
         // ignore the rest for v0.1. Real impl deserializes
         // spec.Config into a typed record.
         var config = TryDeserializeConfig(spec.Config, out var c)
-            ? c
-            : new LibvirtKvmConfig();
+                ? c
+                : new LibvirtKvmConfig();
 
         // v0.1: defaults if Config is missing fields. Future:
         // the control plane passes these explicitly.
@@ -196,17 +200,19 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
         var settings = new XmlWriterSettings
         {
             Indent = true,
-            OmitXmlDeclaration = true,
+            OmitXmlDeclaration = true
         };
+
         var sb = new StringBuilder();
+
         using (var writer = XmlWriter.Create(sb, settings))
         {
             writer.WriteStartElement("domain");
             writer.WriteAttributeString("type", "kvm");
             writer.WriteElementString("name", spec.Name);
             writer.WriteElementString("uuid", id.ToString());
-            writer.WriteElementString("memory", Convert.ToString(ramKiB, System.Globalization.CultureInfo.InvariantCulture));
-            writer.WriteElementString("vcpu", Convert.ToString(vcpu, System.Globalization.CultureInfo.InvariantCulture));
+            writer.WriteElementString("memory", Convert.ToString(ramKiB, CultureInfo.InvariantCulture));
+            writer.WriteElementString("vcpu", Convert.ToString(vcpu, CultureInfo.InvariantCulture));
 
             writer.WriteStartElement("os");
             writer.WriteElementString("type", "hvm");
@@ -248,7 +254,8 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
         try
         {
             result = config.Deserialize<LibvirtKvmConfig>()
-                ?? new LibvirtKvmConfig();
+                     ?? new LibvirtKvmConfig();
+
             return true;
         }
         catch
@@ -258,10 +265,12 @@ public sealed class LibvirtKvmProvider : IWorkloadProvider
         }
     }
 
-    /// <summary>Provider-specific config schema (consumed from
-    /// <see cref="WorkloadSpec.Config"/>). v0.1: defaults if the
-    /// control plane doesn't supply a value, so the agent stays
-    /// functional even with empty Config.</summary>
+    /// <summary>
+    ///     Provider-specific config schema (consumed from
+    ///     <see cref="WorkloadSpec.Config" />). v0.1: defaults if the
+    ///     control plane doesn't supply a value, so the agent stays
+    ///     functional even with empty Config.
+    /// </summary>
     private sealed record LibvirtKvmConfig(
         long RamBytes = 1L * 1024 * 1024 * 1024,
         int CpuCores = 2,
