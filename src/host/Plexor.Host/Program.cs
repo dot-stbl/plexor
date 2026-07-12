@@ -22,10 +22,8 @@ using System.Text.Json.Serialization;
 using Plexor.Host.Abstractions;
 using Plexor.Host.Controllers;
 using Plexor.Host.NodeRegistry;
-using Plexor.Modules.Sigil.Application.Abstractions;
-using Plexor.Modules.Sigil.Domain;
-using Plexor.Modules.Sigil.Domain.Entities;
-using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
+using Plexor.Modules.Sigil.Application.Installers;
+using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Shared.Filtering;
 using Plexor.Shared.Filtering.DI;
 using Plexor.Shared.Persistence;
@@ -85,14 +83,13 @@ var contextCount = builder.Services.AddPlexorModuleDbContexts(postgresConnection
 // filterable.
 builder.Services.AddFiltering();
 
-// Auth primitives — built-in PasswordHasher (PBKDF2) + per-request
-// current user from HttpContext claims. The bearer handler that
-// populates the claims is wired in Phase 3.6; until then the
-// ICurrentUser reader always returns the anonymous defaults
+// Sigil module — auth contracts + impls. Phase 3.2-3.5 wires the
+// PBKDF2 password hasher + the per-request ICurrentUser reader.
+// The bearer handler that populates claims lands in Phase 3.6;
+// until then ICurrentUser always returns the anonymous defaults
 // (Guid.Empty ids + empty collections).
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddSingleton<Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
-builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
+builder.Services.AddSigilApplicationCore(builder.Configuration);
+builder.Services.AddSigilInfrastructureCore(builder.Configuration);
 
 // Logging — Plexor console formatter (color-coded by level, formatted
 // for grep-ability). Replaces the default simple formatter so all ASP.NET
