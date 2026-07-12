@@ -1,3 +1,5 @@
+using Plexor.Modules.Identity.Domain.Errors;
+
 namespace Plexor.Modules.Identity.Domain.ValueObjects;
 
 /// <summary>
@@ -49,7 +51,7 @@ public sealed class PermissionScope : IEquatable<PermissionScope>
         if (!IsWellFormed(raw))
         {
             throw new IdentityException(
-                IdentityExceptionKind.InvalidPermission,
+                IdentityExceptions.InvalidPermission,
                 $"'{raw}' is not a valid permission. " +
                 "Expected '<service>.<resource>.<action>[.<qualifier>]' or '*'.");
         }

@@ -1,3 +1,5 @@
+using Plexor.Modules.Identity.Domain.Errors;
+
 namespace Plexor.Modules.Identity.Domain.ValueObjects;
 
 /// <summary>
@@ -38,17 +40,17 @@ public sealed class PasswordHash : IEquatable<PasswordHash>
     ///     Constructs a <c>PasswordHash</c> from a stored bcrypt string.
     ///     Throws <see cref="IdentityException" /> on malformed input.
     /// </summary>
-    /// <param name="value">Bcrypt hash string (e.g. <c>$2b$12$...salt...hash</c>).</param>
-    public PasswordHash(string value)
+    /// <param name="hash">Bcrypt hash string (e.g. <c>$2b$12$...salt...hash</c>).</param>
+    public PasswordHash(string hash)
     {
-        if (!IsWellFormed(value))
+        if (!IsWellFormed(hash))
         {
             throw new IdentityException(
-                IdentityExceptionKind.InvalidPasswordHash,
+                IdentityExceptions.InvalidPasswordHash,
                 "Password hash must be a bcrypt string with cost factor 12 ($2x$12$...).");
         }
 
-        this.value = value;
+        value = hash;
     }
 
     /// <summary>Returns the underlying bcrypt string. For persistence

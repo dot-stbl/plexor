@@ -1,5 +1,7 @@
 using Plexor.Shared.Filtering;
 
+using Plexor.Shared.Kernel.Common;
+
 namespace Plexor.Modules.Identity.Domain.Entities;
 
 /// <summary>
@@ -20,7 +22,7 @@ namespace Plexor.Modules.Identity.Domain.Entities;
 ///     <see cref="PublicKey" />; format validation happens in the
 ///     Application layer when the key is registered (Phase 4).</para>
 /// </remarks>
-public sealed class SshKey : IFilterableEntity
+public sealed class SshKey : IFilterableEntity, ICreatedAt
 {
     /// <summary>Unique identifier (UUID v7).</summary>
     public Guid Id { get; init; }

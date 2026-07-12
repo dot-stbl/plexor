@@ -1,6 +1,8 @@
 using Plexor.Modules.Identity.Domain.ValueObjects;
 using Plexor.Shared.Filtering;
 
+using Plexor.Shared.Kernel.Common;
+
 namespace Plexor.Modules.Identity.Domain.Entities;
 
 /// <summary>
@@ -21,7 +23,7 @@ namespace Plexor.Modules.Identity.Domain.Entities;
 ///     rule §"Application service — DbContext directly" applies: no
 ///     <c>IUserRepository</c> wrapper.</para>
 /// </remarks>
-public sealed class User : IFilterableEntity
+public sealed class User : IFilterableEntity, ICreatedAt, IUpdatedAt
 {
     /// <summary>Unique identifier (UUID v7, sortable by creation time).</summary>
     public Guid Id { get; init; }

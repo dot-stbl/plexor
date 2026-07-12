@@ -1,3 +1,5 @@
+using Plexor.Shared.Kernel.Common;
+
 namespace Plexor.Modules.Identity.Domain.Entities;
 
 /// <summary>

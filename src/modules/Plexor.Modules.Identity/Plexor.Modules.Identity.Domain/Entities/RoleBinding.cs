@@ -1,5 +1,7 @@
 using Plexor.Shared.Filtering;
 
+using Plexor.Shared.Kernel.Common;
+
 namespace Plexor.Modules.Identity.Domain.Entities;
 
 /// <summary>
@@ -20,7 +22,7 @@ namespace Plexor.Modules.Identity.Domain.Entities;
 ///     project FK. v0.1 keeps <see cref="ProjectId" /> nullable; the
 ///     column type is <c>UUID NULL</c>.</para>
 /// </remarks>
-public sealed class RoleBinding : IFilterableEntity
+public sealed class RoleBinding : IFilterableEntity, ICreatedAt
 {
     /// <summary>Unique identifier (UUID v7).</summary>
     public Guid Id { get; init; }

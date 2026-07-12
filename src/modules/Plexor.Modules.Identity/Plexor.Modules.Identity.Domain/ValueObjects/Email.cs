@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Plexor.Modules.Identity.Domain.Errors;
 
 namespace Plexor.Modules.Identity.Domain.ValueObjects;
 
@@ -51,7 +52,7 @@ public sealed class Email : IEquatable<Email>
         if (string.IsNullOrWhiteSpace(raw))
         {
             throw new IdentityException(
-                IdentityExceptionKind.InvalidEmail,
+                IdentityExceptions.InvalidEmail,
                 "Email cannot be null or whitespace.");
         }
 
@@ -59,7 +60,7 @@ public sealed class Email : IEquatable<Email>
         if (!Pattern.IsMatch(normalized))
         {
             throw new IdentityException(
-                IdentityExceptionKind.InvalidEmail,
+                IdentityExceptions.InvalidEmail,
                 $"'{raw}' is not a valid email address.");
         }
 

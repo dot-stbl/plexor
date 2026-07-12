@@ -1,6 +1,8 @@
 using Plexor.Modules.Identity.Domain.ValueObjects;
 using Plexor.Shared.Filtering;
 
+using Plexor.Shared.Kernel.Common;
+
 namespace Plexor.Modules.Identity.Domain.Entities;
 
 /// <summary>
@@ -20,7 +22,7 @@ namespace Plexor.Modules.Identity.Domain.Entities;
 ///     in <see cref="Permissions" /> and copied verbatim into JWT claims
 ///     at sign time.</para>
 /// </remarks>
-public sealed class Role : IFilterableEntity
+public sealed class Role : IFilterableEntity, ICreatedAt, IUpdatedAt
 {
     /// <summary>Unique identifier (UUID v7).</summary>
     public Guid Id { get; init; }

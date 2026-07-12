@@ -1,5 +1,7 @@
 using Plexor.Shared.Filtering;
 
+using Plexor.Shared.Kernel.Common;
+
 namespace Plexor.Modules.Identity.Domain.Entities;
 
 /// <summary>
@@ -21,7 +23,7 @@ namespace Plexor.Modules.Identity.Domain.Entities;
 ///     is revoked, and the user must re-login. The detection happens
 ///     in <c>IAuthenticationService.RefreshAsync</c> (Phase 3).</para>
 /// </remarks>
-public sealed class RefreshToken : IFilterableEntity
+public sealed class RefreshToken : IFilterableEntity, ICreatedAt
 {
     /// <summary>Unique identifier (UUID v7). Equals the <c>jti</c> claim
     /// in the JWT issued alongside this refresh token.</summary>

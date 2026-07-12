@@ -1,5 +1,8 @@
+using Plexor.Modules.Identity.Domain.Errors;
 using Plexor.Modules.Identity.Domain.ValueObjects;
 using Plexor.Shared.Filtering;
+
+using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Identity.Domain.Entities;
 
@@ -19,13 +22,13 @@ namespace Plexor.Modules.Identity.Domain.Entities;
 ///     subset of the owner's effective permissions — issuing a key
 ///     grants only the permissions listed. Authorization code rejects
 ///     key creation when the requested permissions exceed the owner's
-///     set (see <see cref="IdentityExceptionKind.ApiKeyPermissionsExceedOwner" />).</para>
+///     set (see <see cref="IdentityExceptions.ApiKeyPermissionsExceedOwner" />).</para>
 ///     <para><b>Service-to-service auth.</b> The NodeAgent ↔ Host
 ///     control loop uses API keys (replaces the placeholder
 ///     <c>JoinToken</c> in <c>Plexor.Shared.NodeApi/NodeContracts.cs</c>;
 ///     see <c>architecture/identity.md</c> §NodeAgent migration).</para>
 /// </remarks>
-public sealed class ApiKey : IFilterableEntity
+public sealed class ApiKey : IFilterableEntity, ICreatedAt
 {
     /// <summary>Unique identifier (UUID v7). Becomes the
     /// <c>kid_xxx</c> prefix in the bearer token.</summary>
