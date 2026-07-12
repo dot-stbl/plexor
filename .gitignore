@@ -350,3 +350,4 @@ FodyWeavers.xsd
 *.msp
 *.sln.iml
 TestResults/
+lex_word_list.txt
