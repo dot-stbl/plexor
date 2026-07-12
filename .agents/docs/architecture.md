@@ -67,47 +67,22 @@
 
 ## Decomposition strategy
 
-**Today**: modular monolith — все модули в одном `Plexor.Host`.
-Single binary, single deployment, MVP-friendly.
+**MVP**: modular monolith — все модули в `Plexor.Host`.
 
-**Phase 2+**: planned extraction 3-х модулей в отдельные бинарь,
-**по измеренному bottleneck'у** (p99 latency > 500ms ИЛИ CPU > 70%
-sustained ИЛИ write > 100K events/s):
+**Phase 2+**: planned extraction трёх модулей в отдельные бинарь по
+измеренному bottleneck'у (Audit, Telemetry, Network — детали в
+[modules.md §Extraction Tier](modules.md#extraction-tier)).
 
-| Модуль | Новый бинарь | Trigger metric |
-|---|---|---|
-| Audit (sub-concern Telemetry today) | `Plexor.Audit.Host` | Audit write > 100K events/s ИЛИ retention > 1TB ИЛИ regulatory isolation need |
-| Telemetry | `Plexor.Telemetry.Host` | p99 OTel ingest > 500ms ИЛИ CPU > 70% sustained |
-| Network | `Plexor.Network.Host` | State > 100K networks ИЛИ scheduler contention с VM operations |
+Не OpenStack-style 30+ сервисов: operational overhead (+1 deploy, +1
+CI pipeline, +1 schema migration, +1 monitoring target) не оправдан
+для middleware-облака. Counter-evidence: GitHub, Shopify, Stack
+Overflow обслуживали миллиарды запросов на монолите.
 
-Почему НЕ OpenStack-style 30+ сервисов?
+**Extraction-ready by design** — извлечение = deploy change, не
+refactor. Module contracts в `Plexor.Shared.Contracts`, cross-module
+async через outbox events, per-module DbContext+schema.
 
-Operational overhead убивает маленькие команды: каждый сервис = +1
-deploy, +1 CI pipeline, +1 schema migration, +1 monitoring target,
-+1 CVE patch cycle. Mandatory: distributed tracing, mTLS, retries,
-service discovery. Counter-evidence: GitHub, Shopify, Stack Overflow
-все обслуживали миллиарды запросов на монолите. Plexor's middleware
-needs не оправдывают такую стоимость.
-
-**Extraction-ready by design** — извлечение = deploy change, не refactor:
-
-- Module contracts в `Plexor.Shared.Contracts` (boundary library,
-  shared between monolith и split deploys)
-- Cross-module async через outbox events (одинаковый outbox читается
-  in-process subscriber today, separate binary через
-  `SELECT ... FOR UPDATE SKIP LOCKED` после extraction)
-- Per-module DbContext + per-module schema (enforced уже)
-- In-process module → module calls OK для non-critical paths
-
-**Anti-pattern (запрещено)**:
-- ❌ Извлекать модули сверх списка (Audit/Telemetry/Network) без
-  proven bottleneck'а в `.agents/STATE.md` discussion
-- ❌ Извлекать "для чистоты" / "на будущее"
-- ❌ Добавлять `IPort` интерфейсы везде — только на cross-module
-  touchpoints (≥2 модуля потребляют)
-
-Детали, open questions, alternatives considered — 
-[ADR-0001](../../planning/adr/0001-selective-decomposition.md).
+Подробности и rationale — [ADR-0001](../../planning/adr/0001-selective-decomposition.md).
 
 ## Слои
 

@@ -14,7 +14,6 @@
 | [yandex-cloud-parity.md](yandex-cloud-parity.md) | Карта YC-сервисов → Plexor | Планирование roadmap |
 | [ui.md](ui.md) | UI design system, OpenDesign интеграция | Дизайн/фронтенд |
 | [api-contracts.md](api-contracts.md) | OpenAPI workflow, фронт-codegen | Меняешь API контроллеры |
-| [../../planning/adr/README.md](../../planning/adr/README.md) | Architecture decision records (ADR-NNNN) — index + когда писать ADR | Перед архитектурным решением; перед фичей, затрагивающей ≥2 модуля |
 | [operations/install.md](operations/install.md) | install flow | Разворачиваешь |
 | [operations/upgrade.md](operations/upgrade.md) | atomic updates | Апгрейдишь |
 | [operations/troubleshooting.md](operations/troubleshooting.md) | типовые проблемы | Сломалось |
