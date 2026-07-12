@@ -474,29 +474,29 @@ charset = utf-8-bom
 # here is pure noise. Disable the rules that fire on generated code; see
 # process/build-verification.md. (generated_code = true does NOT work for hand-placed
 # files — `dotnet format` still walks them — so we list the rules explicitly.)
-#
+# 
 # Core IDE codestyle — irrelevant to generated fluent builders.
 dotnet_diagnostic.IDE0161.severity = none # file-scoped namespace (gen: uses proper)
-dotnet_diagnostic.IDE1006.severity = none # naming style (gen: lowerCase helpers)
+dotnet_diagnostic.IDE1006.severity = suggestion # naming style (gen: lowerCase helpers)
 dotnet_diagnostic.IDE0058.severity = none # unused expression value (gen: fluent chain)
 dotnet_diagnostic.IDE0007.severity = none # var vs explicit type (gen: long generic names)
-dotnet_diagnostic.IDE0008.severity = none # explicit type vs var (gen: inverse)
-dotnet_diagnostic.IDE0040.severity = none # access modifiers (gen: missing on interface)
+dotnet_diagnostic.IDE0008.severity = suggestion # explicit type vs var (gen: inverse)
+dotnet_diagnostic.IDE0040.severity = suggestion # access modifiers (gen: missing on interface)
 dotnet_diagnostic.IDE0047.severity = none # redundant parens (gen: explicit grouping)
 dotnet_diagnostic.IDE0078.severity = none # use pattern matching (gen: prefers is-null)
 dotnet_diagnostic.IDE0290.severity = none # use primary constructor (gen: explicit ctor)
-dotnet_diagnostic.IDE0022.severity = none # expression-bodied method (gen: block body)
-dotnet_diagnostic.IDE0021.severity = none # expression-bodied constructor (gen: block)
-dotnet_diagnostic.IDE0060.severity = none # unused parameter (gen: required by override)
+dotnet_diagnostic.IDE0022.severity = suggestion # expression-bodied method (gen: block body)
+dotnet_diagnostic.IDE0021.severity = suggestion # expression-bodied constructor (gen: block)
+dotnet_diagnostic.IDE0060.severity = suggestion # unused parameter (gen: required by override)
 # MA / CA / RCS — analyzer noise on generated code.
-dotnet_diagnostic.MA0197.severity = none # unused private member (gen: fluent tmp vars)
-dotnet_diagnostic.CA1861.severity = none # constant array allocation (gen: every time)
-dotnet_diagnostic.CA1305.severity = none # locale-specific string op (gen: SQL string keys)
-dotnet_diagnostic.CA1822.severity = none # make member static (gen: instance pattern)
-dotnet_diagnostic.RCS1036.severity = none # unnecessary blank line (gen: fluent formatting)
-dotnet_diagnostic.RCS1037.severity = none # trailing whitespace (gen: CRLF artifacts)
-dotnet_diagnostic.RCS1038.severity = none # file header copyright (gen: no copyright)
-dotnet_diagnostic.RCS1141.severity = none # add 'param' element (gen: trivial types)
+dotnet_diagnostic.MA0197.severity = suggestion # unused private member (gen: fluent tmp vars)
+dotnet_diagnostic.CA1861.severity = suggestion # constant array allocation (gen: every time)
+dotnet_diagnostic.CA1305.severity = suggestion # locale-specific string op (gen: SQL string keys)
+dotnet_diagnostic.CA1822.severity = suggestion # make member static (gen: instance pattern)
+dotnet_diagnostic.RCS1036.severity = suggestion # unnecessary blank line (gen: fluent formatting)
+dotnet_diagnostic.RCS1037.severity = suggestion # trailing whitespace (gen: CRLF artifacts)
+dotnet_diagnostic.RCS1038.severity = suggestion # file header copyright (gen: no copyright)
+dotnet_diagnostic.RCS1141.severity = suggestion # add 'param' element (gen: trivial types)
 charset = unset
 
 [**/Migrations/*.cs]
@@ -505,22 +505,22 @@ charset = utf-8-bom
 # per-module subfolder). Mirrors the suppressed rules in [**/Migrations/**]
 # above so both layouts compile clean.
 dotnet_diagnostic.IDE0161.severity = none
-dotnet_diagnostic.IDE1006.severity = none
+dotnet_diagnostic.IDE1006.severity = suggestion
 dotnet_diagnostic.IDE0058.severity = none
 dotnet_diagnostic.IDE0007.severity = none
-dotnet_diagnostic.IDE0008.severity = none
-dotnet_diagnostic.IDE0040.severity = none
+dotnet_diagnostic.IDE0008.severity = suggestion
+dotnet_diagnostic.IDE0040.severity = suggestion
 dotnet_diagnostic.IDE0047.severity = none
 dotnet_diagnostic.IDE0078.severity = none
 dotnet_diagnostic.IDE0290.severity = none
-dotnet_diagnostic.IDE0022.severity = none
-dotnet_diagnostic.IDE0021.severity = none
-dotnet_diagnostic.IDE0060.severity = none
-dotnet_diagnostic.MA0197.severity = none
-dotnet_diagnostic.CA1861.severity = none
-dotnet_diagnostic.CA1305.severity = none
-dotnet_diagnostic.CA1822.severity = none
-dotnet_diagnostic.RCS1141.severity = none
+dotnet_diagnostic.IDE0022.severity = suggestion
+dotnet_diagnostic.IDE0021.severity = suggestion
+dotnet_diagnostic.IDE0060.severity = suggestion
+dotnet_diagnostic.MA0197.severity = suggestion
+dotnet_diagnostic.CA1861.severity = suggestion
+dotnet_diagnostic.CA1305.severity = suggestion
+dotnet_diagnostic.CA1822.severity = suggestion
+dotnet_diagnostic.RCS1141.severity = suggestion
 charset = unset
 
 # --- NamespaceMarker ---
