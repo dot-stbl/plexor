@@ -5,154 +5,56 @@ using Plexor.Shared.Filtering;
 namespace Plexor.Shared.Filtering.Bench;
 
 /// <summary>
-///     Benchmark suite for the filtering pipeline. Covers the full range
-///     from tiny 2-clause filters to adversarial 50+ clause expressions.
+///     Benchmark suite for the filtering pipeline. Shows the difference between
+///     cache-miss (full parse + expression build) and cache-hit (dictionary lookup).
+///     [MemoryDiagnoser] shows allocations side-by-side.
 /// </summary>
 [MemoryDiagnoser]
 [SimpleJob(warmupCount: 3, iterationCount: 5)]
-public sealed class FilteringBenchmarks
+public class FilteringBenchmarks
 {
-    // ---------- Small filters (typical list-page) ----------
-
-    [ParamsSource(nameof(SmallFilters))]
-    public string Filter { get; set; } = string.Empty;
-
-    public static IEnumerable<string> SmallFilters =>
-    [
-        "name==Apple",
+    [Params(
         "name==Apple;status==Active",
-        "name~Apple;status==Active;createdAt>=2024-01-01",
-    ];
-
-    // ---------- Medium filters (dashboard, multi-condition) ----------
-
-    [ParamsSource(nameof(MediumFilters))]
-    public string MediumFilter { get; set; } = string.Empty;
-
-    public static IEnumerable<string> MediumFilters =>
-    [
-        // 5-clause AND chain
-        "name~Apple;status==Active;createdAt>=2024-01-01;updatedAt>=now(-7d);createdBy==admin",
-        // OR group + AND
-        "(name~Apple|name~Orange|name~Banana);status==Active;createdAt>=now(-7d)",
-        // Nested OR/AND with IN-list
-        "(status==Active|status==Trial);tags[]=prod,staging,dev;region==eu-west-1;team~platform",
-    ];
-
-    // ---------- Large filters (bulk API, power-user search) ----------
-
-    [ParamsSource(nameof(LargeFilters))]
-    public string LargeFilter { get; set; } = string.Empty;
-
-    public static IEnumerable<string> LargeFilters =>
-    [
-        // 10-clause AND with OR groups
-        "(name~Apple|name~Orange);status==Active;createdAt>=2024-01-01;updatedAt>=now(-1h);"
-        + "createdBy==admin;region==eu-west-1;tags[]=prod,staging;priority>=5;assignee==dev-team-1;verified==true",
-
-        // 20-clause — extreme power-user search
+        "name~Apple;(status==Active|status==Trial);createdAt>=2024-01-01",
         "(name~Apple|name~Orange|name~Banana|name~Grape|name~Mango);"
         + "(status==Active|status==Trial|status==Pending);"
         + "createdAt>=2023-01-01;createdAt<=2024-12-31;"
-        + "updatedAt>=now(-30d);createdBy==admin;updatedBy==admin;"
-        + "region==eu-west-1;zone==a;tags[]=prod,staging,dev,sandbox;"
-        + "priority>=3;priority<=9;costCenter==eng-platform;"
-        + "assignee==dev-team-1;verified==true;archived==false;"
+        + "updatedAt>=now(-30d);createdBy==admin;region==eu-west-1;"
+        + "tags[]=prod,staging,dev,sandbox;priority>=3;priority<=9;"
+        + "verified==true;archived==false;"
         + "description~migration;label[]=urgent,backend,core",
-
-        // Deep nesting — 6 levels of parens
-        "(((((name~Apple)));status==Active));"
-        + "(createdAt>=2024-01-01|(updatedAt>=now(-1h)&verified==true));"
-        + "tags[]=prod,staging,dev,sandbox,qa,ci,cd,monitoring,alerts,on-call",
-    ];
-
-    // ---------- Adversarial filters (worst-case parse complexity) ----------
-
-    [ParamsSource(nameof(AdversarialFilters))]
-    public string AdversarialFilter { get; set; } = string.Empty;
-
-    public static IEnumerable<string> AdversarialFilters =>
-    [
-        // 50 OR clauses — O(n) parser, 50 allocations for OrNode children
         "name==a|name==b|name==c|name==d|name==e|name==f|name==g|name==h|name==i|name==j"
         + "|name==k|name==l|name==m|name==n|name==o|name==p|name==q|name==r|name==s|name==t"
         + "|name==u|name==v|name==w|name==x|name==y|name==z"
         + "|name==aa|name==bb|name==cc|name==dd|name==ee|name==ff|name==gg|name==hh"
         + "|name==ii|name==jj|name==kk|name==ll|name==mm|name==nn|name==oo|name==pp"
-        + "|name==qq|name==rr|name==ss|name==tt|name==uu|name==vv|name==ww",
-
-        // 50 IN-list entries — O(n) list builder, 50 string conversions
-        "id[]=" + string.Join(",", Enumerable.Range(0, 50).Select(static i => $"0000000{i:000}-0000-0000-0000-000000000000")),
-
-        // Near-max token count (256 limit) — 50 AND clauses × ~5 tokens each
-        string.Join(";", Enumerable.Range(0, 50).Select(static i => $"field{i:000}==value{i:000}")),
-    ];
-
-    // ==================== Benchmarks ====================
+        + "|name==qq|name==rr|name==ss|name==tt|name==uu|name==vv|name==ww")]
+    public string Filter { get; set; } = string.Empty;
 
     // ---------- Parse (lexer + parser -> AST) ----------
 
-    [Benchmark(Description = "Parse small", Baseline = true)]
-    [BenchmarkCategory("Parse", "Small")]
-    public FilterNode? Parse_Small()
+    [Benchmark(Description = "Parse DSL -> AST", Baseline = true)]
+    public FilterNode? Parse_ToAst()
     {
         return FilterParser.Parse(Filter);
     }
 
-    [Benchmark(Description = "Parse medium")]
-    [BenchmarkCategory("Parse", "Medium")]
-    public FilterNode? Parse_Medium()
-    {
-        return FilterParser.Parse(MediumFilter);
-    }
+    // ---------- Expression (cold cache vs cache hit) ----------
 
-    [Benchmark(Description = "Parse large")]
-    [BenchmarkCategory("Parse", "Large")]
-    public FilterNode? Parse_Large()
-    {
-        return FilterParser.Parse(LargeFilter);
-    }
-
-    [Benchmark(Description = "Parse adversarial")]
-    [BenchmarkCategory("Parse", "Adversarial")]
-    public FilterNode? Parse_Adversarial()
-    {
-        return FilterParser.Parse(AdversarialFilter);
-    }
-
-    // ---------- Expression build (cache miss vs hit) ----------
-
-    [Benchmark(Description = "ParseFor small (cold)")]
-    [BenchmarkCategory("Expression", "Small")]
-    public Expression<Func<BenchEntity, bool>>? ParseFor_Small_Cold()
+    [Benchmark(Description = "ParseFor cold cache")]
+    public Expression<Func<BenchEntity, bool>>? ParseFor_ColdCache()
     {
         FilterExpression.ClearCache();
         return FilterExpression.ParseFor<BenchEntity>(Filter);
     }
 
-    [Benchmark(Description = "ParseFor small (warm)")]
-    [BenchmarkCategory("Expression", "Small")]
-    public Expression<Func<BenchEntity, bool>>? ParseFor_Small_Warm()
+    [Benchmark(Description = "ParseFor cache hit")]
+    public Expression<Func<BenchEntity, bool>>? ParseFor_CacheHit()
     {
         return FilterExpression.ParseFor<BenchEntity>(Filter);
     }
 
-    [Benchmark(Description = "ParseFor medium (cold)")]
-    [BenchmarkCategory("Expression", "Medium")]
-    public Expression<Func<BenchEntity, bool>>? ParseFor_Medium_Cold()
-    {
-        FilterExpression.ClearCache();
-        return FilterExpression.ParseFor<BenchEntity>(MediumFilter);
-    }
-
-    [Benchmark(Description = "ParseFor medium (warm)")]
-    [BenchmarkCategory("Expression", "Medium")]
-    public Expression<Func<BenchEntity, bool>>? ParseFor_Medium_Warm()
-    {
-        return FilterExpression.ParseFor<BenchEntity>(MediumFilter);
-    }
-
-    // ---------- End-to-end on in-memory list ----------
+    // ---------- End-to-end on 100-item list ----------
 
     private static readonly List<BenchEntity> entities = GenerateEntities(100);
 
@@ -181,24 +83,19 @@ public sealed class FilteringBenchmarks
     }
 
     [Benchmark(Description = "ApplyFilter 100 items (cold)")]
-    [BenchmarkCategory("EndToEnd", "Small")]
-    public List<BenchEntity> ApplyFilter_100_Cold()
+    public List<BenchEntity> ApplyFilter_ColdCache()
     {
         FilterExpression.ClearCache();
         return entities.AsQueryable().ApplyFilter(Filter).ToList();
     }
 
     [Benchmark(Description = "ApplyFilter 100 items (warm)")]
-    [BenchmarkCategory("EndToEnd", "Small")]
-    public List<BenchEntity> ApplyFilter_100_Warm()
+    public List<BenchEntity> ApplyFilter_CacheHit()
     {
         return entities.AsQueryable().ApplyFilter(Filter).ToList();
     }
 }
 
-/// <summary>
-///     Minimal entity for benchmarking. Mirrors a typical filterable record.
-/// </summary>
 public sealed class BenchEntity
 {
     public string Name { get; set; } = string.Empty;

@@ -1,3 +1,4 @@
 using BenchmarkDotNet.Running;
+using Plexor.Shared.Filtering.Bench;
 
-BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+BenchmarkRunner.Run<FilteringBenchmarks>();
