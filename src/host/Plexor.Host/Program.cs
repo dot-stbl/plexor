@@ -24,6 +24,10 @@ using Plexor.Host.Controllers;
 using Plexor.Host.NodeRegistry;
 using Plexor.Modules.Audit.Domain;
 using Plexor.Modules.Audit.Infrastructure.Persistence;
+using Plexor.Modules.Identity.Application.Abstractions;
+using Plexor.Modules.Identity.Domain;
+using Plexor.Modules.Identity.Domain.Entities;
+using Plexor.Modules.Identity.Infrastructure.CurrentUser;
 using Plexor.Modules.Identity.Infrastructure.Persistence;
 using Plexor.Modules.Tenants.Infrastructure.Persistence;
 using Plexor.Shared.Filtering;
@@ -82,6 +86,15 @@ builder.Services.AddModuleDbContext<IdentityDbContext>(identityConnection);
 // AuditEntry makes its properties available to the kubb plugin via
 // x-filterable / x-sortable extensions on the Audit schema.
 builder.Services.AddFiltering().AddFilterableEntity<AuditEntry>();
+
+// Auth primitives — built-in PasswordHasher (PBKDF2) + per-request
+// current user from HttpContext claims. The bearer handler that
+// populates the claims is wired in Phase 3.6; until then the
+// ICurrentUser reader always returns the anonymous defaults
+// (Guid.Empty ids + empty collections).
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<Microsoft.AspNetCore.Identity.PasswordHasher<User>>();
+builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
 
 var app = builder.Build();
 

@@ -16,34 +16,35 @@
 
   <ItemGroup>
     <!-- ============ Composition + shared ============ -->
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Http\Plexor.Shared.Http.csproj"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj"/>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Http\Plexor.Shared.Http.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj" />
 
     <!-- ============ Modules (all wired) ============ -->
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Application\Plexor.Modules.Identity.Application.csproj"/>
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Infrastructure\Plexor.Modules.Identity.Infrastructure.csproj"/>
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Application\Plexor.Modules.Tenants.Application.csproj"/>
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Infrastructure\Plexor.Modules.Tenants.Infrastructure.csproj"/>
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Application\Plexor.Modules.Billing.Application.csproj"/>
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Infrastructure\Plexor.Modules.Billing.Infrastructure.csproj"/>
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Application\Plexor.Modules.Audit.Application.csproj"/>
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj"/>
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Application\Plexor.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Infrastructure\Plexor.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Application\Plexor.Modules.Tenants.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Infrastructure\Plexor.Modules.Tenants.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Application\Plexor.Modules.Billing.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Infrastructure\Plexor.Modules.Billing.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Application\Plexor.Modules.Audit.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Domain\Plexor.Modules.Identity.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.0"/>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9"/>
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.OpenApi" Version="2.4.1"/>
-    <PackageReference Include="Scalar.AspNetCore" Version="2.16.6"/>
+    <PackageReference Include="Microsoft.OpenApi" Version="2.4.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.16.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
