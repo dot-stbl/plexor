@@ -72,7 +72,6 @@ var postgresConnection = builder.Configuration.GetConnectionString("Postgres")
                          ?? throw new InvalidOperationException(
                              "ConnectionStrings:Postgres missing from configuration.");
 var contextCount = builder.Services.AddPlexorModuleDbContexts(postgresConnection);
-Console.WriteLine($"[plexor] registered {contextCount} DbContext(s) against ConnectionStrings:Postgres");
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -94,6 +93,9 @@ builder.Services.AddSingleton<Microsoft.AspNetCore.Identity.PasswordHasher<User>
 builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
 
 var app = builder.Build();
+app.Logger.LogInformation(
+    "Registered {ContextCount} DbContext(s) against ConnectionStrings:Postgres",
+    contextCount);
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "plexor-host" }));
 app.MapGet("/", () => Results.Ok(new { name = "Plexor Host", version = "0.1.0-dev" }));
