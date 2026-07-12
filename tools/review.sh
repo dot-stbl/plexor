@@ -180,4 +180,35 @@ echo "================================================================"
 echo "  RESULT: $PASS passed, $FAIL failed"
 echo "  Report: $REPORT"
 echo "================================================================"
+
+# ---- 9. EF migrations must be tool-generated (rule: .agents/rules/coding/ef-migrations-are-tool-generated.md) ----
+echo
+echo "[9/9] EF MIGRATIONS (rule: ef-migrations-are-tool-generated.md)"
+echo "  - Any staged change to src/**/Migrations/** must reference 'dotnet ef'"
+echo "    (migrations add/remove/script). Hand-written or hand-edited migrations"
+echo "    corrupt the model snapshot and break future EF Core migration tooling."
+STAGED_MIG=$(git diff --cached --name-only 2>/dev/null | grep -E 'src/.*/Migrations/.*\.cs$' || true)
+if [[ -z "$STAGED_MIG" ]]; then
+    echo "    PASS — no staged migration changes"
+    PASS=$((PASS+1))
+else
+    LAST_MSG=$(git log -1 --format='%s' 2>/dev/null)
+    if echo "$LAST_MSG" | grep -qiE 'dotnet ef|migrations? (add|remove|script)|ef core migration'; then
+        echo "    PASS — staged migrations accompanied by EF-tool commit message."
+        PASS=$((PASS+1))
+    else
+        echo "    FAIL — staged migration files without EF-tool commit message:"
+        echo "      $STAGED_MIG"
+        echo "      Last commit: $LAST_MSG"
+        echo "      Migrations must be generated via 'dotnet ef migrations add/remove'."
+        echo "      If recovering from a hand-written migration, follow"
+        echo "      ef-migrations-are-tool-generated.md recovery procedure."
+        FAIL=$((FAIL+1))
+    fi
+fi
+echo
+echo "================================================================"
+echo "  RESULT: $PASS passed, $FAIL failed"
+echo "  Report: $REPORT"
+echo "================================================================"
 exit $FAIL
