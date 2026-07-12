@@ -37,6 +37,38 @@ signing keys in the `SigningKey` entity (table already migrated).
 - API key → bearer translation (deferred — NodeAgent will continue to
   use `kid_xxx.<secret>` style until Phase 4 ties it together)
 
+## Built-in vs custom — what we take, what we write
+
+Following `prefer-built-ins-over-hand-rolled.md`: take a built-in when
+it solves the problem cleanly; write our own when the built-in has a
+different shape or pulls in too much.
+
+### TAKING (built-in)
+
+| Component | Where | Why |
+|-----------|-------|-----|
+| `PasswordHasher<User>` | `Microsoft.Extensions.Identity.Core 10.0.9` | PBKDF2 + HMAC-SHA256, 100k iterations (default), 16-byte salt, 32-byte subkey. Already wrapped in `IPasswordHasher` interface in this phase. |
+| `JwtSecurityTokenHandler` / `SecurityTokenDescriptor` / `SecurityToken` | `System.IdentityModel.Tokens.Jwt 8.6.1` | De-facto MS-stack standard. ES256 fully supported. Wraps signing/verify — we just provide the `ECDsaSecurityKey`. |
+
+### WRITING (custom)
+
+| Component | Why custom |
+|-----------|-----------|
+| `IUserStore<User>` / `UserManager<User>` | Built-in wants `IdentityUser<Guid>` with pre-defined `IdentityUserClaim`, `IdentityUserRole`, `IdentityUserLogin`, `IdentityUserToken` tables. We have a custom `User` entity (Guid Id, snake_case columns, separate `role_bindings` table). Mapping cost > saving. |
+| `SignInManager<User>` | Built-in orchestrates cookies + claims identity. We have a pure JWT flow with no cookies — different orchestration. |
+| `RoleManager<Role>` | Same reason as `UserManager`. |
+| `IdentityDbContext<User>` | Tables are strictly ours: snake_case, custom FKs. |
+| `AddJwtBearer` middleware | We want `BearerAuthenticationHandler` that handles BOTH `<jwt>` and `kid_xxx.<secret>` API-key format in Phase 3.6. Built-in `JwtBearerHandler` only validates JWTs. |
+| Lockout (`User.LockoutEnd`) | We have our own `failed_login_count` + `locked_until` columns on `User`. Not using built-in lockout. |
+| `IdentityErrorDescriber` | We have our own `IdentityException` with string codes (`"identity.email.invalid"`). |
+| Token providers (`IUserTwoFactorStore`, etc.) | v0.1 doesn't ship email/SMS flows. |
+
+### Net result
+
+Two built-in components wrapped (`PasswordHasher`, JWT handler). No
+`AddIdentity<TUser>()`, no `SignInManager`, no built-in DbContext, no
+identity tables. Our schema stays ours.
+
 ## Architecture decisions
 
 ### 1. ECDSA P-256 over RSA-2048
