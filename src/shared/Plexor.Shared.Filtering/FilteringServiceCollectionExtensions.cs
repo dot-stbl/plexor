@@ -16,7 +16,7 @@ namespace Plexor.Shared.Filtering;
 ///     <code>
 /// services
 ///     .AddFiltering()
-///     .AddFilterableEntity&lt;Plexor.Modules.Organizations.Domain.TenantRecord&gt;()
+///     .AddFilterableEntity&lt;Plexor.Modules.Realm.Domain.TenantRecord&gt;()
 ///     .AddFilterableEntity&lt;Plexor.Modules.Audit.Domain.AuditEntry&gt;();
 ///     </code>
 ///     <para><b>Wire-up ordering.</b> Call <see cref="AddFiltering" /> first

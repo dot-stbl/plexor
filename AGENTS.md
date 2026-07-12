@@ -9,7 +9,7 @@
 
 - **Plexor** is a self-hosted cloud platform. v0.1 = in-memory node registry +
   PostgreSQL with one schema per module.
-- Two parallel naming systems — see below. They look inconsistent at first;
+- Single naming system (theme everywhere) — see below. They look inconsistent at first;
   they aren't.
 - The resource-scope hierarchy is **Organization → Team → Folder** (3 levels).
   Resources can live at any level (Org-wide for shared, Folder-narrow for
@@ -23,14 +23,14 @@ bearing. Confusing them is the #1 source of agent mistakes in this repo.
 | System | Where | Purpose | Examples |
 |--------|-------|---------|----------|
 | **Architecture theme** | PostgreSQL schema names, single-word one-token | Stable DB identifiers, no underscores, no spaces, hard to drift across migrations | `sigil`, `realm`, `atlas`, `ledger`, `forge`, `outpost`, `shard` |
-| **C# concept** | Module names, entity names, type names, claim names | What developers + users actually see and call things; rich and self-describing | `Organization`, `Team`, `Folder`, `User`, `Role`, `AuditEntry` |
+| **C# concept** | Entity / type / property / claim names — what devs + users call things | What developers + users actually see and call things; rich and self-describing | `Organization`, `Team`, `Folder`, `User`, `Role`, `AuditEntry` |
 
 ### Why two systems
 
 - **Schema names** are short, no special characters, easy to type in raw
-  SQL, easy to grep in migrations. They form a "theme" — every schema is
-  one word, thematically related (medieval-fantasy: sigil, realm, forge,
-  outpost, shard, ledger, atlas).
+  SQL, easy to grep in migrations. They form a "theme" — every module is
+  named after a single word (sigil, realm, atlas, ledger, forge, outpost,
+  shard). Both the schema and the module project use the same name.
 - **C# concept names** match the domain language (Plexor users see
   "Organization" and "Folder" in the UI, not "Realm" or "Atlas"). They
   use standard cloud-platform vocabulary (Organization/Team/Folder, with
@@ -40,7 +40,7 @@ bearing. Confusing them is the #1 source of agent mistakes in this repo.
 
 | Schema | C# module project | Entities owned |
 |--------|-------------------|-----------------|
-| `sigil` | `Plexor.Modules.Identity` | `User`, `Role`, `RoleBinding`, `ApiKey`, `SshKey`, `RefreshToken`, `SigningKey` |
+| `sigil` | `Plexor.Modules.Sigil` | `User`, `Role`, `RoleBinding`, `ApiKey`, `SshKey`, `RefreshToken`, `SigningKey` |
 | `realm` | `Plexor.Modules.Organizations` | `Organization`, `Team`, `Folder` |
 | `atlas` | `Plexor.Modules.Audit` | `AuditEntry` |
 | `ledger` | `Plexor.Modules.Billing` | (planned) `Invoice`, `MeteringRecord` |

@@ -28,10 +28,10 @@ namespace Plexor.Shared.Persistence;
 ///                 <term>Schema</term><description>Module</description>
 ///             </listheader>
 ///             <item>
-///                 <term><see cref="Schemes.Identity" /> (sigil)</term><description>Plexor.Modules.Identity</description>
+///                 <term><see cref="Schemes.Identity" /> (sigil)</term><description>Plexor.Modules.Sigil</description>
 ///             </item>
 ///             <item>
-///                 <term><see cref="Schemes.Realm" /> (realm)</term><description>Plexor.Modules.Organizations</description>
+///                 <term><see cref="Schemes.Realm" /> (realm)</term><description>Plexor.Modules.Realm</description>
 ///             </item>
 ///             <item>
 ///                 <term><see cref="Schemes.Billing" /> (ledger)</term><description>Plexor.Modules.Billing</description>
@@ -63,10 +63,10 @@ public static class DatabaseInformation
     /// </summary>
     public static class Schemes
     {
-        /// <summary>Identity / auth / users (Plexor.Modules.Identity).</summary>
+        /// <summary>Identity / auth / users (Plexor.Modules.Sigil).</summary>
         public const string Identity = "sigil";
 
-        /// <summary>Organizations / org-team-folder hierarchy (Plexor.Modules.Organizations). Note: schema is named <c>realm</c> per the architecture theme; the C# module name is the concept (<c>Organization</c>). See AGENTS.md for the schema-vs-concept map.</summary>
+        /// <summary>Organizations / org-team-folder hierarchy (Plexor.Modules.Realm). Note: schema is named <c>realm</c> per the architecture theme; the C# module name is the concept (<c>Organization</c>). See AGENTS.md for the schema-vs-concept map.</summary>
         public const string Realm = "realm";
 
         /// <summary>Billing / wallets / invoice lines (Plexor.Modules.Billing).</summary>

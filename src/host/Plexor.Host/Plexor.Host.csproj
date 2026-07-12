@@ -25,15 +25,15 @@
     <ProjectReference Include="..\..\shared\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj" />
 
     <!-- ============ Modules (all wired) ============ -->
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Application\Plexor.Modules.Identity.Application.csproj" />
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Infrastructure\Plexor.Modules.Identity.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Organizations\Plexor.Modules.Organizations.Application\Plexor.Modules.Organizations.Application.csproj" />
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Organizations\Plexor.Modules.Organizations.Infrastructure\Plexor.Modules.Organizations.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Application\Plexor.Modules.Sigil.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Infrastructure\Plexor.Modules.Sigil.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Application\Plexor.Modules.Billing.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Infrastructure\Plexor.Modules.Billing.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Application\Plexor.Modules.Audit.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Domain\Plexor.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
