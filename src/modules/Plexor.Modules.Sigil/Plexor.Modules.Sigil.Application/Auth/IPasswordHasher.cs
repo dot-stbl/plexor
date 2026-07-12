@@ -84,3 +84,4 @@ public enum PasswordVerificationResult
     /// algorithm — rehash on next successful login.</summary>
     SuccessRehashNeeded = 2,
 }
+

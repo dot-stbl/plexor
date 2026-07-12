@@ -69,6 +69,13 @@ public static class SigilInfrastructureInstaller
         _ = services.AddSingleton<PasswordHasher<User>>();
         _ = services.AddSingleton<IPasswordHasher, PlexorPasswordHasher>();
 
+        // Refresh-token storage. Scoped — DbContext is scoped; the
+        // store holds no per-instance state beyond the constructor
+        // dependency. Rotation runs inside an explicit transaction
+        // (see EfRefreshTokenStore.RotateAsync).
+        _ = services.AddScoped<IRefreshTokenStore, EfRefreshTokenStore>();
+
         return services;
     }
 }
+
