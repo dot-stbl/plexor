@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace Plexor.Modules.Realm.Infrastructure.Migrations.Realm
+namespace Plexor.Modules.Realm.Infrastructure.Migrations
 {
     [DbContext(typeof(RealmDbContext))]
-    partial class RealmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260712121032_InitialSchema")]
+    partial class InitialSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,8 +63,7 @@ namespace Plexor.Modules.Realm.Infrastructure.Migrations.Realm
                         .HasColumnType("uuid")
                         .HasColumnName("team_id");
 
-                    b.HasKey("Id")
-                        .HasName("pk_folders");
+                    b.HasKey("Id");
 
                     b.HasIndex("OrgId")
                         .HasDatabaseName("ix_realm_folders_org_id");
@@ -105,8 +107,7 @@ namespace Plexor.Modules.Realm.Infrastructure.Migrations.Realm
                         .HasColumnType("character varying(16)")
                         .HasColumnName("status");
 
-                    b.HasKey("Id")
-                        .HasName("pk_organizations");
+                    b.HasKey("Id");
 
                     b.HasIndex("Slug")
                         .IsUnique()
@@ -148,8 +149,7 @@ namespace Plexor.Modules.Realm.Infrastructure.Migrations.Realm
                         .HasColumnType("character varying(16)")
                         .HasColumnName("status");
 
-                    b.HasKey("Id")
-                        .HasName("pk_teams");
+                    b.HasKey("Id");
 
                     b.HasIndex("OrgId")
                         .HasDatabaseName("ix_realm_teams_org_id");

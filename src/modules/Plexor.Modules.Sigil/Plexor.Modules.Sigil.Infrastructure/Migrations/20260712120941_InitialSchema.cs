@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
+namespace Plexor.Modules.Sigil.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Identity_InitialSchema : Migration
+    public partial class InitialSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,7 +20,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    tenant_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    org_id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     secret_hash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
@@ -32,7 +32,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_api_keys", x => x.id);
+                    table.PrimaryKey("PK_api_keys", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -51,7 +51,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_refresh_tokens", x => x.id);
+                    table.PrimaryKey("PK_refresh_tokens", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -60,7 +60,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    tenant_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    org_id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     role_id = table.Column<Guid>(type: "uuid", nullable: false),
                     team_id = table.Column<Guid>(type: "uuid", nullable: true),
@@ -69,7 +69,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_role_bindings", x => x.id);
+                    table.PrimaryKey("PK_role_bindings", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -78,7 +78,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    tenant_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    org_id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
                     permissions = table.Column<string[]>(type: "text[]", nullable: false),
@@ -88,7 +88,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_roles", x => x.id);
+                    table.PrimaryKey("PK_roles", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -105,7 +105,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_signing_keys", x => x.kid);
+                    table.PrimaryKey("PK_signing_keys", x => x.kid);
                 });
 
             migrationBuilder.CreateTable(
@@ -115,7 +115,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    tenant_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    org_id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     fingerprint = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     public_key = table.Column<string>(type: "text", nullable: false),
@@ -125,7 +125,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_ssh_keys", x => x.id);
+                    table.PrimaryKey("PK_ssh_keys", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -147,14 +147,14 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_users", x => x.id);
+                    table.PrimaryKey("PK_users", x => x.id);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_sigil_api_keys_tenant_id_revoked_at",
+                name: "ix_sigil_api_keys_org_id_revoked_at",
                 schema: "sigil",
                 table: "api_keys",
-                columns: new[] { "tenant_id", "revoked_at" });
+                columns: new[] { "org_id", "revoked_at" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_sigil_api_keys_user_id",
@@ -200,17 +200,17 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_sigil_roles_tenant_id_name",
+                name: "ix_sigil_roles_org_id_name",
                 schema: "sigil",
                 table: "roles",
-                columns: new[] { "tenant_id", "name" },
+                columns: new[] { "org_id", "name" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_sigil_ssh_keys_tenant_id_fingerprint",
+                name: "ix_sigil_ssh_keys_org_id_fingerprint",
                 schema: "sigil",
                 table: "ssh_keys",
-                columns: new[] { "tenant_id", "fingerprint" },
+                columns: new[] { "org_id", "fingerprint" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

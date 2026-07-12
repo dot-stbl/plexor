@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Plexor.Modules.Realm.Infrastructure.Migrations.Realm
+namespace Plexor.Modules.Realm.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Realm_InitialSchema : Migration
+    public partial class InitialSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -29,7 +29,7 @@ namespace Plexor.Modules.Realm.Infrastructure.Migrations.Realm
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_folders", x => x.id);
+                    table.PrimaryKey("PK_folders", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -45,7 +45,7 @@ namespace Plexor.Modules.Realm.Infrastructure.Migrations.Realm
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_organizations", x => x.id);
+                    table.PrimaryKey("PK_organizations", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -62,7 +62,7 @@ namespace Plexor.Modules.Realm.Infrastructure.Migrations.Realm
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_teams", x => x.id);
+                    table.PrimaryKey("PK_teams", x => x.id);
                 });
 
             migrationBuilder.CreateIndex(

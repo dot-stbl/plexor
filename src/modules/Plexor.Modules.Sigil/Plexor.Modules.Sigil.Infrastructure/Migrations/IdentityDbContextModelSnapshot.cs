@@ -2,21 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
+namespace Plexor.Modules.Sigil.Infrastructure.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
-    [Migration("20260712024014_Identity_InitialSchema")]
-    partial class Identity_InitialSchema
+    partial class IdentityDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,6 +48,10 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                         .HasColumnType("character varying(128)")
                         .HasColumnName("name");
 
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("org_id");
+
                     b.Property<string[]>("Permissions")
                         .IsRequired()
                         .HasColumnType("text[]")
@@ -66,22 +67,17 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                         .HasColumnType("character varying(64)")
                         .HasColumnName("secret_hash");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.HasKey("Id")
-                        .HasName("pk_api_keys");
+                    b.HasKey("Id");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_sigil_api_keys_user_id");
 
-                    b.HasIndex("TenantId", "RevokedAt")
-                        .HasDatabaseName("ix_sigil_api_keys_tenant_id_revoked_at");
+                    b.HasIndex("OrgId", "RevokedAt")
+                        .HasDatabaseName("ix_sigil_api_keys_org_id_revoked_at");
 
                     b.ToTable("api_keys", "sigil");
                 });
@@ -123,8 +119,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.HasKey("Id")
-                        .HasName("pk_refresh_tokens");
+                    b.HasKey("Id");
 
                     b.HasIndex("ExpiresAt")
                         .HasDatabaseName("ix_sigil_refresh_tokens_expires_at");
@@ -165,25 +160,24 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                         .HasColumnType("character varying(64)")
                         .HasColumnName("name");
 
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("org_id");
+
                     b.Property<string[]>("Permissions")
                         .IsRequired()
                         .HasColumnType("text[]")
                         .HasColumnName("permissions");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.HasKey("Id")
-                        .HasName("pk_roles");
+                    b.HasKey("Id");
 
-                    b.HasIndex("TenantId", "Name")
+                    b.HasIndex("OrgId", "Name")
                         .IsUnique()
-                        .HasDatabaseName("ix_sigil_roles_tenant_id_name");
+                        .HasDatabaseName("ix_sigil_roles_org_id_name");
 
                     b.ToTable("roles", "sigil");
                 });
@@ -203,6 +197,10 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                         .HasColumnType("uuid")
                         .HasColumnName("folder_id");
 
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("org_id");
+
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uuid")
                         .HasColumnName("role_id");
@@ -211,16 +209,11 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                         .HasColumnType("uuid")
                         .HasColumnName("team_id");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.HasKey("Id")
-                        .HasName("pk_role_bindings");
+                    b.HasKey("Id");
 
                     b.HasIndex("RoleId")
                         .HasDatabaseName("ix_sigil_role_bindings_role_id");
@@ -265,8 +258,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                         .HasColumnType("text")
                         .HasColumnName("public_key_pem");
 
-                    b.HasKey("Kid")
-                        .HasName("pk_signing_keys");
+                    b.HasKey("Kid");
 
                     b.ToTable("signing_keys", "sigil");
                 });
@@ -298,6 +290,10 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                         .HasColumnType("character varying(128)")
                         .HasColumnName("name");
 
+                    b.Property<Guid>("OrgId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("org_id");
+
                     b.Property<string>("PublicKey")
                         .IsRequired()
                         .HasColumnType("text")
@@ -307,20 +303,15 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("revoked_at");
 
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.HasKey("Id")
-                        .HasName("pk_ssh_keys");
+                    b.HasKey("Id");
 
-                    b.HasIndex("TenantId", "Fingerprint")
+                    b.HasIndex("OrgId", "Fingerprint")
                         .IsUnique()
-                        .HasDatabaseName("ix_sigil_ssh_keys_tenant_id_fingerprint");
+                        .HasDatabaseName("ix_sigil_ssh_keys_org_id_fingerprint");
 
                     b.ToTable("ssh_keys", "sigil");
                 });
@@ -381,8 +372,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations.Identity
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.HasKey("Id")
-                        .HasName("pk_users");
+                    b.HasKey("Id");
 
                     b.HasIndex("OrgId", "Email")
                         .IsUnique()
