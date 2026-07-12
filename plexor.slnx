@@ -1,116 +1,137 @@
 <Solution>
 
-  <!-- ====================================================================== -->
-  <!-- Plexor Cloud Platform — solution file (.slnx, .NET 9+ format)        -->
-  <!--                                                                        -->
-  <!-- Conventions:                                                            -->
-  <!--   /src/                — production code                                 -->
-  <!--   /src/build/          — MSBuild SDK / shared targets (FIRST:           -->
-  <!--                          topological order so VerifyFormatOnBuild       -->
-  <!--                          fires exactly once per solution build)         -->
-  <!--   /src/shared/         — kernel + cross-cutting libraries                -->
-  <!--   /src/modules/<M>/     — vertical-slice modules (Domain/Application/    -->
-  <!--                           Infrastructure)                                 -->
-  <!--   /src/host/           — host process (Plexor.Host) + NodeAgent + Migrator-->
-  <!--   /src/installer/      — NativeAOT CLI installer                          -->
-  <!--   /src/providers/      — pluggable provider plugins                       -->
-  <!--   /tests/              — unit / integration / architecture / benchmarks   -->
-  <!--   /deploy/             — helm / terraform / ansible / docker / iso        -->
-  <!--   /contracts/          — OpenAPI specs and integration contracts          -->
-  <!--   /samples/            — example plexor.yaml cluster specs                -->
-  <!--   /tools/              — codegen, scaffolds, dev CLI                      -->
-  <!--   /web/                — frontend (pnpm + Turbo monorepo)                 -->
-  <!--   /agents/docs/        — intent docs, architecture, ops                   -->
-  <!-- ====================================================================== -->
+    <!-- ====================================================================== -->
+    <!-- Plexor Cloud Platform — solution file (.slnx, .NET 9+ format)        -->
+    <!--                                                                        -->
+    <!-- Conventions:                                                            -->
+    <!--   /src/                — production code                                 -->
+    <!--   /src/build/          — MSBuild SDK / shared targets (FIRST:           -->
+    <!--                          topological order so VerifyFormatOnBuild       -->
+    <!--                          fires exactly once per solution build)         -->
+    <!--   /src/shared/         — kernel + cross-cutting libraries                -->
+    <!--   /src/modules/<M>/     — vertical-slice modules (Domain/Application/    -->
+    <!--                           Infrastructure)                                 -->
+    <!--   /src/host/           — control plane (Plexor.Host) + Migrator            -->
+    <!--   /src/agents/         — per-node worker runtime (Plexor.NodeAgent)          -->
+    <!--   /src/installer/      — NativeAOT CLI installer                          -->
+    <!--   /src/providers/      — pluggable provider plugins                       -->
+    <!--   /tests/              — unit / integration / architecture / benchmarks   -->
+    <!--   /deploy/             — helm / terraform / ansible / docker / iso        -->
+    <!--   /contracts/          — OpenAPI specs and integration contracts          -->
+    <!--   /samples/            — example plexor.yaml cluster specs                -->
+    <!--   /tools/              — codegen, scaffolds, dev CLI                      -->
+    <!--   /web/                — frontend (pnpm + Turbo monorepo)                 -->
+    <!--   /agents/docs/        — intent docs, architecture, ops                   -->
+    <!-- ====================================================================== -->
 
-  <Folder Name="/src/" />
+    <Folder Name="/src/"/>
 
-  <!-- ============ Build SDK (top of topo order — fires gates once) ====== -->
-  <Folder Name="/src/build/">
-    <Project Path="src/build/Plexor.Build.Tools/Plexor.Build.Tools.csproj" />
-  </Folder>
-
-  <!-- ============ Shared libraries (kernel + cross-cutting) ============== -->
-  <Folder Name="/src/shared/">
-    <Project Path="src/shared/Plexor.Shared.Kernel/Plexor.Shared.Kernel.csproj" />
-    <Project Path="src/shared/Plexor.Shared.Contracts/Plexor.Shared.Contracts.csproj" />
-    <Project Path="src/shared/Plexor.Shared.Persistence/Plexor.Shared.Persistence.csproj" />
-    <Project Path="src/shared/Plexor.Shared.Telemetry/Plexor.Shared.Telemetry.csproj" />
-    <Project Path="src/shared/Plexor.Shared.Http/Plexor.Shared.Http.csproj" />
-    <Project Path="src/shared/Plexor.Shared.Composition/Plexor.Shared.Composition.csproj" />
-  </Folder>
-
-  <!-- ============ Modules (Domain / Application / Infrastructure) ========== -->
-  <Folder Name="/src/modules/">
-
-    <Folder Name="/src/modules/Plexor.Modules.Identity/">
-      <Project Path="src/modules/Plexor.Modules.Identity/Plexor.Modules.Identity.Domain/Plexor.Modules.Identity.Domain.csproj" />
-      <Project Path="src/modules/Plexor.Modules.Identity/Plexor.Modules.Identity.Application/Plexor.Modules.Identity.Application.csproj" />
-      <Project Path="src/modules/Plexor.Modules.Identity/Plexor.Modules.Identity.Infrastructure/Plexor.Modules.Identity.Infrastructure.csproj" />
+    <!-- ============ Build SDK (top of topo order — fires gates once) ====== -->
+    <Folder Name="/src/build/">
+        <Project Path="src/build/Plexor.Build.Tools/Plexor.Build.Tools.csproj"/>
     </Folder>
 
-    <Folder Name="/src/modules/Plexor.Modules.Tenants/">
-      <Project Path="src/modules/Plexor.Modules.Tenants/Plexor.Modules.Tenants.Domain/Plexor.Modules.Tenants.Domain.csproj" />
-      <Project Path="src/modules/Plexor.Modules.Tenants/Plexor.Modules.Tenants.Application/Plexor.Modules.Tenants.Application.csproj" />
-      <Project Path="src/modules/Plexor.Modules.Tenants/Plexor.Modules.Tenants.Infrastructure/Plexor.Modules.Tenants.Infrastructure.csproj" />
+    <!-- ============ Shared libraries (kernel + cross-cutting) ============== -->
+    <Folder Name="/src/shared/">
+        <Project Path="src/shared/Plexor.Shared.Kernel/Plexor.Shared.Kernel.csproj"/>
+        <Project Path="src/shared/Plexor.Shared.Contracts/Plexor.Shared.Contracts.csproj"/>
+        <Project Path="src/shared/Plexor.Shared.Persistence/Plexor.Shared.Persistence.csproj"/>
+        <Project Path="src/shared/Plexor.Shared.Telemetry/Plexor.Shared.Telemetry.csproj"/>
+        <Project Path="src/shared/Plexor.Shared.Http/Plexor.Shared.Http.csproj"/>
+        <Project Path="src/shared/Plexor.Shared.Composition/Plexor.Shared.Composition.csproj"/>
+        <Project Path="src/shared/Plexor.Shared.Console/Plexor.Shared.Console.csproj"/>
+        <Project Path="src/shared/Plexor.Shared.NodeApi/Plexor.Shared.NodeApi.csproj"/>
+        <Project Path="src/shared/Plexor.Shared.Workloads/Plexor.Shared.Workloads.csproj"/>
     </Folder>
 
-    <Folder Name="/src/modules/Plexor.Modules.Billing/">
-      <Project Path="src/modules/Plexor.Modules.Billing/Plexor.Modules.Billing.Domain/Plexor.Modules.Billing.Domain.csproj" />
-      <Project Path="src/modules/Plexor.Modules.Billing/Plexor.Modules.Billing.Application/Plexor.Modules.Billing.Application.csproj" />
-      <Project Path="src/modules/Plexor.Modules.Billing/Plexor.Modules.Billing.Infrastructure/Plexor.Modules.Billing.Infrastructure.csproj" />
+    <!-- ============ Modules (Domain / Application / Infrastructure) ========== -->
+    <Folder Name="/src/modules/">
+
+        <Folder Name="/src/modules/Plexor.Modules.Identity/">
+            <Project
+                Path="src/modules/Plexor.Modules.Identity/Plexor.Modules.Identity.Domain/Plexor.Modules.Identity.Domain.csproj"/>
+            <Project
+                Path="src/modules/Plexor.Modules.Identity/Plexor.Modules.Identity.Application/Plexor.Modules.Identity.Application.csproj"/>
+            <Project
+                Path="src/modules/Plexor.Modules.Identity/Plexor.Modules.Identity.Infrastructure/Plexor.Modules.Identity.Infrastructure.csproj"/>
+        </Folder>
+
+        <Folder Name="/src/modules/Plexor.Modules.Tenants/">
+            <Project
+                Path="src/modules/Plexor.Modules.Tenants/Plexor.Modules.Tenants.Domain/Plexor.Modules.Tenants.Domain.csproj"/>
+            <Project
+                Path="src/modules/Plexor.Modules.Tenants/Plexor.Modules.Tenants.Application/Plexor.Modules.Tenants.Application.csproj"/>
+            <Project
+                Path="src/modules/Plexor.Modules.Tenants/Plexor.Modules.Tenants.Infrastructure/Plexor.Modules.Tenants.Infrastructure.csproj"/>
+        </Folder>
+
+        <Folder Name="/src/modules/Plexor.Modules.Billing/">
+            <Project
+                Path="src/modules/Plexor.Modules.Billing/Plexor.Modules.Billing.Domain/Plexor.Modules.Billing.Domain.csproj"/>
+            <Project
+                Path="src/modules/Plexor.Modules.Billing/Plexor.Modules.Billing.Application/Plexor.Modules.Billing.Application.csproj"/>
+            <Project
+                Path="src/modules/Plexor.Modules.Billing/Plexor.Modules.Billing.Infrastructure/Plexor.Modules.Billing.Infrastructure.csproj"/>
+        </Folder>
+
+        <Folder Name="/src/modules/Plexor.Modules.Audit/">
+            <Project
+                Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Domain/Plexor.Modules.Audit.Domain.csproj"/>
+            <Project
+                Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Application/Plexor.Modules.Audit.Application.csproj"/>
+            <Project
+                Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Infrastructure/Plexor.Modules.Audit.Infrastructure.csproj"/>
+        </Folder>
+
     </Folder>
 
-    <Folder Name="/src/modules/Plexor.Modules.Audit/">
-      <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Domain/Plexor.Modules.Audit.Domain.csproj" />
-      <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Application/Plexor.Modules.Audit.Application.csproj" />
-      <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Infrastructure/Plexor.Modules.Audit.Infrastructure.csproj" />
+    <!-- ============ Hosts (entry points) =================================== -->
+    <Folder Name="/src/host/">
+        <Project Path="src/host/Plexor.Host/Plexor.Host.csproj"/>
+        <Project Path="src/host/Plexor.Migrator/Plexor.Migrator.csproj"/>
     </Folder>
 
-  </Folder>
-
-  <!-- ============ Hosts (entry points) =================================== -->
-  <Folder Name="/src/host/">
-    <Project Path="src/host/Plexor.Host/Plexor.Host.csproj" />
-    <Project Path="src/host/Plexor.Migrator/Plexor.Migrator.csproj" />
-    <Project Path="src/host/Plexor.NodeAgent/Plexor.NodeAgent.csproj" />
-  </Folder>
-
-  <!-- ============ Installer (NativeAOT CLI + Engine + Os) ============== -->
-  <Folder Name="/src/installer/">
-    <Project Path="src/installer/Plexor.Installer.Engine/Plexor.Installer.Engine.csproj" />
-    <Project Path="src/installer/Plexor.Installer.Cli/Plexor.Installer.Cli.csproj" />
-    <Project Path="src/installer/Plexor.Installer.Os/Plexor.Installer.Os.csproj" />
-  </Folder>
-
-  <!-- ============ Provider plugins ======================================= -->
-  <Folder Name="/src/providers/">
-    <Project Path="src/providers/Plexor.Core.Providers/Plexor.Core.Providers.csproj" />
-    <Folder Name="/src/providers/Substrate/">
-      <Project Path="src/providers/Plexor.Providers.Substrate.Kvm/Plexor.Providers.Substrate.Kvm.csproj" />
-      <Project Path="src/providers/Plexor.Providers.Substrate.Lxd/Plexor.Providers.Substrate.Lxd.csproj" />
-      <Project Path="src/providers/Plexor.Providers.Substrate.K3s/Plexor.Providers.Substrate.K3s.csproj" />
-      <Project Path="src/providers/Plexor.Providers.Substrate.Maas/Plexor.Providers.Substrate.Maas.csproj" />
-      <Project Path="src/providers/Plexor.Providers.Substrate.Tinkerbell/Plexor.Providers.Substrate.Tinkerbell.csproj" />
-      <Project Path="src/providers/Plexor.Providers.Substrate.Pod/Plexor.Providers.Substrate.Pod.csproj" />
+    <!-- ============ Agents (per-node workers) ============================== -->
+    <Folder Name="/src/agents/">
+        <Project Path="src/agents/Plexor.NodeAgent/Plexor.NodeAgent.csproj"/>
     </Folder>
-  </Folder>
 
-  <!-- ============ Tests =================================================== -->
-  <Folder Name="/tests/" />
-  <Folder Name="/tests/unit/">
-    <Project Path="tests/unit/Plexor.ArchitectureTests/Plexor.ArchitectureTests.csproj" />
-    <Project Path="tests/unit/Plexor.Modules.Tenants.Unit/Plexor.Modules.Tenants.Unit.csproj" />
-    <Project Path="tests/unit/Plexor.Modules.Identity.Unit/Plexor.Modules.Identity.Unit.csproj" />
-    <Project Path="tests/unit/Plexor.Modules.Audit.Unit/Plexor.Modules.Audit.Unit.csproj" />
-    <Project Path="tests/unit/Plexor.Modules.Billing.Unit/Plexor.Modules.Billing.Unit.csproj" />
-    <Project Path="tests/unit/Plexor.Shared.Kernel.Unit/Plexor.Shared.Kernel.Unit.csproj" />
-    <Project Path="tests/unit/Plexor.Shared.Contracts.Unit/Plexor.Shared.Contracts.Unit.csproj" />
-    <Project Path="tests/unit/Plexor.Shared.Persistence.Unit/Plexor.Shared.Persistence.Unit.csproj" />
-    <Project Path="tests/unit/Plexor.Shared.Telemetry.Unit/Plexor.Shared.Telemetry.Unit.csproj" />
-    <Project Path="tests/unit/Plexor.Shared.Http.Unit/Plexor.Shared.Http.Unit.csproj" />
-    <Project Path="tests/unit/Plexor.Shared.Composition.Unit/Plexor.Shared.Composition.Unit.csproj" />
-    <Project Path="tests/unit/Plexor.Core.Providers.Unit/Plexor.Core.Providers.Unit.csproj" />
-  </Folder>
+    <!-- ============ Installer (NativeAOT CLI + Engine + Os) ============== -->
+    <Folder Name="/src/installer/">
+        <Project Path="src/installer/Plexor.Installer.Engine/Plexor.Installer.Engine.csproj"/>
+        <Project Path="src/installer/Plexor.Installer.Cli/Plexor.Installer.Cli.csproj"/>
+        <Project Path="src/installer/Plexor.Installer.Os/Plexor.Installer.Os.csproj"/>
+    </Folder>
+
+    <!-- ============ Provider plugins ======================================= -->
+    <Folder Name="/src/providers/">
+        <Project Path="src/providers/Plexor.Core.Providers/Plexor.Core.Providers.csproj"/>
+        <Folder Name="/src/providers/Substrate/">
+            <Project Path="src/providers/Plexor.Providers.Substrate.Kvm/Plexor.Providers.Substrate.Kvm.csproj"/>
+            <Project Path="src/providers/Plexor.Providers.Substrate.Lxd/Plexor.Providers.Substrate.Lxd.csproj"/>
+            <Project Path="src/providers/Plexor.Providers.Substrate.K3s/Plexor.Providers.Substrate.K3s.csproj"/>
+            <Project Path="src/providers/Plexor.Providers.Substrate.Maas/Plexor.Providers.Substrate.Maas.csproj"/>
+            <Project
+                Path="src/providers/Plexor.Providers.Substrate.Tinkerbell/Plexor.Providers.Substrate.Tinkerbell.csproj"/>
+            <Project Path="src/providers/Plexor.Providers.Substrate.Pod/Plexor.Providers.Substrate.Pod.csproj"/>
+        </Folder>
+    </Folder>
+
+    <!-- ============ Tests =================================================== -->
+    <Folder Name="/tests/"/>
+    <Folder Name="/tests/unit/">
+        <Project Path="tests/unit/Plexor.ArchitectureTests/Plexor.ArchitectureTests.csproj"/>
+        <Project Path="tests/unit/Plexor.Modules.Tenants.Unit/Plexor.Modules.Tenants.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Modules.Identity.Unit/Plexor.Modules.Identity.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Modules.Audit.Unit/Plexor.Modules.Audit.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Modules.Billing.Unit/Plexor.Modules.Billing.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Shared.Kernel.Unit/Plexor.Shared.Kernel.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Shared.Contracts.Unit/Plexor.Shared.Contracts.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Shared.Persistence.Unit/Plexor.Shared.Persistence.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Shared.Telemetry.Unit/Plexor.Shared.Telemetry.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Shared.Http.Unit/Plexor.Shared.Http.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Shared.Composition.Unit/Plexor.Shared.Composition.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Core.Providers.Unit/Plexor.Core.Providers.Unit.csproj"/>
+    </Folder>
 
 </Solution>

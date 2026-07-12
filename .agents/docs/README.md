@@ -8,12 +8,13 @@
 | Файл | О чём | Когда читать |
 |------|-------|--------------|
 | [scope.md](scope.md) | Что в MVP, что нет, как расширять | Перед тем как начать фичу |
-| [architecture.md](architecture.md) | Слои, потоки данных, границы | Новый контрибьютор; перед крупным рефактором |
-| [modules.md](modules.md) | Каждый модуль: контракт, зависимости, типичные операции | Перед работой с конкретным модулем |
+| [architecture.md](architecture.md) | Слои, потоки данных, границы, decomposition strategy | Новый контрибьютор; перед крупным рефактором |
+| [modules.md](modules.md) | Каждый модуль: контракт, зависимости, типичные операции, extraction tier | Перед работой с конкретным модулем |
 | [providers.md](providers.md) | Каталог провайдеров + как написать свой | Добавляешь провайдер или новый ресурс |
 | [yandex-cloud-parity.md](yandex-cloud-parity.md) | Карта YC-сервисов → Plexor | Планирование roadmap |
 | [ui.md](ui.md) | UI design system, OpenDesign интеграция | Дизайн/фронтенд |
 | [api-contracts.md](api-contracts.md) | OpenAPI workflow, фронт-codegen | Меняешь API контроллеры |
+| [../../planning/adr/README.md](../../planning/adr/README.md) | Architecture decision records (ADR-NNNN) — index + когда писать ADR | Перед архитектурным решением; перед фичей, затрагивающей ≥2 модуля |
 | [operations/install.md](operations/install.md) | install flow | Разворачиваешь |
 | [operations/upgrade.md](operations/upgrade.md) | atomic updates | Апгрейдишь |
 | [operations/troubleshooting.md](operations/troubleshooting.md) | типовые проблемы | Сломалось |

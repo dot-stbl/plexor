@@ -17,7 +17,7 @@
   -->
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
   </ItemGroup>
 
 </Project>

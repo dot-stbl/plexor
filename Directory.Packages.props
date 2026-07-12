@@ -108,6 +108,8 @@
     <!-- ============ Plexor-specific (installer / provider discovery) ============ -->
     <!-- Spectre.Console — terminal UI for the installer CLI. -->
     <PackageVersion Include="Spectre.Console" Version="0.49.*" />
+    <!-- Spectre.Console.Cli — command-line argument parser (paired with Spectre.Console). -->
+    <PackageVersion Include="Spectre.Console.Cli" Version="0.49.*" />
     <!-- YamlDotNet — parse plexor.yaml cluster spec. -->
     <PackageVersion Include="YamlDotNet" Version="16.*" />
     <!-- System.CommandLine — AOT-friendly CLI parsing for `plx`. -->

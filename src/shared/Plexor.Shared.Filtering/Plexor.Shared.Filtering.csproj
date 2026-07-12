@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Plexor.Shared.Filtering</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    ASP.NET-aware by design: FilterQuery carries [FromQuery] binding
+    metadata so list endpoints accept the filter/sort/paging DSL
+    straight off the query string. This is an intended dependency,
+    not a layering leak.
+
+    Migrated from Hybrid.Shared.Filtering (Hybrid/console.x).
+    Grammar unchanged. Namespace and types renamed to Plexor.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="MinVer" Version="7.0.0"/>
+    <!--
+      FilterableSchemaTransformer implements IOpenApiSchemaTransformer from
+      Microsoft.AspNetCore.OpenApi. The wire-format extensions (OpenApiObject,
+      OpenApiArray, OpenApiString) come from Microsoft.OpenApi, pulled
+      transitively via the framework reference.
+    -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9"/>
+    <PackageReference Include="Microsoft.OpenApi" Version="2.4.1"/>
+  </ItemGroup>
+
+</Project>

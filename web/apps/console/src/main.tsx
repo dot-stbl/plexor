@@ -2,7 +2,6 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
-import { IconContext } from '@phosphor-icons/react';
 import { TooltipProvider } from '@/shared/ui/primitives/tooltip';
 import { Toaster } from '@/shared/ui/primitives/sonner';
 import { ThemeProvider } from '@/shared/lib/theme-provider';
@@ -10,14 +9,29 @@ import { routeTree } from './routeTree.gen';
 
 import './index.css';
 
-// Theme bootstrap — apply persisted/auto theme BEFORE first render to avoid flash.
-// Mirrors design-system/index.html inline script.
+// Theme bootstrap — apply persisted/auto theme BEFORE first render
+// to avoid flash. Reads from the preferences storage key
+// ('plexor-preferences') and falls back to the legacy 'plexor-theme'
+// key for users who had a value set before the migration.
 (function applyThemeEarly() {
   try {
-    var saved = localStorage.getItem('plexor-theme');
+    var raw =
+      localStorage.getItem('plexor-preferences') ||
+      localStorage.getItem('plexor-theme');
+    var theme;
+    if (raw) {
+      try {
+        // New format: JSON object { theme, accent, fontSize }.
+        var parsed = JSON.parse(raw);
+        theme = parsed && parsed.theme;
+      } catch (_) {
+        // Legacy format: bare string ('light' | 'dark' | 'system').
+        theme = raw;
+      }
+    }
     var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    var theme = saved || (prefersDark ? 'dark' : 'light');
-    if (theme === 'dark') {
+    var resolved = theme || (prefersDark ? 'dark' : 'light');
+    if (resolved === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
@@ -65,14 +79,11 @@ async function enableMocking() {
 void enableMocking().then(() => {
   createRoot(rootElement).render(
     <StrictMode>
-      <ThemeProvider defaultTheme="system" storageKey="plexor-theme">
+      <ThemeProvider defaultTheme="system" storageKey="plexor-preferences">
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-            {/* Phosphor icons default to bolder strokes app-wide (explicit weights still win). */}
-            <IconContext.Provider value={{ weight: 'bold' }}>
-              <RouterProvider router={router} />
-              <Toaster />
-            </IconContext.Provider>
+            <RouterProvider router={router} />
+            <Toaster />
           </TooltipProvider>
         </QueryClientProvider>
       </ThemeProvider>

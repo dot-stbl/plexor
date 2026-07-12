@@ -19,6 +19,8 @@ Plexor-specific компоненты:
 - ResourceCard (resource representation)
 - WizardFrame (multi-step)
 - Chart wrappers (если используем Recharts)
+- Size (bytes → human-readable unit) — детали в [custom-primitives.md](custom-primitives.md)
+- CopyableText (click-to-copy inline)
 
 ## Component inventory
 

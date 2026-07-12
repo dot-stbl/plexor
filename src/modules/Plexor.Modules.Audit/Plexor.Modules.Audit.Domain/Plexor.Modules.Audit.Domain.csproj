@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Filtering\Plexor.Shared.Filtering.csproj" />
   </ItemGroup>
 
 </Project>

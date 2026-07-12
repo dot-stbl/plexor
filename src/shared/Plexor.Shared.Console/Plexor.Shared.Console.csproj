@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+
+    <!--
+      Plexor.Shared.Console — reusable terminal UI helpers for every
+      Plexor CLI binary (plx, plx cluster, plx admin, future tools).
+      Built on Spectre.Console 0.49 + Spectre.Console.Cli 0.49.
+
+      AOT contract:
+        - All argument types inherit from CommandArgs (no public
+          parameterless ctor needed, JsonSerializer is not used for
+          arg binding).
+        - All helpers are pre-coded for the supported set of
+          patterns; no reflection-based service resolution.
+        - Source-gen serializers are used for any payload that
+          leaves the CLI (future HTTP admin calls), keeping the
+          AOT graph small.
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" Version="0.49.*"/>
+    <PackageReference Include="Spectre.Console.Cli" Version="0.49.*"/>
+    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+  </ItemGroup>
+
+</Project>

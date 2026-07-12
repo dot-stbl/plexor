@@ -31,10 +31,10 @@ priority: high
 
 ## Components
 
-11. **shadcn-ui primitives in `src/shared/ui/primitives/`** — generated via `bunx --bun shadcn@latest add <name>`. After generation, customize for Plexor DS (add variants, change sizes, swap icon library to Phosphor).
+11. **shadcn-ui primitives in `src/shared/ui/primitives/`** — generated via `bunx --bun shadcn@latest add <name>`. After generation, customize for Plexor DS (add variants, change sizes, swap icon imports to `@/shared/ui/icon`).
 12. **Custom primitives same location + same pattern** — `StatusPill`, `MonoNum`, `ThemeToggle`. Use `forwardRef` when wrapping native elements that need ref. Use `cva` for variants. Use `cn()` (from `@/lib/utils`) for className merging.
-13. **Icons: `@phosphor-icons/react` only.** v2.1.x exports icons WITHOUT `Icon` suffix (`X`, `CaretDown`, `Check` — not `XIcon`, `CaretDownIcon`, `CheckIcon`). All shadcn-generated `<icon>Icon` imports must be sed-renamed on add.
-14. **No `lucide-react`, no `react-icons`.** Phosphor is the single icon library.
+13. **UI-иконки: Google Material Symbols _Rounded_ через `@/shared/ui/icon`.** Рендер — `@iconify/react` из инлайн-данных (сгенерированы кодогеном, офлайн, без рантайм-сети). Импортируй компоненты ТОЛЬКО из `@/shared/ui/icon` (`Plus`, `CaretDown`, `Trash`, `MagnifyingGlass`, …), НЕ из вендора напрямую. Rounded — под наш soft-radius. Размер — `className="size-*"`. **Пропа `weight` НЕТ** (Material ≠ Phosphor) — не передавай; акцент активного состояния — фоном контрола. Смена вендора = кодоген + regen (не трогая call-site'ы).
+14. **Один источник UI-иконок — `@/shared/ui/icon`** (файл `icon.tsx` генерируется `scripts/gen-icons.cjs`). Нет `@phosphor-icons/react` (удалён), `unplugin-icons`, `lucide-react`, `react-icons`. Новую иконку: впиши маппинг Phosphor-имя→material-имя в `scripts/gen-icons.cjs`, затем `bun run gen:icons`. Цветные бренд/тех-логотипы — отдельно через `<TechIcon>` (Iconify `logos:`), см. rule 63.
 15. **Button variants** (custom-adapted for Plexor DS):
     - `default` → Plexor DS primary (bg=accent monochrome dark)
     - `outline` → surface bg + border
@@ -59,6 +59,25 @@ priority: high
     `<ScrollArea>` primitive and inset the rail instead of relying on native
     scrollbar placement.
 
+## Tables — compact and copyable
+
+19. **Data tables default to `density="compact"`.** Tight rows (`h-8` header,
+    `h-7` cell, `text-[11px]` body). 8+ rows fit comfortably above the fold.
+    Only use `density="comfortable"` for very long content (settings, audit log).
+20. **Copyable values use `<CopyableText value="...">`.** IDs, IPs, hostnames,
+    cluster names — any value a sysadmin will re-type or paste into a terminal —
+    wrap in `<CopyableText>`. The icon button is muted at rest, reveals its
+    background on `hover` (using the wrapper's `group/copy` selector), shows a
+    check tick on success, and toasts a confirmation via `sonner`. Never render
+    a copy icon as a raw `<button>` with a manual `navigator.clipboard.writeText`
+    call — funnel it through the primitive so the affordance is consistent.
+21. **Empty states have a CTA, not just a sentence.** A page that needs the
+    user to take an action before the primary task is possible (e.g. "install
+    Plexor before you can create a VM", "add a node before you can create a
+    VM") renders the `<Empty>` primitive with a `<Button>` that navigates to
+    the prerequisite screen. A disabled form with no path forward is a bug.
+
+
 ## IconButton + visual hierarchy + action density
 
 **Not every action is a button. Don't flatten visual hierarchy.**
@@ -78,9 +97,9 @@ UI has **5 levels of emphasis**. Each level has a specific role; using the wrong
 ### Rules
 
 - **Max ONE `default` button per view** — the primary action. All other actions use `outline`, `ghost`, or `destructive`.
-- **Icon-only buttons use `size="icon"` / `size="icon-sm"`** — never `<Button>⚙</Button>` with text-glyph. Always Phosphor SVG: `<Button size="icon" aria-label="settings"><Gear /></Button>`.
+- **Icon-only buttons use `size="icon"` / `size="icon-sm"`** — never `<Button>⚙</Button>` with text-glyph. Always SVG-иконка из `@/shared/ui/icon`: `<Button size="icon" aria-label="settings"><Gear /></Button>`.
 - **Icon + text in a button** — when the icon helps recognition: `<Button><Pause /> Suspend</Button>`. Icon goes FIRST, then text. Never text + icon in this order (looks weird in RTL or when text is wrapped).
-- **Phosphor icons auto-size** via shadcn's `[&_svg:not([class*='size-'])]:size-4` selector as defense-in-depth, but **always pass explicit `className="size-X"`** on icons. Default `size-4` (16px). Use `size-3.5` (14px) inside size=sm button, `size-3` (12px) inside icon-sm, `size-3.5` inside default. Relying on parent selector alone is fragile.
+- **SVG-иконки auto-size** via shadcn's `[&_svg:not([class*='size-'])]:size-4` selector as defense-in-depth, but **always pass explicit `className="size-X"`** on icons. Default `size-4` (16px). Use `size-3.5` (14px) inside size=sm button, `size-3` (12px) inside icon-sm, `size-3.5` inside default. Relying on parent selector alone is fragile.
 - **Inline row actions** (table rows) — use `Button size="icon-sm" variant="ghost"` per action. Up to 3-4 per row; if more, use shadcn `DropdownMenu` triggered by `size="icon"` with `<DotsThree />`.
 - **Tabular action density** — actions that appear in EVERY row (delete, edit, view) belong to a consistent action group at the row's right edge. Not as primary buttons.
 - **Status actions color-code by semantic, not visual** — use variant="destructive" for delete, NEVER `bg-red-500` arbitrary. Variant uses Plexor DS tokens automatically.
@@ -91,7 +110,7 @@ Flex containers with text + icon + button often drift vertically. Common causes 
 
 ```tsx
 // ❌ Wrong — emoji icons have inconsistent baseline (warn: text drifts)
-// ✅ Fix — Phosphor SVG icons, no className size (auto-sized by Button)
+// ✅ Fix — SVG icons from @/shared/ui/icon, no className size (auto-sized by Button)
 <Button size="icon" aria-label="settings"><Gear /></Button>
 
 // ❌ Wrong — MonoNum digit baseline drifts from surrounding text
@@ -114,7 +133,7 @@ Flex containers with text + icon + button often drift vertically. Common causes 
 1. Add `items-center` to the parent (vertical centering)
 2. Use `self-stretch` on fixed-height dividers
 3. Use `inline-block align-middle` on text-only inline elements that don't behave like text (MonoNum, code)
-4. Never use emoji as UI icons — always Phosphor SVGs
+4. Never use emoji as UI icons — always SVG icons from `@/shared/ui/icon`
 
 ## Select / Combobox / Popover — overlay pitfalls
 
@@ -192,14 +211,14 @@ When item is highlighted (hover/focus), background → `bg-accent` (dark). Check
 </Select.Item>
 ```
 
-**5. Phosphor 2.1.x exports have NO `Icon` suffix**
+**5. Иконки — из `@/shared/ui/icon`, не из вендора**
 
 ```ts
-// ✅ Works:
-import { Check, CaretDown } from '@phosphor-icons/react';
+// ✅ Works — Material Symbols Rounded под Phosphor-совместимыми именами:
+import { Check, CaretDown } from '@/shared/ui/icon';
 
-// ❌ Doesn't exist (would silently import nothing):
-import { CheckIcon, CaretDownIcon } from '@phosphor-icons/react';
+// ❌ Пакет удалён:
+import { Check, CaretDown } from '@phosphor-icons/react';
 ```
 
 The `Icon` suffix is hugeicons naming. shadcn-CLI regenerate produces wrong imports — always sed-rename to no-suffix form.
@@ -241,11 +260,98 @@ Required for screen readers to announce purpose.
 29. **`src/routes/`** — TanStack Router file-based routes. `__root.tsx` + per-page files. `index.tsx` is `/`, `components.tsx` is `/components`.
 30. **`src/index.css`** — global styles ONLY. Tokens + base layer + minimal structural utilities.
 31. **No `src/styles/`, `src/css/`, `src/theme/`, etc.** All styles in `index.css`.
+32. **`src/features/<name>/`** — per-screen business logic. Flat siblings (no nested dirs while the screen is the only consumer). Public surface via `index.ts` barrel. Pure helpers and presentational components live side-by-side. When a 2nd screen needs the same helpers, split into `_shared/`.
+
+## Composition over custom markup
+
+33. **shadcn primitives compose, never re-invent.** A table is `<Table>` + `<TableHeader>` + `<TableRow>` + `<TableCell>`. A card is `<Card>` + `<CardHeader>` + `<CardContent>`. A dialog is `<Dialog>` + `<DialogContent>` + `<DialogHeader>` + `<DialogFooter>`. Don't re-style HTML elements when a primitive exists.
+34. **Custom markup only when no primitive covers it.** Allowed structural classes (`.kpi`, `.audit-row`, `.toolbar*`, `.table-wrap/.tbl`, `.pagination/.pg-*`, `.field`, `.empty-state`, `.skeleton*`, `.kv-list`, `.console*`) live in `index.css` for one-off layouts that shadcn can't express. Everything else → shadcn primitive or Tailwind utility.
+35. **Wrap, don't fork.** When a shadcn primitive needs project-specific tweaks (different size, extra padding, role-specific colors), wrap it in a thin local component (`VmFiltersBar` wraps `Select` + `Input`). Don't edit `src/shared/ui/primitives/*` for one-screen needs.
+36. **Collections render as Badge primitives, not as text.** Never render a list of items as a comma-separated string (`items.join(', ')`) or as a plain count sentence (`{n} провайдеров`). Each item gets its own `<Badge>` (or `<StatusPill>` for statuses); overflow collapses into a single `<Badge>+N</Badge>`. The count lives on the container (`flex items-center gap-1` over the badges), never as a sentence before the list.
+
+## Helper extraction (pure functions live in features/)
+
+37. **Extract a pure helper when** (a) the same branching/lookup appears in 2+ places, OR (b) the logic is independently testable, OR (c) the page JSX becomes unreadable because of inline ternaries. Never extract prematurely — a one-line `switch` inline is fine.
+38. **Pure helpers live in `src/features/<name>/*.ts`** (not `.tsx` if there's no JSX). Exhaustive switches on closed enums (like `VmStatus`) keep the contract safe — adding a value to the API forces a compile error here until mapped.
+39. **Barrel re-exports the feature surface.** `features/vms/index.ts` lists every public name (components + helpers + types). Screens import from `@/features/vms`, not from internal files. Internal helpers stay unexported until a second consumer needs them.
+
+## Forms — FieldGroup + Field + FieldLabel
+
+40. **Form layout is `FieldGroup` + `Field` + `FieldLabel`.** Never use raw `<div className="space-y-4">` or `<div className="grid gap-4">` for form layout — the Field primitive handles vertical/horizontal/responsive orientations, invalid state, label-to-control association.
+41. **Field anatomy:**
+
+   ```tsx
+   <Field data-invalid={hasError}>
+     <FieldLabel htmlFor="email">Email</FieldLabel>
+     <Input id="email" aria-invalid={hasError} />
+     <FieldDescription>Used for sign-in and alerts.</FieldDescription>
+   </Field>
+   ```
+   `data-invalid` on `<Field>`, `aria-invalid` on the actual control. Disabled → `data-disabled` on `<Field>`, `disabled` on the control.
+42. **No nested interactive elements.** Don't put a `<Button>` inside a `<FieldLabel>` — the `has-[>[data-slot=field]]` selector breaks. Place the action next to the label or above the field.
+43. **Submit button is part of the page footer, not the last Field.** The Dialog's `DialogFooter` or the form's submit row lives outside the FieldGroup.
+
+## Reusable component design (cva + render + polymorphic)
+
+43. **Visual variants via `cva`, not prop sprawl.** A `<Button variant="outline" size="sm">` beats `<Button isOutline isSmall>`. See `src/shared/ui/primitives/button.tsx` for the canonical pattern.
+44. **`render` prop for polymorphic triggers.** shadcn primitives that wrap `<button>` (DropdownMenuTrigger, DialogTrigger, SidebarTrigger) take `render={<Link to="..." />}`. Use this for any non-button trigger — don't reach for `asChild` (it's radix-legacy; base-ui uses `render`).
+45. **Custom primitive goes in `src/shared/ui/primitives/`** when **all three** are true: (a) used by 2+ features, (b) carries its own semantics (not just styling), (c) passes the shadcn rules (one file, no horizontal padding hacks, no `!important`). If only one feature needs it → keep in that feature folder.
+46. **Icon-only controls need `aria-label`.** `<Button size="icon-sm" aria-label="Действия"><DotsThree /></Button>` — never bare icon. Иконки импортируются из `@/shared/ui/icon` (`DotsThree` и т.п.).
+
+## State management
+
+53. **Bytes go through `<Size bytes={...}>`, never ad-hoc spans.** Plexor's API returns raw bytes (RAM, disk, image size). The `<Size>` primitive picks the right unit (KiB / MiB / GiB / TiB) and renders the value + unit. For legacy mock data in GiB, use `SizeUtils.gibToBytes(n)` to convert. Never compose `<MonoNum>{x}</MonoNum><span>GB</span>` — the unit is stuck at GB, no auto-scaling, no binary/decimal switch. The value is rendered in a tabular font; the unit suffix is slightly smaller and muted, matching the MonoNum / StatusPill visual rhythm.
+
+## State management
+
+47. **Derived data with `useMemo` only when it costs something.** `filterVms(items, filters)` over 8 items doesn't need memo. A 1000-row filter or a `Set` construction (for O(1) lookup in `every`/`some` over a long array) does.
+48. **Selection state lives in a `Set<string>`**, not an array. `selectedIds.has(id)` is O(1). Build it from `new Set(arr)` — never mutate, always return a new instance in setState.
+49. **Toast for action feedback, not as a primary channel.** Toasts are fire-and-forget; if the user needs the result visible (e.g. "delete" with an undo), use inline state in the row, not a toast.
+50. **Debounce in the parent, not the child.** `<VmFiltersBar onChange />` fires synchronously; the page wraps `setFilters` with a debounced setter if needed. Keeps the child component pure and reusable.
+51. **Resources at the same level live as parallel routes, not nested ones.** VMs and Clusters are first-class resources that the user reaches independently. Creating a VM does NOT route through `/clusters/$id/vms/new` — it lives at `/vms/new` and references a Cluster via an inline `<Select>` (or whichever FK the resource has). A nested route (`/clusters/$id/vms/new`) is wrong because it forces the user through a separate resource to act on a different one. Reserve nested routes for genuine parent/child actions on the SAME resource (e.g. `/clusters/$id/nodes/new`).
+52. **Persisted UI state goes through a library hook, not raw `localStorage` / cookie access.** Use `useLocalStorage` from `@uidotdev/usehooks` (already in the project) for any value that should survive reloads — sidebar expanded/collapsed, density toggle, recent items, last-selected cluster, etc. The shadcn `SidebarProvider` ships with cookie-based persistence; for our SPA the hook + `localStorage` is the cleaner choice (no cookie domain/path attributes, no SSR mismatch). The hook returns `[value, setValue]` like `useState` — swap it in, no API change.
 
 ## When in doubt
 
-32. **Is there a shadcn-ui primitive?** Use it. Add Plexor DS-specific variants if needed.
-33. **Is there a Tailwind utility?** Use it. Add `@theme inline` token if needed.
-34. **Is it a one-off static layout?** Use `.kpi` / `.audit-row` / `.toolbar*` / `.table-wrap/.tbl` / `.pagination/.pg-*` / `.field` / `.empty-state` / `.skeleton*` / `.kv-list` / `.console*` from the allowed structural list.
-35. **Is it a tooltip / popover?** Use shadcn Tooltip/Popover. For pure CSS hover-only labels, use `[data-tooltip]` (already defined in `index.css`).
-36. **Is it a domain-specific component (TenantCard, VMList, AuditTimeline)?** Build it in `src/features/<name>/` (Phase 1.5 — not used in MVP).
+52. **Is there a shadcn-ui primitive?** Use it. Add Plexor DS-specific variants if needed.
+53. **Is there a Tailwind utility?** Use it. Add `@theme inline` token if needed.
+54. **Is it a one-off static layout?** Use `.kpi` / `.audit-row` / `.toolbar*` / `.table-wrap/.tbl` / `.pagination/.pg-*` / `.field` / `.empty-state` / `.skeleton*` / `.kv-list` / `.console*` from the allowed structural list.
+55. **Is it a tooltip / popover?** Use shadcn Tooltip/Popover. For pure CSS hover-only labels, use `[data-tooltip]` (already defined in `index.css`).
+56. **Is it a domain-specific component (TenantCard, VMList, AuditTimeline)?** Build it in `src/features/<name>/`. Pure helpers next to the components, barrel-exported.
+
+## Interaction patterns (YC-эталон, монохром)
+
+> Каталог паттернов и разбор референсов — `.agents/docs/ui/patterns.md`. Ниже —
+> обязательные правила. YC = эталон структуры; **цвет НЕ копируем** (у нас ink).
+
+57. **Крошки — только в верхнем баре, из route-matches.** `AppHeader` строит
+    breadcrumb из `staticData.crumb` matched-роутов. **Никогда** не рендерь
+    `<Breadcrumb>` внутри страницы — это даёт дубль. Каждый роут декларирует свой
+    `staticData: { crumb }`.
+58. **Чром страниц — через layout-routes + `<Outlet/>`, не per-page.** Общий
+    каркас (заголовок, actions, контент-область) живёт в layout-роуте
+    (`routes/<resource>/route.tsx`), страницы открываются в `<Outlet/>`. Текущий
+    per-page `PageHeader` — **deprecated**; новые экраны используют шаблоны
+    (`ListTemplate` / `DetailTemplate` / `CreateTemplate`).
+59. **Create — секционированная одностраничная форма, НЕ модалка** (и не wizard,
+    если это не настоящий multi-step). Секции с жирными заголовками; поля —
+    **горизонтальные** (`FieldRow`: label + `?` help + `*` required слева, контрол
+    справа). Футер: `Создать` (primary) · `Отменить` · `</> Генерация кода`.
+60. **Выбор из вариантов — тремя контролами, selected = ink (не синий):**
+    `SegmentedControl` (2-4 взаимоисключающих), `SelectableCardGrid` (пресеты/тиры,
+    большие option-карты), single-select строки таблицы (длинные списки, + «Показать
+    все N»). Не плоские кастом-кнопки.
+61. **Каждый нетривиальный create даёт «Генерация кода»** — модалка с табами
+    Terraform / `plx` CLI, `CodeBlock` (номера строк + copy). Это power-фича из
+    вижна (IaC / persona Vasya), не опция.
+62. **Inline-callout (`Alert`) для последствий** — info (нейтральный) / warning
+    (`warn`) прямо в форме, где настройка имеет последствия. Только семантика, не
+    украшение.
+63. **Тех/сервис-логотипы — ЦВЕТНЫЕ через `<TechIcon slug=…>`** (Iconify `logos:`,
+    данные инлайн в `tech-icon-data.ts` через кодоген `gen:icons`, рендер `@iconify/react`).
+    Осознанный карв-аут: UI-чром строго
+    монохром, но ЛОГОТИПЫ продуктов — в бренд-цвете (узнаваемость: launcher, каталог,
+    empty, sidebar managed). Нет цветного лого (`clickhouse`/`garnet`/`minio`/`ceph`) →
+    Material-generic fallback. НЕ Simple Icons (удалён).
+64. **Field-label: `?` HelpTooltip + красная `*` required** там, где уместно
+    (config-формы). Помогает без загромождения.

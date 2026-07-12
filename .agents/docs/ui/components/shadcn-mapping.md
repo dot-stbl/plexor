@@ -98,6 +98,7 @@
 - `<CopyableText>` — click-to-copy для IPs, IDs
 - `<FilterChips>` — multi-select chips с удалением
 - `<ResourceBreadcrumb>` — VM/VPC/etc. path breadcrumbs
+- `<Size>` — bytes → human-readable (B / KiB / MiB / GiB / TiB / PiB) для RAM, disk, image size. См. [custom-primitives.md](custom-primitives.md#size--bytes--human-readable).
 
 См. [README.md](README.md) для общего подхода.
 

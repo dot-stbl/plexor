@@ -48,6 +48,45 @@ Phase 2+:
 - Container Registry = app provider (`harbor`)
 - Bare-metal provisioning = install provider (`ironic` / `maas`)
 
+## Extraction Tier
+
+Некоторые модули разрабатываются **extraction-ready** — extraction из
+монолита в Phase 2+ = mechanical deploy change, не refactor.
+
+Стратегия и rationale — [ADR-0001](../../planning/adr/0001-selective-decomposition.md).
+
+| Модуль | Tier | Бинарь при extraction | Trigger metric |
+|---|---|---|---|
+| Tenants | — | (остаётся в монолите) | — |
+| Identity | — | (остаётся в монолите) | — |
+| Compute | — | (остаётся в монолите) | — |
+| Storage | — | (остаётся в монолите) | — |
+| Billing | — | (остаётся в монолите) | — |
+| Marketplace | — | (остаётся в монолите) | — |
+| **Audit** (sub-concern of Telemetry) | **Tier 1** | `Plexor.Audit.Host` | Audit write > 100K events/s ИЛИ retention > 1TB ИЛИ compliance isolation need |
+| **Telemetry** | **Tier 1** | `Plexor.Telemetry.Host` | p99 OTel ingest > 500ms ИЛИ CPU > 70% sustained |
+| **Network** | **Tier 1** | `Plexor.Network.Host` | State > 100K networks ИЛИ scheduler contention с VM operations |
+
+**Правило**: tier назначается только трём модулям выше (Audit, Telemetry,
+Network). Никакие другие модули не extraction candidates в обозримом
+roadmap. Извлечение только по **измеренному bottleneck'у**, не по
+предчувствию — запись решения обязательна в `.agents/STATE.md`.
+
+**Что значит extraction-ready сегодня:**
+
+- Module contract (`IPort` interfaces) лежит в `Plexor.Shared.Contracts`,
+  импортируется обоими: монолит-деплоем и split-деплоем
+- Per-module DbContext + собственная schema (enforced уже через
+  `Plexor.Shared.Persistence`)
+- Cross-module async через outbox events — in-process subscriber today,
+  separate binary через `SELECT FOR UPDATE SKIP LOCKED` после extraction
+- Module diagnostics interface в `Plexor.Shared.Telemetry`
+  (`IAuditDiagnostics` / `INetworkDiagnostics` / `ITelemetryDiagnostics`)
+  — observability не ломается при extraction
+- CLI subcommands (`plx audit query`, `plx network vpc list`,
+  `plx telemetry logs`) — CLI работает с любым бинарём, в монолите это
+  тот же host URL, в split — отдельные URL'ы за load balancer
+
 ## Plexor.Modules.Tenants
 
 **Контракт верхнего уровня.** Tenant = организация, Project = scope
