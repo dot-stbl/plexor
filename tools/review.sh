@@ -154,15 +154,24 @@ fi
 echo
 
 # ---- 8. async-and-tasks §6 (rule: .agents/rules/coding/async-and-tasks.md) ----
-echo "[8/8] ASYNC DISCARD (rule: async-and-tasks.md §6)"
-echo "  - '_ = await X()' is a meaningless discard (await already awaits)."
-DISC=$(rg -c '_ = await ' src/ --type cs 2>/dev/null | head -1)
+echo "[8/8] MEANINGLESS DISCARD (rule: async-and-tasks.md §6)"
+echo "  - '_ = X()' on awaited / chained-return / expression / placeholder"
+echo "    parameter is a meaningless discard — bare 'X()' suffices."
+echo "    Three patterns checked:"
+echo "      1. _ = await ...           (await already awaits synchronously)"
+echo "      2. _ = services.Add*() / fluent chain  (return unused)"
+echo "      3. _ = expression;        (computed, not consumed)"
+DISC=$(rg -n '_ = ' src/ --type cs 2>/dev/null \
+    | grep -vE '_ = (binary|hex|dec) |//|///|_ = \(' \
+    | head -1)
 if [[ -z "$DISC" ]]; then
     echo "    PASS — no hits"
     PASS=$((PASS+1))
 else
-    echo "    FAIL — $DISC line(s). Replace with plain 'await X();'."
-    rg -n '_ = await ' src/ --type cs
+    echo "    FAIL — see hits below. Each '_ = X()' should be plain 'X();'."
+    rg -n '_ = ' src/ --type cs 2>/dev/null \
+        | grep -vE '_ = (binary|hex|dec) |//|///|_ = \(' \
+        | head -20
     FAIL=$((FAIL+1))
 fi
 echo
