@@ -22,14 +22,10 @@ using System.Text.Json.Serialization;
 using Plexor.Host.Abstractions;
 using Plexor.Host.Controllers;
 using Plexor.Host.NodeRegistry;
-using Plexor.Modules.Audit.Domain;
-using Plexor.Modules.Audit.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
-using Plexor.Modules.Sigil.Infrastructure.Persistence;
-using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Shared.Filtering;
 using Plexor.Shared.Persistence;
 
@@ -62,30 +58,31 @@ builder.Services
 builder.Services.AddSingleton<INodeRegistry, InMemoryNodeRegistry>();
 
 // Persistence — schema-per-module DbContexts. Connection string
-// is read from ConnectionStrings:Audit in appsettings. The Migrator
-// CLI applies migrations before Host starts in production; in dev
-// you can run `dotnet ef database update` against the same string.
-// v0.1: registered but no controller is wired yet — Phase 1 of the
-// persistence migration lands the read paths next.
-var auditConnection = builder.Configuration.GetConnectionString("Audit")
-                      ?? throw new InvalidOperationException(
-                          "ConnectionStrings:Audit missing from configuration.");
-builder.Services.AddModuleDbContext<AuditDbContext>(auditConnection);
-
-var tenantsConnection = builder.Configuration.GetConnectionString("Realm")
-                        ?? throw new InvalidOperationException(
-                            "ConnectionStrings:Realm missing from configuration.");
-builder.Services.AddModuleDbContext<RealmDbContext>(tenantsConnection);
-
-var identityConnection = builder.Configuration.GetConnectionString("Identity")
+// Persistence — single Postgres connection string, schema-per-module.
+// All PlexorDbContext subclasses in Plexor.Modules.*.Infrastructure
+// assemblies are discovered at startup and registered against the
+// shared connection string (sigil / realm / atlas schemas all live
+// in the same Postgres instance — schema-per-module is the isolation
+// primitive, not database-per-module).
+//
+// The Migrator CLI applies pending migrations before Host starts in
+// production; in dev you can run `dotnet ef database update` against
+// the same string for any single context.
+var postgresConnection = builder.Configuration.GetConnectionString("Postgres")
                          ?? throw new InvalidOperationException(
-                             "ConnectionStrings:Identity missing from configuration.");
-builder.Services.AddModuleDbContext<IdentityDbContext>(identityConnection);
+                             "ConnectionStrings:Postgres missing from configuration.");
+var contextCount = builder.Services.AddPlexorModuleDbContexts(postgresConnection);
+Console.WriteLine($"[plexor] registered {contextCount} DbContext(s) against ConnectionStrings:Postgres");
 
-// Filterable entities — Plexor.Shared.Filtering registry. Adding
-// AuditEntry makes its properties available to the kubb plugin via
-// x-filterable / x-sortable extensions on the Audit schema.
-builder.Services.AddFiltering().AddFilterableEntity<AuditEntry>();
+// Filterable entities — Plexor.Shared.Filtering registry. Each call to
+// AddFilterableEntity<T> marks the entity's properties for the filter
+// DSL: the OpenAPI schema transformer emits x-filterable + x-sortable on
+// the matching schema, and the kubb plugin generates a typed filter
+// builder per entity. No entity is registered yet — Sigil's User / Role
+// list endpoints (Phase 4) will register here. The registry is wired so
+// the transformer can run today; without it, every schema is non-
+// filterable.
+builder.Services.AddFiltering();
 
 // Auth primitives — built-in PasswordHasher (PBKDF2) + per-request
 // current user from HttpContext claims. The bearer handler that

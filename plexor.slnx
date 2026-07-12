@@ -65,24 +65,8 @@
                 Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Infrastructure/Plexor.Modules.Realm.Infrastructure.csproj"/>
         </Folder>
 
-        <Folder Name="/src/modules/Plexor.Modules.Billing/">
-            <Project
-                Path="src/modules/Plexor.Modules.Billing/Plexor.Modules.Billing.Domain/Plexor.Modules.Billing.Domain.csproj"/>
-            <Project
-                Path="src/modules/Plexor.Modules.Billing/Plexor.Modules.Billing.Application/Plexor.Modules.Billing.Application.csproj"/>
-            <Project
-                Path="src/modules/Plexor.Modules.Billing/Plexor.Modules.Billing.Infrastructure/Plexor.Modules.Billing.Infrastructure.csproj"/>
-        </Folder>
-
-        <Folder Name="/src/modules/Plexor.Modules.Audit/">
-            <Project
-                Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Domain/Plexor.Modules.Audit.Domain.csproj"/>
-            <Project
-                Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Application/Plexor.Modules.Audit.Application.csproj"/>
-            <Project
-                Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Infrastructure/Plexor.Modules.Audit.Infrastructure.csproj"/>
-        </Folder>
-
+    
+    
     </Folder>
 
     <!-- ============ Hosts (entry points) =================================== -->
@@ -123,8 +107,6 @@
         <Project Path="tests/unit/Plexor.ArchitectureTests/Plexor.ArchitectureTests.csproj"/>
         <Project Path="tests/unit/Plexor.Modules.Realm.Unit/Plexor.Modules.Realm.Unit.csproj"/>
         <Project Path="tests/unit/Plexor.Modules.Sigil.Unit/Plexor.Modules.Sigil.Unit.csproj"/>
-        <Project Path="tests/unit/Plexor.Modules.Audit.Unit/Plexor.Modules.Audit.Unit.csproj"/>
-        <Project Path="tests/unit/Plexor.Modules.Billing.Unit/Plexor.Modules.Billing.Unit.csproj"/>
         <Project Path="tests/unit/Plexor.Shared.Kernel.Unit/Plexor.Shared.Kernel.Unit.csproj"/>
         <Project Path="tests/unit/Plexor.Shared.Contracts.Unit/Plexor.Shared.Contracts.Unit.csproj"/>
         <Project Path="tests/unit/Plexor.Shared.Persistence.Unit/Plexor.Shared.Persistence.Unit.csproj"/>

@@ -23,8 +23,6 @@
     <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Infrastructure\Plexor.Modules.Sigil.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj"/>
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj"/>
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Infrastructure\Plexor.Modules.Billing.Infrastructure.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

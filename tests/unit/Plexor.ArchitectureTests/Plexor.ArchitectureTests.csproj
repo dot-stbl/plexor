@@ -45,11 +45,6 @@
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Domain\Plexor.Modules.Realm.Domain.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj"/>
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Application\Plexor.Modules.Billing.Application.csproj"/>
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Infrastructure\Plexor.Modules.Billing.Infrastructure.csproj"/>
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Domain\Plexor.Modules.Audit.Domain.csproj"/>
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Application\Plexor.Modules.Audit.Application.csproj"/>
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj"/>
   </ItemGroup>
 
 </Project>

@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plexor.Modules.Organizations.Domain\Plexor.Modules.Organizations.Domain.csproj" />
+    <ProjectReference Include="..\Plexor.Modules.Realm.Domain\Plexor.Modules.Realm.Domain.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
