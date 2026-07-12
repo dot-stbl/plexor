@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Parser;
 
 /// <summary>
 ///     Server-side functions evaluable as filter values. Each function takes a

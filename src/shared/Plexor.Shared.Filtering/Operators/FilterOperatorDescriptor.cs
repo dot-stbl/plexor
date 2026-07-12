@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Operators;
 
 /// <summary>
 ///     Declarative descriptor for a single <see cref="FilterOperator" />. Every

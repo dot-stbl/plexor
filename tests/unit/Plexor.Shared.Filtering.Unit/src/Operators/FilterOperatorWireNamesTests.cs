@@ -7,6 +7,7 @@
 // the wire-name conventions stay stable across renames.
 
 using Plexor.Shared.Filtering;
+using Plexor.Shared.Filtering.Operators;
 using Shouldly;
 using Xunit;
 

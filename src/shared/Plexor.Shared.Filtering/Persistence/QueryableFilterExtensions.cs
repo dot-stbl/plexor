@@ -1,6 +1,9 @@
 using System.Linq.Expressions;
+using Plexor.Shared.Filtering.Parser;
+using Plexor.Shared.Filtering.Query;
+using Plexor.Shared.Filtering.Registry;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Persistence;
 
 /// <summary>
 ///     <see cref="IQueryable{T}" /> extensions that apply a parsed

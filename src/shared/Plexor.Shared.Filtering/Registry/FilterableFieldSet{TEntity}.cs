@@ -2,8 +2,10 @@ using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
 using System.Reflection;
+using Plexor.Shared.Filtering.Operators;
+using Plexor.Shared.Filtering.Parser;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Registry;
 
 /// <summary>
 ///     Reflects an entity type into a map of filterable fields. Every public

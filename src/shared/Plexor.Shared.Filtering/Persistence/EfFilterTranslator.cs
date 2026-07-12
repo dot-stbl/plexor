@@ -1,27 +1,28 @@
 using System.Collections;
-using System.Globalization;
 using System.Linq.Expressions;
+using Plexor.Shared.Filtering.Operators;
+using Plexor.Shared.Filtering.Parser;
+using Plexor.Shared.Filtering.Registry;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Persistence;
 
 /// <summary>
 ///     Walks a neutral <see cref="FilterNode" /> tree and builds a LINQ
-///     <see cref="Expression" /> for EF Core (PostgreSQL). Resolves field names against
-///     <see cref="FilterableFieldSet{TEntity}" />, converts raw string values to the field's
-///     CLR type, and delegates expression construction to
-///     <see cref="FilterOperatorDescriptor.BuildExpression" />.
+///     <see cref="Expression" /> for EF Core (PostgreSQL). Resolves field names
+///     against <see cref="FilterableFieldSet{TEntity}" />, delegates value
+///     conversion to <see cref="FilterValueConverter" />, and delegates
+///     function evaluation to <see cref="FilterFunctionEvaluator" />.
 /// </summary>
 /// <typeparam name="TEntity">The entity type to filter.</typeparam>
 /// <param name="fieldSet"></param>
 internal sealed class EfFilterTranslator<TEntity>(FilterableFieldSet<TEntity> fieldSet)
 {
     /// <summary>
-    ///     Translates a <see cref="FilterNode" /> tree into an EF <see cref="Expression" />
-    ///     over the given <paramref name="parameter" />.
+    ///     Translates a <see cref="FilterNode" /> tree into an EF
+    ///     <see cref="Expression" /> over the given <paramref name="parameter" />.
     /// </summary>
     /// <param name="node"></param>
     /// <param name="parameter"></param>
-    /// <exception cref="NotSupportedException"></exception>
     public Expression Translate(FilterNode node, ParameterExpression parameter)
     {
         return node switch
@@ -29,7 +30,8 @@ internal sealed class EfFilterTranslator<TEntity>(FilterableFieldSet<TEntity> fi
             AndNode and => TranslateAnd(and, parameter),
             OrNode or => TranslateOr(or, parameter),
             ComparisonNode cmp => TranslateComparison(cmp, parameter),
-            _ => throw new NotSupportedException($"Unknown FilterNode type: {node.GetType().Name}")
+            _ => throw new NotSupportedException(
+                $"Unknown FilterNode type: {node.GetType().Name}")
         };
     }
 
@@ -71,7 +73,9 @@ internal sealed class EfFilterTranslator<TEntity>(FilterableFieldSet<TEntity> fi
         return accumulated!;
     }
 
-    private Expression TranslateComparison(ComparisonNode cmp, ParameterExpression parameter)
+    private Expression TranslateComparison(
+        ComparisonNode cmp,
+        ParameterExpression parameter)
     {
         var field = fieldSet.Find(cmp.Field)
                     ?? throw new FilterParseException($"Unknown field '{cmp.Field}'");
@@ -84,105 +88,79 @@ internal sealed class EfFilterTranslator<TEntity>(FilterableFieldSet<TEntity> fi
 
         var accessor = Expression.Property(parameter, field.Name);
         var descriptor = FilterOperatorRegistry.Get(cmp.Operator);
-
         var convertedValue = ConvertValue(cmp, field, descriptor.ValueKind);
 
         return descriptor.BuildExpression(accessor, convertedValue, field.ValueType);
     }
 
     /// <summary>
-    ///     Converts the raw string value(s) from the neutral node to the field's CLR type.
-    ///     Handles function calls (now(-7d)), scalar values, and IN-lists.
+    ///     Converts the polymorphic <see cref="FilterValue" /> to a runtime
+    ///     object suitable for the operator's expression builder. Delegates
+    ///     type conversion to <see cref="FilterValueConverter" /> and function
+    ///     evaluation to <see cref="FilterFunctionEvaluator" />.
     /// </summary>
-    /// <param name="cmp"></param>
-    /// <param name="field"></param>
-    /// <param name="valueKind"></param>
-    /// <exception cref="NotSupportedException"></exception>
-    private static object? ConvertValue(ComparisonNode cmp, FilterableField<TEntity> field, ValueKind valueKind)
+    private static object? ConvertValue(
+        ComparisonNode cmp,
+        FilterableField<TEntity> field,
+        ValueKind valueKind)
     {
         return valueKind switch
         {
             ValueKind.None => null,
-            ValueKind.Scalar => ConvertScalar(cmp, field),
-            ValueKind.List => ConvertList(cmp.Value, field),
-            _ => throw new NotSupportedException($"Unknown ValueKind: {valueKind}")
+            ValueKind.Scalar => ConvertScalarValue(cmp, field),
+            ValueKind.List => ConvertListValue(cmp, field),
+            _ => throw new NotSupportedException(
+                $"Unknown ValueKind: {valueKind}")
         };
     }
 
-    private static object? ConvertScalar(ComparisonNode cmp, FilterableField<TEntity> field)
+    private static object? ConvertScalarValue(
+        ComparisonNode cmp,
+        FilterableField<TEntity> field)
     {
-        var rawValue = cmp.Value;
-
-        // Function call (now(-7d)) — only when the parser tagged the value as one.
-        // The old heuristic (EndsWith(')') && Contains('(')) misfired on quoted
-        // strings like "John; Doe (admin)" because they contain both.
-        if (cmp.ValueKind == FilterValueKind.FunctionCall && rawValue is string fnCall)
+        // Pattern-match on the polymorphic FilterValue subtype.
+        return cmp.Value switch
         {
-            return EvaluateFunction(fnCall, field);
-        }
+            FunctionValue fn => EvaluateFunction(fn, field),
 
-        if (rawValue is string s)
-        {
-            return ConvertValue(s, field.ValueType);
-        }
+            ScalarValue scalar => FilterValueConverter.Convert(
+                scalar.Raw, field.ValueType),
 
-        return rawValue;
+            NullValue => null,
+
+            _ => throw new FilterParseException(
+                $"Unexpected value type {cmp.Value.GetType().Name} " +
+                $"for scalar operator on field '{cmp.Field}'")
+        };
     }
 
-    private static IList ConvertList(object? rawValue, FilterableField<TEntity> field)
+    private static IList ConvertListValue(
+        ComparisonNode cmp,
+        FilterableField<TEntity> field)
     {
-        if (rawValue is not List<string> strings)
+        if (cmp.Value is not ListValue list)
         {
-            throw new FilterParseException("Expected a value list for IN/NotIn operator.");
+            throw new FilterParseException(
+                $"Expected a value list for IN/NotIn operator on '{cmp.Field}', " +
+                $"got {cmp.Value.GetType().Name}");
         }
 
-        var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(field.ValueType))!;
-
-        foreach (var s in strings)
-        {
-            list.Add(ConvertValue(s, field.ValueType));
-        }
-
-        return list;
+        return FilterValueConverter.ConvertList(list.Items, field.ValueType);
     }
 
-    private static DateTimeOffset EvaluateFunction(string call, FilterableField<TEntity> field)
+    private static DateTimeOffset EvaluateFunction(
+        FunctionValue fn,
+        FilterableField<TEntity> field)
     {
         var valueType = field.ValueType;
 
         if (valueType != typeof(DateTimeOffset) && valueType != typeof(DateTime))
         {
             throw new FilterParseException(
-                $"Function '{call}' returns a timestamp and can only be used on date/time fields.");
+                $"Function '{fn.Name}(...)' returns a timestamp and can only " +
+                "be used on date/time fields.");
         }
 
-        var parts = call.TrimEnd(')').Split('(', 2);
-        var functionName = parts[0];
-        var argument = parts.Length > 1 ? parts[1] : string.Empty;
-
-        return FilterFunctions.EvaluateNow(functionName, argument, 0);
-    }
-
-    private static object ConvertValue(string text, Type targetType)
-    {
-        var underlying = Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-        try
-        {
-            return underlying switch
-            {
-                _ when underlying == typeof(string) => text,
-                _ when underlying.IsEnum => Enum.Parse(underlying, text, true),
-                _ when underlying == typeof(DateTimeOffset) => DateTimeOffset.Parse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal),
-                _ when underlying == typeof(DateTime) => DateTime.Parse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal),
-                _ when underlying == typeof(Guid) => Guid.Parse(text),
-                _ when underlying == typeof(TimeSpan) => TimeSpan.Parse(text, CultureInfo.InvariantCulture),
-                _ => Convert.ChangeType(text, underlying, CultureInfo.InvariantCulture)
-            };
-        }
-        catch (Exception ex)
-        {
-            throw new FilterParseException($"Cannot convert '{text}' to {underlying.Name}", 0, ex);
-        }
+        return FilterFunctionEvaluator.Evaluate($"{fn.Name}({fn.Argument})");
     }
 }

@@ -8,11 +8,10 @@
 // type.
 // ============================================================================
 
-using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Schema;
 
 /// <summary>
 ///     Schema transformer that emits <c>x-plexor-type</c> on every

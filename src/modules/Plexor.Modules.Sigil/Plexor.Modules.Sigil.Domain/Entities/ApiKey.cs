@@ -1,6 +1,6 @@
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
-using Plexor.Shared.Filtering;
+using Plexor.Shared.Filtering.Registry;
 
 using Plexor.Shared.Kernel.Common;
 

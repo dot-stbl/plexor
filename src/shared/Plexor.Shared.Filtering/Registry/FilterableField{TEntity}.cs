@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
+using Plexor.Shared.Filtering.Operators;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Registry;
 
 /// <summary>
 ///     Descriptor for one filterable property of an entity. Carries the property's

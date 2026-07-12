@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Linq.Expressions;
+using Plexor.Shared.Filtering.Parser;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Operators;
 
 /// <summary>
 ///     Single source of truth for every filter operator. Adding a new operator is

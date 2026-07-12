@@ -1,6 +1,7 @@
 using System.Text;
+using Plexor.Shared.Filtering.Operators;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Parser;
 
 /// <summary>Kind of token the <see cref="FilterLexer" /> emits.</summary>
 public enum FilterTokenKind

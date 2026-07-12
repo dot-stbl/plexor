@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Parser;
 
 /// <summary>
 ///     Thrown by the filter DSL parser when the query string is malformed, references

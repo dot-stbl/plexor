@@ -1,4 +1,4 @@
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Registry;
 
 /// <summary>
 ///     Marker for entity types whose properties should be exposed through the

@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using Plexor.Shared.Filtering.Persistence;
+using Plexor.Shared.Filtering.Registry;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Parser;
 
 /// <summary>
 ///     Entry point for parsing filter DSL strings into LINQ predicates for EF Core.

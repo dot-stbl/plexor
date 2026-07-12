@@ -1,4 +1,6 @@
-namespace Plexor.Shared.Filtering;
+using Plexor.Shared.Filtering.Parser;
+
+namespace Plexor.Shared.Filtering.Registry;
 
 /// <summary>
 ///     Marks a property as filterable. Used by entities in opt-in filtering mode

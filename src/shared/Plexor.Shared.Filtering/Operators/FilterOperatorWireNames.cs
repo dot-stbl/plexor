@@ -1,4 +1,6 @@
-namespace Plexor.Shared.Filtering;
+using Plexor.Shared.Filtering.Schema;
+
+namespace Plexor.Shared.Filtering.Operators;
 
 /// <summary>
 ///     Helper extensions on <see cref="FilterOperator" /> for emitting wire-format

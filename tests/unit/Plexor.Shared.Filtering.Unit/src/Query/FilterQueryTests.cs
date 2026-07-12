@@ -5,6 +5,7 @@
 // FilterQuery.
 
 using Plexor.Shared.Filtering;
+using Plexor.Shared.Filtering.Query;
 using Shouldly;
 using Xunit;
 

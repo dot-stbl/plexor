@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Plexor.Shared.Filtering.Parser;
+using Plexor.Shared.Filtering.Registry;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Query;
 
 /// <summary>
 ///     Query envelope accepted by every list endpoint that supports the filter DSL.

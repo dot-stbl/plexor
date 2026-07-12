@@ -1,4 +1,6 @@
-namespace Plexor.Shared.Filtering;
+using Plexor.Shared.Filtering.Operators;
+
+namespace Plexor.Shared.Filtering.Parser;
 
 /// <summary>
 ///     Abstract syntax tree node for a parsed filter expression. Produced by
@@ -32,10 +34,62 @@ public enum FilterValueKind
     FunctionCall = 2
 }
 
+// ==================== Polymorphic filter values ====================
+
 /// <summary>
-///     Single comparison: <c>field op value</c>. Holds the field name (string), the
-///     operator, and the already-parsed value. The consumer resolves the field name against
-///     its own schema (EF: FilterableFieldSet; CH: TableSchema).
+///     Base for the value carried by a <see cref="ComparisonNode" />. Replaces
+///     the old <c>object?</c> — the consumer pattern-matches on the concrete
+///     subtype instead of guessing via <c>is string</c> / <c>is List&lt;string&gt;</c>.
+/// </summary>
+public abstract class FilterValue;
+
+/// <summary>A single scalar value (bare literal or quoted string).</summary>
+/// <remarks>Constructs a scalar value.</remarks>
+/// <param name="raw">Raw string from the DSL (quotes already stripped).</param>
+public sealed class ScalarValue(string raw) : FilterValue
+{
+    /// <summary>The raw string value from the DSL.</summary>
+    public string Raw { get; } = raw;
+}
+
+/// <summary>A list of values for IN/NotIn operators.</summary>
+/// <remarks>Constructs a list value.</remarks>
+/// <param name="items">Raw string items from the DSL (quotes already stripped per item).</param>
+public sealed class ListValue(IReadOnlyList<string> items) : FilterValue
+{
+    /// <summary>The raw string items from the DSL.</summary>
+    public IReadOnlyList<string> Items { get; } = items;
+}
+
+/// <summary>No value — used by IsNull/IsNotNull operators.</summary>
+public sealed class NullValue : FilterValue
+{
+    /// <summary>Singleton instance — NullValue carries no state.</summary>
+    public static NullValue Instance { get; } = new();
+
+    private NullValue() { }
+}
+
+/// <summary>A function call value (e.g. <c>now(-7d)</c>).</summary>
+/// <remarks>Constructs a function-call value.</remarks>
+/// <param name="name">Function identifier from the DSL.</param>
+/// <param name="argument">Raw argument text from the DSL.</param>
+public sealed class FunctionValue(string name, string argument) : FilterValue
+{
+    /// <summary>The function name (e.g. <c>"now"</c>).</summary>
+    public string Name { get; } = name;
+
+    /// <summary>The raw argument text (e.g. <c>"-7d"</c>).</summary>
+    public string Argument { get; } = argument;
+}
+
+// ==================== Comparison / logical nodes ====================
+
+/// <summary>
+///     Single comparison: <c>field op value</c>. The value is a polymorphic
+///     <see cref="FilterValue" /> subtype — <see cref="ScalarValue" />,
+///     <see cref="ListValue" />, <see cref="FunctionValue" />, or
+///     <see cref="NullValue" />.
 /// </summary>
 /// <param name="Field"></param>
 /// <param name="Operator"></param>
@@ -43,7 +97,7 @@ public enum FilterValueKind
 public sealed class ComparisonNode(
     string Field,
     FilterOperator Operator,
-    object? Value) : FilterNode
+    FilterValue Value) : FilterNode
 {
     /// <summary>The field name from the DSL.</summary>
     public string Field { get; } = Field;
@@ -51,13 +105,16 @@ public sealed class ComparisonNode(
     /// <summary>The comparison operator.</summary>
     public FilterOperator Operator { get; } = Operator;
 
-    /// <summary>The raw parsed value (string, List&lt;string&gt;, or null).</summary>
-    public object? Value { get; } = Value;
+    /// <summary>
+    ///     The parsed value. Pattern-match on the concrete subtype:
+    ///     <see cref="ScalarValue" />, <see cref="ListValue" />,
+    ///     <see cref="FunctionValue" />, or <see cref="NullValue" />.
+    /// </summary>
+    public FilterValue Value { get; } = Value;
 
     /// <summary>
     ///     How the consumer should interpret <see cref="Value" />. Defaults to
-    ///     <see cref="FilterValueKind.Scalar" /> for back-compat with consumers that
-    ///     don't set this — the EF translator's old heuristic still applies.
+    ///     <see cref="FilterValueKind.Scalar" />.
     /// </summary>
     public FilterValueKind ValueKind { get; init; } = FilterValueKind.Scalar;
 }

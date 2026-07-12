@@ -1,10 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Plexor.Shared.Filtering.Registry;
+using Plexor.Shared.Filtering.Schema;
 
-using Microsoft.AspNetCore.OpenApi;
-
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.DI;
 
 /// <summary>
 ///     DI extension to wire <see cref="IFilterableEntity" /> registration,

@@ -1,6 +1,7 @@
 using System.Globalization;
+using Plexor.Shared.Filtering.Operators;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Parser;
 
 /// <summary>
 ///     Neutral recursive-descent parser: DSL string → <see cref="FilterNode" /> tree.
@@ -151,13 +152,12 @@ file sealed class ParserState(IReadOnlyList<FilterToken> tokens, int maxParenDep
         var operatorToken = Consume();
         var descriptor = FilterOperatorRegistry.Get(operatorToken.OperatorPayload);
 
-        // Read raw value(s) — NO type conversion here. The translator resolves the field
-        // and converts the value against the field's CLR type.
-        object? value = descriptor.ValueKind switch
+        // Read value(s) — construct the appropriate FilterValue subtype.
+        var value = descriptor.ValueKind switch
         {
-            ValueKind.None => null,
-            ValueKind.Scalar => ReadRawScalar(),
-            ValueKind.List => ReadRawList(),
+            ValueKind.None => NullValue.Instance,
+            ValueKind.Scalar => ReadScalarValue(),
+            ValueKind.List => ReadListValue(),
             _ => throw new NotSupportedException($"Unknown {nameof(ValueKind)} {descriptor.ValueKind}")
         };
 
@@ -167,14 +167,14 @@ file sealed class ParserState(IReadOnlyList<FilterToken> tokens, int maxParenDep
         };
     }
 
-    private string? ReadRawScalar()
+    private FilterValue ReadScalarValue()
     {
         // Function call: identifier followed by '(' — e.g. now(-7d).
         if (Current.Kind == FilterTokenKind.Identifier
             && Peek().Kind == FilterTokenKind.OpenParen)
         {
             lastValueKind = FilterValueKind.FunctionCall;
-            return ReadFunctionCall();
+            return ReadFunctionCallValue();
         }
 
         lastValueKind = Current.Kind == FilterTokenKind.StringValue
@@ -186,15 +186,15 @@ file sealed class ParserState(IReadOnlyList<FilterToken> tokens, int maxParenDep
             throw new FilterParseException($"Expected value, got '{Current.Text}'", Current.Position);
         }
 
-        return (string?)Consume().Text;
+        return new ScalarValue(Consume().Text);
     }
 
     /// <summary>
-    ///     Reads a function call like <c>now(-7d)</c> and returns the raw string
-    ///     <c>"now(-7d)"</c>. The translator evaluates it (e.g. to DateTimeOffset).
+    ///     Reads a function call like <c>now(-7d)</c> and returns a
+    ///     <see cref="FunctionValue" />. The translator evaluates it (e.g. to
+    ///     DateTimeOffset).
     /// </summary>
-    /// <exception cref="FilterParseException"></exception>
-    private string ReadFunctionCall()
+    private FunctionValue ReadFunctionCallValue()
     {
         var functionToken = Consume(); // 'now'
         Consume(); // '('
@@ -217,10 +217,10 @@ file sealed class ParserState(IReadOnlyList<FilterToken> tokens, int maxParenDep
 
         Consume(); // ')'
 
-        return $"{functionToken.Text}({argumentToken.Text})";
+        return new FunctionValue(functionToken.Text, argumentToken.Text);
     }
 
-    private List<string> ReadRawList()
+    private ListValue ReadListValue()
     {
         if (Current.Kind is not (FilterTokenKind.Value or FilterTokenKind.StringValue or FilterTokenKind.Identifier))
         {
@@ -245,6 +245,6 @@ file sealed class ParserState(IReadOnlyList<FilterToken> tokens, int maxParenDep
             list.Add(Consume().Text);
         }
 
-        return list;
+        return new ListValue(list);
     }
 }

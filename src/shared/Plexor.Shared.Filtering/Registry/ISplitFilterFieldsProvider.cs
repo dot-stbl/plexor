@@ -1,4 +1,4 @@
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Registry;
 
 /// <summary>
 ///     Provides filterable field metadata for split-query requests. Implemented by the

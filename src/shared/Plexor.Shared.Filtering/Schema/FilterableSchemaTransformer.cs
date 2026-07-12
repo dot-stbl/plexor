@@ -14,8 +14,10 @@
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using Plexor.Shared.Filtering.Operators;
+using Plexor.Shared.Filtering.Registry;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Schema;
 
 /// <summary>
 ///     Schema transformer that walks every component-schema in the OpenAPI

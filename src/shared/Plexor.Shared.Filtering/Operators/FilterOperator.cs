@@ -1,4 +1,4 @@
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Operators;
 
 /// <summary>
 ///     Comparison operators supported by the filter DSL. A field's allowed set is

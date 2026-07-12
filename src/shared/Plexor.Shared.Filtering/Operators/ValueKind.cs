@@ -1,4 +1,4 @@
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Operators;
 
 /// <summary>
 ///     How the parser reads the value(s) following an operator token.

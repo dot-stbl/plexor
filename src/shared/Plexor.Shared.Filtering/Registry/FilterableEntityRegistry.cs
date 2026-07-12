@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
+using Plexor.Shared.Filtering.Schema;
 
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Registry;
 
 /// <summary>
 ///     Registry of <see cref="IFilterableEntity" /> types, indexed by their

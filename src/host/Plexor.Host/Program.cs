@@ -27,6 +27,7 @@ using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
 using Plexor.Shared.Filtering;
+using Plexor.Shared.Filtering.DI;
 using Plexor.Shared.Persistence;
 using Plexor.Shared.Telemetry;
 

@@ -1,4 +1,4 @@
-namespace Plexor.Shared.Filtering;
+namespace Plexor.Shared.Filtering.Operators;
 
 /// <summary>
 ///     Infers the set of <see cref="FilterOperator" /> a CLR property type supports.

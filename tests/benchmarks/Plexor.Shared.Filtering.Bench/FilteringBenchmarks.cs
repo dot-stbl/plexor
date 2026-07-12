@@ -1,6 +1,8 @@
 using System.Linq.Expressions;
 using BenchmarkDotNet.Attributes;
 using Plexor.Shared.Filtering;
+using Plexor.Shared.Filtering.Parser;
+using Plexor.Shared.Filtering.Persistence;
 
 namespace Plexor.Shared.Filtering.Bench;
 
