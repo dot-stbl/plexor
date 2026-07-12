@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plexor.Modules.Tenants.Application\Plexor.Modules.Tenants.Application.csproj" />
+    <ProjectReference Include="..\Plexor.Modules.Organizations.Application\Plexor.Modules.Organizations.Application.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
-    <ProjectReference Include="..\Plexor.Modules.Tenants.Domain\Plexor.Modules.Tenants.Domain.csproj" />
+    <ProjectReference Include="..\Plexor.Modules.Organizations.Domain\Plexor.Modules.Organizations.Domain.csproj" />
   </ItemGroup>
 
 </Project>

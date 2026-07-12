@@ -31,7 +31,7 @@ namespace Plexor.Shared.Persistence;
 ///                 <term><see cref="Schemes.Identity" /> (sigil)</term><description>Plexor.Modules.Identity</description>
 ///             </item>
 ///             <item>
-///                 <term><see cref="Schemes.Tenants" /> (realm)</term><description>Plexor.Modules.Tenants</description>
+///                 <term><see cref="Schemes.Realm" /> (realm)</term><description>Plexor.Modules.Organizations</description>
 ///             </item>
 ///             <item>
 ///                 <term><see cref="Schemes.Billing" /> (ledger)</term><description>Plexor.Modules.Billing</description>
@@ -66,8 +66,8 @@ public static class DatabaseInformation
         /// <summary>Identity / auth / users (Plexor.Modules.Identity).</summary>
         public const string Identity = "sigil";
 
-        /// <summary>Tenants / workspaces / organisations (Plexor.Modules.Tenants).</summary>
-        public const string Tenants = "realm";
+        /// <summary>Organizations / org-team-folder hierarchy (Plexor.Modules.Organizations). Note: schema is named <c>realm</c> per the architecture theme; the C# module name is the concept (<c>Organization</c>). See AGENTS.md for the schema-vs-concept map.</summary>
+        public const string Realm = "realm";
 
         /// <summary>Billing / wallets / invoice lines (Plexor.Modules.Billing).</summary>
         public const string Billing = "ledger";
@@ -102,8 +102,14 @@ public static class DatabaseInformation
         /// <summary>Audit module — one row per audited action.</summary>
         public const string AuditEntries = "audit_entries";
 
-        /// <summary>Tenants module — one row per tenant organization.</summary>
-        public const string Tenants = "tenants";
+        /// <summary>Organizations module — one row per organization (org-scoped resources FK here).</summary>
+        public const string Organizations = "organizations";
+
+        /// <summary>Organizations module — team rows belong to a single org.</summary>
+        public const string Teams = "teams";
+
+        /// <summary>Organizations module — folder rows belong to an org (team optional for org-level folders).</summary>
+        public const string Folders = "folders";
 
         /// <summary>Identity module — user accounts.</summary>
         public const string Users = "users";

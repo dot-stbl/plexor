@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../src/modules/Plexor.Modules.Tenants/Plexor.Modules.Tenants.Application/Plexor.Modules.Tenants.Application.csproj"/>
+    <ProjectReference Include="../../../src/modules/Plexor.Modules.Organizations/Plexor.Modules.Organizations.Application/Plexor.Modules.Organizations.Application.csproj"/>
   </ItemGroup>
 
 </Project>

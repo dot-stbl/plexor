@@ -17,7 +17,7 @@ namespace Plexor.Modules.Identity.Domain.Entities;
 ///     <para><b>Uniqueness.</b> The DB enforces UNIQUE
 ///     (<c>user_id</c>, <c>role_id</c>, <c>project_id</c>) — same role
 ///     cannot be bound to the same scope twice.</para>
-///     <para><b>Phase 2.</b> When the <c>Plexor.Modules.Tenants</c> module
+///     <para><b>Phase 2.</b> When the <c>Plexor.Modules.Organizations</c> module
 ///     grows the <c>Project</c> aggregate, this entity gains the
 ///     project FK. v0.1 keeps <see cref="ProjectId" /> nullable; the
 ///     column type is <c>UUID NULL</c>.</para>

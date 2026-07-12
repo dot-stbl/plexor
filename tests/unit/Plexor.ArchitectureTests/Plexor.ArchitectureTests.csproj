@@ -42,9 +42,9 @@
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Domain\Plexor.Modules.Identity.Domain.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Application\Plexor.Modules.Identity.Application.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Identity\Plexor.Modules.Identity.Infrastructure\Plexor.Modules.Identity.Infrastructure.csproj"/>
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Domain\Plexor.Modules.Tenants.Domain.csproj"/>
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Application\Plexor.Modules.Tenants.Application.csproj"/>
-    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Tenants\Plexor.Modules.Tenants.Infrastructure\Plexor.Modules.Tenants.Infrastructure.csproj"/>
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Organizations\Plexor.Modules.Organizations.Domain\Plexor.Modules.Organizations.Domain.csproj"/>
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Organizations\Plexor.Modules.Organizations.Application\Plexor.Modules.Organizations.Application.csproj"/>
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Organizations\Plexor.Modules.Organizations.Infrastructure\Plexor.Modules.Organizations.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Application\Plexor.Modules.Billing.Application.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Billing\Plexor.Modules.Billing.Infrastructure\Plexor.Modules.Billing.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Domain\Plexor.Modules.Audit.Domain.csproj"/>

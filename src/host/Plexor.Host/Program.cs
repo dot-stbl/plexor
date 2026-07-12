@@ -29,7 +29,7 @@ using Plexor.Modules.Identity.Domain;
 using Plexor.Modules.Identity.Domain.Entities;
 using Plexor.Modules.Identity.Infrastructure.CurrentUser;
 using Plexor.Modules.Identity.Infrastructure.Persistence;
-using Plexor.Modules.Tenants.Infrastructure.Persistence;
+using Plexor.Modules.Organizations.Infrastructure.Persistence;
 using Plexor.Shared.Filtering;
 using Plexor.Shared.Persistence;
 
@@ -72,10 +72,10 @@ var auditConnection = builder.Configuration.GetConnectionString("Audit")
                           "ConnectionStrings:Audit missing from configuration.");
 builder.Services.AddModuleDbContext<AuditDbContext>(auditConnection);
 
-var tenantsConnection = builder.Configuration.GetConnectionString("Tenants")
+var tenantsConnection = builder.Configuration.GetConnectionString("Realm")
                         ?? throw new InvalidOperationException(
-                            "ConnectionStrings:Tenants missing from configuration.");
-builder.Services.AddModuleDbContext<TenantsDbContext>(tenantsConnection);
+                            "ConnectionStrings:Realm missing from configuration.");
+builder.Services.AddModuleDbContext<RealmDbContext>(tenantsConnection);
 
 var identityConnection = builder.Configuration.GetConnectionString("Identity")
                          ?? throw new InvalidOperationException(

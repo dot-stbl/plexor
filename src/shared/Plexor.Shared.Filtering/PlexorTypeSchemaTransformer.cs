@@ -17,7 +17,7 @@ namespace Plexor.Shared.Filtering;
 /// <summary>
 ///     Schema transformer that emits <c>x-plexor-type</c> on every
 ///     component schema in the OpenAPI document. The extension's value is
-///     the CLR full name (e.g. <c>Plexor.Modules.Tenants.Domain.TenantRecord</c>),
+///     the CLR full name (e.g. <c>Plexor.Modules.Organizations.Domain.TenantRecord</c>),
 ///     set automatically by the framework. <see cref="FilterableSchemaTransformer" />
 ///     reads this extension to map schemas back to registered filterable
 ///     entities.

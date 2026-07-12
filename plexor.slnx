@@ -56,13 +56,13 @@
                 Path="src/modules/Plexor.Modules.Identity/Plexor.Modules.Identity.Infrastructure/Plexor.Modules.Identity.Infrastructure.csproj"/>
         </Folder>
 
-        <Folder Name="/src/modules/Plexor.Modules.Tenants/">
+        <Folder Name="/src/modules/Plexor.Modules.Organizations/">
             <Project
-                Path="src/modules/Plexor.Modules.Tenants/Plexor.Modules.Tenants.Domain/Plexor.Modules.Tenants.Domain.csproj"/>
+                Path="src/modules/Plexor.Modules.Organizations/Plexor.Modules.Organizations.Domain/Plexor.Modules.Organizations.Domain.csproj"/>
             <Project
-                Path="src/modules/Plexor.Modules.Tenants/Plexor.Modules.Tenants.Application/Plexor.Modules.Tenants.Application.csproj"/>
+                Path="src/modules/Plexor.Modules.Organizations/Plexor.Modules.Organizations.Application/Plexor.Modules.Organizations.Application.csproj"/>
             <Project
-                Path="src/modules/Plexor.Modules.Tenants/Plexor.Modules.Tenants.Infrastructure/Plexor.Modules.Tenants.Infrastructure.csproj"/>
+                Path="src/modules/Plexor.Modules.Organizations/Plexor.Modules.Organizations.Infrastructure/Plexor.Modules.Organizations.Infrastructure.csproj"/>
         </Folder>
 
         <Folder Name="/src/modules/Plexor.Modules.Billing/">
@@ -121,7 +121,7 @@
     <Folder Name="/tests/"/>
     <Folder Name="/tests/unit/">
         <Project Path="tests/unit/Plexor.ArchitectureTests/Plexor.ArchitectureTests.csproj"/>
-        <Project Path="tests/unit/Plexor.Modules.Tenants.Unit/Plexor.Modules.Tenants.Unit.csproj"/>
+        <Project Path="tests/unit/Plexor.Modules.Organizations.Unit/Plexor.Modules.Organizations.Unit.csproj"/>
         <Project Path="tests/unit/Plexor.Modules.Identity.Unit/Plexor.Modules.Identity.Unit.csproj"/>
         <Project Path="tests/unit/Plexor.Modules.Audit.Unit/Plexor.Modules.Audit.Unit.csproj"/>
         <Project Path="tests/unit/Plexor.Modules.Billing.Unit/Plexor.Modules.Billing.Unit.csproj"/>
