@@ -38,6 +38,7 @@
         <Project Path="src/shared/Plexor.Shared.Persistence/Plexor.Shared.Persistence.csproj"/>
         <Project Path="src/shared/Plexor.Shared.Telemetry/Plexor.Shared.Telemetry.csproj"/>
         <Project Path="src/shared/Plexor.Shared.Http/Plexor.Shared.Http.csproj"/>
+        <Project Path="src/shared/Plexor.Shared.Filtering/Plexor.Shared.Filtering.csproj"/>
         <Project Path="src/shared/Plexor.Shared.Composition/Plexor.Shared.Composition.csproj"/>
         <Project Path="src/shared/Plexor.Shared.Console/Plexor.Shared.Console.csproj"/>
         <Project Path="src/shared/Plexor.Shared.NodeApi/Plexor.Shared.NodeApi.csproj"/>
