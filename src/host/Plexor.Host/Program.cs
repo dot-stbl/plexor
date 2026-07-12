@@ -20,11 +20,11 @@
 
 using System.Text.Json.Serialization;
 using Plexor.Host.Abstractions;
+using Plexor.Host.Installers;
 using Plexor.Host.Controllers;
 using Plexor.Host.NodeRegistry;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
-using Plexor.Shared.Filtering;
 using Plexor.Shared.Filtering.DI;
 using Plexor.Shared.Persistence;
 using Plexor.Shared.Telemetry;
@@ -91,6 +91,12 @@ builder.Services.AddFiltering();
 builder.Services.AddSigilApplicationCore(builder.Configuration);
 builder.Services.AddSigilInfrastructureCore(builder.Configuration);
 
+// Strip our own IHostedService implementations when the host is being
+// launched by the build-time OpenAPI document generator. Without this,
+// `dotnet build` would run SigningKeyBootstrapper (and any other IHostedService
+// that talks to Postgres) just to emit artifacts/openapi.json.
+builder.Services.RemoveHostedServicesForOpenApiGeneration();
+
 // Logging — Plexor console formatter (color-coded by level, formatted
 // for grep-ability). Replaces the default simple formatter so all ASP.NET
 // logs go through PlexorConsoleFormatter at startup. Must be called
@@ -104,8 +110,8 @@ app.Logger.LogInformation(
     "Registered {ContextCount} DbContext(s) against ConnectionStrings:Postgres",
     contextCount);
 
-app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "plexor-host" }));
-app.MapGet("/", () => Results.Ok(new { name = "Plexor Host", version = "0.1.0-dev" }));
+app.MapGet("/health", static () => Results.Ok(new { status = "ok", service = "plexor-host" }));
+app.MapGet("/", static () => Results.Ok(new { name = "Plexor Host", version = "0.1.0-dev" }));
 
 app.MapControllers();
 
