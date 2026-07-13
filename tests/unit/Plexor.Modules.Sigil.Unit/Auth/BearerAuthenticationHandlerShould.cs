@@ -33,7 +33,8 @@ public sealed class BearerAuthenticationHandlerShould
 {
     private static async Task<BearerAuthenticationHandler> BuildHandlerAsync(
         HttpContext context,
-        IJwtSigningService signing)
+        IJwtSigningService signing,
+        IApiKeyAuthenticationService apiKeys)
     {
         var optionsMonitor = new TestOptionsMonitor<BearerOptions>(new BearerOptions());
         var loggerFactory = NullLoggerFactory.Instance;
@@ -45,7 +46,7 @@ public sealed class BearerAuthenticationHandlerShould
             typeof(BearerAuthenticationHandler));
 
         var handler = new BearerAuthenticationHandler(
-            optionsMonitor, loggerFactory, urlEncoder, signing);
+            optionsMonitor, loggerFactory, urlEncoder, signing, apiKeys);
         await handler.InitializeAsync(scheme, context);
         return handler;
     }
@@ -57,7 +58,8 @@ public sealed class BearerAuthenticationHandlerShould
     {
         var signing = Substitute.For<IJwtSigningService>();
         var context = new DefaultHttpContext();
-        var handler = await BuildHandlerAsync(context, signing);
+        var apiKeys = Substitute.For<IApiKeyAuthenticationService>();
+        var handler = await BuildHandlerAsync(context, signing, apiKeys);
 
         var result = await handler.AuthenticateAsync();
 
@@ -73,7 +75,8 @@ public sealed class BearerAuthenticationHandlerShould
         var signing = Substitute.For<IJwtSigningService>();
         var context = new DefaultHttpContext();
         context.Request.Headers.Authorization = "Basic dXNlcjpwYXNz";
-        var handler = await BuildHandlerAsync(context, signing);
+        var apiKeys = Substitute.For<IApiKeyAuthenticationService>();
+        var handler = await BuildHandlerAsync(context, signing, apiKeys);
 
         var result = await handler.AuthenticateAsync();
 
@@ -90,8 +93,9 @@ public sealed class BearerAuthenticationHandlerShould
         signing.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new VerifyResult.Malformed("base64 decode failed"));
         var context = new DefaultHttpContext();
-        context.Request.Headers.Authorization = "Bearer garbage";
-        var handler = await BuildHandlerAsync(context, signing);
+        context.Request.Headers.Authorization = "Bearer aaa.bbb.ccc";
+        var apiKeys = Substitute.For<IApiKeyAuthenticationService>();
+        var handler = await BuildHandlerAsync(context, signing, apiKeys);
 
         var result = await handler.AuthenticateAsync();
 
@@ -109,7 +113,8 @@ public sealed class BearerAuthenticationHandlerShould
             .Returns(new VerifyResult.Invalid("signature mismatch"));
         var context = new DefaultHttpContext();
         context.Request.Headers.Authorization = "Bearer eyJhbGc.sig";
-        var handler = await BuildHandlerAsync(context, signing);
+        var apiKeys = Substitute.For<IApiKeyAuthenticationService>();
+        var handler = await BuildHandlerAsync(context, signing, apiKeys);
 
         var result = await handler.AuthenticateAsync();
 
@@ -133,7 +138,8 @@ public sealed class BearerAuthenticationHandlerShould
 
         var context = new DefaultHttpContext();
         context.Request.Headers.Authorization = "Bearer eyJhbGc.payload.sig";
-        var handler = await BuildHandlerAsync(context, signing);
+        var apiKeys = Substitute.For<IApiKeyAuthenticationService>();
+        var handler = await BuildHandlerAsync(context, signing, apiKeys);
 
         var result = await handler.AuthenticateAsync();
 
@@ -163,7 +169,8 @@ public sealed class BearerAuthenticationHandlerShould
 
         var context = new DefaultHttpContext();
         context.Request.Headers.Authorization = "Bearer eyJhbGc.payload.sig";
-        var handler = await BuildHandlerAsync(context, signing);
+        var apiKeys = Substitute.For<IApiKeyAuthenticationService>();
+        var handler = await BuildHandlerAsync(context, signing, apiKeys);
 
         var result = await handler.AuthenticateAsync();
 
@@ -179,19 +186,23 @@ public sealed class BearerAuthenticationHandlerShould
     [Fact(DisplayName = "Given multi-valued Authorization header, when authenticating, then only the first value is considered")]
     public async Task MultiValuedAuthorizationHeaderUsesFirstValueOnly()
     {
+        // Use JWT-shaped tokens (with two dots) so the handler routes
+        // through IJwtSigningService; the API key path is exercised
+        // by a separate test below.
         var signing = Substitute.For<IJwtSigningService>();
-        signing.VerifyAsync("only-this-token", Arg.Any<CancellationToken>())
+        signing.VerifyAsync("only-this-token.sig", Arg.Any<CancellationToken>())
             .Returns(new VerifyResult.Invalid("ignored"));
 
         var context = new DefaultHttpContext();
         // Two Authorization headers, comma-joined value: must use only the first.
-        context.Request.Headers.Append("Authorization", "Bearer only-this-token");
-        context.Request.Headers.Append("Authorization", "Bearer should-be-ignored");
-        var handler = await BuildHandlerAsync(context, signing);
+        context.Request.Headers.Append("Authorization", "Bearer only-this-token.sig");
+        context.Request.Headers.Append("Authorization", "Bearer should-be-ignored.payload.sig");
+        var apiKeys = Substitute.For<IApiKeyAuthenticationService>();
+        var handler = await BuildHandlerAsync(context, signing, apiKeys);
 
         var result = await handler.AuthenticateAsync();
 
-        await signing.Received(1).VerifyAsync("only-this-token", Arg.Any<CancellationToken>());
+        await signing.Received(1).VerifyAsync("only-this-token.sig", Arg.Any<CancellationToken>());
         result.Failure!.Message.ShouldBe("ignored");
     }
 
@@ -204,7 +215,8 @@ public sealed class BearerAuthenticationHandlerShould
     {
         var signing = Substitute.For<IJwtSigningService>();
         var context = new DefaultHttpContext();
-        var handler = await BuildHandlerAsync(context, signing);
+        var apiKeys = Substitute.For<IApiKeyAuthenticationService>();
+        var handler = await BuildHandlerAsync(context, signing, apiKeys);
 
         await handler.ChallengeAsync(new AuthenticationProperties());
 

@@ -120,6 +120,16 @@ public static class SigilInfrastructureInstaller
         services.AddScoped<IPermissionResolver, PermissionResolver>();
         services.AddSingleton<ITokenIssuer, TokenIssuer>();
 
+        // Revocation checker — JwtSigningService calls it after
+        // signature + lifetime validation succeeds so a stolen,
+        // signature-valid JWT is rejected once the user is disabled
+        // or rotates their password. Scoped because the EF lookup is.
+        services.AddScoped<IUserRevocationChecker, EfUserRevocationChecker>();
+
+        // API key auth — BearerAuthenticationHandler routes
+        // kid_xxx.<secret> tokens here. Scoped (DbContext reuse).
+        services.AddScoped<IApiKeyAuthenticationService, EfApiKeyAuthenticationService>();
+
         return services;
     }
 }

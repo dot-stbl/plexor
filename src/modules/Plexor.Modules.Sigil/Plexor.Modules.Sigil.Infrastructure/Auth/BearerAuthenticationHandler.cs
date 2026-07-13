@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
 // BearerAuthenticationHandler — ASP.NET Core authentication scheme for
-// Plexor's compact JWTs. Reads the `Authorization: Bearer <jwt>` header,
-// delegates verification to IJwtSigningService, and produces a 401
-// challenge on failure. Owns the wire protocol between Plexor.Host
-// and the Sigil auth pipeline; downstream code interacts with it via
-// the standard [Authorize] attribute.
-// ============================================================================
+// Plexor's compact JWTs and API keys. Reads the
+// `Authorization: Bearer <token>` header, routes JWT-shaped tokens to
+// IJwtSigningService and API-key-shaped tokens (kid_xxx.<secret>) to
+// IApiKeyAuthenticationService. Produces a 401 challenge on failure.
+// Owns the wire protocol between Plexor.Host and the Sigil auth
+// pipeline; downstream code interacts with it via the standard
+// [Authorize] attribute.
+// ==========================================================================
 
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -19,33 +21,34 @@ using Plexor.Modules.Sigil.Application.Auth;
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
 /// <summary>
-///     JWT bearer scheme handler. Constructed once per scheme by the
-///     authentication middleware; per-request <see cref="HandleAuthenticateAsync" />
-///     reads the header, validates the token, and emits an
-///     <see cref="AuthenticateResult" /> that the framework
-///     <c>AuthenticationMiddleware</c> maps to <c>HttpContext.User</c>.
+///     Bearer scheme handler — JWT + API key. Constructed once per
+/// scheme by the authentication middleware; per-request
+/// <see cref="HandleAuthenticateAsync" /> reads the header, dispatches
+/// to the right verifier, and emits an
+/// <see cref="AuthenticateResult" /> that the framework
+/// <c>AuthenticationMiddleware</c> maps to <c>HttpContext.User</c>.
 /// </summary>
-/// <param name="options"></param>
-/// <param name="loggerFactory"></param>
-/// <param name="urlEncoder"></param>
-/// <param name="jwt"></param>
 /// <remarks>
-///     <para><b>Async surface.</b> Overrides are async by signature
-///     (the framework awaits them). Cancellation is forwarded from the
-///     request abort token via <see cref="Microsoft.AspNetCore.Http.HttpContext.RequestAborted" />.</para>
+///     <para><b>Token shapes.</b>
+///     <list type="bullet">
+///       <item>JWT: three base64url segments separated by dots —
+///       decoded by <see cref="IJwtSigningService.VerifyAsync" />.</item>
+///       <item>API key: <c>kid_&lt;uuid&gt;.&lt;base64url-secret&gt;</c> —
+///       routed to <see cref="IApiKeyAuthenticationService.AuthenticateAsync" />.
+///       Service-to-service auth (NodeAgent ↔ Host, CI bots).</item>
+///     </list></para>
 ///     <para><b>Error model.</b> <see cref="VerifyResult.Invalid" /> and
-///     <see cref="VerifyResult.Malformed" /> both map to
-///     <see cref="AuthenticateResult.Fail(string)" />. We do NOT call
-///     <c>HandleChallengeAsync</c> from within the handler — the
-///     authentication middleware does that automatically when the auth
-///     service returns a <c>Fail</c> on a request protected by
-///     <c>[Authorize]</c>.</para>
+///     <see cref="ApiKeyAuthenticationResult.Invalid" /> both map to
+///     <see cref="AuthenticateResult.Fail(string)" />. The framework
+///     calls <c>HandleChallengeAsync</c> on a 401, which writes
+///     <c>WWW-Authenticate: error="invalid_token"</c> per RFC 6750.</para>
 /// </remarks>
 public sealed class BearerAuthenticationHandler(
     IOptionsMonitor<BearerOptions> options,
     ILoggerFactory loggerFactory,
     UrlEncoder urlEncoder,
-    IJwtSigningService jwt)
+    IJwtSigningService jwt,
+    IApiKeyAuthenticationService apiKeys)
     : AuthenticationHandler<BearerOptions>(options, loggerFactory, urlEncoder)
 {
     private const string AuthorizationHeader = "Authorization";
@@ -77,7 +80,24 @@ public sealed class BearerAuthenticationHandler(
         }
 
         var cancellationToken = Context.RequestAborted;
-        var verification = await jwt.VerifyAsync(token, cancellationToken);
+
+        // API keys are prefixed with 'kid_' (RFC-style kid header).
+        // JWTs are three base64url segments separated by dots. The
+        // presence of dots is the cheapest disambiguator — a kid_*
+        // never has dots in the prefix; a JWT always has two.
+        return token.Contains('.') switch
+        {
+            true => await VerifyJwtAsync(token, cancellationToken),
+            false => await VerifyApiKeyAsync(token, cancellationToken),
+        };
+    }
+
+    /// <summary>JWT branch — delegates to <see cref="IJwtSigningService" />.</summary>
+    private async Task<AuthenticateResult> VerifyJwtAsync(
+        string compactJwt,
+        CancellationToken cancellationToken)
+    {
+        var verification = await jwt.VerifyAsync(compactJwt, cancellationToken);
 
         return verification switch
         {
@@ -86,12 +106,77 @@ public sealed class BearerAuthenticationHandler(
                     success.Principal,
                     BuildAuthenticationProperties(success.Principal),
                     Scheme.Name)),
-
             VerifyResult.Invalid invalid => AuthenticateResult.Fail(invalid.Reason),
             VerifyResult.Malformed malformed => AuthenticateResult.Fail(malformed.Reason),
-
             _ => AuthenticateResult.Fail("Unknown verification outcome."),
         };
+    }
+
+    /// <summary>
+    ///     API-key branch. Expects <c>kid_&lt;uuid&gt;.&lt;secret&gt;</c>;
+    ///     unknown shapes (typos, wrong separators) fall through to
+    ///     a generic invalid-token failure.
+    /// </summary>
+    private async Task<AuthenticateResult> VerifyApiKeyAsync(
+        string rawToken,
+        CancellationToken cancellationToken)
+    {
+        if (!TryParseApiKeyToken(rawToken, out var keyId, out var secret))
+        {
+            return AuthenticateResult.Fail("Malformed API key.");
+        }
+
+        var result = await apiKeys.AuthenticateAsync(keyId, secret, cancellationToken);
+        return result switch
+        {
+            ApiKeyAuthenticationResult.Success success => AuthenticateResult.Success(
+                new AuthenticationTicket(
+                    success.Principal,
+                    new AuthenticationProperties(),
+                    Scheme.Name)),
+            ApiKeyAuthenticationResult.NotFound => AuthenticateResult.Fail(
+                "API key not found."),
+            ApiKeyAuthenticationResult.Invalid invalid => AuthenticateResult.Fail(
+                invalid.Reason),
+            _ => AuthenticateResult.Fail("Unknown API key outcome."),
+        };
+    }
+
+    /// <summary>
+    ///     Parse <c>kid_&lt;uuid&gt;.&lt;secret&gt;</c> into its two
+    ///     parts. <c>kid_</c> prefix is required; UUID must be a real
+    ///     <see cref="Guid" />; the secret is the raw base64url portion
+    ///     after the dot. Returns <c>false</c> for anything that
+    ///     doesn't match.
+    /// </summary>
+    private static bool TryParseApiKeyToken(
+        string rawToken,
+        out Guid keyId,
+        out string secret)
+    {
+        keyId = Guid.Empty;
+        secret = string.Empty;
+
+        const string kidPrefix = "kid_";
+        if (!rawToken.StartsWith(kidPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var dotIndex = rawToken.IndexOf('.');
+        if (dotIndex <= kidPrefix.Length)
+        {
+            return false;
+        }
+
+        var kidString = rawToken[kidPrefix.Length..dotIndex];
+        if (!Guid.TryParse(kidString, out keyId) || keyId == Guid.Empty)
+        {
+            return false;
+        }
+
+        secret = rawToken[(dotIndex + 1)..];
+        return secret.Length > 0;
     }
 
     /// <inheritdoc />
@@ -147,8 +232,6 @@ public sealed class BearerAuthenticationHandler(
     ///     long integer — both are non-fatal: the caller proceeds with
     ///     whatever subset of <c>iat</c> / <c>exp</c> was readable.
     /// </summary>
-    /// <param name="principal"></param>
-    /// <param name="claimType"></param>
     private static long? TryReadUnixSeconds(ClaimsPrincipal principal, string claimType)
     {
         var raw = principal.FindFirstValue(claimType);

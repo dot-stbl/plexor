@@ -40,7 +40,8 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     missed (rotation-window scenario).</para>
 /// </remarks>
 public sealed class JwtSigningService(
-    ISigningKeyRepository keys) : IJwtSigningService
+    ISigningKeyRepository keys,
+    IUserRevocationChecker revocationChecker) : IJwtSigningService
 {
     /// <inheritdoc />
     public Task<IssuedAccessToken> IssueWithLifetimeAsync(
@@ -136,7 +137,36 @@ public sealed class JwtSigningService(
         {
             var result = await handler.ValidateTokenAsync(
                 compactJwt, validation);
-            return new VerifyResult.Success(new ClaimsPrincipal(result.ClaimsIdentity));
+            var principal = new ClaimsPrincipal(result.ClaimsIdentity);
+
+            // Post-verify: was this token issued before a password
+            // rotation, or for a user that's since been disabled? A
+            // signature-valid JWT must NOT be honoured when its
+            // subject's auth state changed under it. Skipped for
+            // non-JWT identity claims (API keys use a different path).
+            var userIdClaim = principal.FindFirstValue(IdentityClaims.UserId);
+            if (Guid.TryParse(userIdClaim, out var userId)
+                && result.SecurityToken is JwtSecurityToken jwtToken
+                && jwtToken.IssuedAt != default)
+            {
+                var issuedAt = new DateTimeOffset(jwtToken.IssuedAt, TimeSpan.Zero);
+                var revocation = await revocationChecker.IsStillValidAsync(
+                    userId,
+                    issuedAt,
+                    cancellationToken);
+                switch (revocation)
+                {
+                    case RevocationCheckResult.Active:
+                        break;
+                    case RevocationCheckResult.UserDisabled disabled:
+                        return new VerifyResult.Invalid(disabled.Reason);
+                    case RevocationCheckResult.PasswordRotated rotated:
+                        return new VerifyResult.Invalid(
+                            $"Password rotated at {rotated.rotatedAt:O}; token predates rotation.");
+                }
+            }
+
+            return new VerifyResult.Success(principal);
         }
         catch (SecurityTokenMalformedException ex)
         {
