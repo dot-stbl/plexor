@@ -23,6 +23,7 @@ using Plexor.Host.Abstractions;
 using Plexor.Host.Installers;
 using Plexor.Host.Controllers;
 using Plexor.Host.NodeRegistry;
+using Plexor.Host.OpenApi;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Shared.Filtering.DI;
@@ -31,13 +32,26 @@ using Plexor.Shared.Telemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
+// OpenAPI — Microsoft.AspNetCore.OpenApi source-gen document provider.
+// ProblemDetailsResponsesTransformer injects the standard RFC 7807
+// error responses (400/401/403/404/409/500) into every operation so
+// per-endpoint [ProducesResponseType] only has to document 2xx shapes.
+builder.Services.AddOpenApi(options =>
+{
+    options.AddOperationTransformer<ProblemDetailsResponsesTransformer>();
+});
+
+// ProblemDetails baseline — every unhandled exception and every
+// status-code page renders as application/problem+json. Combined with
+// the OpenAPI transformer above, the document and the wire format stay
+// in lock-step (no per-endpoint [ProducesResponseType<ProblemDetails>]
+// required).
+builder.Services.AddProblemDetails();
 
 // Controllers — discovered from the application assembly.
-// AddProblemDetails() (added later in composition) wires the
-// global RFC 7807 error response for unhandled exceptions; the
-// per-endpoint [ProducesResponseType<...>] attributes document
-// the success paths.
+// Per-endpoint [ProducesResponseType] only documents 2xx shapes;
+// 4xx/5xx are wired centrally via ProblemDetailsResponsesTransformer
+// and the AddProblemDetails() block above.
 builder.Services
         .AddControllers()
         .AddJsonOptions(static options =>
@@ -112,6 +126,13 @@ app.Logger.LogInformation(
 
 app.MapGet("/health", static () => Results.Ok(new { status = "ok", service = "plexor-host" }));
 app.MapGet("/", static () => Results.Ok(new { name = "Plexor Host", version = "0.1.0-dev" }));
+
+// ProblemDetails error pipeline:
+//   UseExceptionHandler — unhandled exceptions → 500 application/problem+json
+//   UseStatusCodePages  — 404/415/etc. without a body → application/problem+json
+// Both rely on the IProblemDetailsService registered by AddProblemDetails().
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 app.MapControllers();
 
