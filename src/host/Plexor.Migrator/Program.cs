@@ -30,6 +30,7 @@ builder.Services.AddPlexorModuleDbContexts(
 builder.Services.AddSigilInfrastructureCore(builder.Configuration);
 
 builder.Services.AddHostedService<MigrationRunner>();
+builder.Services.AddHostedService<IdentityBootstrapper>();
 
 var app = builder.Build();
 app.Run();

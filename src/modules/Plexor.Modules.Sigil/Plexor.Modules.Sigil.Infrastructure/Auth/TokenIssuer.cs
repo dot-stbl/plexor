@@ -45,6 +45,42 @@ public sealed class TokenIssuer(
         var resolvedPermissions = await permissions.ResolveAsync(
             userId, orgId, cancellationToken);
 
+        var principal = BuildPrincipal(userId, orgId, roles, resolvedPermissions);
+        return await signing.IssueAsync(principal, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<IssuedAccessToken> IssueWithOverrideAsync(
+        Guid userId,
+        Guid orgId,
+        IReadOnlyCollection<string> roles,
+        IReadOnlyCollection<string> overridePermissions,
+        TimeSpan overrideLifetime,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfEqual(userId, Guid.Empty);
+        ArgumentOutOfRangeException.ThrowIfEqual(orgId, Guid.Empty);
+        ArgumentNullException.ThrowIfNull(overridePermissions);
+
+        var principal = BuildPrincipal(userId, orgId, roles, overridePermissions);
+        return await signing.IssueWithLifetimeAsync(
+            principal, overrideLifetime, cancellationToken);
+    }
+
+    /// <summary>
+    ///     Build the canonical <see cref="ClaimsPrincipal" /> with
+    /// the caller identity, organisation, role names, and permission
+    /// strings. Used by both <see cref="IssueAsync" /> (which passes
+    /// role-resolved permissions) and
+    /// <see cref="IssueWithOverrideAsync" /> (which passes caller-
+    /// supplied permissions during the password-change path).
+    /// </summary>
+    private static ClaimsPrincipal BuildPrincipal(
+        Guid userId,
+        Guid orgId,
+        IReadOnlyCollection<string> roles,
+        IReadOnlyCollection<string> permissionsToBake)
+    {
         var claims = new List<Claim>
         {
             new(IdentityClaims.UserId, userId.ToString()),
@@ -56,12 +92,12 @@ public sealed class TokenIssuer(
             claims.Add(new Claim(IdentityClaims.Roles, role));
         }
 
-        foreach (var permission in resolvedPermissions)
+        foreach (var permission in permissionsToBake)
         {
             claims.Add(new Claim(IdentityClaims.Permission, permission));
         }
 
-        var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, authenticationType: "PlexorBearer"));
-        return await signing.IssueAsync(principal, cancellationToken);
+        return new ClaimsPrincipal(
+            new ClaimsIdentity(claims, authenticationType: "PlexorBearer"));
     }
 }

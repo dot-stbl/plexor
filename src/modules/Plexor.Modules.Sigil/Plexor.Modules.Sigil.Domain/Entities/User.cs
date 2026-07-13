@@ -62,4 +62,11 @@ public sealed class User : IFilterableEntity, ICreatedAt, IUpdatedAt
 
     /// <summary>Last modification time (UTC) — bumped on any field write.</summary>
     public DateTimeOffset UpdatedAt { get; init; }
+
+    /// <summary>True when the account hasn't completed the first-login
+    /// password rotation yet. Set by <c>Plexor.Migrator</c> for the
+    /// bootstrap admin user and any future
+    /// admin-invites-new-user flow. Login checks this flag — see
+    /// <c>LoginCommandHandler</c>.</summary>
+    public bool MustChangePassword { get; init; }
 }

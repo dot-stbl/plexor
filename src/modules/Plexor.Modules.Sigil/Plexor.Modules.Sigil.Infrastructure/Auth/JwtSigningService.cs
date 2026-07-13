@@ -43,9 +43,31 @@ public sealed class JwtSigningService(
     ISigningKeyRepository keys) : IJwtSigningService
 {
     /// <inheritdoc />
-    public async Task<IssuedAccessToken> IssueAsync(
+    public Task<IssuedAccessToken> IssueWithLifetimeAsync(
+        ClaimsPrincipal principal,
+        TimeSpan lifetime,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(principal);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(lifetime, TimeSpan.Zero);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(lifetime, IJwtSigningService.AccessTokenLifetime);
+
+        return IssueInternalAsync(principal, lifetime, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<IssuedAccessToken> IssueAsync(
         ClaimsPrincipal principal,
         CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(principal);
+        return IssueInternalAsync(principal, lifetime: null, cancellationToken);
+    }
+
+    private async Task<IssuedAccessToken> IssueInternalAsync(
+        ClaimsPrincipal principal,
+        TimeSpan? lifetime,
+        CancellationToken cancellationToken)
     {
         var key = await keys.GetActiveAsync(cancellationToken)
             ?? throw new InvalidOperationException(
@@ -53,7 +75,8 @@ public sealed class JwtSigningService(
                 "Ensure SigningKeyBootstrapper is registered as a hosted service.");
 
         var now = DateTimeOffset.UtcNow;
-        var expiresAt = now.Add(IJwtSigningService.AccessTokenLifetime);
+        var effectiveLifetime = lifetime ?? IJwtSigningService.AccessTokenLifetime;
+        var expiresAt = now.Add(effectiveLifetime);
 
         using var ecdsa = LoadPrivateKey(key.PrivateKeyPem
             ?? throw new InvalidOperationException(

@@ -35,6 +35,7 @@ public sealed class IamController(
     CreateUserCommandHandler createHandler,
     UpdateUserCommandHandler updateHandler,
     DisableUserCommandHandler disableHandler,
+    ChangePasswordCommandHandler changePasswordHandler,
     GetUserQueryHandler getHandler,
     ListUsersQueryHandler listHandler) : ControllerBase
 {
@@ -151,6 +152,30 @@ public sealed class IamController(
             cancellationToken);
         return Ok(summary);
     }
+
+    /// <summary>
+    ///     <c>POST /iam/users/{userId}/password</c> — change the
+    ///     user's password. The only endpoint the password-rotation
+    ///     bearer (single permission
+    ///     <c>iam.users.change-own-password</c>) is allowed to call.
+    ///     Side effect: every refresh-token family the user owns is
+    ///     revoked so a stolen password change can't leave sessions
+    ///     alive.
+    /// </summary>
+    [HttpPost("{userId:guid}/password", Name = "iam-users-change-password")]
+    [EndpointSummary("Change a user's password (current → new) and revoke active sessions")]
+    [RequirePermission("iam.users.change-own-password")]
+    public async Task<ActionResult<ChangePasswordResult>> ChangePasswordAsync(
+        Guid userId,
+        [FromBody] ChangePasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        return Ok(await changePasswordHandler.HandleAsync(
+            new ChangePasswordCommand(userId, request.CurrentPassword, request.NewPassword),
+            cancellationToken));
+    }
 }
 
 /// <summary>Wire shape for <c>POST /iam/users</c>.</summary>
@@ -171,3 +196,11 @@ public sealed record CreateUserRequest(
 public sealed record UpdateUserRequest(
     string? DisplayName,
     string? Status);
+
+/// <summary>Wire shape for <c>POST /iam/users/{userId}/password</c>.</summary>
+/// <param name="CurrentPassword">Plain-text current password (for
+/// verification — same generic error is returned for unknown user
+/// to prevent account enumeration).</param>
+/// <param name="NewPassword">Plain-text new password (minimum 8
+/// characters, validated server-side).</param>
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);

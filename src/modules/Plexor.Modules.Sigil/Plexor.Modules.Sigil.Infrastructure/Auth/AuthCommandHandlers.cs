@@ -10,6 +10,7 @@
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
+using Plexor.Modules.Sigil.Application.Authorization;
 using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
@@ -83,9 +84,31 @@ public sealed class LoginCommandHandler(
         await RegisterSuccessfulLoginAsync(user.Id, cancellationToken);
 
         var roles = await LoadRolesAsync(user.Id, cancellationToken);
+
+        // First-login password rotation: issue a short-lived token
+        // whose only permission is iam.users.change-own-password, and
+        // hand back NO refresh token. Until MustChangePassword is
+        // cleared via POST /iam/users/{userId}/password, no other
+        // endpoint will admit the caller's bearer.
+        if (user.MustChangePassword)
+        {
+            var passwordChangeAccess = await tokenIssuer.IssueWithOverrideAsync(
+                user.Id,
+                user.OrgId,
+                roles,
+                new[] { PlexorPermissions.UsersChangeOwnPassword },
+                IJwtSigningService.PasswordChangeLifetime,
+                cancellationToken);
+
+            return new LoginResult(
+                AccessToken: passwordChangeAccess.CompactJwt,
+                RefreshToken: string.Empty,
+                AccessTokenExpiresAtUtc: passwordChangeAccess.ExpiresAtUtc);
+        }
+
         var refreshRaw = TokenGenerator.Generate();
         var refreshExpires = DateTimeOffset.UtcNow + RefreshTokenLifetime;
-        _ = await refreshTokens.IssueAsync(
+        await refreshTokens.IssueAsync(
             user.Id, refreshRaw, refreshExpires, cancellationToken);
 
         var access = await tokenIssuer.IssueAsync(

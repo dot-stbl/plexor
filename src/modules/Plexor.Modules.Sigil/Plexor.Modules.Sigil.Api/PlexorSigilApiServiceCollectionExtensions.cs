@@ -50,6 +50,7 @@ public static class PlexorSigilApiServiceCollectionExtensions
         services.AddScoped<CreateUserCommandHandler>();
         services.AddScoped<UpdateUserCommandHandler>();
         services.AddScoped<DisableUserCommandHandler>();
+        services.AddScoped<ChangePasswordCommandHandler>();
         services.AddScoped<GetUserQueryHandler>();
         services.AddScoped<ListUsersQueryHandler>();
 

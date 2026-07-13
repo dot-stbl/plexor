@@ -3,7 +3,7 @@
 // IJwtSigningService — Application-layer contract for signing access
 // tokens. Infrastructure binds an ECDSA-backed implementation that
 // uses System.IdentityModel.Tokens.Jwt.
-// ============================================================================
+// ==========================================================================
 
 using System.Security.Claims;
 
@@ -33,15 +33,21 @@ public interface IJwtSigningService
     /// <see cref="IRefreshTokenStore" /> with their own 30-day expiry.</summary>
     public static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
 
+    /// <summary>Short-lived lifetime used during the first-login
+    /// password rotation window. Caller can only invoke
+    /// <c>POST /iam/users/{userId}/password</c> until exp.</summary>
+    public static readonly TimeSpan PasswordChangeLifetime = TimeSpan.FromMinutes(5);
+
     /// <summary>
-    ///     Issue a compact JWT for a user. The
-    ///     <c>sub</c>/<c>tid</c>/<c>role</c>/<c>permission</c>/<c>service</c>
-    ///     claims are read from the supplied
-    ///     <see cref="ClaimsPrincipal" /> via <see cref="Plexor.Modules.Sigil.Application.Abstractions.IdentityClaims" />
-    ///     constants.
+    ///     Issue a compact JWT for a user with the standard access-
+    /// token lifetime (<see cref="AccessTokenLifetime" />). The
+    /// <c>sub</c>/<c>tid</c>/<c>role</c>/<c>permission</c>/<c>service</c>
+    /// claims are read from the supplied
+    /// <see cref="ClaimsPrincipal" /> via <see cref="Plexor.Modules.Sigil.Application.Abstractions.IdentityClaims" />
+    /// constants.
     /// </summary>
     /// <param name="principal">Caller identity. Read once; the principal
-    ///     is not mutated.</param>
+    /// is not mutated.</param>
     /// <param name="cancellationToken">Forwarded to key-lookup IO.</param>
     /// <returns>
     ///     Issued JWT (compact form) + its expiry instant (UTC).
@@ -53,9 +59,25 @@ public interface IJwtSigningService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    ///     Issue a compact JWT with a caller-chosen lifetime. Used
+    ///     for the password-rotation path where the user is
+    ///     authenticated but only allowed to call one endpoint.
+    /// </summary>
+    /// <param name="principal">Caller identity.</param>
+    /// <param name="lifetime">Override <c>exp</c>. Must be positive;
+    /// values larger than <see cref="AccessTokenLifetime" /> are
+    /// rejected to prevent accidentally granting long-lived tokens
+    /// to password-change sessions.</param>
+    /// <param name="cancellationToken">Forwarded to signing.</param>
+    public Task<IssuedAccessToken> IssueWithLifetimeAsync(
+        ClaimsPrincipal principal,
+        TimeSpan lifetime,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     ///     Verify a compact JWT and return the original
-    ///     <see cref="ClaimsPrincipal" /> if valid. Used by the
-    ///     bearer handler (Phase 3.6).
+    /// <see cref="ClaimsPrincipal" /> if valid. Used by the bearer
+    /// handler (Phase 3.6).
     /// </summary>
     /// <param name="compactJwt">The <c>header.payload.signature</c> string.</param>
     /// <param name="cancellationToken">Forwarded to key-lookup IO.</param>

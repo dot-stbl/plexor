@@ -3,7 +3,7 @@
 // PermissionAuthorizationHandler — short-circuits every pending
 // PermissionRequirement by checking the caller's claims. AND
 // semantics: all PermissionRequirements in the current policy must
-// resolve to Succeed, otherwise no Succeed is called for the missing
+// resolve to Succeed, otherwise no Succeed is called on the missing
 // ones and authorization fails.
 // ============================================================================
 
@@ -14,29 +14,25 @@ namespace Plexor.Shared.Authorization;
 
 /// <summary>
 ///     Authorization handler that evaluates every
-///     <see cref="PermissionRequirement" /> in the current policy
-///     against the caller's <c>permission</c> claims. All requirements
-///     must succeed (AND); partial coverage causes auth to fail with
-///     no <c>Succeed</c> call on the missing ones — the framework then
-///     emits a 403.
+/// <see cref="PermissionRequirement" /> in the current policy
+/// against the caller's <c>permission</c> claims. All requirements
+/// must succeed (AND); partial coverage causes auth to fail with
+/// no <c>Succeed</c> call on the missing ones — the framework then
+/// emits a 403.
 /// </summary>
-/// <param name="logger"></param>
 /// <remarks>
 ///     <para><b>Single handler for all permission requirements.</b>
-///     Registered once as scoped (one instance per request) so it can
-///     pick up <see cref="ILogger{TCategoryName}" /> via DI. The handler
-///     iterates <c>context.PendingRequirements</c> filtering for
-///     <see cref="PermissionRequirement" /> and only attempts to satisfy
-///     those — other requirements in mixed policies pass through
-///     untouched.</para>
-///     <para><b>Why case-insensitive comparison.</b> HTTP claim values
-///     are case-sensitive strings but permission conventions are
-///     lowercase. A case-sensitive match would force callers to write
-///     <c>VMS.Read</c> in policy strings but <c>vms.read</c> on the token,
-///     producing silent authorization failures. Using
-///     <see cref="StringComparison.OrdinalIgnoreCase" /> matches
-///     resource-name conventions typical of cloud IAM (AWS / GCP /
-///     YC permissions are case-insensitive).</para>
+/// Registered once as scoped (one instance per request) so it can
+/// pick up <see cref="ILogger{TCategoryName}" /> via DI. The handler
+/// iterates <c>context.PendingRequirements</c> filtering for
+/// <see cref="PermissionRequirement" /> and only attempts to satisfy
+/// those — other requirements in mixed policies pass through
+/// untouched.</para>
+///     <para><b>Wildcard <c>*</c>.</b> A claim value of <c>"*"</c> is
+/// treated as "all permissions" — the built-in admin role gets one
+/// such claim and the handler short-circuits any required permission
+/// against it. This keeps the on-the-wire token small while still
+/// letting endpoints use arbitrary future permissions.</para>
 /// </remarks>
 public sealed class PermissionAuthorizationHandler(
     ILogger<PermissionAuthorizationHandler> logger)
@@ -55,10 +51,7 @@ public sealed class PermissionAuthorizationHandler(
                 claim.Type,
                 AuthorizationClaimNames.PermissionClaim,
                 StringComparison.Ordinal)
-            && string.Equals(
-                claim.Value,
-                requirement.Permission,
-                StringComparison.OrdinalIgnoreCase));
+            && PermissionMatches(claim.Value, requirement.Permission));
 
         if (hasClaim)
         {
@@ -77,5 +70,21 @@ public sealed class PermissionAuthorizationHandler(
         }
 
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Match a required permission against an issued permission
+    /// claim. Returns <c>true</c> on exact match (case-insensitive)
+    /// OR when the issued claim is the wildcard <c>"*"</c> (built-in
+    /// admin role — every permission matches).
+    /// </summary>
+    private static bool PermissionMatches(string issuedPermission, string requiredPermission)
+    {
+        if (string.Equals(issuedPermission, requiredPermission, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return string.Equals(issuedPermission, "*", StringComparison.Ordinal);
     }
 }
