@@ -18,6 +18,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     fire-and-forget (no entity update path). Single roundtrip to
 ///     PostgreSQL — the join + select-many pushes the flatten to SQL.
 /// </summary>
+/// <param name="db"></param>
 public sealed class PermissionResolver(IdentityDbContext db) : IPermissionResolver
 {
     /// <inheritdoc />

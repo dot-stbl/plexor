@@ -5,9 +5,9 @@
 
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Application.Users;
-using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
+using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Users;
@@ -17,6 +17,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 ///     must be unique; duplicates surface as
 ///     <see cref="IdentityExceptions.InvalidPermission" />.
 /// </summary>
+/// <param name="db"></param>
 public sealed class CreateRoleBindingCommandHandler(
     IdentityDbContext db) : ICommandHandler<CreateRoleBindingCommand, CreateRoleBindingResult>
 {
@@ -68,6 +69,7 @@ public sealed class CreateRoleBindingCommandHandler(
 /// <summary>
 ///     Remove a role binding by id.
 /// </summary>
+/// <param name="db"></param>
 public sealed class DeleteRoleBindingCommandHandler(
     IdentityDbContext db) : ICommandHandler<DeleteRoleBindingCommand, DeleteRoleBindingResult>
 {
@@ -93,6 +95,7 @@ public sealed class DeleteRoleBindingCommandHandler(
 }
 
 /// <summary>List role bindings for a user (all scopes).</summary>
+/// <param name="db"></param>
 public sealed class ListRoleBindingsQueryHandler(
     IdentityDbContext db) : ICommandHandler<ListRoleBindingsQuery, IReadOnlyCollection<RoleBindingSummary>>
 {

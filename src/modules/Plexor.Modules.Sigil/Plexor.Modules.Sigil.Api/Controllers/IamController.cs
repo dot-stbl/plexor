@@ -22,6 +22,11 @@ namespace Plexor.Modules.Sigil.Api.Controllers;
 ///     callers without it get a 403 ProblemDetails via the global
 ///     auth handler.
 /// </summary>
+/// <param name="createHandler"></param>
+/// <param name="updateHandler"></param>
+/// <param name="disableHandler"></param>
+/// <param name="getHandler"></param>
+/// <param name="listHandler"></param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/iam/users")]
 [Tags(["iam", "users"])]
@@ -37,6 +42,8 @@ public sealed class IamController(
     ///     <c>POST /iam/users</c> — create a new user inside the
     ///     caller's organization.
     /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPost(Name = "iam-users-create")]
     [EndpointSummary("Create a new user")]
     [RequirePermission("iam.users.create")]
@@ -63,6 +70,8 @@ public sealed class IamController(
     /// <summary>
     ///     <c>GET /iam/users/{userId}</c> — fetch a single user by id.
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpGet("{userId:guid}", Name = "iam-users-get")]
     [EndpointSummary("Fetch a user by id")]
     [RequirePermission("iam.users.read")]
@@ -81,6 +90,10 @@ public sealed class IamController(
     ///     Paged; <c>?page</c> and <c>?pageSize</c> query params
     ///     default to 1/50.
     /// </summary>
+    /// <param name="orgId"></param>
+    /// <param name="page"></param>
+    /// <param name="pageSize"></param>
+    /// <param name="cancellationToken"></param>
     [HttpGet(Name = "iam-users-list")]
     [EndpointSummary("List users in the caller's organization")]
     [RequirePermission("iam.users.read")]
@@ -100,6 +113,9 @@ public sealed class IamController(
     ///     <c>PATCH /iam/users/{userId}</c> — update display name and/or
     ///     status. Email changes are rejected (Phase 2+).
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPatch("{userId:guid}", Name = "iam-users-update")]
     [EndpointSummary("Update a user's display name and/or status")]
     [RequirePermission("iam.users.update")]
@@ -121,6 +137,8 @@ public sealed class IamController(
     ///     (status = "suspended") and revoke every refresh token
     ///     they own.
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpDelete("{userId:guid}", Name = "iam-users-disable")]
     [EndpointSummary("Disable a user (soft-delete + revoke refresh tokens)")]
     [RequirePermission("iam.users.delete")]

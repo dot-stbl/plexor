@@ -6,10 +6,10 @@
 
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Application.Users;
-using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
+using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Users;
@@ -18,6 +18,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 ///     Create a custom role. Built-in roles are duplicated-error
 ///     protected by the (org_id, name) unique index.
 /// </summary>
+/// <param name="db"></param>
 public sealed class CreateRoleCommandHandler(
     IdentityDbContext db) : ICommandHandler<CreateRoleCommand, CreateRoleResult>
 {
@@ -62,6 +63,7 @@ public sealed class CreateRoleCommandHandler(
 ///     handler refuses updates with
 ///     <see cref="IdentityExceptions.InvalidPermission" />.
 /// </summary>
+/// <param name="db"></param>
 public sealed class UpdateRoleCommandHandler(
     IdentityDbContext db) : ICommandHandler<UpdateRoleCommand, RoleSummary>
 {
@@ -128,6 +130,7 @@ public sealed class UpdateRoleCommandHandler(
 ///     Delete a custom role. Built-in roles are protected —
 ///     <see cref="IdentityExceptions.InvalidPermission" />.
 /// </summary>
+/// <param name="db"></param>
 public sealed class DeleteRoleCommandHandler(
     IdentityDbContext db) : ICommandHandler<DeleteRoleCommand, DeleteRoleResult>
 {
@@ -167,6 +170,7 @@ public sealed class DeleteRoleCommandHandler(
 }
 
 /// <summary>Fetch a single role by id.</summary>
+/// <param name="db"></param>
 public sealed class GetRoleQueryHandler(
     IdentityDbContext db) : ICommandHandler<GetRoleQuery, RoleSummary>
 {
@@ -198,6 +202,7 @@ public sealed class GetRoleQueryHandler(
 }
 
 /// <summary>List roles in an organization.</summary>
+/// <param name="db"></param>
 public sealed class ListRolesQueryHandler(
     IdentityDbContext db) : ICommandHandler<ListRolesQuery, IReadOnlyCollection<RoleSummary>>
 {

@@ -17,6 +17,8 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     <c>permission</c> claims, then delegates signing to
 ///     <see cref="IJwtSigningService" />.
 /// </summary>
+/// <param name="permissions"></param>
+/// <param name="signing"></param>
 /// <remarks>
 ///     <para><b>Multiple role claims.</b> <see cref="ClaimsIdentity" />
 ///     allows multiple claims with the same type — each role gets its

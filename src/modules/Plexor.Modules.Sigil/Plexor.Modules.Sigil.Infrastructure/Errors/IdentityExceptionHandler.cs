@@ -20,6 +20,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Errors;
 ///     the <c>type</c> URI. Other exceptions pass through (the
 ///     framework's default 500 handler still runs).
 /// </summary>
+/// <param name="logger"></param>
 /// <remarks>
 ///     <para><b>Status code mapping.</b> Each
 ///     <see cref="IdentityExceptions" /> code has a canonical HTTP
@@ -74,6 +75,7 @@ public sealed class IdentityExceptionHandler(ILogger<IdentityExceptionHandler> l
     ///     validation codes to 400; resource conflicts to 409; replay
     ///     to 401.
     /// </summary>
+    /// <param name="code"></param>
     private static int MapStatus(string code)
     {
         return code switch

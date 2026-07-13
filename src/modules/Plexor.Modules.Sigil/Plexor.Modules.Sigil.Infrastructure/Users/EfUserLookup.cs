@@ -15,6 +15,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 ///     are AsNoTracking (no update path on this surface) and bounded
 ///     by tenant via the (org_id, email/username) index.
 /// </summary>
+/// <param name="db"></param>
 public sealed class EfUserLookup(IdentityDbContext db) : IUserLookup
 {
     /// <inheritdoc />

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
-using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Modules.Sigil.Api.Controllers;
@@ -21,6 +20,10 @@ namespace Plexor.Modules.Sigil.Api.Controllers;
 ///     Returns RFC 7807 ProblemDetails on failure via the global
 ///     exception handler.
 /// </summary>
+/// <param name="loginHandler"></param>
+/// <param name="refreshHandler"></param>
+/// <param name="logoutHandler"></param>
+/// <param name="meHandler"></param>
 /// <remarks>
 ///     <para><b>Anonymous access.</b> Login, refresh, and logout
 ///     must be reachable without a token — they're how a token is

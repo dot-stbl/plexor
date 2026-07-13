@@ -3,7 +3,6 @@
 // CredentialCommandHandlers — issue/revoke/list API keys + SSH keys.
 // ============================================================================
 
-using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +21,8 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 ///     are a subset of the owner's effective permissions (security
 ///     boundary: keys can't exceed what the owner can do).
 /// </summary>
+/// <param name="db"></param>
+/// <param name="permissions"></param>
 public sealed class IssueApiKeyCommandHandler(
     IdentityDbContext db,
     IPermissionResolver permissions) : ICommandHandler<IssueApiKeyCommand, IssueApiKeyResult>
@@ -65,7 +66,7 @@ public sealed class IssueApiKeyCommandHandler(
         var rawSecret = TokenGenerator.Generate();
         var rawBytes = Encoding.UTF8.GetBytes(rawSecret);
         string secretHash;
-        using (var stream = new MemoryStream(rawBytes, writable: false))
+        await using (var stream = new MemoryStream(rawBytes, writable: false))
         {
             secretHash = Convert.ToHexString(
                     await SHA256.HashDataAsync(stream, cancellationToken))
@@ -79,9 +80,7 @@ public sealed class IssueApiKeyCommandHandler(
             UserId = command.OwnerId,
             Name = command.Name,
             SecretHash = secretHash,
-            Permissions = command.Permissions
-                .Select(static value => new PermissionScope(value))
-                .ToArray(),
+            Permissions = [.. command.Permissions.Select(static value => new PermissionScope(value))],
             ExpiresAt = command.ExpiresAtUtc,
             LastUsedAt = null,
             RevokedAt = null,
@@ -95,6 +94,7 @@ public sealed class IssueApiKeyCommandHandler(
 }
 
 /// <summary>Revoke an API key. Sets <c>RevokedAt = UtcNow</c>.</summary>
+/// <param name="db"></param>
 public sealed class RevokeApiKeyCommandHandler(
     IdentityDbContext db) : ICommandHandler<RevokeApiKeyCommand, RevokeApiKeyResult>
 {
@@ -122,6 +122,7 @@ public sealed class RevokeApiKeyCommandHandler(
 }
 
 /// <summary>List API keys for a user.</summary>
+/// <param name="db"></param>
 public sealed class ListApiKeysQueryHandler(
     IdentityDbContext db) : ICommandHandler<ListApiKeysQuery, IReadOnlyCollection<ApiKeySummary>>
 {
@@ -158,6 +159,7 @@ public sealed class ListApiKeysQueryHandler(
 ///     Register a new SSH key. Validates the public-key string,
 ///     computes the SHA-256 fingerprint, and persists the row.
 /// </summary>
+/// <param name="db"></param>
 public sealed class AddSshKeyCommandHandler(
     IdentityDbContext db) : ICommandHandler<AddSshKeyCommand, SshKeySummary>
 {
@@ -227,6 +229,7 @@ public sealed class AddSshKeyCommandHandler(
     ///     hash the OpenSSH wire-format encoding; v0.1 hashes the
     ///     raw string for fast iteration.
     /// </summary>
+    /// <param name="publicKey"></param>
     private static string ComputeFingerprint(string publicKey)
     {
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(publicKey)))
@@ -235,6 +238,7 @@ public sealed class AddSshKeyCommandHandler(
 }
 
 /// <summary>Revoke an SSH key.</summary>
+/// <param name="db"></param>
 public sealed class RevokeSshKeyCommandHandler(
     IdentityDbContext db) : ICommandHandler<RevokeSshKeyCommand, RevokeSshKeyResult>
 {
@@ -262,6 +266,7 @@ public sealed class RevokeSshKeyCommandHandler(
 }
 
 /// <summary>List SSH keys for a user.</summary>
+/// <param name="db"></param>
 public sealed class ListSshKeysQueryHandler(
     IdentityDbContext db) : ICommandHandler<ListSshKeysQuery, IReadOnlyCollection<SshKeySummary>>
 {

@@ -19,6 +19,11 @@ namespace Plexor.Modules.Sigil.Api.Controllers;
 ///     Role CRUD endpoints. Mounted at <c>/api/v1/iam/roles/*</c>.
 ///     All endpoints require their respective permission claim.
 /// </summary>
+/// <param name="createHandler"></param>
+/// <param name="updateHandler"></param>
+/// <param name="deleteHandler"></param>
+/// <param name="getHandler"></param>
+/// <param name="listHandler"></param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/iam/roles")]
 [Tags(["iam", "roles"])]
@@ -33,6 +38,8 @@ public sealed class IamRolesController(
     /// <summary>
     ///     <c>POST /iam/roles</c> — create a custom role.
     /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPost(Name = "iam-roles-create")]
     [EndpointSummary("Create a custom role")]
     [RequirePermission("iam.roles.create")]
@@ -59,6 +66,8 @@ public sealed class IamRolesController(
     /// <summary>
     ///     <c>GET /iam/roles/{roleId}</c> — fetch a role by id.
     /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpGet("{roleId:guid}", Name = "iam-roles-get")]
     [EndpointSummary("Fetch a role by id")]
     [RequirePermission("iam.roles.read")]
@@ -72,6 +81,8 @@ public sealed class IamRolesController(
     /// <summary>
     ///     <c>GET /iam/roles</c> — list roles in an org.
     /// </summary>
+    /// <param name="orgId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpGet(Name = "iam-roles-list")]
     [EndpointSummary("List roles in an organization")]
     [RequirePermission("iam.roles.read")]
@@ -87,6 +98,9 @@ public sealed class IamRolesController(
     ///     permissions on a custom role. Built-in roles are
     ///     protected (handler returns 403).
     /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPatch("{roleId:guid}", Name = "iam-roles-update")]
     [EndpointSummary("Update a custom role")]
     [RequirePermission("iam.roles.update")]
@@ -106,6 +120,8 @@ public sealed class IamRolesController(
     ///     <c>DELETE /iam/roles/{roleId}</c> — delete a custom role.
     ///     Built-in roles are protected (handler returns 403).
     /// </summary>
+    /// <param name="roleId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpDelete("{roleId:guid}", Name = "iam-roles-delete")]
     [EndpointSummary("Delete a custom role")]
     [RequirePermission("iam.roles.delete")]
@@ -118,6 +134,10 @@ public sealed class IamRolesController(
 }
 
 /// <summary>Wire shape for <c>POST /iam/roles</c>.</summary>
+/// <param name="OrgId"></param>
+/// <param name="Name"></param>
+/// <param name="Description"></param>
+/// <param name="Permissions"></param>
 public sealed record CreateRoleRequest(
     Guid OrgId,
     string Name,
@@ -133,6 +153,9 @@ public sealed record UpdateRoleRequest(string? Description, IReadOnlyCollection<
 ///     Role-binding endpoints. Mounted at
 ///     <c>/api/v1/iam/role-bindings/*</c>.
 /// </summary>
+/// <param name="createHandler"></param>
+/// <param name="deleteHandler"></param>
+/// <param name="listHandler"></param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/iam/role-bindings")]
 [Tags(["iam", "role-bindings"])]
@@ -146,6 +169,8 @@ public sealed class IamBindingsController(
     ///     <c>POST /iam/role-bindings</c> — bind a user to a role
     ///     within an org.
     /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPost(Name = "iam-role-bindings-create")]
     [EndpointSummary("Bind a user to a role")]
     [RequirePermission("iam.role-bindings.create")]
@@ -168,6 +193,8 @@ public sealed class IamBindingsController(
     ///     <c>GET /iam/role-bindings</c> — list the bindings for a
     ///     user. <c>?userId=</c> required.
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpGet(Name = "iam-role-bindings-list")]
     [EndpointSummary("List role bindings for a user")]
     [RequirePermission("iam.role-bindings.read")]
@@ -182,6 +209,8 @@ public sealed class IamBindingsController(
     ///     <c>DELETE /iam/role-bindings/{bindingId}</c> — remove a
     ///     role binding.
     /// </summary>
+    /// <param name="bindingId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpDelete("{bindingId:guid}", Name = "iam-role-bindings-delete")]
     [EndpointSummary("Remove a role binding")]
     [RequirePermission("iam.role-bindings.delete")]
@@ -196,6 +225,9 @@ public sealed class IamBindingsController(
 }
 
 /// <summary>Wire shape for <c>POST /iam/role-bindings</c>.</summary>
+/// <param name="OrgId"></param>
+/// <param name="UserId"></param>
+/// <param name="RoleId"></param>
 public sealed record CreateRoleBindingRequest(Guid OrgId, Guid UserId, Guid RoleId);
 
 /// <summary>
@@ -209,6 +241,9 @@ public abstract class IamCredentialsControllerBase : ControllerBase
     /// <summary>
     ///     Helper: 201 Created pointing at the new key's GET endpoint.
     /// </summary>
+    /// <param name="routeName"></param>
+    /// <param name="routeValues"></param>
+    /// <param name="body"></param>
     protected ActionResult CreatedAtKey(string routeName, object routeValues, object body)
     {
         return CreatedAtAction(
@@ -219,6 +254,9 @@ public abstract class IamCredentialsControllerBase : ControllerBase
 }
 
 /// <summary>API key CRUD for a user.</summary>
+/// <param name="issueHandler"></param>
+/// <param name="revokeHandler"></param>
+/// <param name="listHandler"></param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/iam/users/{{userId:guid}}/api-keys")]
 [Tags(["iam", "api-keys"])]
@@ -231,6 +269,9 @@ public sealed class IamApiKeysController(
     ///     <c>POST /iam/users/{userId}/api-keys</c> — issue a new
     ///     API key. Returns the raw secret once.
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPost(Name = "iam-api-keys-issue")]
     [EndpointSummary("Issue a new API key")]
     [RequirePermission("iam.api-keys.create")]
@@ -255,6 +296,8 @@ public sealed class IamApiKeysController(
     ///     <c>GET /iam/users/{userId}/api-keys</c> — list keys (active +
     ///     revoked) for a user.
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpGet(Name = "iam-api-keys-list")]
     [EndpointSummary("List API keys for a user")]
     [RequirePermission("iam.api-keys.read")]
@@ -269,6 +312,9 @@ public sealed class IamApiKeysController(
     ///     <c>DELETE /iam/users/{userId}/api-keys/{keyId}</c> —
     ///     revoke a key.
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="keyId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpDelete("{keyId:guid}", Name = "iam-api-keys-revoke")]
     [EndpointSummary("Revoke an API key")]
     [RequirePermission("iam.api-keys.delete")]
@@ -282,6 +328,10 @@ public sealed class IamApiKeysController(
 }
 
 /// <summary>Wire shape for <c>POST /iam/users/{userId}/api-keys</c>.</summary>
+/// <param name="OrgId"></param>
+/// <param name="Name"></param>
+/// <param name="Permissions"></param>
+/// <param name="ExpiresAtUtc"></param>
 public sealed record IssueApiKeyRequest(
     Guid OrgId,
     string Name,
@@ -289,6 +339,9 @@ public sealed record IssueApiKeyRequest(
     DateTimeOffset? ExpiresAtUtc);
 
 /// <summary>SSH key CRUD for a user.</summary>
+/// <param name="addHandler"></param>
+/// <param name="revokeHandler"></param>
+/// <param name="listHandler"></param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/iam/users/{{userId:guid}}/ssh-keys")]
 [Tags(["iam", "ssh-keys"])]
@@ -301,6 +354,9 @@ public sealed class IamSshKeysController(
     ///     <c>POST /iam/users/{userId}/ssh-keys</c> — register an SSH
     ///     public key. Fingerprint computed server-side.
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPost(Name = "iam-ssh-keys-add")]
     [EndpointSummary("Register a new SSH public key")]
     [RequirePermission("iam.ssh-keys.create")]
@@ -320,6 +376,8 @@ public sealed class IamSshKeysController(
     ///     <c>GET /iam/users/{userId}/ssh-keys</c> — list SSH keys
     ///     for a user.
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpGet(Name = "iam-ssh-keys-list")]
     [EndpointSummary("List SSH keys for a user")]
     [RequirePermission("iam.ssh-keys.read")]
@@ -334,6 +392,9 @@ public sealed class IamSshKeysController(
     ///     <c>DELETE /iam/users/{userId}/ssh-keys/{keyId}</c> —
     ///     revoke an SSH key.
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="keyId"></param>
+    /// <param name="cancellationToken"></param>
     [HttpDelete("{keyId:guid}", Name = "iam-ssh-keys-revoke")]
     [EndpointSummary("Revoke an SSH key")]
     [RequirePermission("iam.ssh-keys.delete")]
@@ -347,4 +408,7 @@ public sealed class IamSshKeysController(
 }
 
 /// <summary>Wire shape for <c>POST /iam/users/{userId}/ssh-keys</c>.</summary>
+/// <param name="OrgId"></param>
+/// <param name="Name"></param>
+/// <param name="PublicKey"></param>
 public sealed record AddSshKeyRequest(Guid OrgId, string Name, string PublicKey);

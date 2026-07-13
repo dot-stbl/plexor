@@ -13,7 +13,6 @@ using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
-using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
@@ -23,6 +22,11 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     state, increments failed-login counters, and issues a fresh
 ///     access + refresh pair on success.
 /// </summary>
+/// <param name="users"></param>
+/// <param name="passwordHasher"></param>
+/// <param name="refreshTokens"></param>
+/// <param name="tokenIssuer"></param>
+/// <param name="db"></param>
 public sealed class LoginCommandHandler(
     IUserLookup users,
     IPasswordHasher passwordHasher,
@@ -56,17 +60,9 @@ public sealed class LoginCommandHandler(
                 "Password is required.");
         }
 
-        var user = await ResolveUserAsync(command, cancellationToken);
-
-        if (user is null)
-        {
-            // Don't leak which field was wrong — both email and
-            // username miss paths produce the same exception.
-            throw new IdentityException(
+        var user = await ResolveUserAsync(command, cancellationToken) ?? throw new IdentityException(
                 IdentityExceptions.InvalidCredentials,
                 "Email or username not found.");
-        }
-
         await EnsureNotLockedAsync(user, cancellationToken);
         EnsureActiveAsync(user);
         EnsurePasswordExistsAsync(user);
@@ -89,7 +85,7 @@ public sealed class LoginCommandHandler(
         var roles = await LoadRolesAsync(user.Id, cancellationToken);
         var refreshRaw = TokenGenerator.Generate();
         var refreshExpires = DateTimeOffset.UtcNow + RefreshTokenLifetime;
-        var refreshEntity = await refreshTokens.IssueAsync(
+        _ = await refreshTokens.IssueAsync(
             user.Id, refreshRaw, refreshExpires, cancellationToken);
 
         var access = await tokenIssuer.IssueAsync(
@@ -236,6 +232,9 @@ public sealed class LoginCommandHandler(
 ///     the resolved permissions, and triggers family revocation on
 ///     replay.
 /// </summary>
+/// <param name="refreshTokens"></param>
+/// <param name="tokenIssuer"></param>
+/// <param name="db"></param>
 public sealed class RefreshCommandHandler(
     IRefreshTokenStore refreshTokens,
     ITokenIssuer tokenIssuer,
@@ -333,6 +332,7 @@ public sealed class RefreshCommandHandler(
 ///     when the token is unknown or already revoked, this returns
 ///     success (so callers can't probe which tokens are alive).
 /// </summary>
+/// <param name="refreshTokens"></param>
 public sealed class LogoutCommandHandler(
     IRefreshTokenStore refreshTokens) : ICommandHandler<LogoutCommand, LogoutResult>
 {
@@ -359,6 +359,7 @@ public sealed class LogoutCommandHandler(
 ///     <see cref="ICurrentUser" />; never touches the DB on the hot
 ///     path (all values come from the JWT claims).
 /// </summary>
+/// <param name="currentUser"></param>
 public sealed class MeQueryHandler(
     ICurrentUser currentUser) : ICommandHandler<MeQuery, MeResult>
 {
@@ -389,6 +390,8 @@ public sealed class MeQueryHandler(
 ///     mediator-style dispatch lives in Phase 5; for now callers
 ///     invoke handlers directly.
 /// </summary>
+/// <typeparam name="TCommand"></typeparam>
+/// <typeparam name="TResult"></typeparam>
 public interface ICommandHandler<TCommand, TResult>
 {
     /// <summary>Handle the command and return its result.</summary>

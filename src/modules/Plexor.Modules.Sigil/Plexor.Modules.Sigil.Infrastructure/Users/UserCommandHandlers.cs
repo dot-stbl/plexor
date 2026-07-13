@@ -9,10 +9,10 @@
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Users;
-using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
+using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Users;
@@ -24,6 +24,8 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 ///     as <see cref="IdentityException" /> with
 ///     <see cref="IdentityExceptions.InvalidEmail" />.
 /// </summary>
+/// <param name="db"></param>
+/// <param name="passwordHasher"></param>
 public sealed class CreateUserCommandHandler(
     IdentityDbContext db,
     IPasswordHasher passwordHasher) : ICommandHandler<CreateUserCommand, CreateUserResult>
@@ -35,7 +37,7 @@ public sealed class CreateUserCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        if (string.IsNullOrWhiteSpace(command.Email) || !command.Email.Contains('@'))
+        if (string.IsNullOrWhiteSpace(command.Email) || !command.Email.Contains('@', StringComparison.Ordinal))
         {
             throw new IdentityException(
                 IdentityExceptions.InvalidEmail,
@@ -89,6 +91,7 @@ public sealed class CreateUserCommandHandler(
 ///     changes are rejected with
 ///     <see cref="IdentityExceptions.InvalidEmail" />.
 /// </summary>
+/// <param name="db"></param>
 public sealed class UpdateUserCommandHandler(
     IdentityDbContext db) : ICommandHandler<UpdateUserCommand, UserSummary>
 {
@@ -153,6 +156,8 @@ public sealed class UpdateUserCommandHandler(
 ///     Soft-delete a user: status = "suspended" + revoke every
 ///     refresh token in every family the user owns.
 /// </summary>
+/// <param name="db"></param>
+/// <param name="refreshTokens"></param>
 public sealed class DisableUserCommandHandler(
     IdentityDbContext db,
     IRefreshTokenStore refreshTokens) : ICommandHandler<DisableUserCommand, UserSummary>
@@ -164,10 +169,10 @@ public sealed class DisableUserCommandHandler(
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        if (await db.Users
+        if (!await db.Users
                 .AsNoTracking()
                 .AnyAsync(u => u.Id == command.UserId, cancellationToken)
-            is false)
+)
         {
             throw new IdentityException(
                 IdentityExceptions.InvalidCredentials,
@@ -214,6 +219,7 @@ public sealed class DisableUserCommandHandler(
 /// <summary>
 ///     Fetch a single user summary by id.
 /// </summary>
+/// <param name="db"></param>
 public sealed class GetUserQueryHandler(
     IdentityDbContext db) : ICommandHandler<GetUserQuery, UserSummary>
 {
@@ -248,6 +254,7 @@ public sealed class GetUserQueryHandler(
 ///     Page through users within an organization. Page is 1-based;
 ///     PageSize is bounded to 1..200 to keep query latency bounded.
 /// </summary>
+/// <param name="db"></param>
 public sealed class ListUsersQueryHandler(
     IdentityDbContext db) : ICommandHandler<ListUsersQuery, UserPage>
 {
