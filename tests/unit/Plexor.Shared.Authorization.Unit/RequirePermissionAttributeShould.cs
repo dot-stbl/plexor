@@ -4,7 +4,6 @@
 // well-formed permission policy name and trims whitespace.
 // ============================================================================
 
-using Plexor.Shared.Authorization;
 using Shouldly;
 using Xunit;
 
@@ -56,7 +55,7 @@ public sealed class RequirePermissionAttributeShould
     public void EmptyPermissionsListThrows()
     {
         Should.Throw<System.ArgumentException>(
-            () => new RequirePermissionAttribute());
+            static () => new RequirePermissionAttribute());
     }
 
     /// <summary>The <see cref="AttributeUsageAttribute" /> allows the
@@ -78,12 +77,12 @@ public sealed class RequirePermissionAttributeShould
     }
 
     private static readonly string[] RwPermissions =
-    {
+    [
         "vms.read", "vms.write", "vms.delete",
-    };
+    ];
 
     private static readonly string[] TrimmedExpected =
-    {
+    [
         "vms.read", "vms.write",
-    };
+    ];
 }

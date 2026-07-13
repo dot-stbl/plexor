@@ -20,6 +20,7 @@ namespace Plexor.Shared.Authorization;
 ///     this gives AND semantics across all permissions on a single
 ///     <c>[RequirePermission]</c> attribute.
 /// </summary>
+/// <param name="logger"></param>
 /// <remarks>
 ///     <para><b>Fallback behaviour.</b> The framework's default policy
 ///     resolution still runs after this provider returns null, so
@@ -43,7 +44,7 @@ public sealed class PermissionPolicyProvider(
     ///     explicit policy name requests anything — requires an
     ///     authenticated caller. Mirrors the framework default so
     ///     adding this provider doesn't silently relax
-///     <c>[AllowAnonymous]</c>-style behaviour.
+    ///     <c>[AllowAnonymous]</c>-style behaviour.
     /// </summary>
     public Task<AuthorizationPolicy> GetDefaultPolicyAsync()
     {

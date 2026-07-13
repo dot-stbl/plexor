@@ -6,7 +6,6 @@
 // ============================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
-using Plexor.Shared.Authorization;
 using Shouldly;
 using Xunit;
 
@@ -106,7 +105,7 @@ public sealed class PermissionPolicyProviderShould
     }
 
     private static readonly string[] TwoPermissions =
-    {
+    [
         "vms.read", "vms.write",
-    };
+    ];
 }

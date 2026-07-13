@@ -7,9 +7,7 @@
 
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
-using Plexor.Shared.Authorization;
 using Shouldly;
 using Xunit;
 
@@ -136,7 +134,7 @@ public sealed class PermissionAuthorizationHandlerShould
     private static ClaimsPrincipal ClaimsPrincipal(params string[] permissions)
     {
         var identity = new ClaimsIdentity(
-            permissions.Select(p => new System.Security.Claims.Claim(
+            permissions.Select(static p => new System.Security.Claims.Claim(
                 AuthorizationClaimNames.PermissionClaim,
                 p)),
             authenticationType: "TestBearer");

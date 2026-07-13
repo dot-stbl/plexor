@@ -20,6 +20,7 @@ namespace Plexor.Shared.Authorization;
 ///     no <c>Succeed</c> call on the missing ones — the framework then
 ///     emits a 403.
 /// </summary>
+/// <param name="logger"></param>
 /// <remarks>
 ///     <para><b>Single handler for all permission requirements.</b>
 ///     Registered once as scoped (one instance per request) so it can
