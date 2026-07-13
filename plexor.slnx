@@ -55,6 +55,7 @@
         <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Domain/Plexor.Modules.Sigil.Domain.csproj" />
         <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Application/Plexor.Modules.Sigil.Application.csproj" />
         <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Infrastructure/Plexor.Modules.Sigil.Infrastructure.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Api/Plexor.Modules.Sigil.Api.csproj" />
     </Folder>
     <Folder Name="/src/modules/Plexor.Modules.Realm/">
         <Project Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Domain/Plexor.Modules.Realm.Domain.csproj" />

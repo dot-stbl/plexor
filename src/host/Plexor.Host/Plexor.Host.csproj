@@ -27,6 +27,7 @@
     <!-- ============ Modules (all wired) ============ -->
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Application\Plexor.Modules.Sigil.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Infrastructure\Plexor.Modules.Sigil.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Api\Plexor.Modules.Sigil.Api.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />

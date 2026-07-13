@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+
+    <ProjectReference Include="..\Plexor.Modules.Sigil.Application\Plexor.Modules.Sigil.Application.csproj" />
+    <ProjectReference Include="..\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Authorization\Plexor.Shared.Authorization.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\Plexor.Modules.Sigil.Infrastructure\Plexor.Modules.Sigil.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

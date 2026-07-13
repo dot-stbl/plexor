@@ -112,6 +112,14 @@ public static class SigilInfrastructureInstaller
         // coupling — controllers in any module can use the attribute.
         services.AddPlexorAuthorization();
 
+        // Phase 4 — permission resolver + token issuer. Resolver
+        // walks role_bindings → roles on every token issue (login +
+        // refresh) and bakes the union of permissions into the
+        // access token's claims. TokenIssuer composes the resolver
+        // and the JWT signing service so callers don't have to.
+        services.AddScoped<IPermissionResolver, PermissionResolver>();
+        services.AddSingleton<ITokenIssuer, TokenIssuer>();
+
         return services;
     }
 }

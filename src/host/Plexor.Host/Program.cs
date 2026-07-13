@@ -26,6 +26,7 @@ using Plexor.Host.NodeRegistry;
 using Plexor.Host.OpenApi;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
+using Plexor.Modules.Sigil.Api;
 using Plexor.Shared.Filtering.DI;
 using Plexor.Shared.Persistence;
 using Plexor.Shared.Telemetry;
@@ -61,7 +62,8 @@ builder.Services
             options.JsonSerializerOptions.Converters.Add(
                 new JsonStringEnumConverter());
         })
-        .AddApplicationPart(typeof(NodeController).Assembly);
+        .AddApplicationPart(typeof(NodeController).Assembly)
+        .AddApplicationPart(typeof(Plexor.Modules.Sigil.Api.Controllers.AuthController).Assembly);
 
 // NodeAgent control loop. Singleton state — restarting Plexor.Host
 // forgets every node and its pending commands. v0.2+ moves to
@@ -101,6 +103,7 @@ builder.Services.AddFiltering();
 // (Guid.Empty ids + empty collections).
 builder.Services.AddSigilApplicationCore(builder.Configuration);
 builder.Services.AddSigilInfrastructureCore(builder.Configuration);
+builder.Services.AddPlexorSigilApi();
 
 // Strip our own IHostedService implementations when the host is being
 // launched by the build-time OpenAPI document generator. Without this,
