@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using BenchmarkDotNet.Attributes;
-using Plexor.Shared.Filtering;
 using Plexor.Shared.Filtering.Parser;
 using Plexor.Shared.Filtering.Persistence;
 
@@ -108,13 +107,13 @@ public class FilteringBenchmarks
     public List<BenchEntity> ApplyFilter_ColdCache()
     {
         FilterExpression.ClearCache();
-        return entities.AsQueryable().ApplyFilter(Filter).ToList();
+        return [.. entities.AsQueryable().ApplyFilter(Filter)];
     }
 
     [Benchmark(Description = "ApplyFilter 100 items (warm)")]
     public List<BenchEntity> ApplyFilter_CacheHit()
     {
-        return entities.AsQueryable().ApplyFilter(Filter).ToList();
+        return [.. entities.AsQueryable().ApplyFilter(Filter)];
     }
 }
 
@@ -139,10 +138,12 @@ public sealed class BenchEntity
 
 public class InListBenchmarks
 {
-    // Hard-coded short filters — [Params] requires compile-time constants
-    // (string.Join at runtime is not allowed). 1/10/100-item variants show
-    // the cost scaling; actual long IN-lists (>100) are unrealistic for the
-    // UI and would dominate benchmark time without adding insight.
+    /// <summary>
+    /// Hard-coded short filters — [Params] requires compile-time constants
+    /// (string.Join at runtime is not allowed). 1/10/100-item variants show
+    /// the cost scaling; actual long IN-lists (>100) are unrealistic for the
+    /// UI and would dominate benchmark time without adding insight.
+    /// </summary>
     public const string Filter1 = "id[]=00000000-0000-0000-0000-000000000000";
 
     public const string Filter10 = "id[]=00000000-0000-0000-0000-000000000000"

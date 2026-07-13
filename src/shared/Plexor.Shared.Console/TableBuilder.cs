@@ -27,13 +27,13 @@ namespace Plexor.Shared.Console;
 public enum ColumnAlign
 {
     /// <summary>Left edge.</summary>
-    Left,
+    Left = 0,
 
     /// <summary>Centered.</summary>
-    Center,
+    Center = 1,
 
     /// <summary>Right edge (numeric columns).</summary>
-    Right
+    Right = 2
 }
 
 /// <summary>
@@ -62,6 +62,8 @@ public sealed class TableBuilder
     ///     left; numeric columns pass <see cref="ColumnAlign.Right" />
     ///     for the conventional alignment.
     /// </summary>
+    /// <param name="header"></param>
+    /// <param name="align"></param>
     public TableBuilder AddColumn(string header, ColumnAlign align = ColumnAlign.Left)
     {
         var col = new TableColumn(MarkupExtensions.B(header));
@@ -81,6 +83,7 @@ public sealed class TableBuilder
     ///     Set the title that renders above the table. Useful
     ///     for "what is this listing" headers.
     /// </summary>
+    /// <param name="title"></param>
     public TableBuilder WithTitle(string title)
     {
         table.Title = new TableTitle(MarkupExtensions.Accent(title));

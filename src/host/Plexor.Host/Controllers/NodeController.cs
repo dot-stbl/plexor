@@ -35,6 +35,7 @@ namespace Plexor.Host.Controllers;
 ///     <c>/api/v1/nodes</c> via the <see cref="ApiRoutes.Base" />
 ///     constant; the same prefix every other Plexor controller uses.
 /// </summary>
+/// <param name="registry"></param>
 /// <remarks>
 ///     DI-injected registry. Per-update synchronization
 ///     is owned by the in-memory implementation (v0.1) or
@@ -49,6 +50,8 @@ public sealed class NodeController(INodeRegistry registry) : ControllerBase
     ///     POST /api/v1/nodes/join — register a compute node
     ///     with the control plane. First call the agent makes.
     /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPost("join", Name = "node-join")]
     [EndpointSummary("Register a compute node with the control plane")]
     [EndpointDescription(
@@ -92,6 +95,9 @@ public sealed class NodeController(INodeRegistry registry) : ControllerBase
     ///     interval (default 30s); three missed intervals flips the
     ///     node to Offline in the future health monitor.
     /// </summary>
+    /// <param name="nodeId"></param>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPost("{nodeId:guid}/heartbeat", Name = "node-heartbeat")]
     [EndpointSummary("Record liveness from a registered node")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -123,6 +129,9 @@ public sealed class NodeController(INodeRegistry registry) : ControllerBase
     ///     includes the <c>NextCursor</c> from the previous
     ///     response.
     /// </summary>
+    /// <param name="nodeId"></param>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPost("{nodeId:guid}/commands/poll", Name = "node-command-poll")]
     [EndpointSummary("Dequeue any commands the control plane has for this node")]
     [ProducesResponseType(typeof(CommandPollResponse), StatusCodes.Status200OK)]
@@ -146,6 +155,10 @@ public sealed class NodeController(INodeRegistry registry) : ControllerBase
     ///     command. v0.1 logs the result; future iterations route
     ///     it to the audit module for persistence.
     /// </summary>
+    /// <param name="nodeId"></param>
+    /// <param name="commandId"></param>
+    /// <param name="result"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPost("{nodeId:guid}/commands/{commandId:guid}/result", Name = "node-command-result")]
     [EndpointSummary("Report completion status for a previously-dequeued command")]
     [ProducesResponseType(StatusCodes.Status200OK)]

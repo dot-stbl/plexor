@@ -9,6 +9,8 @@
 // have. Rendered as Spectre.Console Markup so the colors carry over.
 // ============================================================================
 
+using System.Globalization;
+
 namespace Plexor.Shared.Console;
 
 /// <summary>
@@ -17,6 +19,10 @@ namespace Plexor.Shared.Console;
 ///     after the last table or rule so users get a "what just happened"
 ///     summary without scrolling back.
 /// </summary>
+/// <param name="ToolName"></param>
+/// <param name="Version"></param>
+/// <param name="ClusterName"></param>
+/// <param name="NodeName"></param>
 /// <param name="Duration">
 ///     How long the command took. Optional —
 ///     null means don't render the timing line at all.
@@ -65,10 +71,11 @@ public sealed record StatusFooter(
     {
         return d.TotalSeconds switch
         {
-            < 1 => $"{d.TotalMilliseconds:F0}ms",
-            < 60 => $"{d.TotalSeconds:F1}s",
-            < 3600 => $"{d.TotalMinutes:F0}m {d.Seconds}s",
-            _ => $"{d.TotalHours:F0}h {d.Minutes}m"
+            < 1 => string.Create(CultureInfo.InvariantCulture, $"{d.TotalMilliseconds:F0}ms"),
+            < 60 => string.Create(CultureInfo.InvariantCulture, $"{d.TotalSeconds:F1}s"),
+            < 3600 => string.Create(CultureInfo.InvariantCulture, $"{d.TotalMinutes:F0}m {d.Seconds}s"),
+            _ => string.Create(CultureInfo.InvariantCulture, $"{d.TotalHours:F0}h {d.Minutes}m"
+)
         };
     }
 }

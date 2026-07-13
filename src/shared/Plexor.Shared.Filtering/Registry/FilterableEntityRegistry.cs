@@ -32,6 +32,7 @@ public sealed class FilterableEntityRegistry()
     ///     the same <typeparamref name="T" /> are no-ops.
     /// </summary>
     /// <typeparam name="T">Entity implementing <see cref="IFilterableEntity" />.</typeparam>
+    /// <exception cref="InvalidOperationException"></exception>
     public void Register<T>() where T : IFilterableEntity
     {
         var typeName = typeof(T).FullName
@@ -66,7 +67,7 @@ public sealed class FilterableEntityRegistry()
     /// <param name="typeName">CLR full name (must match <see cref="Type.FullName" />).</param>
     public IReadOnlyList<UntypedFilterableField>? TryGet(string typeName)
     {
-        return byTypeName.TryGetValue(typeName, out var fields) ? fields : null;
+        return byTypeName.GetValueOrDefault(typeName);
     }
 
     /// <summary>Number of entities currently registered (diagnostics).</summary>

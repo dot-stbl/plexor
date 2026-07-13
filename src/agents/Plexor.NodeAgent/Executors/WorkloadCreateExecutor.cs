@@ -23,6 +23,8 @@ namespace Plexor.NodeAgent.Executors;
 ///     kind means adding a new <see cref="IWorkloadProvider" />
 ///     registration, not a new executor.
 /// </summary>
+/// <param name="registry"></param>
+/// <param name="logger"></param>
 /// <remarks>
 ///     Build the executor. v0.1 ships with the
 ///     KVM/libvirt provider registered as the only provider.

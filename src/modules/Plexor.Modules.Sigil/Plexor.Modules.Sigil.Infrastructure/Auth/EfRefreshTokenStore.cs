@@ -18,6 +18,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     raw tokens are returned to the client on issue/rotate and
 ///     never persisted.
 /// </summary>
+/// <param name="db"></param>
 /// <remarks>
 ///     <para><b>Rotation is atomic.</b>
 ///     <see cref="RotateAsync" /> wraps the read + write + insert

@@ -139,6 +139,7 @@ public sealed class FilterableSchemaTransformer(FilterableEntityRegistry registr
     ///     anything else falls through to <c>"string"</c>, which the kubb
     ///     plugin treats as opaque.
     /// </summary>
+    /// <param name="type"></param>
     private static string MapOpenApiType(Type type)
     {
         var underlying = Nullable.GetUnderlyingType(type) ?? type;

@@ -31,6 +31,8 @@ public interface IWorkloadProvider
     ///     <see cref="WorkloadSpec.Config" /> per its own schema (the shared
     ///     contract is opaque JSON).
     /// </summary>
+    /// <param name="spec"></param>
+    /// <param name="cancellationToken"></param>
     public Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken cancellationToken);
 
     /// <summary>
@@ -38,6 +40,8 @@ public interface IWorkloadProvider
     ///     <see cref="InvalidOperationException" /> if the workload is
     ///     already running or doesn't exist.
     /// </summary>
+    /// <param name="id"></param>
+    /// <param name="cancellationToken"></param>
     public Task<LocalWorkload> StartAsync(Guid id, CancellationToken cancellationToken);
 
     /// <summary>
@@ -45,12 +49,16 @@ public interface IWorkloadProvider
     ///     <see cref="InvalidOperationException" /> if the workload is
     ///     already stopped or doesn't exist.
     /// </summary>
+    /// <param name="id"></param>
+    /// <param name="cancellationToken"></param>
     public Task<LocalWorkload> StopAsync(Guid id, CancellationToken cancellationToken);
 
     /// <summary>
     ///     Remove the workload and all of its backing storage.
     ///     Idempotent: deleting a missing workload is a no-op success.
     /// </summary>
+    /// <param name="id"></param>
+    /// <param name="cancellationToken"></param>
     public Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken cancellationToken);
 
     /// <summary>
@@ -58,5 +66,6 @@ public interface IWorkloadProvider
     ///     node. Used at boot to reconcile the control plane's view with
     ///     what's actually running.
     /// </summary>
+    /// <param name="cancellationToken"></param>
     public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken cancellationToken);
 }

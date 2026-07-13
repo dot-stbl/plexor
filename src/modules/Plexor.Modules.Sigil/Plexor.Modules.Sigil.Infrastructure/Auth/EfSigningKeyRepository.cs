@@ -17,6 +17,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     All reads are <c>AsNoTracking</c> — these rows are
 ///     append-only and the verifier doesn't mutate them.
 /// </summary>
+/// <param name="db"></param>
 /// <remarks>
 ///     <para><b>Why no caching here.</b> v0.1 has at most a handful
 ///     of active keys; a per-request DB hit is cheap. The verifier

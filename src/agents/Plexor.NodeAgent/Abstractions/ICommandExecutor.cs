@@ -71,6 +71,7 @@ public sealed record ExecutorResult(
     }
 
     /// <summary>Convenience factory for a failed execution.</summary>
+    /// <param name="errorMessage"></param>
     public static ExecutorResult Fail(string errorMessage)
     {
         return new ExecutorResult(CommandResultStatus.Failed, errorMessage);

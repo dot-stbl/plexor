@@ -20,7 +20,7 @@ namespace Plexor.NodeAgent.Composition;
 /// </summary>
 internal sealed class InMemoryWorkloadRegistry : IWorkloadRegistry
 {
-    private readonly Dictionary<WorkloadKind, IWorkloadProvider> providers = new();
+    private readonly Dictionary<WorkloadKind, IWorkloadProvider> providers = [];
 
     /// <summary>
     ///     Build a registry from every <see cref="IWorkloadProvider" />
@@ -28,6 +28,7 @@ internal sealed class InMemoryWorkloadRegistry : IWorkloadRegistry
     ///     <see cref="WorkloadKind" /> it handles. Duplicate kinds
     ///     throw at startup — pick one technology per Kind.
     /// </summary>
+    /// <param name="providers"></param>
     public InMemoryWorkloadRegistry(IEnumerable<IWorkloadProvider> providers)
     {
         foreach (var provider in providers)
@@ -38,7 +39,7 @@ internal sealed class InMemoryWorkloadRegistry : IWorkloadRegistry
 
     /// <inheritdoc />
     public IReadOnlyCollection<WorkloadKind> SupportedKinds
-        => providers.Keys.ToArray();
+        => [.. providers.Keys];
 
     /// <inheritdoc />
     public IWorkloadProvider? GetProvider(WorkloadKind kind)

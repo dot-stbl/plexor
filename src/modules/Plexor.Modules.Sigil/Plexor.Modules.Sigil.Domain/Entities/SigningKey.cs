@@ -1,5 +1,3 @@
-using Plexor.Shared.Kernel.Common;
-
 namespace Plexor.Modules.Sigil.Domain.Entities;
 
 /// <summary>

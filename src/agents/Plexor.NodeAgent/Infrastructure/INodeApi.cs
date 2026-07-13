@@ -35,6 +35,8 @@ namespace Plexor.NodeAgent.Infrastructure;
 public interface INodeApi
 {
     /// <summary>POST /api/v1/nodes/join.</summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [Post("/nodes/join")]
     public Task<JoinResponse> JoinAsync(
         [Body] JoinRequest request,
@@ -46,6 +48,9 @@ public interface INodeApi
     ///     <c>NodeId</c> (the host rejects mismatches with 400).
     ///     No response body.
     /// </summary>
+    /// <param name="nodeId"></param>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [Post("/nodes/{nodeId}/heartbeat")]
     public Task HeartbeatAsync(
         Guid nodeId,
@@ -53,6 +58,9 @@ public interface INodeApi
         CancellationToken cancellationToken);
 
     /// <summary>POST /api/v1/nodes/{nodeId}/commands/poll.</summary>
+    /// <param name="nodeId"></param>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [Post("/nodes/{nodeId}/commands/poll")]
     public Task<CommandPollResponse> PollAsync(
         Guid nodeId,
@@ -63,6 +71,10 @@ public interface INodeApi
     ///     POST /api/v1/nodes/{nodeId}/commands/{commandId}/result.
     ///     No response body.
     /// </summary>
+    /// <param name="nodeId"></param>
+    /// <param name="commandId"></param>
+    /// <param name="result"></param>
+    /// <param name="cancellationToken"></param>
     [Post("/nodes/{nodeId}/commands/{commandId}/result")]
     public Task SubmitResultAsync(
         Guid nodeId,

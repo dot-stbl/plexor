@@ -36,6 +36,10 @@ public sealed class WorkloadIdMap
     ///     is already present (idempotent creates are the caller's
     ///     responsibility).
     /// </summary>
+    /// <param name="localId"></param>
+    /// <param name="domainName"></param>
+    /// <param name="kind"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public void Register(Guid localId, string domainName, WorkloadKind kind)
     {
         var entry = new WorkloadIdMapEntry(domainName, kind, WorkloadState.Provisioning);
@@ -52,6 +56,8 @@ public sealed class WorkloadIdMap
     ///     if the id is unknown. The provider catches and reports
     ///     Failed back to the host.
     /// </summary>
+    /// <param name="localId"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public WorkloadIdMapEntry GetOrThrow(Guid localId)
     {
         if (!entries.TryGetValue(localId, out var entry))
@@ -67,6 +73,8 @@ public sealed class WorkloadIdMap
     ///     Update the state snapshot for the given id.
     ///     Does not change the domain name or kind.
     /// </summary>
+    /// <param name="localId"></param>
+    /// <param name="state"></param>
     public void SetState(Guid localId, WorkloadState state)
     {
         var current = GetOrThrow(localId);
@@ -78,6 +86,7 @@ public sealed class WorkloadIdMap
     ///     known. Idempotent: removing a missing id is a no-op
     ///     success (matches the provider's delete semantics).
     /// </summary>
+    /// <param name="localId"></param>
     public bool Remove(Guid localId)
     {
         return entries.TryRemove(localId, out _);
@@ -87,18 +96,18 @@ public sealed class WorkloadIdMap
     ///     Snapshot of the map for a list call. The
     ///     provider's ListAsync builds the return value from this.
     /// </summary>
+    /// <param name="agentHostname"></param>
     public IReadOnlyList<LocalWorkload> Snapshot(string agentHostname)
     {
         var now = DateTimeOffset.UtcNow;
-        return entries
+        return [.. entries
                 .Select(kvp => new LocalWorkload(
                     kvp.Key,
                     kvp.Value.DomainName,
                     kvp.Value.Kind,
                     kvp.Value.State,
                     now,
-                    kvp.Value.State == WorkloadState.Running ? now : null))
-                .ToArray();
+                    kvp.Value.State == WorkloadState.Running ? now : null))];
     }
 }
 
@@ -106,6 +115,9 @@ public sealed class WorkloadIdMap
 ///     One entry in <see cref="WorkloadIdMap" />: the
 ///     libvirt domain name + the workload's current runtime state.
 /// </summary>
+/// <param name="DomainName"></param>
+/// <param name="Kind"></param>
+/// <param name="State"></param>
 public sealed record WorkloadIdMapEntry(
     string DomainName,
     WorkloadKind Kind,

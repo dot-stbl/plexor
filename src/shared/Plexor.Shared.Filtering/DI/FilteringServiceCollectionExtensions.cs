@@ -71,6 +71,7 @@ public static class FilteringServiceCollectionExtensions
 ///     nothing in user code should construct this type directly.
 /// </summary>
 /// <typeparam name="T">Entity to seed.</typeparam>
+/// <param name="registry"></param>
 internal sealed class FilterableEntitySeed<T>(FilterableEntityRegistry registry) : IHostedService
     where T : IFilterableEntity
 {

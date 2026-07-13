@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 
@@ -36,7 +35,7 @@ public static class PlexorHostExtensions
     public static ILoggingBuilder AddPlexorConsole(this ILoggingBuilder builder)
     {
         builder.AddConsoleFormatter<PlexorConsoleFormatter, SimpleConsoleFormatterOptions>(
-            options =>
+            static options =>
             {
                 options.IncludeScopes = true;
                 options.TimestampFormat = "HH:mm:ss.fff";

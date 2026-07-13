@@ -44,6 +44,10 @@ public enum FilterTokenKind
 ///     lexer hot path — a typical filter emits 8-16 tokens; with a struct they're
 ///     stored inline in the List array, not as individual heap objects.
 /// </summary>
+/// <param name="Kind"></param>
+/// <param name="Text"></param>
+/// <param name="OperatorPayload"></param>
+/// <param name="Position"></param>
 public readonly record struct FilterToken(FilterTokenKind Kind, string Text, FilterOperator OperatorPayload, int Position);
 
 /// <summary>

@@ -27,6 +27,9 @@ public static class FilterValueConverter
     ///     <paramref name="targetType" /> (or its nullable underlying).
     ///     Throws <see cref="FilterParseException" /> on conversion failure.
     /// </summary>
+    /// <param name="text"></param>
+    /// <param name="targetType"></param>
+    /// <exception cref="FilterParseException"></exception>
     public static object Convert(string text, Type targetType)
     {
         var underlying = Nullable.GetUnderlyingType(targetType) ?? targetType;
@@ -78,10 +81,12 @@ public static class FilterValueConverter
     public static void Register<T>(Func<string, T> parse)
         where T : notnull
     {
-        converters[typeof(T)] = text => (object)parse(text);
+        converters[typeof(T)] = text => parse(text);
     }
 
     /// <summary>Builds a typed <see cref="IList" /> from raw string values.</summary>
+    /// <param name="strings"></param>
+    /// <param name="elementType"></param>
     public static IList ConvertList(IReadOnlyList<string> strings, Type elementType)
     {
         var underlying = Nullable.GetUnderlyingType(elementType) ?? elementType;

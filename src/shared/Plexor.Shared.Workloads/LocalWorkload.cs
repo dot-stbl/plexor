@@ -23,29 +23,29 @@ public enum WorkloadState
     ///     Provider is creating the workload (image download, IP
     ///     assignment, etc.). Not yet started.
     /// </summary>
-    Provisioning,
+    Provisioning = 0,
 
     /// <summary>Workload is booted and accepting traffic.</summary>
-    Running,
+    Running = 1,
 
     /// <summary>
     ///     Workload is gracefully shut down but the resources
     ///     are still allocated (can be re-started without re-create).
     /// </summary>
-    Stopped,
+    Stopped = 2,
 
     /// <summary>
     ///     Last lifecycle operation failed. The control plane
     ///     should mark the workload <c>Failed</c> in its aggregate view
     ///     and surface a repair flow to the user.
     /// </summary>
-    Failed,
+    Failed = 3,
 
     /// <summary>
     ///     Provider can't determine the state (lost connection,
     ///     unknown domain id, etc.). Reported as <c>Degraded</c> upstream.
     /// </summary>
-    Unknown
+    Unknown = 4
 }
 
 /// <summary>
@@ -54,6 +54,10 @@ public enum WorkloadState
 ///     <c>workload.create</c> command); everything else is local state the
 ///     provider keeps in its own data structures.
 /// </summary>
+/// <param name="Id"></param>
+/// <param name="Name"></param>
+/// <param name="Kind"></param>
+/// <param name="State"></param>
 /// <param name="CreatedAt">When the provider finished provisioning.</param>
 /// <param name="StartedAt">
 ///     When the workload was last started (null

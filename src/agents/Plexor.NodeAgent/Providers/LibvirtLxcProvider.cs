@@ -37,6 +37,7 @@ namespace Plexor.NodeAgent.Providers;
 ///     agent's dispatcher routes by Kind), so the agent runs the
 ///     same commands against fundamentally different technology.
 /// </summary>
+/// <param name="logger"></param>
 /// <remarks>
 ///     Build a provider that talks to the local libvirt
 ///     LXC driver.
@@ -192,6 +193,8 @@ public sealed class LibvirtLxcProvider(ILogger<LibvirtLxcProvider> logger) : IWo
     ///     Build a <see cref="LocalWorkload" /> snapshot for
     ///     the given id with the given startedAt timestamp.
     /// </summary>
+    /// <param name="id"></param>
+    /// <param name="startedAt"></param>
     private LocalWorkload Snapshot(Guid id, DateTimeOffset? startedAt)
     {
         var entry = workloads.GetOrThrow(id);
@@ -210,6 +213,9 @@ public sealed class LibvirtLxcProvider(ILogger<LibvirtLxcProvider> logger) : IWo
     ///     no <c>type='hvm'</c>, no <c>disk</c>, the <c>os</c> has
     ///     <c>init</c> instead of a <c>boot dev</c>.
     /// </summary>
+    /// <param name="spec"></param>
+    /// <param name="id"></param>
+    /// <param name="rootfs"></param>
     private static string BuildContainerXml(WorkloadSpec spec, Guid id, string rootfs)
     {
         var config = TryDeserializeConfig(spec.Config, out var c)
@@ -299,6 +305,8 @@ public sealed class LibvirtLxcProvider(ILogger<LibvirtLxcProvider> logger) : IWo
     ///     control plane doesn't supply a value, so the agent stays
     ///     functional even with empty Config.
     /// </summary>
+    /// <param name="RamBytes"></param>
+    /// <param name="CpuCores"></param>
     /// <param name="Init">
     ///     Path to the init binary inside the
     ///     container. Defaults to <c>/sbin/init</c> for systemd-based

@@ -38,6 +38,7 @@ public interface INodeRegistry
     ///     the join token (not verified in v0.1) and its hardware
     ///     snapshot.
     /// </param>
+    /// <param name="cancellationToken"></param>
     public Task<JoinResponse> RegisterAsync(JoinRequest request, CancellationToken cancellationToken);
 
     /// <summary>
@@ -45,6 +46,8 @@ public interface INodeRegistry
     ///     calls for unknown node ids are a no-op (the node may have
     ///     been forgotten or the call may be a replay).
     /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     public Task TouchHeartbeatAsync(HeartbeatRequest request, CancellationToken cancellationToken);
 
     /// <summary>
@@ -54,6 +57,8 @@ public interface INodeRegistry
     ///     sequence number that becomes the agent's cursor for the
     ///     next poll.
     /// </summary>
+    /// <param name="envelope"></param>
+    /// <param name="cancellationToken"></param>
     public Task EnqueueCommandAsync(CommandEnvelope envelope, CancellationToken cancellationToken);
 
     /// <summary>
@@ -61,6 +66,8 @@ public interface INodeRegistry
     ///     supplied cursor and return them along with the new cursor.
     ///     The agent uses the returned cursor on the next poll.
     /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     public Task<CommandPollResponse> DequeueCommandsAsync(CommandPollRequest request, CancellationToken cancellationToken);
 
     /// <summary>
@@ -68,5 +75,7 @@ public interface INodeRegistry
     ///     In v0.1 the result is logged; future iterations persist it
     ///     to the audit log.
     /// </summary>
+    /// <param name="result"></param>
+    /// <param name="cancellationToken"></param>
     public Task SubmitResultAsync(CommandResult result, CancellationToken cancellationToken);
 }

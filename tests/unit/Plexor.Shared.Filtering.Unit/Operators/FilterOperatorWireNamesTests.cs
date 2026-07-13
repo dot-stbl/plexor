@@ -38,7 +38,7 @@ public sealed class FilterOperatorWireNamesTests
     [Fact(DisplayName = "NamesFor with Eq|In returns both names")]
     public void NamesFor_FlagsBitmask_ExpandsBoth()
     {
-        var combined = FilterOperator.Eq | FilterOperator.In;
+        const FilterOperator combined = FilterOperator.Eq | FilterOperator.In;
         var names = combined.NamesFor();
 
         names.ShouldContain("eq");

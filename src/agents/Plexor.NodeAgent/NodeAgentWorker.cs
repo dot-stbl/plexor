@@ -36,6 +36,10 @@ namespace Plexor.NodeAgent;
 ///     dispatcher routes them to executors; the loop's only job is
 ///     "tick at the right interval and forward".
 /// </summary>
+/// <param name="transport"></param>
+/// <param name="dispatcher"></param>
+/// <param name="logger"></param>
+/// <param name="config"></param>
 /// <remarks>
 ///     Build the worker. Hardware and control-plane URL
 ///     come from configuration (Plexor:Node:* keys).
@@ -275,6 +279,8 @@ internal sealed class NodeAgentWorker(
     }
 
     /// <summary>Mutable per-node state held in the worker.</summary>
+    /// <param name="NodeId"></param>
+    /// <param name="Cursor"></param>
     private sealed record NodeIdentity(Guid NodeId, long Cursor);
 
     /// <summary>
@@ -282,6 +288,11 @@ internal sealed class NodeAgentWorker(
     ///     <c>Plexor:Node</c> in appsettings. v0.1 takes the worker
     ///     directly; future moves to IOptions&lt;NodeConfig&gt;.
     /// </summary>
+    /// <param name="CpuCores"></param>
+    /// <param name="RamBytes"></param>
+    /// <param name="DiskBytes"></param>
+    /// <param name="Hostname"></param>
+    /// <param name="ControlPlaneUrl"></param>
     public sealed record NodeConfig(
         int CpuCores,
         long RamBytes,

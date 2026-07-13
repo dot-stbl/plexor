@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Plexor.Shared.Contracts.Pagination;
-using Plexor.Shared.Filtering;
 using Plexor.Shared.Filtering.Query;
 
 namespace Plexor.Shared.Persistence;

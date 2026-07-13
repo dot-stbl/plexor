@@ -37,20 +37,20 @@ return PlexorCli.New(args)
             "version",
             BannerArt.Icon.Version,
             "Print version and exit",
-            cmd => cmd.WithAlias("v"))
+            static cmd => cmd.WithAlias("v"))
         .AddDelegate(
             "init",
             BannerArt.Icon.Init,
             "Bootstrap a Plexor cluster on this host",
-            _ => 0) // stub until InitCommand lands
+            static _ => 0) // stub until InitCommand lands
         .AddDelegate(
             "upgrade",
             BannerArt.Icon.Upgrade,
             "Atomic in-place upgrade",
-            _ => 0) // stub until UpgradeCommand lands
+            static _ => 0) // stub until UpgradeCommand lands
         .AddDelegate(
             "destroy",
             BannerArt.Icon.Destroy,
             "Tear down the cluster on this host",
-            _ => 0) // stub until DestroyCommand lands
+            static _ => 0) // stub until DestroyCommand lands
         .Run();

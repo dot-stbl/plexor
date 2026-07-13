@@ -19,13 +19,8 @@ namespace Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 #pragma warning disable CS1591 // XML doc — see DbContext.Set<T>() for usage
 
-public sealed class IdentityDbContext : PlexorDbContext
+public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : PlexorDbContext(options)
 {
-    public IdentityDbContext(DbContextOptions<IdentityDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<RoleBinding> RoleBindings => Set<RoleBinding>();
@@ -36,14 +31,14 @@ public sealed class IdentityDbContext : PlexorDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema(DatabaseInformation.Schemes.Identity);
-        modelBuilder.ApplyConfiguration(new UserConfiguration());
-        modelBuilder.ApplyConfiguration(new RoleConfiguration());
-        modelBuilder.ApplyConfiguration(new RoleBindingConfiguration());
-        modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
-        modelBuilder.ApplyConfiguration(new ApiKeyConfiguration());
-        modelBuilder.ApplyConfiguration(new SshKeyConfiguration());
-        modelBuilder.ApplyConfiguration(new SigningKeyConfiguration());
+        modelBuilder.HasDefaultSchema(DatabaseInformation.Schemes.Identity)
+            .ApplyConfiguration(new UserConfiguration())
+            .ApplyConfiguration(new RoleConfiguration())
+            .ApplyConfiguration(new RoleBindingConfiguration())
+            .ApplyConfiguration(new RefreshTokenConfiguration())
+            .ApplyConfiguration(new ApiKeyConfiguration())
+            .ApplyConfiguration(new SshKeyConfiguration())
+            .ApplyConfiguration(new SigningKeyConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }
@@ -166,13 +161,13 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
             .HasColumnType("text[]")
             .HasConversion(
                 static permissions => permissions.Select(static p => p.Value).ToArray(),
-                static raw => (IReadOnlyList<PermissionScope>)raw.Select(
+                static raw => raw.Select(
                     static value => new PermissionScope(value)).ToArray())
             .Metadata.SetValueComparer(new ValueComparer<IReadOnlyList<PermissionScope>>(
                 static (a, b) => (a == null && b == null) ||
                     (a != null && b != null && a.SequenceEqual(b)),
-                static v => v.Aggregate(0, (acc, p) => HashCode.Combine(acc, p.GetHashCode())),
-                static v => (IReadOnlyList<PermissionScope>)v.Select(
+                static v => v.Aggregate(0, static (acc, p) => HashCode.Combine(acc, p.GetHashCode())),
+                static v => v.Select(
                     static p => new PermissionScope(p.Value)).ToArray()));
 
         builder.Property(static role => role.BuiltIn)
@@ -344,13 +339,13 @@ internal sealed class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKey>
             .HasColumnType("text[]")
             .HasConversion(
                 static permissions => permissions.Select(static p => p.Value).ToArray(),
-                static raw => (IReadOnlyList<PermissionScope>)raw.Select(
+                static raw => raw.Select(
                     static value => new PermissionScope(value)).ToArray())
             .Metadata.SetValueComparer(new ValueComparer<IReadOnlyList<PermissionScope>>(
                 static (a, b) => (a == null && b == null) ||
                     (a != null && b != null && a.SequenceEqual(b)),
-                static v => v.Aggregate(0, (acc, p) => HashCode.Combine(acc, p.GetHashCode())),
-                static v => (IReadOnlyList<PermissionScope>)v.Select(
+                static v => v.Aggregate(0, static (acc, p) => HashCode.Combine(acc, p.GetHashCode())),
+                static v => v.Select(
                     static p => new PermissionScope(p.Value)).ToArray()));
 
         builder.Property(static key => key.ExpiresAt)

@@ -87,12 +87,14 @@ public sealed class PasswordHash : IEquatable<PasswordHash>
     }
 
     /// <summary>Equality compares the underlying bcrypt string.</summary>
+    /// <param name="other"></param>
     public bool Equals(PasswordHash? other)
     {
         return other is not null && StringComparer.Ordinal.Equals(value, other.value);
     }
 
     /// <summary>Equality compares the underlying bcrypt string.</summary>
+    /// <param name="obj"></param>
     public override bool Equals(object? obj)
     {
         return obj is PasswordHash other && Equals(other);

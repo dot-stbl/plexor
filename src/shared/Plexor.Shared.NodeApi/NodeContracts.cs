@@ -28,11 +28,15 @@ namespace Plexor.Shared.NodeApi;
 ///     heartbeat. The control plane uses these for capacity planning and
 ///     to display the node list in the UI.
 /// </summary>
+/// <param name="CpuCores"></param>
+/// <param name="RamBytes"></param>
 /// <param name="DiskBytes">
 ///     Root filesystem capacity by default; the
 ///     agent exposes a single number for v0.1 and the control plane treats
 ///     it as advisory (not a reservation limit).
 /// </param>
+/// <param name="Hostname"></param>
+/// <param name="KernelVersion"></param>
 public sealed record NodeHardware(
     int CpuCores,
     long RamBytes,
@@ -104,6 +108,8 @@ public abstract record WorkloadKind
 ///     not part of the shared wire contract). The control plane serializes
 ///     the provider-specific config verbatim.
 /// </summary>
+/// <param name="Kind"></param>
+/// <param name="Name"></param>
 /// <param name="Config">
 ///     Provider-specific JSON. Each provider defines
 ///     its own schema; the shared contract is opaque JSON.
@@ -172,13 +178,13 @@ public abstract record CommandType
 public enum CommandResultStatus
 {
     /// <summary>Command executed without error.</summary>
-    Succeeded,
+    Succeeded = 0,
 
     /// <summary>
     ///     Command failed; <c>ErrorMessage</c> on the result envelope
     ///     is populated with a one-line human-readable detail.
     /// </summary>
-    Failed
+    Failed = 1
 }
 
 // ---------------------------------------------------------------------------
@@ -193,6 +199,8 @@ public enum CommandResultStatus
 ///     polls. The URL may differ from what the agent derived (e.g.
 ///     behind a reverse proxy, a private network, or a HA failover).
 /// </summary>
+/// <param name="JoinToken"></param>
+/// <param name="Hardware"></param>
 public sealed record JoinRequest(
     string JoinToken,
     NodeHardware Hardware);
@@ -201,6 +209,8 @@ public sealed record JoinRequest(
 ///     Reply to the join request. <see cref="NodeId" /> is the canonical
 ///     handle the agent uses for all subsequent messages.
 /// </summary>
+/// <param name="NodeId"></param>
+/// <param name="ControlPlaneUrl"></param>
 public sealed record JoinResponse(
     Guid NodeId,
     Uri ControlPlaneUrl);
@@ -214,10 +224,13 @@ public sealed record JoinResponse(
 ///     for v0.1); the control plane flips the node to <c>Offline</c> if
 ///     it hasn't seen a heartbeat in 3 intervals.
 /// </summary>
+/// <param name="NodeId"></param>
 /// <param name="SentAt">
 ///     UTC time the heartbeat was sent (so the
 ///     control plane can spot clock-skew across many nodes).
 /// </param>
+/// <param name="Hardware"></param>
+/// <param name="RunningVmCount"></param>
 public sealed record HeartbeatRequest(
     Guid NodeId,
     DateTimeOffset SentAt,
@@ -235,6 +248,11 @@ public sealed record HeartbeatRequest(
 ///     agent doesn't need to know the full command catalog — it just
 ///     dispatches on <c>Type</c>.
 /// </summary>
+/// <param name="CommandId"></param>
+/// <param name="NodeId"></param>
+/// <param name="Type"></param>
+/// <param name="PayloadJson"></param>
+/// <param name="IssuedAt"></param>
 public sealed record CommandEnvelope(
     Guid CommandId,
     Guid NodeId,
@@ -247,6 +265,11 @@ public sealed record CommandEnvelope(
 ///     On failure, <c>ErrorMessage</c> carries a one-line human-readable
 ///     detail; the control plane may log it and surface it in the UI.
 /// </summary>
+/// <param name="CommandId"></param>
+/// <param name="NodeId"></param>
+/// <param name="Status"></param>
+/// <param name="ErrorMessage"></param>
+/// <param name="CompletedAt"></param>
 public sealed record CommandResult(
     Guid CommandId,
     Guid NodeId,
@@ -261,6 +284,7 @@ public sealed record CommandResult(
 ///     provider-specific config that the local provider will translate
 ///     into its native representation (libvirt XML, k3s Pod spec, etc.).
 /// </summary>
+/// <param name="Spec"></param>
 public sealed record CreateWorkloadPayload(
     WorkloadSpec Spec);
 
@@ -283,6 +307,9 @@ public sealed record WorkloadActionPayload(
 ///     queued; otherwise returns the next batch. The agent issues
 ///     another poll as soon as the response is received.
 /// </summary>
+/// <param name="NodeId"></param>
+/// <param name="MaxBatch"></param>
+/// <param name="WaitCursor"></param>
 public sealed record CommandPollRequest(
     Guid NodeId,
     int MaxBatch,
@@ -292,6 +319,8 @@ public sealed record CommandPollRequest(
 ///     Reply to a long-poll. <see cref="NextCursor" /> is the cursor the
 ///     agent sends on the next poll so it sees only newer commands.
 /// </summary>
+/// <param name="Commands"></param>
+/// <param name="NextCursor"></param>
 public sealed record CommandPollResponse(
     IReadOnlyList<CommandEnvelope> Commands,
     long NextCursor);

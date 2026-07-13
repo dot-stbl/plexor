@@ -34,12 +34,16 @@ public interface ICommandTransport
     ///     call back to (used for logging only — the actual endpoints
     ///     are pinned at registration time).
     /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     public Task<JoinResponse> JoinAsync(JoinRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     ///     POST /api/v1/nodes/{nodeId}/heartbeat. Idempotent
     ///     (the host silently ignores heartbeats for unknown nodes).
     /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     public Task HeartbeatAsync(HeartbeatRequest request, CancellationToken cancellationToken);
 
     /// <summary>
@@ -48,6 +52,8 @@ public interface ICommandTransport
     ///     plus the next cursor the agent should send on the next
     ///     poll.
     /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     public Task<CommandPollResponse> PollAsync(CommandPollRequest request, CancellationToken cancellationToken);
 
     /// <summary>
@@ -55,5 +61,7 @@ public interface ICommandTransport
     ///     v0.1: the host logs the result; future iterations persist
     ///     it to the audit log.
     /// </summary>
+    /// <param name="result"></param>
+    /// <param name="cancellationToken"></param>
     public Task SubmitResultAsync(CommandResult result, CancellationToken cancellationToken);
 }

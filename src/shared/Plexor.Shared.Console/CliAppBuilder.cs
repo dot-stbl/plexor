@@ -144,6 +144,7 @@ public sealed class PlexorCliBuilder
     ///     Set the program name (used in help / error
     ///     messages). Defaults to <c>"plx"</c>.
     /// </summary>
+    /// <param name="toolName"></param>
     public PlexorCliBuilder Name(string toolName)
     {
         Content.ToolName = toolName;
@@ -155,6 +156,7 @@ public sealed class PlexorCliBuilder
     ///     No leading <c>v</c> prefix — the CLI renders the version
     ///     with a leading <c>v</c> on display.
     /// </summary>
+    /// <param name="toolVersion"></param>
     public PlexorCliBuilder Version(string toolVersion)
     {
         Content.ToolVersion = toolVersion;
@@ -165,6 +167,7 @@ public sealed class PlexorCliBuilder
     ///     Render an ASCII banner before the first command's
     ///     output. Set to <c>null</c> to skip.
     /// </summary>
+    /// <param name="bannerText"></param>
     public PlexorCliBuilder SetBanner(string? bannerText)
     {
         Content.BannerText = bannerText;
@@ -176,6 +179,7 @@ public sealed class PlexorCliBuilder
     ///     in the compact mark. If unset, the tagline is derived from
     ///     <see cref="ForCluster" /> / <see cref="ForNode" /> / default.
     /// </summary>
+    /// <param name="tagline"></param>
     public PlexorCliBuilder Tagline(string? tagline)
     {
         Content.Tagline = tagline;
@@ -187,6 +191,7 @@ public sealed class PlexorCliBuilder
     ///     Surfaces the active cluster name at the end of each
     ///     command's output.
     /// </summary>
+    /// <param name="clusterName"></param>
     public PlexorCliBuilder ForCluster(string? clusterName)
     {
         Content.ClusterName = clusterName;
@@ -198,6 +203,7 @@ public sealed class PlexorCliBuilder
     ///     Surfaces the active node name at the end of each command's
     ///     output.
     /// </summary>
+    /// <param name="nodeName"></param>
     public PlexorCliBuilder ForNode(string? nodeName)
     {
         Content.NodeName = nodeName;
@@ -213,6 +219,7 @@ public sealed class PlexorCliBuilder
     ///     Closed command type that
     ///     implements <see cref="ICommand{T}" /> for some settings.
     /// </typeparam>
+    /// <param name="name"></param>
     /// <param name="icon">
     ///     Single-character Unicode glyph shown next
     ///     to the command name in the help-banner command list.
@@ -221,6 +228,7 @@ public sealed class PlexorCliBuilder
     ///     One-line description shown in the
     ///     help table and the help banner.
     /// </param>
+    /// <param name="configure"></param>
     public PlexorCliBuilder AddCommand<TCommand>(
         string name,
         string icon,
@@ -242,6 +250,7 @@ public sealed class PlexorCliBuilder
     ///     Add a delegate command at the root level. Used
     ///     for one-shot commands that don't need a full class.
     /// </summary>
+    /// <param name="name"></param>
     /// <param name="icon">
     ///     Single-character Unicode glyph shown next
     ///     to the command name in the help-banner command list.
@@ -250,6 +259,7 @@ public sealed class PlexorCliBuilder
     ///     One-line description shown in the
     ///     help table and the help banner.
     /// </param>
+    /// <param name="handler"></param>
     public PlexorCliBuilder AddDelegate(
         string name,
         string icon,
@@ -257,10 +267,7 @@ public sealed class PlexorCliBuilder
         Func<CommandContext, int> handler)
     {
         Content.RegisteredCommands.Add(new CommandSpec(icon, name, description));
-        Content.PendingConfigurations.Add(c =>
-        {
-            _ = c.AddDelegate(name, handler).WithDescription(description);
-        });
+        Content.PendingConfigurations.Add(c => _ = c.AddDelegate(name, handler).WithDescription(description));
 
         return this;
     }
@@ -269,6 +276,8 @@ public sealed class PlexorCliBuilder
     ///     Begin a sub-command branch (e.g. <c>plx cluster ls</c>).
     ///     The branch lambda configures commands under the branch.
     /// </summary>
+    /// <param name="name"></param>
+    /// <param name="configure"></param>
     public PlexorCliBuilder AddBranch(string name, Action<PlexorBranchBuilder> configure)
     {
         var branch = new PlexorBranchBuilder(name);
@@ -276,10 +285,7 @@ public sealed class PlexorCliBuilder
         Content.PendingConfigurations.Add(c =>
         {
             var branchConfigurator = c.AddBranch(name,
-                branchConfigurator =>
-                {
-                    branch.Content.ApplyCommandsTo(branchConfigurator);
-                });
+                branchConfigurator => branch.Content.ApplyCommandsTo(branchConfigurator));
 
             // Aliases hang off the returned IBranchConfigurator.
             foreach (var alias in branch.Content.Aliases)
@@ -408,26 +414,6 @@ public sealed class PlexorCliBuilder
         return "self-hosted cloud platform";
     }
 
-    private string ResolveTagline()
-    {
-        if (!string.IsNullOrEmpty(Content.Tagline))
-        {
-            return MarkupExtensions.Muted(Content.Tagline);
-        }
-
-        if (Content.ClusterName is not null)
-        {
-            return MarkupExtensions.Muted($"for cluster {Content.ClusterName}");
-        }
-
-        if (Content.NodeName is not null)
-        {
-            return MarkupExtensions.Muted($"for node {Content.NodeName}");
-        }
-
-        return MarkupExtensions.Muted("self-hosted cloud platform");
-    }
-
     private void PrintFooter()
     {
         if (Content.ToolName is null && Content.ToolVersion is null &&
@@ -469,6 +455,7 @@ internal sealed class PlexorBranchContent
     ///     Apply the pending command configurations to the
     ///     supplied Spectre branch configurator.
     /// </summary>
+    /// <param name="target"></param>
     public void ApplyCommandsTo(IConfigurator<CommandSettings> target)
     {
         foreach (var cfg in PendingConfigurations)
@@ -505,6 +492,7 @@ public sealed class PlexorBranchBuilder
     ///     Add an alias for the branch itself (e.g. <c>"c"</c>
     ///     for <c>plx cluster ls</c>).
     /// </summary>
+    /// <param name="alias"></param>
     public PlexorBranchBuilder WithAlias(string alias)
     {
         Content.Aliases.Add(alias);
@@ -516,6 +504,9 @@ public sealed class PlexorBranchBuilder
     ///     <paramref name="configure" /> lambda chains Spectre
     ///     configuration methods (description, alias, examples).
     /// </summary>
+    /// <typeparam name="TCommand"></typeparam>
+    /// <param name="commandName"></param>
+    /// <param name="configure"></param>
     public PlexorBranchBuilder AddCommand<TCommand>(string commandName, Action<ICommandConfigurator>? configure = null)
             where TCommand : class, ICommandLimiter<CommandSettings>, new()
     {
@@ -529,6 +520,8 @@ public sealed class PlexorBranchBuilder
     }
 
     /// <summary>Add a nested branch (e.g. <c>plx cluster node ls</c>).</summary>
+    /// <param name="nestedName"></param>
+    /// <param name="configure"></param>
     public PlexorBranchBuilder AddBranch(string nestedName, Action<PlexorBranchBuilder> configure)
     {
         var nested = new PlexorBranchBuilder(nestedName);
@@ -536,10 +529,7 @@ public sealed class PlexorBranchBuilder
         Content.PendingConfigurations.Add(c =>
         {
             var branchConfigurator = c.AddBranch(nestedName,
-                inner =>
-                {
-                    nested.Content.ApplyCommandsTo(inner);
-                });
+                inner => nested.Content.ApplyCommandsTo(inner));
 
             foreach (var alias in nested.Content.Aliases)
             {

@@ -21,9 +21,11 @@ namespace Plexor.Modules.Sigil.Domain.ValueObjects;
 /// </remarks>
 public sealed class Email : IEquatable<Email>
 {
-    // Regex match timeout — prevents ReDoS attacks via pathological
-    // input. 100 ms is well above the cost of a legitimate address
-    // and orders of magnitude below any user-perceived latency.
+    /// <summary>
+    /// Regex match timeout — prevents ReDoS attacks via pathological
+    /// input. 100 ms is well above the cost of a legitimate address
+    /// and orders of magnitude below any user-perceived latency.
+    /// </summary>
     private static readonly TimeSpan MatchTimeout = TimeSpan.FromMilliseconds(100);
 
     private static readonly Regex Pattern = new(
@@ -31,16 +33,8 @@ public sealed class Email : IEquatable<Email>
         RegexOptions.Compiled | RegexOptions.IgnoreCase,
         MatchTimeout);
 
-    private readonly string value;
-
     /// <summary>The validated, normalized email string.</summary>
-    public string Value
-    {
-        get
-        {
-            return value;
-        }
-    }
+    public string Value { get; }
 
     /// <summary>
     ///     Constructs an email from a raw string. Throws
@@ -64,22 +58,24 @@ public sealed class Email : IEquatable<Email>
                 $"'{raw}' is not a valid email address.");
         }
 
-        value = normalized;
+        Value = normalized;
     }
 
     /// <summary>Returns the lowercase normalized form.</summary>
     public override string ToString()
     {
-        return value;
+        return Value;
     }
 
     /// <summary>Equality compares the underlying normalized string.</summary>
+    /// <param name="other"></param>
     public bool Equals(Email? other)
     {
-        return other is not null && StringComparer.Ordinal.Equals(value, other.value);
+        return other is not null && StringComparer.Ordinal.Equals(Value, other.Value);
     }
 
     /// <summary>Equality compares the underlying normalized string.</summary>
+    /// <param name="obj"></param>
     public override bool Equals(object? obj)
     {
         return obj is Email other && Equals(other);
@@ -88,6 +84,6 @@ public sealed class Email : IEquatable<Email>
     /// <summary>Hash code derived from the underlying normalized string.</summary>
     public override int GetHashCode()
     {
-        return StringComparer.Ordinal.GetHashCode(value);
+        return StringComparer.Ordinal.GetHashCode(Value);
     }
 }

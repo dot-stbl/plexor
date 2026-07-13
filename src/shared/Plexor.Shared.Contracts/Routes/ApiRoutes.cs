@@ -41,6 +41,7 @@ public static class ApiRoutes
     ///     <c>api/v1/{name}</c>. Use in controller <c>[Route]</c>
     ///     attributes: <c>[Route(ApiRoutes.Resource("advertisers"))]</c>.
     /// </summary>
+    /// <param name="name"></param>
     public static string Resource(string name)
     {
         return Base + "/" + name;

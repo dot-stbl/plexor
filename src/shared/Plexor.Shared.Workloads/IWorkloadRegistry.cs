@@ -30,6 +30,7 @@ public interface IWorkloadRegistry
     ///     Look up the provider for <paramref name="kind" />, or
     ///     <c>null</c> if the node doesn't support that kind.
     /// </summary>
+    /// <param name="kind"></param>
     public IWorkloadProvider? GetProvider(WorkloadKind kind);
 
     /// <summary>
@@ -37,5 +38,6 @@ public interface IWorkloadRegistry
     ///     if a provider for the same <see cref="IWorkloadProvider.Kind" />
     ///     is already registered.
     /// </summary>
+    /// <param name="provider"></param>
     public void Register(IWorkloadProvider provider);
 }

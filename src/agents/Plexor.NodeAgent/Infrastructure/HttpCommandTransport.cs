@@ -13,6 +13,7 @@
 // expected to recover within the configured retry budget.
 // ============================================================================
 
+using System.Globalization;
 using Plexor.NodeAgent.Abstractions;
 using Plexor.Shared.NodeApi;
 using Refit;
@@ -25,6 +26,8 @@ namespace Plexor.NodeAgent.Infrastructure;
 ///     throws <see cref="HttpRequestException" /> on non-2xx so the
 ///     worker loop can treat all failures the same way.
 /// </summary>
+/// <param name="api"></param>
+/// <param name="logger"></param>
 /// <remarks>
 ///     Build a transport over the Refit-generated
 ///     <see cref="INodeApi" /> typed client.
@@ -84,6 +87,11 @@ internal sealed class HttpCommandTransport(INodeApi api, ILogger<HttpCommandTran
     ///     loop catches the latter and decides what to do (skip the
     ///     cycle, restart, etc.).
     /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="call"></param>
+    /// <param name="operation"></param>
+    /// <param name="cancellationToken"></param>
+    /// <exception cref="HttpRequestException"></exception>
     private async Task<T> CallAsync<T>(
         Func<Task<T>> call,
         string operation,
@@ -104,7 +112,7 @@ internal sealed class HttpCommandTransport(INodeApi api, ILogger<HttpCommandTran
 
             throw new HttpRequestException(
                 $"Control plane {operation} returned " +
-                $"{(int)ex.StatusCode} {ex.StatusCode}.",
+                string.Create(CultureInfo.InvariantCulture, $"{(int)ex.StatusCode} {ex.StatusCode}."),
                 ex,
                 ex.StatusCode);
         }

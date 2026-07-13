@@ -25,6 +25,8 @@ namespace Plexor.NodeAgent.Executors;
 ///     <c>workload.delete</c>. The wire type on the envelope drives
 ///     which provider method is called.
 /// </summary>
+/// <param name="registry"></param>
+/// <param name="logger"></param>
 /// <remarks>
 ///     Build the executor. v0.1 ships with the
 ///     KVM/libvirt provider registered as the only provider.
@@ -42,6 +44,8 @@ public sealed class WorkloadActionExecutor(
     ///     the executor then re-reads the envelope to find the
     ///     concrete action (start / stop / delete).
     /// </summary>
+    /// <param name="envelope"></param>
+    /// <param name="cancellationToken"></param>
     public async Task<ExecutorResult> ExecuteAsync(
         CommandEnvelope envelope,
         CancellationToken cancellationToken)

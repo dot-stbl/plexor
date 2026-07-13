@@ -5,7 +5,6 @@
 // keypair if the signing_keys table is empty.
 // ============================================================================
 
-using System.Globalization;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -21,8 +20,6 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     kid derived from the current year + quarter, export to
 ///     PKCS#8 PEM, insert it.
 /// </summary>
-/// <param name="keys"></param>
-/// <param name="logger"></param>
 /// <remarks>
 ///     <para><b>Why IHostedService (startup), not BackgroundService.</b>
 ///     This runs once on host start, then never again. No need for
@@ -101,7 +98,7 @@ public sealed class SigningKeyBootstrapper(
         using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var publicPem = ecdsa.ExportSubjectPublicKeyInfoPem();
         var privatePem = ecdsa.ExportPkcs8PrivateKeyPem();
-        var kid = string.Create(CultureInfo.InvariantCulture, $"key_{DateTime.UtcNow:yyyy}_q{DateTime.UtcNow.Month / 4 + 1}");
+        var kid = $"key_{DateTime.UtcNow:yyyy}_q{DateTime.UtcNow.Month / 4 + 1}";
         return (kid, publicPem, privatePem);
     }
 }

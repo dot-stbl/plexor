@@ -40,6 +40,7 @@ namespace Plexor.NodeAgent.Providers;
 ///     <see cref="WorkloadKind" /> so the agent's dispatcher routes
 ///     the right commands to the right backend.
 /// </summary>
+/// <param name="logger"></param>
 /// <remarks>
 ///     Build a provider that talks to the local
 ///     libvirt system instance via software-emulated QEMU.
@@ -180,6 +181,8 @@ public sealed class LibvirtQemuProvider(ILogger<LibvirtQemuProvider> logger) : I
     ///     <c>pc-i440fx</c>. Compatible with the broadest set of
     ///     guests; v0.2+ takes this from spec.Config.
     /// </summary>
+    /// <param name="spec"></param>
+    /// <param name="id"></param>
     private static string BuildDomainXml(WorkloadSpec spec, Guid id)
     {
         var config = TryDeserializeConfig(spec.Config, out var c)
@@ -261,12 +264,15 @@ public sealed class LibvirtQemuProvider(ILogger<LibvirtQemuProvider> logger) : I
     ///     Provider-specific config schema (consumed from
     ///     <see cref="WorkloadSpec.Config" />).
     /// </summary>
+    /// <param name="RamBytes"></param>
+    /// <param name="CpuCores"></param>
     /// <param name="Machine">
     ///     QEMU machine type. <c>pc</c> is the
     ///     generic PC, broadly compatible. v0.1 default. Other
     ///     options: <c>q35</c> (modern ICH9 chipset), <c>isapc</c>
     ///     (legacy), arch-specific (<c>virt</c> on aarch64).
     /// </param>
+    /// <param name="NetworkName"></param>
     private sealed record LibvirtQemuConfig(
         long RamBytes = 1L * 1024 * 1024 * 1024,
         int CpuCores = 2,

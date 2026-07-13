@@ -29,27 +29,19 @@ namespace Plexor.Modules.Sigil.Infrastructure.CurrentUser;
 ///     a domain-shaped interface is mockable + testable without
 ///     an HTTP context.</para>
 /// </remarks>
-public sealed class HttpContextCurrentUser : ICurrentUser
+/// <remarks>Constructs the per-request reader from an HTTP context
+/// accessor.</remarks>
+/// <param name="accessor">ASP.NET Core HTTP context accessor
+/// (registered as singleton via
+/// <c>services.AddHttpContextAccessor()</c>).</param>
+public sealed class HttpContextCurrentUser(IHttpContextAccessor accessor) : ICurrentUser
 {
     private static readonly IReadOnlyCollection<string> EmptyRoles = [];
     private static readonly IReadOnlyCollection<string> EmptyPermissions = [];
 
-    private readonly IHttpContextAccessor accessor;
-
-    /// <summary>Constructs the per-request reader from an HTTP context
-    /// accessor.</summary>
-    /// <param name="accessor">ASP.NET Core HTTP context accessor
-    /// (registered as singleton via
-    /// <c>services.AddHttpContextAccessor()</c>).</param>
-    public HttpContextCurrentUser(IHttpContextAccessor accessor)
-    {
-        this.accessor = accessor;
-    }
-
     private ClaimsPrincipal? Principal => accessor.HttpContext?.User;
 
-    private bool IsAuthenticated =>
-        Principal is { Identity.IsAuthenticated: true };
+    private bool IsAuthenticated => Principal is { Identity.IsAuthenticated: true };
 
     /// <inheritdoc />
     public Guid UserId
@@ -106,10 +98,9 @@ public sealed class HttpContextCurrentUser : ICurrentUser
                 return EmptyRoles;
             }
 
-            return Principal!
+            return [.. Principal!
                 .FindAll(IdentityClaims.Roles)
-                .Select(static claim => claim.Value)
-                .ToArray();
+                .Select(static claim => claim.Value)];
         }
     }
 
@@ -123,10 +114,9 @@ public sealed class HttpContextCurrentUser : ICurrentUser
                 return EmptyPermissions;
             }
 
-            return Principal!
+            return [.. Principal!
                 .FindAll(IdentityClaims.Permission)
-                .Select(static claim => claim.Value)
-                .ToArray();
+                .Select(static claim => claim.Value)];
         }
     }
 

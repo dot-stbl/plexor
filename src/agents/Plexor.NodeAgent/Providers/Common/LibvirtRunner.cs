@@ -12,6 +12,7 @@
 // ============================================================================
 
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 namespace Plexor.NodeAgent.Providers.Common;
@@ -42,6 +43,7 @@ public static class LibvirtRunner
     ///     which doesn't have that problem).
     /// </param>
     /// <param name="cancellationToken">Cancellation forwarded to the process.</param>
+    /// <exception cref="InvalidOperationException"></exception>
     public static async Task<string> RunAsync(Uri uri, string args, CancellationToken cancellationToken)
     {
         var psi = new ProcessStartInfo
@@ -89,7 +91,7 @@ public static class LibvirtRunner
         if (process.ExitCode != 0)
         {
             throw new InvalidOperationException(
-                $"virsh -c {uri} {args} failed (exit {process.ExitCode}): {stderr}".Trim());
+                string.Create(CultureInfo.InvariantCulture, $"virsh -c {uri} {args} failed (exit {process.ExitCode}): {stderr}").Trim());
         }
 
         return stdout.ToString().TrimEnd();

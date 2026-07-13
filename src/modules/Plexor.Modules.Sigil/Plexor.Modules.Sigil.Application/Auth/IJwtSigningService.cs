@@ -89,11 +89,14 @@ public abstract record VerifyResult
 
     /// <summary>Valid JWT, with its claims. The principal's identity
     /// is set; downstream code reads <see cref="ClaimsPrincipal.FindFirst(string)" />.</summary>
+    /// <param name="Principal"></param>
     public sealed record Success(ClaimsPrincipal Principal) : VerifyResult;
 
     /// <summary>JWT well-formed but signature failed or expired.</summary>
+    /// <param name="Reason"></param>
     public sealed record Invalid(string Reason) : VerifyResult;
 
     /// <summary>JWT format itself is broken (malformed base64, missing dots).</summary>
+    /// <param name="Reason"></param>
     public sealed record Malformed(string Reason) : VerifyResult;
 }

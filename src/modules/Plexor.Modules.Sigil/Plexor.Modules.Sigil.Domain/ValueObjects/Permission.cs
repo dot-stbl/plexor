@@ -30,16 +30,8 @@ public sealed class PermissionScope : IEquatable<PermissionScope>
     /// <summary>The wildcard permission granted to super-admin roles.</summary>
     public const string SuperAdmin = "*";
 
-    private readonly string value;
-
     /// <summary>The validated, lowercased permission string.</summary>
-    public string Value
-    {
-        get
-        {
-            return value;
-        }
-    }
+    public string Value { get; }
 
     /// <summary>
     ///     Constructs a permission from a string. Trims + lowercases.
@@ -56,21 +48,21 @@ public sealed class PermissionScope : IEquatable<PermissionScope>
                 "Expected '<service>.<resource>.<action>[.<qualifier>]' or '*'.");
         }
 
-        value = raw.Trim().ToLowerInvariant();
+        Value = raw.Trim().ToLowerInvariant();
     }
 
     /// <summary>Returns the lowercased permission string.</summary>
-    public override string ToString() { return value; }
+    public override string ToString() { return Value; }
 
     /// <summary>True when this permission is the super-admin wildcard.</summary>
     public bool IsSuperAdmin()
     {
-        return StringComparer.Ordinal.Equals(value, SuperAdmin);
+        return StringComparer.Ordinal.Equals(Value, SuperAdmin);
     }
 
     /// <summary>True when <paramref name="raw" /> matches the permission
     /// format (<c>&lt;service&gt;.&lt;resource&gt;.&lt;action&gt;[.&lt;qualifier&gt;]</c>
-///     or the literal <c>*</c>).</summary>
+    ///     or the literal <c>*</c>).</summary>
     /// <param name="raw">Candidate permission string.</param>
     public static bool IsWellFormed(string raw)
     {
@@ -86,14 +78,14 @@ public sealed class PermissionScope : IEquatable<PermissionScope>
         }
 
         // At least one dot; no whitespace; chars in [a-z0-9._*]
-        if (!trimmed.Contains('.'))
+        if (!trimmed.Contains('.', StringComparison.Ordinal))
         {
             return false;
         }
 
         foreach (var ch in trimmed)
         {
-            if (!char.IsLetterOrDigit(ch) && ch is not '.' && ch is not '_' && ch is not '*')
+            if (!char.IsLetterOrDigit(ch) && ch is not '.' and not '_' and not '*')
             {
                 return false;
             }
@@ -103,12 +95,14 @@ public sealed class PermissionScope : IEquatable<PermissionScope>
     }
 
     /// <summary>Equality compares the lowercased permission string.</summary>
+    /// <param name="other"></param>
     public bool Equals(PermissionScope? other)
     {
-        return other is not null && StringComparer.Ordinal.Equals(value, other.value);
+        return other is not null && StringComparer.Ordinal.Equals(Value, other.Value);
     }
 
     /// <summary>Equality compares the lowercased permission string.</summary>
+    /// <param name="obj"></param>
     public override bool Equals(object? obj)
     {
         return obj is PermissionScope other && Equals(other);
@@ -117,6 +111,6 @@ public sealed class PermissionScope : IEquatable<PermissionScope>
     /// <summary>Hash code derived from the lowercased permission string.</summary>
     public override int GetHashCode()
     {
-        return StringComparer.Ordinal.GetHashCode(value);
+        return StringComparer.Ordinal.GetHashCode(Value);
     }
 }

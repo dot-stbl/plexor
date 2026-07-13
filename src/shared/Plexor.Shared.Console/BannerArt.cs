@@ -91,6 +91,8 @@ public static class BannerArt
     ///     is clamped to [0, 1]. The string contains exactly
     ///     <paramref name="width" /> characters.
     /// </summary>
+    /// <param name="fraction"></param>
+    /// <param name="width"></param>
     public static string ProgressBar(double fraction, int width)
     {
         if (width <= 0)
@@ -99,7 +101,7 @@ public static class BannerArt
         }
 
         var clamped = Math.Clamp(fraction, 0.0, 1.0);
-        var filledWidth = (int)Math.Round(clamped * width);
+        var filledWidth = (int)Math.Round(clamped * width, MidpointRounding.ToEven);
         var emptyWidth = width - filledWidth;
         return new string(ProgressFull[0], filledWidth) + new string(ProgressEmpty[0], emptyWidth);
     }
@@ -112,6 +114,10 @@ public static class BannerArt
     ///     sections are separated by blank lines. Returns markup
     ///     (consume with <c>AnsiConsole.MarkupLine</c>).
     /// </summary>
+    /// <param name="toolName"></param>
+    /// <param name="version"></param>
+    /// <param name="tagline"></param>
+    /// <param name="commands"></param>
     public static string FullHelpBanner(
         string toolName,
         string version,
@@ -188,6 +194,9 @@ public static class BannerArt
     ///     invocations. Logo glyph + tagline joined with separators.
     ///     Returns markup (consume with <c>AnsiConsole.MarkupLine</c>).
     /// </summary>
+    /// <param name="toolName"></param>
+    /// <param name="version"></param>
+    /// <param name="tagline"></param>
     public static string CompactMark(string toolName, string version, string tagline)
     {
         var muted = ColorPalette.Muted.ToMarkup();
@@ -205,6 +214,7 @@ public static class BannerArt
     ///     <c>▓</c> dark purple, <c>█</c> near-black core. Spaces are
     ///     left uncolored (transparent background).
     /// </summary>
+    /// <param name="line"></param>
     private static string ColorizeLogoLine(string line)
     {
         var sb = new StringBuilder(line.Length + 64);
@@ -252,40 +262,12 @@ public static class BannerArt
     }
 
     /// <summary>
-    ///     Append a single line of text inside the boxed
-    ///     banner. Left-aligned, padded to the inner width.
-    /// </summary>
-    private static void AppendBoxedLine(StringBuilder sb, int totalWidth, string text)
-    {
-        var innerWidth = totalWidth - 2;
-        var display = text.Length > innerWidth ? text[..innerWidth] : text;
-        var padding = innerWidth - display.Length;
-        sb.Append(Box.Vertical)
-                .Append(display)
-                .Append(' ', padding)
-                .AppendLine(Box.Vertical);
-    }
-
-    /// <summary>
-    ///     Pad a line to the given width (right-side
-    ///     padding). Truncates if the line is longer than
-    ///     <paramref name="width" />.
-    /// </summary>
-    private static string PadLine(string text, int width)
-    {
-        if (text.Length > width)
-        {
-            return text[..width];
-        }
-
-        return text + new string(' ', width - text.Length);
-    }
-
-    /// <summary>
     ///     Center a line within the given width by adding
     ///     equal padding on both sides. Truncates if the line is
     ///     longer than the width.
     /// </summary>
+    /// <param name="text"></param>
+    /// <param name="width"></param>
     private static string CenterLine(string text, int width)
     {
         if (text.Length >= width)
@@ -435,6 +417,9 @@ public sealed record CommandSpec(
     ///     Convenience constructor for commands without
     ///     aliases.
     /// </summary>
+    /// <param name="icon"></param>
+    /// <param name="name"></param>
+    /// <param name="description"></param>
     public CommandSpec(string icon, string name, string? description)
             : this(icon, name, description, []) { }
 }

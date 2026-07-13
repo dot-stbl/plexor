@@ -18,6 +18,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     <see cref="IPasswordHasher" /> backed by .NET's built-in
 ///     <see cref="PasswordHasher{TUser}" />.
 /// </summary>
+/// <param name="inner"></param>
 /// <remarks>
 ///     <para><b>Algorithm.</b> PBKDF2-HMAC-SHA256 with 100,000
 ///     iterations, 16-byte salt, 32-byte subkey. The

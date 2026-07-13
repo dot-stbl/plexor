@@ -56,10 +56,7 @@ public static class PlexorPersistenceServiceCollectionExtensions
         services.AddDbContext<TContext>((sp, options) =>
         {
             options.UseNpgsql(connectionString,
-                npg =>
-                {
-                    npg.MigrationsAssembly(typeof(TContext).Assembly.GetName().Name);
-                });
+                npg => npg.MigrationsAssembly(typeof(TContext).Assembly.GetName().Name));
 
             // snake_case naming convention (column + table). Runtime safety-net;
             // design-time correctness is enforced via HasColumnName("snake_case")
@@ -88,6 +85,7 @@ public static class PlexorPersistenceServiceCollectionExtensions
     ///     same string is used for every discovered context — no per-module
     ///     config keys.</param>
     /// <returns>Number of contexts registered (diagnostic).</returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public static int AddPlexorModuleDbContexts(
         this IServiceCollection services,
         string connectionString)

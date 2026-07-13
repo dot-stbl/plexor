@@ -73,16 +73,16 @@ public sealed class PlexorConsoleFormatter : ConsoleFormatter
         var message = Markup.Escape(logEntry.Formatter(logEntry.State, logEntry.Exception));
 
         var sb = new System.Text.StringBuilder(96);
-        sb.Append("[grey]").Append(timestamp).Append("[/] ");
-        sb.Append(levelMarkup).Append('[').Append(LevelText(logEntry.LogLevel)).Append(']').Append("[/] ");
-        sb.Append("[white]{").Append(category).Append("}[/]: ");
-        sb.Append(message);
+        sb.Append("[grey]").Append(timestamp).Append("[/] ")
+            .Append(levelMarkup).Append('[').Append(LevelText(logEntry.LogLevel)).Append(']').Append("[/] ")
+            .Append("[white]{").Append(category).Append("}[/]: ")
+            .Append(message);
 
         if (logEntry.Exception is { } ex)
         {
-            sb.AppendLine();
-            sb.Append("    [red dim]").Append(Markup.Escape(ex.GetType().Name)).Append("[/]");
-            sb.Append(": [grey]").Append(Markup.Escape(ex.Message)).Append("[/]");
+            sb.AppendLine()
+                .Append("    [red dim]").Append(Markup.Escape(ex.GetType().Name)).Append("[/]")
+                .Append(": [grey]").Append(Markup.Escape(ex.Message)).Append("[/]");
         }
 
         return sb.ToString();
@@ -104,6 +104,7 @@ public sealed class PlexorConsoleFormatter : ConsoleFormatter
     }
 
     /// <summary>Spectre markup for the level tag.</summary>
+    /// <param name="level"></param>
     private static string ColorFor(LogLevel level)
     {
         return level switch

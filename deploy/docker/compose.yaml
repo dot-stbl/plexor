@@ -1,0 +1,64 @@
+# Plexor dev stack — local Docker Compose.
+#
+# Brings up Postgres + Plexor.Migrator + Plexor.Host on the project's
+# reserved port range 47000-47200:
+#   - postgres:  47100 -> 5432
+#   - host (api): 47101 -> 8080
+#
+# Usage:
+#   cd deploy/docker
+#   docker compose up --build
+#   # wait ~30s for migrator to finish, then host is up
+#   curl http://localhost:47101/health
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: plexor-postgres
+    ports:
+      - "47100:5432"
+    environment:
+      POSTGRES_USER: plexor
+      POSTGRES_PASSWORD: plexor
+      POSTGRES_DB: plexor
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plexor -d plexor"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  migrator:
+    build:
+      context: ../..
+      dockerfile: src/host/Plexor.Migrator/Dockerfile
+    container_name: plexor-migrator
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Postgres: "Host=postgres;Database=plexor;Username=plexor;Password=plexor"
+      DOTNET_ENVIRONMENT: Production
+    restart: "no"
+    command: ["migrate"]
+
+  host:
+    build:
+      context: ../..
+      dockerfile: src/host/Plexor.Host/Dockerfile
+    container_name: plexor-host
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    ports:
+      - "47101:8080"
+    environment:
+      ConnectionStrings__Postgres: "Host=postgres;Database=plexor;Username=plexor;Password=plexor"
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: "http://+:8080"
+
+volumes:
+  postgres-data:

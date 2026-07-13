@@ -35,6 +35,8 @@ internal sealed class CommandDispatcher
     ///     values throw at startup — the dispatch table must be a
     ///     function from type to executor.
     /// </summary>
+    /// <param name="executors"></param>
+    /// <param name="logger"></param>
     public CommandDispatcher(
         IEnumerable<ICommandExecutor> executors,
         ILogger<CommandDispatcher> logger)
@@ -46,7 +48,7 @@ internal sealed class CommandDispatcher
             if (!byType.TryAdd(executor.Type, executor))
             {
                 throw new InvalidOperationException(
-                    $"CommandDispatcher: duplicate executor for type " +
+                    "CommandDispatcher: duplicate executor for type " +
                     $"'{executor.Type}' (existing: {byType[executor.Type].GetType().Name}, " +
                     $"new: {executor.GetType().Name}).");
             }
@@ -63,6 +65,8 @@ internal sealed class CommandDispatcher
     ///     becomes a <see cref="CommandResultStatus.Failed" />
     ///     result so the host can see the failure cleanly.
     /// </summary>
+    /// <param name="envelope"></param>
+    /// <param name="cancellationToken"></param>
     public async Task<CommandResult> DispatchAsync(
         CommandEnvelope envelope,
         CancellationToken cancellationToken)
@@ -104,6 +108,8 @@ internal sealed class CommandDispatcher
     ///     Construct a failed <see cref="CommandResult" />
     ///     for the given envelope.
     /// </summary>
+    /// <param name="envelope"></param>
+    /// <param name="error"></param>
     private static CommandResult Failed(CommandEnvelope envelope, string error)
     {
         return new CommandResult(

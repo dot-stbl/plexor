@@ -93,7 +93,7 @@ public sealed class FilterLexerTests
         // NOT parsed as quoted strings here.
         var tokens = FilterLexer.Tokenize("name=='John Doe'");
 
-        tokens.ShouldNotContain(t => t.Kind == FilterTokenKind.StringValue);
+        tokens.ShouldNotContain(static t => t.Kind == FilterTokenKind.StringValue);
     }
 
     [Fact(DisplayName = "Tokenize null-check operator: deletedAt?")]
@@ -135,7 +135,7 @@ public sealed class FilterLexerTests
     public void Lexer_UnbalancedDoubleQuote_Throws()
     {
         Should.Throw<FilterParseException>(
-            () => FilterLexer.Tokenize("name==\"unterminated"));
+            static () => FilterLexer.Tokenize("name==\"unterminated"));
     }
 
     [Fact(DisplayName = "Each non-end token records source position")]

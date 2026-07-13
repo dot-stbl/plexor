@@ -29,6 +29,7 @@ namespace Plexor.NodeAgent.Providers;
 ///     <see cref="IWorkloadProvider" /> for KVM VMs via libvirt. v0.1
 ///     uses the <c>virsh</c> CLI; future v0.2+ uses LibvirtClient.
 /// </summary>
+/// <param name="logger"></param>
 /// <remarks>
 ///     Build a provider that talks to the local
 ///     libvirt system instance via KVM.
@@ -164,6 +165,8 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
     ///     the given id with the given startedAt timestamp. Helper
     ///     used by start/stop/delete to return a value to the agent.
     /// </summary>
+    /// <param name="id"></param>
+    /// <param name="startedAt"></param>
     private LocalWorkload Snapshot(Guid id, DateTimeOffset? startedAt)
     {
         var entry = workloads.GetOrThrow(id);
@@ -183,6 +186,8 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
     ///     <see cref="WorkloadSpec.Config" /> (opaque JSON the
     ///     provider owns).
     /// </summary>
+    /// <param name="spec"></param>
+    /// <param name="id"></param>
     private static string BuildDomainXml(WorkloadSpec spec, Guid id)
     {
         // The spec is opaque to us; we read what we know and
@@ -271,6 +276,9 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
     ///     control plane doesn't supply a value, so the agent stays
     ///     functional even with empty Config.
     /// </summary>
+    /// <param name="RamBytes"></param>
+    /// <param name="CpuCores"></param>
+    /// <param name="NetworkName"></param>
     private sealed record LibvirtKvmConfig(
         long RamBytes = 1L * 1024 * 1024 * 1024,
         int CpuCores = 2,

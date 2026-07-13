@@ -194,6 +194,7 @@ file sealed class ParserState(IReadOnlyList<FilterToken> tokens, int maxParenDep
     ///     <see cref="FunctionValue" />. The translator evaluates it (e.g. to
     ///     DateTimeOffset).
     /// </summary>
+    /// <exception cref="FilterParseException"></exception>
     private FunctionValue ReadFunctionCallValue()
     {
         var functionToken = Consume(); // 'now'

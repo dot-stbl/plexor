@@ -26,6 +26,7 @@ internal sealed class VersionCommand : Command
     ///     Exit successfully. The banner was printed by the
     ///     builder; nothing else to do.
     /// </summary>
+    /// <param name="context"></param>
     public override int Execute(CommandContext context)
     {
         return 0;

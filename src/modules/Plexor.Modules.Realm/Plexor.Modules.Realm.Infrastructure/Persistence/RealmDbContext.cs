@@ -15,23 +15,18 @@ namespace Plexor.Modules.Realm.Infrastructure.Persistence;
 
 #pragma warning disable CS1591 // XML doc — see DbContext.Set<T>() for usage
 
-public sealed class RealmDbContext : PlexorDbContext
+public sealed class RealmDbContext(DbContextOptions<RealmDbContext> options) : PlexorDbContext(options)
 {
-    public RealmDbContext(DbContextOptions<RealmDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<Team> Teams => Set<Team>();
     public DbSet<Folder> Folders => Set<Folder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema(DatabaseInformation.Schemes.Realm);
-        modelBuilder.ApplyConfiguration(new OrganizationConfiguration());
-        modelBuilder.ApplyConfiguration(new TeamConfiguration());
-        modelBuilder.ApplyConfiguration(new FolderConfiguration());
+        modelBuilder.HasDefaultSchema(DatabaseInformation.Schemes.Realm)
+            .ApplyConfiguration(new OrganizationConfiguration())
+            .ApplyConfiguration(new TeamConfiguration())
+            .ApplyConfiguration(new FolderConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

@@ -5,26 +5,24 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
-    <!-- Tier: production — KVM is the production default for compute. -->
     <Tier>production</Tier>
-    <!-- Primitive: heavy-VM, full hardware virtualization. -->
-    <ProviderPrimitive>vm-heavy</ProviderPrimitive>
+    <ProviderPrimitive>cluster-orchestrator</ProviderPrimitive>
   </PropertyGroup>
 
   <!--
-    Plexor.Providers.Compute.Kvm — Linux kernel hypervisor via libvirt/QEMU.
-    Production default for bare-metal compute. Supports live-migration,
-    snapshots, console, cloud-init, hot-resize.
+    Plexor.Providers.Orchestrator.K3s — K3s as the cluster orchestrator.
+    Lightweight Kubernetes (single binary, ~200 MB). Single-node SQLite
+    default, PostgreSQL backing for HA. Replaces upstream K8s for edge
+    and small-cluster deployments where simplicity > scalability.
 
-    Runs on Plexor.NodeAgent on each compute node. Talks to local libvirtd
-    over Unix socket or qemu+tcp with mTLS.
+    Companion: Plexor.Providers.Orchestrator.K0s (alternative, similar profile).
   -->
 
   <ItemGroup>
     <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
     <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
-    <ProjectReference Include="..\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
+    <ProjectReference Include="..\..\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
   </ItemGroup>
 
 </Project>

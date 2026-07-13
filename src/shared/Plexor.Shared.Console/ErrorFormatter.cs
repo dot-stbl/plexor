@@ -38,12 +38,16 @@ public static class ErrorFormatter
     ///     the main message; <paramref name="because" /> is the
     ///     optional detail that comes after the separator.
     /// </summary>
+    /// <param name="primary"></param>
+    /// <param name="because"></param>
     public static string Error(string primary, string? because = null)
     {
         return Render(ColorPalette.Error, "err", primary, because);
     }
 
     /// <summary>Format a warning.</summary>
+    /// <param name="primary"></param>
+    /// <param name="because"></param>
     public static string Warn(string primary, string? because = null)
     {
         return Render(ColorPalette.Warn, "warn", primary, because);
@@ -54,12 +58,16 @@ public static class ErrorFormatter
     ///     just print the result, but some workflows benefit from a
     ///     one-line "ok" stamp).
     /// </summary>
+    /// <param name="primary"></param>
+    /// <param name="because"></param>
     public static string Ok(string primary, string? because = null)
     {
         return Render(ColorPalette.Ok, "ok", primary, because);
     }
 
     /// <summary>Format an informational note (no severity).</summary>
+    /// <param name="primary"></param>
+    /// <param name="because"></param>
     public static string Info(string primary, string? because = null)
     {
         return Render(ColorPalette.Idle, "info", primary, because);

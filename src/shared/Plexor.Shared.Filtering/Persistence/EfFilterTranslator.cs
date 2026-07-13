@@ -23,6 +23,7 @@ internal sealed class EfFilterTranslator<TEntity>(FilterableFieldSet<TEntity> fi
     /// </summary>
     /// <param name="node"></param>
     /// <param name="parameter"></param>
+    /// <exception cref="NotSupportedException"></exception>
     public Expression Translate(FilterNode node, ParameterExpression parameter)
     {
         return node switch
@@ -99,6 +100,10 @@ internal sealed class EfFilterTranslator<TEntity>(FilterableFieldSet<TEntity> fi
     ///     type conversion to <see cref="FilterValueConverter" /> and function
     ///     evaluation to <see cref="FilterFunctionEvaluator" />.
     /// </summary>
+    /// <param name="cmp"></param>
+    /// <param name="field"></param>
+    /// <param name="valueKind"></param>
+    /// <exception cref="NotSupportedException"></exception>
     private static object? ConvertValue(
         ComparisonNode cmp,
         FilterableField<TEntity> field,
