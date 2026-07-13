@@ -142,6 +142,59 @@ public sealed class BearerAuthenticationHandlerShould
         result.Principal.Identity.AuthenticationType.ShouldBe(BearerOptions.SchemeName);
     }
 
+    /// <summary>Verifies that iat/exp claims from a successful JWT are
+    /// surfaced on AuthenticationProperties.IssuedUtc / ExpiresUtc.</summary>
+    [Fact(DisplayName = "Given JWT with iat and exp claims, when authenticating, then AuthenticationProperties carries issued and expires instants")]
+    public async Task ValidJwtSurfacesIssuedAndExpiresUtc()
+    {
+        var issuedEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var expiresEpoch = issuedEpoch + 900; // 15-minute lifetime, matches IJwtSigningService.AccessTokenLifetime
+        var identity = new ClaimsIdentity(
+            [
+                new Claim("iat", issuedEpoch.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                new Claim("exp", expiresEpoch.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+            ],
+            BearerOptions.SchemeName);
+        var principal = new ClaimsPrincipal(identity);
+
+        var signing = Substitute.For<IJwtSigningService>();
+        signing.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new VerifyResult.Success(principal));
+
+        var context = new DefaultHttpContext();
+        context.Request.Headers.Authorization = "Bearer eyJhbGc.payload.sig";
+        var handler = await BuildHandlerAsync(context, signing);
+
+        var result = await handler.AuthenticateAsync();
+
+        result.Succeeded.ShouldBeTrue();
+        result.Properties.ShouldNotBeNull();
+        result.Properties!.IssuedUtc.ShouldBe(DateTimeOffset.FromUnixTimeSeconds(issuedEpoch));
+        result.Properties.ExpiresUtc.ShouldBe(DateTimeOffset.FromUnixTimeSeconds(expiresEpoch));
+    }
+
+    /// <summary>Verifies that an Authorization header with multiple
+    /// values does not silently splice them together — the first value
+    /// is treated as the only one and any subsequent values are ignored.</summary>
+    [Fact(DisplayName = "Given multi-valued Authorization header, when authenticating, then only the first value is considered")]
+    public async Task MultiValuedAuthorizationHeaderUsesFirstValueOnly()
+    {
+        var signing = Substitute.For<IJwtSigningService>();
+        signing.VerifyAsync("only-this-token", Arg.Any<CancellationToken>())
+            .Returns(new VerifyResult.Invalid("ignored"));
+
+        var context = new DefaultHttpContext();
+        // Two Authorization headers, comma-joined value: must use only the first.
+        context.Request.Headers.Append("Authorization", "Bearer only-this-token");
+        context.Request.Headers.Append("Authorization", "Bearer should-be-ignored");
+        var handler = await BuildHandlerAsync(context, signing);
+
+        var result = await handler.AuthenticateAsync();
+
+        await signing.Received(1).VerifyAsync("only-this-token", Arg.Any<CancellationToken>());
+        result.Failure!.Message.ShouldBe("ignored");
+    }
+
     /// <summary>Verifies that a challenge writes the standard
     /// <c>WWW-Authenticate: Bearer realm="plexor"</c> header and 401 status.</summary>
     [Fact(DisplayName = "Given no auth on a protected endpoint, when challenging, then writes WWW-Authenticate header")]
