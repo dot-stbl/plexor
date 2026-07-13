@@ -89,7 +89,7 @@ public sealed class ChangePasswordCommandHandler(
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(u => u.PasswordHash, newHash)
-                    .SetProperty(u => u.MustChangePassword, false)
+                    .SetProperty(u => u.PasswordChangedAt, (DateTimeOffset?)now)
                     .SetProperty(u => u.UpdatedAt, now),
                 cancellationToken);
 

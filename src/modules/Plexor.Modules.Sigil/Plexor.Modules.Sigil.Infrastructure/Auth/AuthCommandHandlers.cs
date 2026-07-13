@@ -87,10 +87,10 @@ public sealed class LoginCommandHandler(
 
         // First-login password rotation: issue a short-lived token
         // whose only permission is iam.users.change-own-password, and
-        // hand back NO refresh token. Until MustChangePassword is
-        // cleared via POST /iam/users/{userId}/password, no other
+        // hand back NO refresh token. Until PasswordChangedAt is
+        // stamped (via POST /iam/users/{userId}/password), no other
         // endpoint will admit the caller's bearer.
-        if (user.MustChangePassword)
+        if (user.PasswordChangedAt is null)
         {
             var passwordChangeAccess = await tokenIssuer.IssueWithOverrideAsync(
                 user.Id,

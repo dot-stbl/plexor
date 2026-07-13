@@ -20,10 +20,13 @@ public static class PlexorPermissions
     /// <summary>
     ///     <c>iam.users.change-own-password</c> — the only permission
     ///     baked into the short-lived access token issued to a user
-    ///     whose <see cref="Domain.Entities.User.MustChangePassword" />
-    ///     flag is true. The user can hit
-    ///     <c>POST /iam/users/{userId}/password</c> (and that's it)
-    ///     until the flag is cleared by a successful password change.
+    ///     whose <see cref="Domain.Entities.User.PasswordChangedAt" />
+    ///     timestamp is <c>null</c> (the bootstrap admin before the
+    ///     first rotation, or any future "admin invites a user" flow
+    ///     where the new user is sent an initial password). The user
+    ///     can hit <c>POST /iam/users/{userId}/password</c> (and
+    ///     nothing else) until the handler sets
+    ///     <c>PasswordChangedAt = UtcNow</c> on success.
     /// </summary>
     public const string UsersChangeOwnPassword = "iam.users.change-own-password";
 }

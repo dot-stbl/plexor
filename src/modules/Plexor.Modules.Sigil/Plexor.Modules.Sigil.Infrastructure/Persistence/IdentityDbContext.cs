@@ -115,10 +115,8 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("updated_at")
             .IsRequired();
 
-        builder.Property(static user => user.MustChangePassword)
-            .HasColumnName("must_change_password")
-            .HasDefaultValue(false)
-            .IsRequired();
+        builder.Property(static user => user.PasswordChangedAt)
+            .HasColumnName("password_changed_at");
 
         // Email is unique per organization (cross-org users are Phase 2).
         builder.HasIndex(static user => new { user.OrgId, user.Email })

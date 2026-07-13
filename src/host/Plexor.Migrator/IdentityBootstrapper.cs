@@ -32,8 +32,9 @@ namespace Plexor.Migrator;
 ///       represented by a single sentinel string <c>*</c>) and
 ///       <c>viewer</c> (no permissions yet).</item>
 ///       <item>One user <c>admin@plexor.local</c> bound to the
-///       <c>admin</c> role, with <c>MustChangePassword = true</c> so
-///       the operator's first login forces a rotation.</item>
+///       <c>admin</c> role, with <c>PasswordChangedAt = null</c> so
+///       the operator's first login detects the unset timestamp
+///       and forces a rotation.</item>
 ///     </list></para>
 ///     <para><b>Org placeholder.</b> Phase 4's
 ///     <c>CreateUserRequest</c> requires an <c>OrgId</c> — the seed
@@ -162,7 +163,7 @@ internal sealed class IdentityBootstrapper(
                 FailedLoginCount = 0,
                 LockedUntil = null,
                 LastLoginAt = null,
-                MustChangePassword = true,
+                PasswordChangedAt = (DateTimeOffset?)null,
                 CreatedAt = now,
                 UpdatedAt = now,
             };
@@ -186,7 +187,7 @@ internal sealed class IdentityBootstrapper(
 
             logger.LogInformation(
                 "IdentityBootstrapper: seeded initial admin user {Email} for org {OrgId}. " +
-                "MustChangePassword = true — operator must rotate on first login.",
+                "PasswordChangedAt = null — operator must rotate on first login.",
                 InitialAdminEmail,
                 orgId);
         }
