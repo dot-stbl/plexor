@@ -9,10 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ardalis.Specification" Version="9.3.1" />
-    <PackageReference Include="Collections.Pooled.V2" Version="2.3.1" />
-    <PackageReference Include="Linq.Extras" Version="5.0.0" />
-    <PackageReference Include="ZLinq" Version="1.5.4" />
+    <PackageReference Include="Ardalis.Specification" Version="9.3.1"/>
+    <PackageReference Include="Collections.Pooled.V2" Version="2.3.1"/>
+    <PackageReference Include="Linq.Extras" Version="5.0.0"/>
+    <PackageReference Include="ZLinq" Version="1.5.4"/>
   </ItemGroup>
 
 </Project>

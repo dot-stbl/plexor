@@ -46,7 +46,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "inline-flex h-7 w-fit items-center gap-1.5 rounded-md border border-input bg-input/20 px-2 text-xs/relaxed whitespace-nowrap transition-colors outline-none",
+        "flex h-7 w-full items-center justify-between gap-1.5 rounded-md border border-input bg-input/20 px-2 text-xs/relaxed whitespace-nowrap transition-colors outline-none",
         "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20",
@@ -60,7 +60,7 @@ function SelectTrigger({
       {children}
       <SelectPrimitive.Icon
         render={
-          <CaretDown className="pointer-events-none size-3.5 text-muted-foreground" />
+          <CaretDown className="pointer-events-none size-3.5 shrink-0 text-muted-foreground" />
         }
       />
     </SelectPrimitive.Trigger>

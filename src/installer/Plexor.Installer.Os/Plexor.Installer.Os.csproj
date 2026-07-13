@@ -19,8 +19,8 @@
   -->
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
-    <ProjectReference Include="..\Plexor.Installer.Engine\Plexor.Installer.Engine.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\Plexor.Installer.Engine\Plexor.Installer.Engine.csproj"/>
   </ItemGroup>
 
 </Project>

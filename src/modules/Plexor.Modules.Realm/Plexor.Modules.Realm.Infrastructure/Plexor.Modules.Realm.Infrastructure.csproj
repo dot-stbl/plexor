@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\Plexor.Modules.Realm.Domain\Plexor.Modules.Realm.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

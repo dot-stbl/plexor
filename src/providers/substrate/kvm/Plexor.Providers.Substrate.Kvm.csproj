@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <!-- Tier: production — KVM is the production default for compute. -->
+    <Tier>production</Tier>
+    <!-- Primitive: heavy-VM, full hardware virtualization. -->
+    <ProviderPrimitive>vm-heavy</ProviderPrimitive>
+  </PropertyGroup>
+
+  <!--
+    Plexor.Providers.Compute.Kvm — Linux kernel hypervisor via libvirt/QEMU.
+    Production default for bare-metal compute. Supports live-migration,
+    snapshots, console, cloud-init, hot-resize.
+
+    Runs on Plexor.NodeAgent on each compute node. Talks to local libvirtd
+    over Unix socket or qemu+tcp with mTLS.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\..\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -53,11 +53,22 @@ public sealed class FuturesRecordController(IFuturesQueryService futuresQuerySer
 - **4xx/5xx errors** (400, 404, 409, 422, 500, 503): **глобально** через
   `builder.Services.AddProblemDetails()` в `Program.cs` — **не нужно**
   ставить атрибут на каждый action.
+- **OpenAPI document**: `AddProblemDetails()` alone writes the body at
+  runtime but doesn't document the responses. Wire an
+  `IOpenApiOperationTransformer` (e.g.
+  `ProblemDetailsResponsesTransformer` in this repo) into
+  `AddOpenApi(options => options.AddOperationTransformer<...>())` so
+  the spec advertises the same 4xx/5xx PD shapes the wire format
+  emits. Standard set: 400 (ValidationProblemDetails), 404, 409, 500
+  (ProblemDetails); plus 401 / 403 when the endpoint has
+  `[Authorize]`. Per-endpoint `[ProducesResponseType]` always wins —
+  the transformer only fills missing slots, never overwrites.
 - **Override per-endpoint** — только когда error имеет специфическую форму
   (например, `409 Conflict` с machine-readable `code`).
 
 ```csharp
-// ✅ Correct — 200 обязателен, 4xx/5xx глобально
+// ✅ Correct — 200 обязателен, 4xx/5xx глобально через AddProblemDetails +
+// IOpenApiOperationTransformer (см. Plexor.Host.OpenApi.ProblemDetailsResponsesTransformer)
 [HttpGet("{userId:guid}")]
 [EndpointName("users-get-by-id")]
 [ProducesResponseType<UserModel>(StatusCodes.Status200OK)]
@@ -222,6 +233,71 @@ return Created($"/api/v1/tasks/{task.Id}", task);
 // ❌ void/ничего-не-возвращает action — ASP.NET Core всё равно ждёт ActionResult
 public async Task DeleteAsync(Guid id) { ... }
 ```
+
+---
+
+## 11. API versioning — URL-prefix для v0.1
+
+Версия — сегмент URL. Single source of truth =
+`Plexor.Shared.Contracts.Routes.ApiRoutes`. Каждый контроллер
+композит `[Route]` через эту константу:
+
+```csharp
+[ApiController]
+[Route($"{ApiRoutes.Base}/nodes")]   // → /api/v1/nodes
+public sealed class NodeController : ControllerBase
+{ ... }
+```
+
+`Base` определён один раз:
+```csharp
+public const string ApiVersion = "v1";
+public const string Base = "api/" + ApiVersion;   // const expression
+```
+
+Bump версии = поменять одну константу в `ApiRoutes.cs`. Каждый
+контроллер в solution автоматически получает новый prefix.
+
+### Почему URL-prefix (а не header / attribute-based)
+
+- Одна константа = один bump. Новый controller для v2 = новый
+  class на `${ApiRoutes.Base}/v2/...` (или новый `Base` для v2).
+  Не нужно забывать `[ApiVersion("2.0")]` attribute на каждом
+  классе.
+- v0.1 имеет ровно одно поколение. Sub-versioning
+  ([ApiVersion] attribute) — это v0.2+ concern, когда
+  сосуществующие поколения станут реальной вещью.
+
+### Antipatterns
+
+- ❌ **Hardcoded `"api/v1"` в `[Route]`** — обходит константу,
+  ломает v2 bump. Используй `${ApiRoutes.Base}/...`.
+- ❌ **`ApiRoutes.Resource(name)` в `[Route]`** — `Resource` это
+  method, не const. Attribute arguments требуют const
+  expressions. Композь через `$"..."`, ссылаясь на
+  `ApiRoutes.Base` (a const).
+- ❌ **Два контроллера на одном route** — ambiguous routing. v2
+  controller идёт на другой `Base`, не на тот же route под
+  другим attribute.
+
+### Self-audit grep
+
+```bash
+# Hardcoded "api/v" в [Route] — должно быть пусто
+rg -n '\[Route\("api/v' src/ --type cs
+
+# Resource method в attribute (не const) — должно быть пусто
+rg -n '\[Route\(ApiRoutes\.Resource' src/ --type cs
+```
+
+### Когда переключаться на attribute-based sub-versioning
+
+- Два поколения API должны сосуществовать в одном deployment
+  (редко — наш deployment model = один host per generation).
+- Frontend должен вызывать v1 и v2 endpoints в одной сессии
+  (deprecation period).
+- Sub-granularity версии (v1.1, v1.2) внутри major — используй
+  `[ApiVersion("1.1")]` параллельно с URL v1.
 
 ---
 

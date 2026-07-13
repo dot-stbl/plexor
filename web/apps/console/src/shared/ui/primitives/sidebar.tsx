@@ -2,6 +2,7 @@ import * as React from "react"
 import { mergeProps } from "@base-ui/react/merge-props"
 import { useRender } from "@base-ui/react/use-render"
 import { cva, type VariantProps } from "class-variance-authority"
+import { useLocalStorage } from "@uidotdev/usehooks"
 
 import { useIsMobile } from "@/shared/lib/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -24,7 +25,6 @@ import {
 import { Sidebar as SidebarIcon } from '@phosphor-icons/react'
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
@@ -67,10 +67,16 @@ function SidebarProvider({
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
 
-  // This is the internal state of the sidebar.
-  // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(defaultOpen)
-  const open = openProp ?? _open
+  // Persist the sidebar's expanded/collapsed state across reloads.
+  // The shadcn default uses a cookie, but in a SPA with a long-lived tab
+  // localStorage is simpler and survives across subdomains.
+  const [stored, setStored] = useLocalStorage<boolean>(
+    SIDEBAR_COOKIE_NAME,
+    defaultOpen,
+  )
+  const [_open, _setOpen] = React.useState<boolean>(defaultOpen)
+  // After hydration, the stored value wins.
+  const open = openProp ?? stored ?? _open
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value
@@ -78,12 +84,10 @@ function SidebarProvider({
         setOpenProp(openState)
       } else {
         _setOpen(openState)
+        setStored(openState)
       }
-
-      // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
     },
-    [setOpenProp, open]
+    [setOpenProp, open, setStored]
   )
 
   // Helper to toggle the sidebar.

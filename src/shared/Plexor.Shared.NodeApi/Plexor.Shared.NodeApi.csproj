@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <!--
+      Wire-format DTOs between Plexor.Host (control plane) and
+      Plexor.NodeAgent (worker on every compute node). Records are
+      AOT-friendly (no reflection-based serialization). System.Text.Json
+      source generators on each side keep the payload contract in sync
+      with contracts/plexor.openapi.yaml.
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+  </ItemGroup>
+
+</Project>

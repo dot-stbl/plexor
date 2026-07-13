@@ -16,6 +16,8 @@ servers:
 tags:
   - name: vms
     description: Virtual machines
+  - name: nodes
+    description: Compute nodes (Plexor.NodeAgent hosts)
 
 paths:
   /vms:
@@ -134,10 +136,115 @@ paths:
         default:
           $ref: '#/components/responses/Problem'
 
+  /nodes/join:
+    parameters: []
+    post:
+      operationId: nodeJoin
+      tags: [nodes]
+      summary: Register a compute node with the control plane
+      description: >
+        First message the agent sends. Returns the canonical NodeId
+        and the URL the agent should call back to. The join token
+        is not verified in v0.1 (every join gets a fresh Guid);
+        verification lands with the auth iteration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NodeJoinRequest' }
+      responses:
+        '201':
+          description: Registered. Body carries the NodeId and URL.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NodeJoinResponse' }
+        '400':
+          $ref: '#/components/responses/Problem'
+
+  /nodes/{nodeId}/heartbeat:
+    parameters:
+      - $ref: '#/components/parameters/NodeId'
+    post:
+      operationId: nodeHeartbeat
+      tags: [nodes]
+      summary: Record liveness from a registered node
+      description: >
+        Called by the agent on a fixed interval (default 30s).
+        The control plane flips the node to Offline if it doesn't
+        see a heartbeat in three intervals. Idempotent and silently
+        ignored for unknown NodeIds in v0.1.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NodeHeartbeatRequest' }
+      responses:
+        '200':
+          description: Recorded. No body.
+        '400':
+          $ref: '#/components/responses/Problem'
+
+  /nodes/{nodeId}/commands/poll:
+    parameters:
+      - $ref: '#/components/parameters/NodeId'
+    post:
+      operationId: nodeCommandPoll
+      tags: [nodes]
+      summary: Dequeue any commands the control plane has for this node
+      description: >
+        Called by the agent on a fixed interval (default 5s). Returns
+        any commands newer than WaitCursor plus the new cursor.
+        The agent uses the returned NextCursor on the next poll.
+        v0.1 simplifies the cursor to a monotonic counter per node.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NodeCommandPollRequest' }
+      responses:
+        '200':
+          description: Any pending commands plus the new cursor.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NodeCommandPollResponse' }
+
+  /nodes/{nodeId}/commands/{commandId}/result:
+    parameters:
+      - $ref: '#/components/parameters/NodeId'
+      - $ref: '#/components/parameters/CommandId'
+    post:
+      operationId: nodeCommandResult
+      tags: [nodes]
+      summary: Report completion status for a previously-dequeued command
+      description: >
+        Called by the agent after it executes a command. The
+        control plane logs the result in v0.1; future iterations
+        route it to the audit module for persistence.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NodeCommandResult' }
+      responses:
+        '200':
+          description: Recorded. No body.
+        '400':
+          $ref: '#/components/responses/Problem'
+
 components:
   parameters:
     VmId:
       name: vmId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    NodeId:
+      name: nodeId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    CommandId:
+      name: commandId
       in: path
       required: true
       schema: { type: string, format: uuid }
@@ -241,3 +348,93 @@ components:
         status: { type: integer, example: 404 }
         detail: { type: string, example: VM not found. }
         instance: { type: string, nullable: true }
+
+    NodeHardware:
+      type: object
+      description: Hardware snapshot reported by the agent on join and on every heartbeat.
+      required: [cpuCores, ramBytes, diskBytes, hostname, kernelVersion]
+      properties:
+        cpuCores: { type: integer, minimum: 1, example: 4 }
+        ramBytes: { type: integer, format: int64, minimum: 1, example: 17179869184 }
+        diskBytes: { type: integer, format: int64, minimum: 1, example: 536870912000 }
+        hostname: { type: string, minLength: 1, example: node-prod-1 }
+        kernelVersion: { type: string, example: 6.5.0-plx }
+
+    NodeJoinRequest:
+      type: object
+      description: First message the agent sends. The join token is not yet verified.
+      required: [joinToken, hardware]
+      properties:
+        joinToken: { type: string, minLength: 1, example: pt_abc123 }
+        hardware: { $ref: '#/components/schemas/NodeHardware' }
+
+    NodeJoinResponse:
+      type: object
+      description: Reply to a join. The agent stores both fields and uses controlPlaneUrl for further calls.
+      required: [nodeId, controlPlaneUrl]
+      properties:
+        nodeId: { type: string, format: uuid }
+        controlPlaneUrl: { type: string, format: uri, example: 'https://cp.plexor.example/' }
+
+    NodeHeartbeatRequest:
+      type: object
+      description: Periodic liveness ping from the agent.
+      required: [nodeId, sentAt, hardware, runningVmCount]
+      properties:
+        nodeId: { type: string, format: uuid }
+        sentAt: { type: string, format: date-time }
+        hardware: { $ref: '#/components/schemas/NodeHardware' }
+        runningVmCount: { type: integer, minimum: 0, example: 3 }
+
+    NodeCommandEnvelope:
+      type: object
+      description: One command targeted at a node, dequeued by /commands/poll.
+      required: [commandId, nodeId, type, payloadJson, issuedAt]
+      properties:
+        commandId: { type: string, format: uuid }
+        nodeId: { type: string, format: uuid }
+        type:
+          type: string
+          enum: [workload.create, workload.start, workload.stop, workload.delete]
+          example: workload.start
+        payloadJson: { type: string, description: Kind-specific JSON payload, opaque to the Host }
+        issuedAt: { type: string, format: date-time }
+
+    NodeCommandPollRequest:
+      type: object
+      description: Long-poll input. waitCursor is null on the first call.
+      required: [nodeId, maxBatch]
+      properties:
+        nodeId: { type: string, format: uuid }
+        maxBatch: { type: integer, minimum: 1, maximum: 100, example: 16 }
+        waitCursor:
+          type: integer
+          format: int64
+          nullable: true
+          description: Cursor returned by the previous poll. Omit / null on the first poll.
+
+    NodeCommandPollResponse:
+      type: object
+      description: Long-poll output. Empty array + current cursor means 'no new commands'.
+      required: [commands, nextCursor]
+      properties:
+        commands:
+          type: array
+          items: { $ref: '#/components/schemas/NodeCommandEnvelope' }
+        nextCursor: { type: integer, format: int64 }
+
+    NodeCommandResult:
+      type: object
+      description: Reply to a previously-dequeued command.
+      required: [commandId, nodeId, status, completedAt]
+      properties:
+        commandId: { type: string, format: uuid }
+        nodeId: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [succeeded, failed]
+        errorMessage:
+          type: string
+          nullable: true
+          description: Required when status is 'failed'; null otherwise.
+        completedAt: { type: string, format: date-time }

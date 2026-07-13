@@ -8,20 +8,64 @@ always: true
 
 Этот файл — правила для конструкторов, полей и констант. Naming/sealed/records — в `naming-and-types.md`. Pattern matching / var / braces — в `code-shape.md`.
 
-## Primary constructors — REQUIRED для DI-классов
+## Primary constructors — REQUIRED для всех sealed-классов
 
-**Default:** primary constructor для всех DI-классов, сервисов, контроллеров,
-репозиториев, worker'ов.
+**Default:** primary constructor для **всех** sealed-классов — DI-классы
+(сервисы, контроллеры, репозитории, worker'ы) **и** обычные non-DI
+классы (state-holders, registries, value-type wrappers, parsing
+helpers, anything else). Если у класса нет параметров — пиши
+`public sealed class Foo();` (empty primary ctor) вместо пустого тела.
 
 **Исключения (только эти):**
-1. Нужна валидация параметров в конструкторе.
-2. Side-effects в конструкторе (singleton init).
-3. Интерфейсная иерархия с разными ctor'ами (наследник выбирает base-ctor).
+1. Нужна **валидация параметров** в конструкторе.
+2. **Side-effects** в конструкторе (singleton init, lazy init).
+3. **Интерфейсная иерархия** с разными ctor'ами (наследник выбирает base-ctor).
+4. **Generic base with constraints** (`where T : class, new()` и т.п.),
+   когда constraints должны проверяться в explicit ctor.
 
-**Параметр primary constructor — это уже поле. Не дублируй в `private readonly`.**
-Параметр разворачивается в скрытое backing-поле, доступен по имени в любом
-методе. Создавать отдельное поле (с подчёркиванием или без) и копировать
-значение — двойное хранение без выгоды.
+Все 4 исключения покрывают конкретный edge-case — **не** используй
+explicit ctor "потому что лень переписывать".
+
+### Когда класс — **не** DI
+
+Для non-DI классов правило выглядит так:
+
+```csharp
+// ✅ Correct — primary ctor даже для non-DI. Empty primary ctor ОК,
+//    когда у класса нет конструктивных параметров.
+public sealed class FilterableEntityRegistry()
+{
+    private readonly ConcurrentDictionary<string, IReadOnlyList<UntypedFilterableField>> byTypeName = new(StringComparer.Ordinal);
+
+    // ...methods reference byTypeName напрямую...
+}
+
+// ✅ Correct — primary ctor с default-arg инициализацией, когда нужен
+//    только default экземпляр поля. Сам DI регистрирует как singleton.
+public sealed class FilterableEntityRegistry(
+    ConcurrentDictionary<string, IReadOnlyList<UntypedFilterableField>> byTypeName = new(StringComparer.Ordinal))
+{
+}
+
+// ❌ Wrong — explicit ctor без уважительной причины
+public sealed class FilterableEntityRegistry
+{
+    private readonly ConcurrentDictionary<string, IReadOnlyList<UntypedFilterableField>> byTypeName = new(StringComparer.Ordinal);
+
+    public FilterableEntityRegistry() { }  // ← empty ctor бесполезен; либо primary, либо удалить
+}
+```
+
+Правило применяется к **каждому** sealed-классу, не только DI. Если
+поля в классе нет вообще (один-два метода) — пустой primary ctor
+просто делает явным "у класса нет параметров".
+
+### Параметр primary constructor — это уже поле
+
+Не дублируй в `private readonly`. Параметр разворачивается в скрытое
+backing-поле, доступен по имени в любом методе. Создавать отдельное
+поле (с подчёркиванием или без) и копировать значение — двойное
+хранение без выгоды.
 
 ```csharp
 // ✅ Correct — primary constructor, обращение по имени параметра
@@ -52,13 +96,100 @@ public sealed class UserService : IUserService
 }
 ```
 
-`private readonly` остаётся **только** когда:
-- нужна **мутируемая** внутренняя мутация (`private int counter`),
-- значение **производное** от параметра (кеш, precompiled regex),
-- поле **не из primary ctor** (сетится обычным методом).
+### Имя параметра primary ctor — PascalCase (для class), camelCase (для record)
 
-**Enforcement:** convention + code review. Нет analyzer для дублирующих полей.
-**Test:** при виде `private readonly X _x = primaryCtorParam` — удалить поле.
+Параметр primary ctor — это по сути обычный параметр конструктора.
+Выбор naming convention зависит от того, объявлен ли тип через
+**record** (который пробрасывает свойства наружу) или через **class**
+(свойство не создаётся автоматически).
+
+**Class с primary ctor** — параметр живёт как backing field, наружу
+не выбрасывается. Поэтому Camel-case в стиле обычного параметра:
+
+```csharp
+// ✅ Correct — class: параметр camelCase, как в любом конструкторе
+public sealed class UserService(IUserRepository repository, ILogger<UserService> logger)
+{
+    public Task<User?> GetAsync(Guid id, CancellationToken token = default)
+        => repository.GetByIdAsync(id, token);
+}
+
+// ❌ Wrong — class: PascalCase параметр. Это не record, поле не экспонируется.
+public sealed class UserService(IUserRepository Repository, ILogger<UserService> Logger)
+{
+    // ...
+}
+```
+
+**Record с primary ctor** — параметр становится публичным свойством с
+init-only setter. Поэтому PascalCase, как у других свойств record'а:
+
+```csharp
+// ✅ Correct — record: PascalCase, пробрасывается как свойство
+public sealed record UserSummary(Guid Id, string Name, string Email);
+
+// ❌ Wrong — record: camelCase ломает convention record'а
+public sealed record UserSummary(Guid id, string name, string email);
+```
+
+Всё производное от этого правила:
+- XML doc `<param name="repository">` (camelCase) для class, `<param name="Id">` (PascalCase) для record.
+- Self-init property в class: `public ILogger Logger { get; } = logger;` (PascalCase, потому что public API). Внутри class имя параметра остаётся camelCase, а assigned property должен иметь другое имя или быть без `private readonly`.
+
+**Class, хранящий primary ctor параметр как mutable property** — нарушение другого правила ("private readonly остаётся только когда..."). Если нужно экспонировать — лучше auto-property без primary ctor или инициализация в методе lifecycle.
+```
+
+### `private readonly` остаётся **только** когда:
+
+- нужна **мутируемая** внутренняя мутация (`private int counter`).
+- значение **производное** от параметра и должно жить как фиксированное
+  поле (кеш, precompiled regex, default-initialized StringBuilder).
+- поле **не из primary ctor** (сетится обычным методом в lifecycle).
+
+```csharp
+// ✅ Correct — derived field, default-init, immutable
+public sealed class FilterParser(int maxParenDepth = 32)
+{
+    // maxParenDepth — параметр primary ctor, доступен по имени в методах.
+    // maxDepth — derived field с фиксированным init (копия параметра),
+    //            помечена как derived-allowed.
+    private readonly int maxDepth = maxParenDepth;
+
+    public bool TryParse(...) { /* ... */ }
+}
+```
+
+### Self-audit grep — перед коммитом
+
+```bash
+# Sealed class без primary ctor + private readonly field = подозрительно
+# (либо explicit ctor для валидации/side-effect, либо нарушение).
+rg -nB2 'class \w+' src/ --type cs   | rg -A1 '^\s*private readonly' | head -20
+
+# Конкретно: sealed class без () сразу после имени (т.е. без primary ctor).
+rg -n 'public sealed class \w+(?!\()' src/ --type cs
+#   → Каждый результат = потенциальное нарушение. Проверить вручную:
+#   если класс наследуется (base ctor) или explicit ctor нужен для DI / валидации — ОК.
+#   иначе — переписать на primary ctor (с default-arg если non-DI).
+
+# Дублирующее поле: primary ctor param + private readonly с тем же именем
+rg -n 'private readonly \w+ (_\w+|\w+) = \w+' src/ --type cs
+#   → Каждый результат = потенциальное нарушение (исключения см. выше).
+
+# Имя параметра primary ctor: PascalCase в class (вместо camelCase).
+# Правило: class → camelCase, record → PascalCase.
+rg -n 'public (?:sealed )?class \w+\(' src/ --type cs
+#   → Для каждого результата проверь параметры — camelCase.
+#   Пример нарушения: 'public sealed class UserService(IUserRepository Repository, ...)' —
+#   'Repository' должно быть 'repository' (это class, не record).
+```
+
+**Enforcement:** convention + code review + self-audit grep. Нет
+analyzer для дублирующих полей (CA1852 / RCS1163 не покрывают
+private readonly копирование).
+**Test:** при виде `private readonly X _x = primaryCtorParam` —
+удалить поле. При виде `public sealed class X` без `()` после имени —
+переписать на primary ctor.
 
 ### `<remarks>` для однострочного описания ctor
 

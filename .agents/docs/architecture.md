@@ -65,6 +65,25 @@
 6. **Multi-tenant by default**: всё через `tenant_id`, JWT-claim
    пробрасывается через всю цепочку. Глобальные EF Core query filters.
 
+## Decomposition strategy
+
+**MVP**: modular monolith — все модули в `Plexor.Host`.
+
+**Phase 2+**: planned extraction трёх модулей в отдельные бинарь по
+измеренному bottleneck'у (Audit, Telemetry, Network — детали в
+[modules.md §Extraction Tier](modules.md#extraction-tier)).
+
+Не OpenStack-style 30+ сервисов: operational overhead (+1 deploy, +1
+CI pipeline, +1 schema migration, +1 monitoring target) не оправдан
+для middleware-облака. Counter-evidence: GitHub, Shopify, Stack
+Overflow обслуживали миллиарды запросов на монолите.
+
+**Extraction-ready by design** — извлечение = deploy change, не
+refactor. Module contracts в `Plexor.Shared.Contracts`, cross-module
+async через outbox events, per-module DbContext+schema.
+
+Подробности и rationale — [ADR-0001](../../planning/adr/0001-selective-decomposition.md).
+
 ## Слои
 
 ### 1. Presentation

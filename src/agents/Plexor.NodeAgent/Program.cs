@@ -1,0 +1,96 @@
+// SPDX-License-Identifier: Apache-2.0
+// ============================================================================
+// Plexor.NodeAgent — Worker Service entry point. Runs on every compute node,
+// pulls commands from Plexor.Host over HTTP, dispatches to local
+// providers (libvirt/KVM in v0.1), reports results back.
+//
+// DI composition:
+//   - ICommandTransport -> HttpCommandTransport (named HttpClient)
+//   - IWorkloadProvider -> LibvirtKvmProvider (only provider in v0.1)
+//   - IWorkloadRegistry -> InMemoryWorkloadRegistry
+//   - ICommandExecutor   -> WorkloadCreateExecutor + WorkloadActionExecutor
+//   - CommandDispatcher  (singleton; built from the executor list)
+//   - NodeAgentWorker    (hosted service; owns the join/heartbeat/poll
+//                          loop and dispatches incoming commands)
+//
+// Rule: end with `app.Run()`. See async-and-tasks.md §3 and VSTHRD200.
+// ============================================================================
+
+using Plexor.NodeAgent;
+using Plexor.NodeAgent.Abstractions;
+using Plexor.NodeAgent.Composition;
+using Plexor.NodeAgent.Executors;
+using Plexor.NodeAgent.Infrastructure;
+using Plexor.NodeAgent.Providers;
+using Plexor.Shared.Contracts.Routes;
+using Plexor.Shared.Workloads;
+using Refit;
+
+var builder = Host.CreateApplicationBuilder(args);
+
+// HTTP transport to Plexor.Host. The Refit-typed client is
+// registered first; the HttpCommandTransport is the concrete
+// ICommandTransport that calls into it. The resilience handler
+// applies per-typed-client (retry + circuit breaker + per-attempt
+// timeout) — three retries on transient failures before the
+// agent gives up on a poll cycle and logs the failure.
+//
+// BaseAddress is the control-plane root plus the API version
+// segment (Plexor.Shared.Contracts.Routes.ApiRoutes.Base = api/v1).
+// The transport's relative paths ('nodes/join', 'nodes/{id}/
+// heartbeat', etc.) don't include the segment, so the BaseAddress
+// has to.
+builder.Services
+        .AddRefitClient<INodeApi>(NodeApiSettingsFactory.Create())
+        .ConfigureHttpClient(client =>
+        {
+            var baseAddress = builder.Configuration["Plexor:ControlPlaneUrl"]
+                              ?? "http://localhost:5000/";
+
+            var apiBase = baseAddress.TrimEnd('/') + "/" +
+                          ApiRoutes.Base;
+
+            client.BaseAddress = new Uri(apiBase);
+        })
+        .AddStandardResilienceHandler();
+
+builder.Services.AddSingleton<ICommandTransport, HttpCommandTransport>();
+
+// Workload providers. v0.1: KVM, LXC, and QEMU-software-emulation
+// via libvirt (three technologies, three different WorkloadKinds).
+// The InMemoryWorkloadRegistry ctor takes an
+// IEnumerable<IWorkloadProvider> — DI auto-injects every
+// registered provider here. Add more providers as the project
+// grows (k3s, podman).
+builder.Services.AddSingleton<LibvirtKvmProvider>();
+builder.Services.AddSingleton<LibvirtLxcProvider>();
+builder.Services.AddSingleton<LibvirtQemuProvider>();
+builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<LibvirtKvmProvider>());
+builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<LibvirtLxcProvider>());
+builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<LibvirtQemuProvider>());
+builder.Services.AddSingleton<IWorkloadRegistry, InMemoryWorkloadRegistry>();
+
+// Workload executors — one per wire command type. The
+// dispatcher is built from the registered ICommandExecutor
+// list at first use (singleton).
+builder.Services.AddSingleton<ICommandExecutor, WorkloadCreateExecutor>();
+builder.Services.AddSingleton<ICommandExecutor, WorkloadActionExecutor>();
+builder.Services.AddSingleton<CommandDispatcher>();
+
+// The worker is the BackgroundService that owns the
+// join/heartbeat/poll/submit loop. v0.1 reads node hardware + the
+// control-plane URL from configuration; v0.2+ moves to a
+// typed IOptions<NodeConfig> with validation.
+builder.Services.AddSingleton(new NodeAgentWorker.NodeConfig(
+    builder.Configuration.GetValue("Plexor:Node:CpuCores", Environment.ProcessorCount),
+    builder.Configuration.GetValue("Plexor:Node:RamBytes", 8L * 1024 * 1024 * 1024),
+    builder.Configuration.GetValue("Plexor:Node:DiskBytes", 100L * 1024 * 1024 * 1024),
+    builder.Configuration.GetValue<string>("Plexor:Node:Hostname")
+    ?? Environment.MachineName,
+    builder.Configuration["Plexor:ControlPlaneUrl"]
+    ?? "http://localhost:5000/"));
+
+builder.Services.AddHostedService<NodeAgentWorker>();
+
+var app = builder.Build();
+app.Run();

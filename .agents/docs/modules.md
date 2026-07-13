@@ -48,6 +48,23 @@ Phase 2+:
 - Container Registry = app provider (`harbor`)
 - Bare-metal provisioning = install provider (`ironic` / `maas`)
 
+## Extraction Tier
+
+Три модуля разрабатываются **extraction-ready** — в Phase 2+ могут быть
+вынесены в отдельные бинарь без refactor:
+
+- **Audit** → `Plexor.Audit.Host` (сейчас sub-concern модуля Telemetry)
+- **Telemetry** → `Plexor.Telemetry.Host`
+- **Network** → `Plexor.Network.Host`
+
+Триггеры для extraction уточняются по измеренной нагрузке в момент
+принятия решения, не заранее.
+
+Остальные модули (Tenants, Identity, Compute, Storage, Billing,
+Marketplace) остаются в монолите в обозримом roadmap.
+
+Стратегия и rationale — [ADR-0001](../../planning/adr/0001-selective-decomposition.md).
+
 ## Plexor.Modules.Tenants
 
 **Контракт верхнего уровня.** Tenant = организация, Project = scope

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <Tier>production</Tier>
+  </PropertyGroup>
+
+  <!--
+    Plexor.Providers.Substrate.Tinkerbell — substrate provider shell.
+    Implementation deferred until provider is taken into active work.
+    See .agents/docs/providers.md for the SDK contract and capability matrix.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\..\Plexor.Core.Providers\Plexor.Core.Providers.csproj" />
+  </ItemGroup>
+
+</Project>

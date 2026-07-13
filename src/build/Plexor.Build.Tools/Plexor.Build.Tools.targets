@@ -145,7 +145,7 @@
     <Error Condition="'$(_AntiPatternViolations)' != '' AND '$(FormatOnBuildTreatAsWarning)' != 'true'"
            Text="[VerifyAntiPatternsOnBuild] Forbidden style anti-patterns:%0A$(_AntiPatternViolations)"/>
     <Warning Condition="'$(_AntiPatternViolations)' != '' AND '$(FormatOnBuildTreatAsWarning)' == 'true'"
-           Text="[VerifyAntiPatternsOnBuild] Forbidden style anti-patterns (downgraded to warning):%0A$(_AntiPatternViolations)"/>
+             Text="[VerifyAntiPatternsOnBuild] Forbidden style anti-patterns (downgraded to warning):%0A$(_AntiPatternViolations)"/>
 
     <Message Text="[VerifyAntiPatternsOnBuild] Anti-pattern check passed."
              Importance="High"
