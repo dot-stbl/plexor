@@ -129,7 +129,7 @@ public sealed class JwtSigningService(
     {
         try
         {
-            var firstDot = compactJwt.IndexOf('.', StringComparison.Ordinal);
+            var firstDot = compactJwt.IndexOf('.');
             if (firstDot <= 0)
             {
                 return null;
