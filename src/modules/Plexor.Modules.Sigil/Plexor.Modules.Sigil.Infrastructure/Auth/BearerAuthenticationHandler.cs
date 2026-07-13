@@ -25,6 +25,10 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     <see cref="AuthenticateResult" /> that the framework
 ///     <c>AuthenticationMiddleware</c> maps to <c>HttpContext.User</c>.
 /// </summary>
+/// <param name="options"></param>
+/// <param name="loggerFactory"></param>
+/// <param name="urlEncoder"></param>
+/// <param name="jwt"></param>
 /// <remarks>
 ///     <para><b>Async surface.</b> Overrides are async by signature
 ///     (the framework awaits them). Cancellation is forwarded from the
@@ -143,6 +147,8 @@ public sealed class BearerAuthenticationHandler(
     ///     long integer — both are non-fatal: the caller proceeds with
     ///     whatever subset of <c>iat</c> / <c>exp</c> was readable.
     /// </summary>
+    /// <param name="principal"></param>
+    /// <param name="claimType"></param>
     private static long? TryReadUnixSeconds(ClaimsPrincipal principal, string claimType)
     {
         var raw = principal.FindFirstValue(claimType);

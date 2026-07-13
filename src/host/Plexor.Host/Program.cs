@@ -20,8 +20,8 @@
 
 using System.Text.Json.Serialization;
 using Plexor.Host.Abstractions;
-using Plexor.Host.Installers;
 using Plexor.Host.Controllers;
+using Plexor.Host.Installers;
 using Plexor.Host.NodeRegistry;
 using Plexor.Host.OpenApi;
 using Plexor.Modules.Sigil.Application.Installers;
@@ -36,10 +36,7 @@ var builder = WebApplication.CreateBuilder(args);
 // ProblemDetailsResponsesTransformer injects the standard RFC 7807
 // error responses (400/401/403/404/409/500) into every operation so
 // per-endpoint [ProducesResponseType] only has to document 2xx shapes.
-builder.Services.AddOpenApi(options =>
-{
-    options.AddOperationTransformer<ProblemDetailsResponsesTransformer>();
-});
+builder.Services.AddOpenApi(static options => options.AddOperationTransformer<ProblemDetailsResponsesTransformer>());
 
 // ProblemDetails baseline — every unhandled exception and every
 // status-code page renders as application/problem+json. Combined with

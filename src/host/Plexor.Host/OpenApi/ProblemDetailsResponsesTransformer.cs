@@ -90,6 +90,8 @@ public sealed class ProblemDetailsResponsesTransformer : IOpenApiOperationTransf
     ///     operation's response map if it isn't already present. Existing
     ///     per-endpoint <c>[ProducesResponseType]</c> declarations win.
     /// </summary>
+    /// <param name="operation"></param>
+    /// <param name="responses"></param>
     private static void AddIfMissing(
         OpenApiOperation operation,
         IReadOnlyCollection<(string Status, string Description, OpenApiSchema Schema)> responses)

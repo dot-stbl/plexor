@@ -9,7 +9,6 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -217,10 +216,7 @@ public sealed class BearerAuthenticationHandlerShould
     private sealed class TestOptionsMonitor<TOptions>(TOptions value) : IOptionsMonitor<TOptions>
         where TOptions : class
     {
-        public TOptions CurrentValue
-        {
-            get { return value; }
-        }
+        public TOptions CurrentValue => value;
 
         public TOptions Get(string? name)
         {

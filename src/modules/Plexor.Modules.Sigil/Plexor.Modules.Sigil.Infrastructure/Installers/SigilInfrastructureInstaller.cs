@@ -8,8 +8,6 @@
 // bootstrapper hosted service.
 // ============================================================================
 
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -100,7 +98,7 @@ public static class SigilInfrastructureInstaller
             .AddAuthentication(BearerOptions.SchemeName)
             .AddScheme<BearerOptions, BearerAuthenticationHandler>(
                 BearerOptions.SchemeName,
-                _ => { });
+                static _ => { });
         services.AddAuthorization();
 
         // Phase 3.7 — permission policy provider + handler so that

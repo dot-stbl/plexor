@@ -56,8 +56,8 @@ public static class ProblemDetailsSchemas
     {
         return new OpenApiSchema
         {
-            AllOf = new List<IOpenApiSchema>
-            {
+            AllOf =
+            [
                 Base(),
                 new OpenApiSchema
                 {
@@ -75,7 +75,7 @@ public static class ProblemDetailsSchemas
                         },
                     },
                 },
-            },
+            ],
         };
     }
 }
