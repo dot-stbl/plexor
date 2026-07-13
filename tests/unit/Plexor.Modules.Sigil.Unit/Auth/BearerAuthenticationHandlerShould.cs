@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Shouldly;
@@ -151,8 +152,8 @@ public sealed class BearerAuthenticationHandlerShould
         var expiresEpoch = issuedEpoch + 900; // 15-minute lifetime, matches IJwtSigningService.AccessTokenLifetime
         var identity = new ClaimsIdentity(
             [
-                new Claim("iat", issuedEpoch.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                new Claim("exp", expiresEpoch.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                new Claim(IdentityClaims.IssuedAt, issuedEpoch.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                new Claim(IdentityClaims.ExpiresAt, expiresEpoch.ToString(System.Globalization.CultureInfo.InvariantCulture)),
             ],
             BearerOptions.SchemeName);
         var principal = new ClaimsPrincipal(identity);
@@ -196,7 +197,9 @@ public sealed class BearerAuthenticationHandlerShould
     }
 
     /// <summary>Verifies that a challenge writes the standard
-    /// <c>WWW-Authenticate: Bearer realm="plexor"</c> header and 401 status.</summary>
+    /// <c>WWW-Authenticate: Bearer realm="plexor", error="invalid_token"</c>
+    /// header (RFC 6750 §3) and 401 status. error_description is
+    /// intentionally omitted to avoid information leakage.</summary>
     [Fact(DisplayName = "Given no auth on a protected endpoint, when challenging, then writes WWW-Authenticate header")]
     public async Task ChallengeWritesRealmHeader()
     {
@@ -207,7 +210,7 @@ public sealed class BearerAuthenticationHandlerShould
         await handler.ChallengeAsync(new AuthenticationProperties());
 
         context.Response.Headers.WWWAuthenticate.ToString()
-            .ShouldBe($"{BearerOptions.SchemeName} realm=\"plexor\"");
+            .ShouldBe($"{BearerOptions.SchemeName} realm=\"plexor\", error=\"invalid_token\"");
         context.Response.StatusCode.ShouldBe(StatusCodes.Status401Unauthorized);
     }
 

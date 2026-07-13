@@ -13,6 +13,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
@@ -93,7 +94,13 @@ public sealed class BearerAuthenticationHandler(
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {
         var realm = Options.Realm;
-        Response.Headers.WWWAuthenticate = $"{BearerOptions.SchemeName} realm=\"{realm}\"";
+        // RFC 6750 §3: a Bearer challenge carries error="invalid_token"
+        // for missing / invalid / expired access tokens. We include the
+        // code unconditionally (it's safe — no info leak); error_description
+        // is intentionally omitted because it can reveal why a token
+        // failed (timing / fuzzing attacks).
+        Response.Headers.WWWAuthenticate =
+            $"{BearerOptions.SchemeName} realm=\"{realm}\", error=\"invalid_token\"";
         await base.HandleChallengeAsync(properties);
     }
 
@@ -117,12 +124,12 @@ public sealed class BearerAuthenticationHandler(
     {
         var properties = new AuthenticationProperties();
 
-        if (TryReadUnixSeconds(principal, "iat") is { } issued)
+        if (TryReadUnixSeconds(principal, IdentityClaims.IssuedAt) is { } issued)
         {
             properties.IssuedUtc = DateTimeOffset.FromUnixTimeSeconds(issued);
         }
 
-        if (TryReadUnixSeconds(principal, "exp") is { } expires)
+        if (TryReadUnixSeconds(principal, IdentityClaims.ExpiresAt) is { } expires)
         {
             properties.ExpiresUtc = DateTimeOffset.FromUnixTimeSeconds(expires);
         }
