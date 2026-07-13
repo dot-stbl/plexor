@@ -53,6 +53,24 @@ public static class PlexorSigilApiServiceCollectionExtensions
         services.AddScoped<GetUserQueryHandler>();
         services.AddScoped<ListUsersQueryHandler>();
 
+        // Role + role-binding CRUD handlers.
+        services.AddScoped<CreateRoleCommandHandler>();
+        services.AddScoped<UpdateRoleCommandHandler>();
+        services.AddScoped<DeleteRoleCommandHandler>();
+        services.AddScoped<GetRoleQueryHandler>();
+        services.AddScoped<ListRolesQueryHandler>();
+        services.AddScoped<CreateRoleBindingCommandHandler>();
+        services.AddScoped<DeleteRoleBindingCommandHandler>();
+        services.AddScoped<ListRoleBindingsQueryHandler>();
+
+        // Credential (API key + SSH key) handlers.
+        services.AddScoped<IssueApiKeyCommandHandler>();
+        services.AddScoped<RevokeApiKeyCommandHandler>();
+        services.AddScoped<ListApiKeysQueryHandler>();
+        services.AddScoped<AddSshKeyCommandHandler>();
+        services.AddScoped<RevokeSshKeyCommandHandler>();
+        services.AddScoped<ListSshKeysQueryHandler>();
+
         // User lookup — read-only, scoped.
         services.AddScoped<IUserLookup, EfUserLookup>();
 
