@@ -22,10 +22,18 @@ using Plexor.Shared.Persistence;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddPlexorModuleDbContexts(
-    builder.Configuration.GetConnectionString("Postgres")
-        ?? throw new InvalidOperationException(
-            "ConnectionStrings:Postgres is not configured."));
+// Connection string resolution: prefer the explicit MIGRATOR_CONNECTION
+// env var (used by tooling + dev workflows); fall back to the
+// appsettings.json value. The env var is what `dotnet ef` design-time
+// tooling uses, and keeping both paths means the same connection string
+// flows uniformly to migrator and design-time tools.
+var migrationConnection =
+    Environment.GetEnvironmentVariable("MIGRATOR_CONNECTION")
+    ?? builder.Configuration.GetConnectionString("Postgres")
+    ?? throw new InvalidOperationException(
+        "ConnectionStrings:Postgres (or MIGRATOR_CONNECTION env var) is not configured.");
+
+builder.Services.AddPlexorModuleDbContexts(migrationConnection);
 
 builder.Services.AddSigilInfrastructureCore(builder.Configuration);
 

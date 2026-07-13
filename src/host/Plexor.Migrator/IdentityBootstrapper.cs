@@ -190,6 +190,8 @@ internal sealed class IdentityBootstrapper(
                 "PasswordChangedAt = null — operator must rotate on first login.",
                 InitialAdminEmail,
                 orgId);
+
+            lifetime.StopApplication();
         }
         catch (Exception ex)
         {

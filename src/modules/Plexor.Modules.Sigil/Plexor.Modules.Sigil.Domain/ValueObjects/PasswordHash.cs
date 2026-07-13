@@ -37,17 +37,27 @@ public sealed class PasswordHash : IEquatable<PasswordHash>
     private readonly string value;
 
     /// <summary>
-    ///     Constructs a <c>PasswordHash</c> from a stored bcrypt string.
-    ///     Throws <see cref="IdentityException" /> on malformed input.
+    ///     Constructs a <c>PasswordHash</c> from a stored hash string.
+    ///     No format validation at the ctor — the underlying
+    ///     application-layer hasher owns the shape (PBKDF2 in v0.1,
+    ///     bcrypt in a future migration). Use
+    ///     <see cref="IsWellFormed" /> for audit-time checks that
+    ///     the stored value is in a known family before verification.
+    ///     The ctor's only job is to refuse null / whitespace so EF
+    ///     Core can't store empty strings.
     /// </summary>
-    /// <param name="hash">Bcrypt hash string (e.g. <c>$2b$12$...salt...hash</c>).</param>
+    /// <param name="hash">
+    ///     Hash string in whatever format the application-layer
+    ///     hasher produces (.NET Identity's PBKDF2 self-describing
+    ///     string in v0.1; bcrypt in a future migration).
+    /// </param>
     public PasswordHash(string hash)
     {
-        if (!IsWellFormed(hash))
+        if (string.IsNullOrWhiteSpace(hash))
         {
             throw new IdentityException(
                 IdentityExceptions.InvalidPasswordHash,
-                "Password hash must be a bcrypt string with cost factor 12 ($2x$12$...).");
+                "Password hash is required.");
         }
 
         value = hash;
