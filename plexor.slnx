@@ -43,6 +43,7 @@
         <Project Path="src/shared/Plexor.Shared.Console/Plexor.Shared.Console.csproj" />
         <Project Path="src/shared/Plexor.Shared.NodeApi/Plexor.Shared.NodeApi.csproj" />
         <Project Path="src/shared/Plexor.Shared.Workloads/Plexor.Shared.Workloads.csproj" />
+    <Project Path="src/shared/Plexor.Shared.Authorization/Plexor.Shared.Authorization.csproj" />
     </Folder>
 
     <!-- ============ Modules (Domain / Application / Infrastructure) ========== -->
@@ -100,6 +101,7 @@
         <Project Path="tests/unit/Plexor.Shared.Telemetry.Unit/Plexor.Shared.Telemetry.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Http.Unit/Plexor.Shared.Http.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Composition.Unit/Plexor.Shared.Composition.Unit.csproj" />
+    <Project Path="tests/unit/Plexor.Shared.Authorization.Unit/Plexor.Shared.Authorization.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Core.Providers.Unit/Plexor.Core.Providers.Unit.csproj" />
     </Folder>
 

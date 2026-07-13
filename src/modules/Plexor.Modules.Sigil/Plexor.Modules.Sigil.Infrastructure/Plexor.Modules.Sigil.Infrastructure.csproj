@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Plexor.Modules.Sigil.Application\Plexor.Modules.Sigil.Application.csproj" />
     <ProjectReference Include="..\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Authorization\Plexor.Shared.Authorization.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />

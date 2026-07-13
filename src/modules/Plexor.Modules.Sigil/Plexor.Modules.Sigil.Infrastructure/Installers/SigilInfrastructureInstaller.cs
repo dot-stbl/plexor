@@ -18,6 +18,7 @@ using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
+using Plexor.Shared.Authorization;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Installers;
 
@@ -101,6 +102,17 @@ public static class SigilInfrastructureInstaller
                 BearerOptions.SchemeName,
                 _ => { });
         services.AddAuthorization();
+
+        // Phase 3.7 — permission policy provider + handler so that
+        // [RequirePermission("vms.read")] on a controller resolves to
+        // an Authorization policy that checks the caller's `permission`
+        // claims at request time. Registered in the Sigil
+        // Infrastructure installer because the handler depends on
+        // ILogger which lives in the framework, and the handler is
+        // application-scoped (per-request), but the project ref to
+        // Plexor.Shared.Authorization is the only consumer-side
+        // coupling — controllers in any module can use the attribute.
+        services.AddPlexorAuthorization();
 
         return services;
     }
