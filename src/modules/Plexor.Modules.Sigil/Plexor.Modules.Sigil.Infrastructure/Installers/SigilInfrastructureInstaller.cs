@@ -8,6 +8,8 @@
 // bootstrapper hosted service.
 // ============================================================================
 
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -88,13 +90,17 @@ public static class SigilInfrastructureInstaller
         // unique kid constraint + a retry-on-conflict path.
         services.AddHostedService<SigningKeyBootstrapper>();
 
-        // configuration is reserved for Options binding (3.2+ may
-        // add AuthOptions for refresh-token lifetime). The variable
-        // is unused today; the parameter exists so the call site
-        // is stable when binding lands. Discard intentionally
-        // suppresses "unused parameter" without changing the
-        // public signature.
-        _ = configuration;
+        // Bearer auth scheme (Phase 3.6). The handler delegates
+        // verification to IJwtSigningService — no separate
+        // TokenValidationParameters pipeline. AddAuthentication
+        // sets the default scheme; AddAuthorization makes
+        // [Authorize] work without an explicit policy argument.
+        services
+            .AddAuthentication(BearerOptions.SchemeName)
+            .AddScheme<BearerOptions, BearerAuthenticationHandler>(
+                BearerOptions.SchemeName,
+                _ => { });
+        services.AddAuthorization();
 
         return services;
     }
