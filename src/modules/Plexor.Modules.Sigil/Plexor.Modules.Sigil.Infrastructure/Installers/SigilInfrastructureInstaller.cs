@@ -16,6 +16,7 @@ using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
+using Plexor.Shared.Authorization;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Installers;
 
@@ -88,13 +89,28 @@ public static class SigilInfrastructureInstaller
         // unique kid constraint + a retry-on-conflict path.
         services.AddHostedService<SigningKeyBootstrapper>();
 
-        // configuration is reserved for Options binding (3.2+ may
-        // add AuthOptions for refresh-token lifetime). The variable
-        // is unused today; the parameter exists so the call site
-        // is stable when binding lands. Discard intentionally
-        // suppresses "unused parameter" without changing the
-        // public signature.
-        _ = configuration;
+        // Bearer auth scheme (Phase 3.6). The handler delegates
+        // verification to IJwtSigningService — no separate
+        // TokenValidationParameters pipeline. AddAuthentication
+        // sets the default scheme; AddAuthorization makes
+        // [Authorize] work without an explicit policy argument.
+        services
+            .AddAuthentication(BearerOptions.SchemeName)
+            .AddScheme<BearerOptions, BearerAuthenticationHandler>(
+                BearerOptions.SchemeName,
+                static _ => { });
+        services.AddAuthorization();
+
+        // Phase 3.7 — permission policy provider + handler so that
+        // [RequirePermission("vms.read")] on a controller resolves to
+        // an Authorization policy that checks the caller's `permission`
+        // claims at request time. Registered in the Sigil
+        // Infrastructure installer because the handler depends on
+        // ILogger which lives in the framework, and the handler is
+        // application-scoped (per-request), but the project ref to
+        // Plexor.Shared.Authorization is the only consumer-side
+        // coupling — controllers in any module can use the attribute.
+        services.AddPlexorAuthorization();
 
         return services;
     }

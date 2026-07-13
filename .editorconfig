@@ -316,7 +316,7 @@ dotnet_diagnostic.CA1305.severity = warning # specify IFormatProvider
 dotnet_diagnostic.CA1720.severity = warning # identifier contains type name — moved from `none` (rework 2026-06-15)
 dotnet_diagnostic.CA1822.severity = warning # mark members as static
 dotnet_diagnostic.CA1860.severity = warning # avoid using Enumerable.Any() — use .Count != 0
-dotnet_diagnostic.CA1862.severity = warning # use StringComparison method overloads
+dotnet_diagnostic.CA1862.severity = none # use StringComparison method overloads — owner-disabled 2026-07-13: explicit StringComparison is a style preference, not a correctness rule. The default ordinal culture-invariant comparison is what we want everywhere; verbose adds noise without value.
 dotnet_diagnostic.CA2008.severity = warning # do not create tasks without TaskScheduler
 
 # NEW (added 2026-06-15 rework) — for build-time visibility

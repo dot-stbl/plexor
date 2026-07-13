@@ -16,8 +16,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Migrator;
+using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Shared.Persistence;
 
 var builder = Host.CreateApplicationBuilder(args);

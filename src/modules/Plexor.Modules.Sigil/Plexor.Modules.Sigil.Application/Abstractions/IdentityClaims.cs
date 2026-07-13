@@ -72,6 +72,20 @@ public static class IdentityClaims
     public const string Issuer = "iss";
 
     /// <summary>
+    ///     Standard JWT <c>iat</c> (issued-at) claim. Unix seconds.
+    ///     Signer writes the issue instant; bearer handler reads it to
+    ///     populate <see cref="Microsoft.AspNetCore.Authentication.AuthenticationProperties.IssuedUtc" />.
+    /// </summary>
+    public const string IssuedAt = "iat";
+
+    /// <summary>
+    ///     Standard JWT <c>exp</c> (expiration) claim. Unix seconds.
+    ///     Signer writes the expiry instant; bearer handler reads it
+    ///     to populate <see cref="Microsoft.AspNetCore.Authentication.AuthenticationProperties.ExpiresUtc" />.
+    /// </summary>
+    public const string ExpiresAt = "exp";
+
+    /// <summary>
     ///     JWT issuer value — constant string identifying the Plexor
     ///     auth server. The bearer handler validates the incoming
     ///     token's <c>iss</c> against this value.

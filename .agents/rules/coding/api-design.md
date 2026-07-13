@@ -53,11 +53,22 @@ public sealed class FuturesRecordController(IFuturesQueryService futuresQuerySer
 - **4xx/5xx errors** (400, 404, 409, 422, 500, 503): **глобально** через
   `builder.Services.AddProblemDetails()` в `Program.cs` — **не нужно**
   ставить атрибут на каждый action.
+- **OpenAPI document**: `AddProblemDetails()` alone writes the body at
+  runtime but doesn't document the responses. Wire an
+  `IOpenApiOperationTransformer` (e.g.
+  `ProblemDetailsResponsesTransformer` in this repo) into
+  `AddOpenApi(options => options.AddOperationTransformer<...>())` so
+  the spec advertises the same 4xx/5xx PD shapes the wire format
+  emits. Standard set: 400 (ValidationProblemDetails), 404, 409, 500
+  (ProblemDetails); plus 401 / 403 when the endpoint has
+  `[Authorize]`. Per-endpoint `[ProducesResponseType]` always wins —
+  the transformer only fills missing slots, never overwrites.
 - **Override per-endpoint** — только когда error имеет специфическую форму
   (например, `409 Conflict` с machine-readable `code`).
 
 ```csharp
-// ✅ Correct — 200 обязателен, 4xx/5xx глобально
+// ✅ Correct — 200 обязателен, 4xx/5xx глобально через AddProblemDetails +
+// IOpenApiOperationTransformer (см. Plexor.Host.OpenApi.ProblemDetailsResponsesTransformer)
 [HttpGet("{userId:guid}")]
 [EndpointName("users-get-by-id")]
 [ProducesResponseType<UserModel>(StatusCodes.Status200OK)]

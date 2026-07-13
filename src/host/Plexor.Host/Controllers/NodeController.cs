@@ -59,7 +59,6 @@ public sealed class NodeController(INodeRegistry registry) : ControllerBase
         "should call back to. The join token is not verified in v0.1 (every join gets a fresh " +
         "Guid); verification lands with the auth iteration.")]
     [ProducesResponseType(typeof(JoinResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<JoinResponse>> JoinAsync(
         [FromBody] JoinRequest request,
         CancellationToken cancellationToken)
@@ -101,7 +100,6 @@ public sealed class NodeController(INodeRegistry registry) : ControllerBase
     [HttpPost("{nodeId:guid}/heartbeat", Name = "node-heartbeat")]
     [EndpointSummary("Record liveness from a registered node")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> HeartbeatAsync(
         [FromRoute] Guid nodeId,
         [FromBody] HeartbeatRequest request,
@@ -162,7 +160,6 @@ public sealed class NodeController(INodeRegistry registry) : ControllerBase
     [HttpPost("{nodeId:guid}/commands/{commandId:guid}/result", Name = "node-command-result")]
     [EndpointSummary("Report completion status for a previously-dequeued command")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResultAsync(
         [FromRoute] Guid nodeId,
         [FromRoute] Guid commandId,

@@ -35,7 +35,7 @@ public sealed class OpenApiBuildTimeExtensionsShould
         var returned = services.RemoveHostedServicesForOpenApiGeneration();
 
         Assert.Same(services, returned);
-        Assert.Single(services, d => d.ServiceType == typeof(IHostedService));
+        Assert.Single(services, static d => d.ServiceType == typeof(IHostedService));
     }
 
     /// <summary>
@@ -62,12 +62,12 @@ public sealed class OpenApiBuildTimeExtensionsShould
     ///     Kept in the test to avoid touching the readonly flag from the
     ///     test assembly.
     /// </summary>
+    /// <param name="services"></param>
     private static List<ServiceDescriptor> StripPlexorHostedServices(IServiceCollection services)
     {
-        return services
-            .Where(descriptor => descriptor.ServiceType == typeof(IHostedService)
-                    && descriptor.ImplementationType?.Namespace?.StartsWith("Plexor.", StringComparison.Ordinal) == true)
-            .ToList();
+        return [.. services
+            .Where(static descriptor => descriptor.ServiceType == typeof(IHostedService)
+                    && descriptor.ImplementationType?.Namespace?.StartsWith("Plexor.", StringComparison.Ordinal) == true)];
     }
 
     private sealed class FakeHostedService : IHostedService

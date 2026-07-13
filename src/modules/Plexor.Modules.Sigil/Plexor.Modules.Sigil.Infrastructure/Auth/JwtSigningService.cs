@@ -21,6 +21,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     <see cref="ISigningKeyRepository" />, signs with the private
 ///     key, verifies with the public key.
 /// </summary>
+/// <param name="keys"></param>
 /// <remarks>
 ///     <para><b>Why ECDSA P-256.</b> 64-byte signatures, 32-byte
 ///     public keys — half the size of RSA-2048 with equivalent
