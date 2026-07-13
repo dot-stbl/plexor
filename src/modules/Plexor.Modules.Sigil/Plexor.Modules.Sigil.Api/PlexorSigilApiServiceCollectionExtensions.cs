@@ -46,6 +46,13 @@ public static class PlexorSigilApiServiceCollectionExtensions
         services.AddScoped<LogoutCommandHandler>();
         services.AddScoped<MeQueryHandler>();
 
+        // User CRUD handlers — same scoped lifetime (DbContext reuse).
+        services.AddScoped<CreateUserCommandHandler>();
+        services.AddScoped<UpdateUserCommandHandler>();
+        services.AddScoped<DisableUserCommandHandler>();
+        services.AddScoped<GetUserQueryHandler>();
+        services.AddScoped<ListUsersQueryHandler>();
+
         // User lookup — read-only, scoped.
         services.AddScoped<IUserLookup, EfUserLookup>();
 
