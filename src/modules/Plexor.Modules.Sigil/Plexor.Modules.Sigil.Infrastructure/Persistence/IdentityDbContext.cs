@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
+using Plexor.Modules.Sigil.Infrastructure.ValueConverters;
 using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Persistence;
@@ -340,10 +341,7 @@ internal sealed class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKey>
         builder.Property(static key => key.Permissions)
             .HasColumnName("permissions")
             .HasColumnType("text[]")
-            .HasConversion(
-                static permissions => permissions.Select(static p => p.Value).ToArray(),
-                static raw => raw.Select(
-                    static value => new PermissionScope(value)).ToArray())
+            .HasConversion<PermissionScopeListValueConverter>()
             .Metadata.SetValueComparer(new ValueComparer<IReadOnlyList<PermissionScope>>(
                 static (a, b) => (a == null && b == null) ||
                     (a != null && b != null && a.SequenceEqual(b)),
