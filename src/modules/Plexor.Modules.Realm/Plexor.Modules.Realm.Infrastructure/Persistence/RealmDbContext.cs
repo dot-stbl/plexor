@@ -13,8 +13,12 @@ using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Realm.Infrastructure.Persistence;
 
-#pragma warning disable CS1591 // XML doc — see DbContext.Set<T>() for usage
-
+/// <summary>
+///     EF Core context for the Organizations module. Owns the
+///     org/team/folder hierarchy in the 'realm' PostgreSQL schema
+///     (architecture theme — see AGENTS.md for the schema-vs-concept
+///     naming map). Every other module FKs into realm.organizations.id.
+/// </summary>
 public sealed class RealmDbContext(DbContextOptions<RealmDbContext> options) : PlexorDbContext(options)
 {
     /// <summary>Organizations (realm.organizations) — top-level tenant scope.</summary>
@@ -24,6 +28,7 @@ public sealed class RealmDbContext(DbContextOptions<RealmDbContext> options) : P
     /// <summary>Folders (realm.folders) — resource namespace inside a team.</summary>
     public DbSet<Folder> Folders => Set<Folder>();
 
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(DatabaseInformation.Schemes.Realm)

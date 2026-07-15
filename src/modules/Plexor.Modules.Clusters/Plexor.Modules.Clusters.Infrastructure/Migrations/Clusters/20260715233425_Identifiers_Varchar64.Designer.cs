@@ -12,7 +12,7 @@ using Plexor.Modules.Clusters.Infrastructure.Persistence;
 namespace Plexor.Modules.Clusters.Infrastructure.Migrations.Clusters
 {
     [DbContext(typeof(ClusterDbContext))]
-    [Migration("20260715211041_Identifiers_Varchar64")]
+    [Migration("20260715233425_Identifiers_Varchar64")]
     partial class Identifiers_Varchar64
     {
         /// <inheritdoc />

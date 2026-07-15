@@ -18,8 +18,12 @@ using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Persistence;
 
-#pragma warning disable CS1591 // XML doc — see DbContext.Set<T>() for usage
-
+/// <summary>
+///     EF Core context for the Sigil (identity) module. Owns users,
+///     roles, role_bindings, refresh_tokens, api_keys, ssh_keys,
+///     and signing_keys in the 'sigil' PostgreSQL schema (schema-per-
+///     module convention per .agents/STATE.md).
+/// </summary>
 public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : PlexorDbContext(options)
 {
     /// <summary>Users (sigil.users) — operator accounts with email + password.</summary>
@@ -37,6 +41,7 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
     /// <summary>SigningKeys (sigil.signing_keys) — JWT signing keys (rotation history).</summary>
     public DbSet<SigningKey> SigningKeys => Set<SigningKey>();
 
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(DatabaseInformation.Schemes.Identity)

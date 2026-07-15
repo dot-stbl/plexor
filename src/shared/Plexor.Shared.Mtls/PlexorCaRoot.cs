@@ -15,18 +15,12 @@ namespace Plexor.Shared.Mtls;
 ///     fresh root on disk if none exists, then serves it from
 ///     memory for the lifetime of the process.
 /// </summary>
-public sealed class PlexorCaRoot
+/// <remarks>Construct a root holder backed by the given file store.</remarks>
+public sealed class PlexorCaRoot(PlexorCaFileStore fileStore)
 {
-    private readonly PlexorCaFileStore fileStore;
     private readonly Lock gate = new();
     private X509Certificate2? cert;
     private byte[]? pem;
-
-    /// <summary>Construct a root holder backed by the given file store.</summary>
-    public PlexorCaRoot(PlexorCaFileStore fileStore)
-    {
-        this.fileStore = fileStore;
-    }
 
     /// <summary>The .NET cert wrapper (cert + private key).</summary>
     public X509Certificate2 GetCertificate()

@@ -10,7 +10,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Plexor.Shared.Mtls.Entities;
-using Plexor.Shared.Persistence;
 
 namespace Plexor.Shared.Mtls.Persistence.Configurations;
 

@@ -17,8 +17,13 @@ using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Persistence;
 
-#pragma warning disable CS1591 // XML doc — see DbSet<T> props for usage
-
+/// <summary>
+///     EF Core context for the Clusters module. Persists clusters,
+///     nodes, and join_tokens in the 'forge' PostgreSQL schema
+///     (schema-per-module per .agents/STATE.md). All column names +
+///     the schema constant live in
+///     <c>Plexor.Shared.Persistence.DatabaseInformation</c>.
+/// </summary>
 public sealed class ClusterDbContext(DbContextOptions<ClusterDbContext> options) : PlexorDbContext(options)
 {
     /// <summary>Clusters (forge.clusters) — Plexor.Host + joined nodes, one row per fleet.</summary>
@@ -28,6 +33,7 @@ public sealed class ClusterDbContext(DbContextOptions<ClusterDbContext> options)
     /// <summary>JoinTokens (forge.join_tokens) — one-time credentials for first node attach.</summary>
     public DbSet<JoinToken> JoinTokens => Set<JoinToken>();
 
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(DatabaseInformation.Schemes.Clusters)

@@ -20,7 +20,6 @@ namespace Plexor.Shared.Mtls.Persistence;
 /// </summary>
 public sealed class RevokedCertsDbContext(DbContextOptions<RevokedCertsDbContext> options) : PlexorDbContext(options)
 {
-    /// <summary>forge.revoked_certs rows — one per revoked cert serial.</summary>
     /// <summary>forge.revoked_certs rows (one per revoked cert serial).</summary>
     public DbSet<RevokedCert> RevokedCerts => Set<RevokedCert>();
 

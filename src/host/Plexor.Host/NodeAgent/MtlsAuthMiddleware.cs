@@ -14,11 +14,8 @@
 // ============================================================================
 
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Plexor.Shared.Mtls;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.Mtls;
 
 namespace Plexor.Host.NodeAgent;
 
@@ -34,22 +31,6 @@ public sealed class MtlsAuthMiddleware(
     ILogger<MtlsAuthMiddleware> logger)
 {
     private const string NodeAgentPolicy = "mTLS-NodeAgent";
-
-    /// <summary>
-    ///     Path prefixes that require an authenticated NodeAgent cert.
-    ///     Any GET/POST/etc to /node-agent/* or /api/v1/compute/
-    ///     clusters/*/heartbeat must pass through this middleware.
-    ///     Browser-facing cluster CRUD lives at /api/v1/compute/
-    ///     clusters/{id} — those use JWT bearer auth, not mTLS, and
-    ///     are filtered out by the prefix check below.
-    /// </summary>
-    private static readonly string[] ProtectedPrefixes =
-    [
-        "/node-agent/",
-        "/api/v1/compute/clusters/", // NodeAgent joins here; browser uses
-                                    // JwtBearer on the operator routes
-                                    // which we'll carve out below.
-    ];
 
     /// <summary>
     ///     Sub-prefix within /api/v1/compute/clusters/ that is BROWSER-
@@ -104,7 +85,6 @@ public sealed class MtlsAuthMiddleware(
             new[]
             {
                 new Claim("nodeId", nodeId.ToString()),
-                new Claim(ClaimTypes.NameIdentifier, nodeId.ToString()),
                 new Claim(ClaimTypes.Role, "node"),
             },
             authenticationType: NodeAgentPolicy);

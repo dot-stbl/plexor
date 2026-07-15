@@ -5,7 +5,6 @@
 // PlexorCaRoot — the actual root generation lives in the root service.
 // ============================================================================
 
-using Microsoft.Extensions.Hosting;
 using Plexor.Shared.Mtls;
 
 namespace Plexor.Host.NodeAgent;
@@ -22,7 +21,9 @@ public sealed class PlexorCaStartup(PlexorCaRoot caRoot) : IHostedService
     /// <inheritdoc />
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _ = caRoot.GetCertificate();
+        // Discard-less: returning the result isn't needed, the side
+        // effect (loading + caching the root cert) is the entire point.
+        caRoot.GetCertificate();
         return Task.CompletedTask;
     }
 

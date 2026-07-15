@@ -16,16 +16,9 @@ namespace Plexor.Shared.Mtls;
 ///     responsible for chmod 0600 on the key file (this class
 ///     does so on every write).
 /// </summary>
-public sealed class PlexorCaFileStore
+/// <remarks>Construct a filesystem store bound to the given options.</remarks>
+public sealed class PlexorCaFileStore(CertAuthorityOptions options)
 {
-    private readonly CertAuthorityOptions options;
-
-    /// <summary>Construct a filesystem store bound to the given options.</summary>
-    public PlexorCaFileStore(CertAuthorityOptions options)
-    {
-        this.options = options;
-    }
-
     /// <summary>True if both cert and key files exist on disk.</summary>
     public bool RootExists()
     {
