@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as NetworksRouteImport } from './routes/networks'
 import { Route as ImagesRouteImport } from './routes/images'
-import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as VmsRouteRouteImport } from './routes/vms/route'
@@ -43,11 +42,6 @@ const NetworksRoute = NetworksRouteImport.update({
 const ImagesRoute = ImagesRouteImport.update({
   id: '/images',
   path: '/images',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComponentsRoute = ComponentsRouteImport.update({
-  id: '/components',
-  path: '/components',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BillingRoute = BillingRouteImport.update({
@@ -170,7 +164,6 @@ export interface FileRoutesByFullPath {
   '/vms': typeof VmsRouteRouteWithChildren
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
-  '/components': typeof ComponentsRoute
   '/images': typeof ImagesRoute
   '/networks': typeof NetworksRoute
   '/clusters/$id': typeof ClustersIdRoute
@@ -193,7 +186,6 @@ export interface FileRoutesByTo {
   '/managed': typeof ManagedRouteRouteWithChildren
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
-  '/components': typeof ComponentsRoute
   '/images': typeof ImagesRoute
   '/networks': typeof NetworksRoute
   '/clusters/$id': typeof ClustersIdRoute
@@ -221,7 +213,6 @@ export interface FileRoutesById {
   '/vms': typeof VmsRouteRouteWithChildren
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
-  '/components': typeof ComponentsRoute
   '/images': typeof ImagesRoute
   '/networks': typeof NetworksRoute
   '/clusters/$id': typeof ClustersIdRoute
@@ -250,7 +241,6 @@ export interface FileRouteTypes {
     | '/vms'
     | '/audit'
     | '/billing'
-    | '/components'
     | '/images'
     | '/networks'
     | '/clusters/$id'
@@ -273,7 +263,6 @@ export interface FileRouteTypes {
     | '/managed'
     | '/audit'
     | '/billing'
-    | '/components'
     | '/images'
     | '/networks'
     | '/clusters/$id'
@@ -300,7 +289,6 @@ export interface FileRouteTypes {
     | '/vms'
     | '/audit'
     | '/billing'
-    | '/components'
     | '/images'
     | '/networks'
     | '/clusters/$id'
@@ -328,7 +316,6 @@ export interface RootRouteChildren {
   VmsRouteRoute: typeof VmsRouteRouteWithChildren
   AuditRoute: typeof AuditRoute
   BillingRoute: typeof BillingRoute
-  ComponentsRoute: typeof ComponentsRoute
   ImagesRoute: typeof ImagesRoute
   NetworksRoute: typeof NetworksRoute
 }
@@ -347,13 +334,6 @@ declare module '@tanstack/react-router' {
       path: '/images'
       fullPath: '/images'
       preLoaderRoute: typeof ImagesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/components': {
-      id: '/components'
-      path: '/components'
-      fullPath: '/components'
-      preLoaderRoute: typeof ComponentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/billing': {
@@ -600,7 +580,6 @@ const rootRouteChildren: RootRouteChildren = {
   VmsRouteRoute: VmsRouteRouteWithChildren,
   AuditRoute: AuditRoute,
   BillingRoute: BillingRoute,
-  ComponentsRoute: ComponentsRoute,
   ImagesRoute: ImagesRoute,
   NetworksRoute: NetworksRoute,
 }

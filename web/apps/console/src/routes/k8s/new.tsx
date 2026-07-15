@@ -5,7 +5,6 @@ import {
   Add,
   ArrowBack,
   DeployedCode,
-  MenuBook,
   Stacks
 } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
@@ -24,7 +23,7 @@ import { Size, SizeUtils } from '@/shared/ui/primitives/size';
 import { SummaryPanel, SummaryRow } from '@/shared/ui/primitives/summary-panel';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/shared/ui/primitives/empty';
+import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { useListClusters } from '@/features/clusters';
 
 export const Route = createFileRoute('/k8s/new')({
@@ -178,48 +177,31 @@ function CreateK8sPage() {
       {/* Empty state: 0 clusters → Plexor isn't installed yet. */}
       {clusters.length === 0 && (
         <div className="py-8">
-          <Empty data-od-id="k8s-new-no-cluster">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <DeployedCode />
-              </EmptyMedia>
-              <EmptyTitle>Plexor control plane is not registered</EmptyTitle>
-              <EmptyDescription>
-                To create a Kubernetes cluster, you first need to install Plexor on a server. The
-                installation sets up the control plane and registers it in the UI.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <Button render={<a href="https://plexor.dev/docs/install" target="_blank" rel="noreferrer" />}>
-                <MenuBook />
-                Installation docs
-              </Button>
-            </EmptyContent>
-          </Empty>
+          <EmptyState
+            data-od-id="k8s-new-no-cluster"
+            icon={DeployedCode}
+            title="Plexor control plane is not registered"
+            description="To create a Kubernetes cluster, you first need to install Plexor on a server. The installation sets up the control plane and registers it in the UI."
+            docs={[{ href: 'https://plexor.dev/docs/install', label: 'Installation docs' }]}
+          />
         </div>
       )}
 
       {/* Empty state: clusters exist, 0 ready nodes → connect a node first. */}
       {clusters.length > 0 && readyNodes.length === 0 && (
         <div className="py-8">
-          <Empty data-od-id="k8s-new-no-ready-nodes">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Stacks />
-              </EmptyMedia>
-              <EmptyTitle>No ready nodes</EmptyTitle>
-              <EmptyDescription>
-                Connect Plexor.NodeAgent to the cluster with a join token. After a heartbeat
-                (≤ 2 min) the node appears here and you can host a Kubernetes cluster on it.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
+          <EmptyState
+            data-od-id="k8s-new-no-ready-nodes"
+            icon={Stacks}
+            title="No ready nodes"
+            description="Connect Plexor.NodeAgent to the cluster with a join token. After a heartbeat (≤ 2 min) the node appears here and you can host a Kubernetes cluster on it."
+            action={
               <Button nativeButton={false} render={<Link to="/clusters/$id" params={{ id: clusters[0]!.id }} />}>
                 <ArrowBack />
                 Go to cluster
               </Button>
-            </EmptyContent>
-          </Empty>
+            }
+          />
         </div>
       )}
 

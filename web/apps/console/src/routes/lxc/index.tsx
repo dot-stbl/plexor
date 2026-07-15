@@ -36,7 +36,7 @@ function LxcPage() {
       }
       actions={
         rows.length > 0 ? (
-          <Button size="sm" nativeButton={false} render={<Link to="/lxc/new" />}>
+          <Button nativeButton={false} render={<Link to="/lxc/new" />}>
             <Add />
             Create container
           </Button>

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { Add, Stacks } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
+import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { ClusterCard, useListClusters, countNodes } from '@/features/clusters';
 
@@ -35,7 +36,7 @@ function ClustersPage() {
         </>
       }
       actions={
-        <Button size="sm" nativeButton={false} render={<Link to="/clusters" />}>
+        <Button nativeButton={false} render={<Link to="/clusters" />}>
           <Add />
           Документация
         </Button>
@@ -56,25 +57,24 @@ function ClustersPage() {
 
 function EmptyClusters() {
   return (
-    <div
+    <EmptyState
       data-od-id="clusters-empty"
-      className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card/50 p-12 text-center"
-    >
-      <span className="flex size-10 items-center justify-center rounded-md bg-muted text-muted-foreground">
-        <Stacks className="size-5" />
-      </span>
-      <div className="space-y-0.5">
-        <h3 className="text-sm font-medium">Нет зарегистрированных кластеров</h3>
-        <p className="max-w-sm text-xs text-muted-foreground">
+      icon={Stacks}
+      title="Нет зарегистрированных кластеров"
+      description={
+        <>
           Установите Plexor на своём сервере через{' '}
           <code className="rounded bg-muted px-1 font-mono text-[11px]">plx init</code>{' '}
           или ISO-образ, затем зарегистрируйте control-plane здесь.
-        </p>
-      </div>
-      <Button size="sm" nativeButton={false} render={<Link to="/clusters" />}>
-        <Add />
-        Документация по установке
-      </Button>
-    </div>
+        </>
+      }
+      docs={[{ href: 'https://plexor.dev/docs/install', label: 'Документация по установке' }]}
+      action={
+        <Button nativeButton={false} render={<Link to="/clusters" />}>
+          <Add />
+          Документация по установке
+        </Button>
+      }
+    />
   );
 }

@@ -14,7 +14,7 @@ function AuditPage() {
       description="История действий пользователей и системы в проекте."
       icon={History}
       actions={
-        <Button variant="outline" size="sm">
+        <Button variant="outline">
           <FilterAlt className="size-4" />
           Фильтр
         </Button>

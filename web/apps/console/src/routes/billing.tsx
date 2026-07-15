@@ -14,7 +14,7 @@ function BillingPage() {
       description="Биллинг и потребление ресурсов по проекту."
       icon={Receipt}
       actions={
-        <Button variant="outline" size="sm">
+        <Button variant="outline">
           <Download className="size-4" />
           Экспорт
         </Button>

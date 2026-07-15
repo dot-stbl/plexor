@@ -27,7 +27,7 @@ function ImagesPage() {
   });
 
   const createCta = (
-    <Button size="sm" onClick={() => toast('Creating image — coming soon')}>
+    <Button onClick={() => toast('Creating image — coming soon')}>
       <Add />
       Create image
     </Button>

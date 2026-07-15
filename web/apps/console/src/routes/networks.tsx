@@ -14,7 +14,7 @@ function NetworksPage() {
       description="VPC, подсети и security groups проекта."
       icon={AccountTree}
       actions={
-        <Button size="sm">
+        <Button>
           <Add className="size-4" />
           Создать сеть
         </Button>

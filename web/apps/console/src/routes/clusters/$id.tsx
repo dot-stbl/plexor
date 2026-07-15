@@ -42,7 +42,7 @@ function ClusterDetailPage() {
         title="Кластер не найден"
         width="6xl"
         actions={
-          <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />} size="sm">
+          <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />}>
             <ArrowBack />
             Назад к кластерам
           </Button>
@@ -80,11 +80,11 @@ function ClusterDetailPage() {
         }
         actions={
           <>
-            <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />} size="sm">
+            <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />}>
               <ArrowBack />
               Назад
             </Button>
-            <Button onClick={() => setAddOpen(true)} size="sm">
+            <Button onClick={() => setAddOpen(true)}>
               <Add />
               Добавить нод
             </Button>

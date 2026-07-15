@@ -5,7 +5,6 @@ import {
   Add,
   ArrowBack,
   DeployedCode,
-  MenuBook,
   Stacks
 } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
@@ -27,7 +26,7 @@ import { Size, SizeUtils } from '@/shared/ui/primitives/size';
 import { SummaryPanel, SummaryRow } from '@/shared/ui/primitives/summary-panel';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/shared/ui/primitives/empty';
+import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { useListClusters } from '@/features/clusters';
 import type { NodeStatus } from '@/features/clusters';
 
@@ -185,49 +184,38 @@ function CreateLxcPage() {
       {/* Empty state: 0 clusters → user hasn't installed Plexor yet. */}
       {clusters.length === 0 && (
         <div className="py-8">
-          <Empty data-od-id="lxc-new-no-cluster">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <DeployedCode />
-              </EmptyMedia>
-              <EmptyTitle>Plexor control plane is not registered</EmptyTitle>
-              <EmptyDescription>
-                To create containers, you first need to install Plexor on a server. The installation
-                sets up the control plane and registers it in the UI.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <Button render={<a href="https://plexor.dev/docs/install" target="_blank" rel="noreferrer" />}>
-                <MenuBook />
-                Installation docs
-              </Button>
-            </EmptyContent>
-          </Empty>
+          <EmptyState
+            data-od-id="lxc-new-no-cluster"
+            icon={DeployedCode}
+            title="Plexor control plane is not registered"
+            description="To create containers, you first need to install Plexor on a server. The installation sets up the control plane and registers it in the UI."
+            docs={[{ href: 'https://plexor.dev/docs/install', label: 'Installation docs' }]}
+          />
         </div>
       )}
 
       {/* Empty state: clusters exist, but no ready node runs a container runtime. */}
       {clusters.length > 0 && lxcNodes.length === 0 && (
         <div className="py-8">
-          <Empty data-od-id="lxc-new-no-ready-nodes">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Stacks />
-              </EmptyMedia>
-              <EmptyTitle>No LXC-capable nodes</EmptyTitle>
-              <EmptyDescription>
+          <EmptyState
+            data-od-id="lxc-new-no-ready-nodes"
+            icon={Stacks}
+            title="No LXC-capable nodes"
+            description={
+              <>
                 Containers need a ready node with an LXD/LXC runtime provider. Connect an
-                LXD-capable node (select the <span className="font-medium text-foreground">lxd</span>{' '}
-                provider at install), then it appears here.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
+                LXD-capable node (select the{' '}
+                <span className="font-medium text-foreground">lxd</span> provider at install),
+                then it appears here.
+              </>
+            }
+            action={
               <Button nativeButton={false} render={<Link to="/clusters/$id" params={{ id: clusters[0]!.id }} />}>
                 <ArrowBack />
                 Go to cluster
               </Button>
-            </EmptyContent>
-          </Empty>
+            }
+          />
         </div>
       )}
 

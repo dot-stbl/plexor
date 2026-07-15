@@ -89,7 +89,7 @@ function VmsPage() {
           )
         }
         actions={
-          <Button onClick={() => navigate({ to: '/vms/new' })} size="sm">
+          <Button onClick={() => navigate({ to: '/vms/new' })}>
             <Add />
             Создать ВМ
           </Button>

@@ -35,7 +35,7 @@ function K8sPage() {
       }
       actions={
         rows.length > 0 ? (
-          <Button size="sm" nativeButton={false} render={<Link to="/k8s/new" />}>
+          <Button nativeButton={false} render={<Link to="/k8s/new" />}>
             <Add />
             Create cluster
           </Button>
