@@ -18,21 +18,13 @@ using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.Mappers;
-using Plexor.Modules.Sigil.Infrastructure.Persistence;
 using Shouldly;
 using Xunit;
 
 namespace Plexor.Host.UnitTests;
 
-public sealed class MapprlyApiSmokeTests : IClassFixture<PostgresFixture>
+public sealed class MapperlyApiSmokeTests(PostgresFixture fixture) : IClassFixture<PostgresFixture>
 {
-    private readonly PostgresFixture fixture;
-
-    public MapprlyApiSmokeTests(PostgresFixture fixture)
-    {
-        this.fixture = fixture;
-    }
-
     [Fact(DisplayName = "Given Mapperly-generated UserSummary projection, when EF Core materializes then mapper projects, then DTO field shape matches entity")]
     public async Task MapperlyUserSummaryProjectsEndToEndFromPostgres()
     {
