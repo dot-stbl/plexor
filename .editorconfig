@@ -300,7 +300,7 @@ dotnet_diagnostic.RCS1238.severity = warning # avoid nested ternary
 #---------------------------------------------------------------------
 # Meziantou — дополнительные best practices
 #---------------------------------------------------------------------
-dotnet_diagnostic.MA0006.severity = warning # use String.Equals with StringComparison
+dotnet_diagnostic.MA0006.severity = none # use String.Equals instead of == — owner-disabled 2026-07-13: breaks EF Core LINQ translatability (provider translates `a == b` to SQL; `a.Equals(b)` requires analyzer-confusing StringComparison arg). Use `==` for strings in handlers/specs/queries.
 dotnet_diagnostic.MA0011.severity = warning # IFormatProvider missing
 dotnet_diagnostic.MA0016.severity = warning # prefer returning collection abstraction
 dotnet_diagnostic.MA0040.severity = warning # forward CancellationToken
