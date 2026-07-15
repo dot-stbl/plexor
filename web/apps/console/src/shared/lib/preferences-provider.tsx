@@ -1,28 +1,36 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import i18n from '@/shared/lib/i18n';
 
 /**
  * User visual preferences. The single source of truth for theme, accent
- * color, and font size. Persisted in localStorage and applied to the
- * document as CSS variables / class list on every change.
+ * color, font size, and language. Persisted in localStorage and applied
+ * to the document as CSS variables / class list on every change.
  *
  * Theme precedence: explicit `theme` value wins; if it's 'system' we
  * follow `prefers-color-scheme` via the inline script in main.tsx
  * (no flash) — this provider just records the user's intent.
+ *
+ * Language: also persisted here (NOT only in i18next's own 'plexor-lang'
+ * key). This is the single source of truth — i18n is synced via
+ * i18n.changeLanguage() on every change.
  */
 export type Theme = 'light' | 'dark' | 'system';
 export type Accent = 'plexor' | 'blue' | 'green' | 'orange' | 'pink';
 export type FontSize = 'small' | 'medium' | 'large';
+export type Language = 'en' | 'ru';
 
 export interface Preferences {
   theme: Theme;
   accent: Accent;
   fontSize: FontSize;
+  language: Language;
 }
 
 export const PREFERENCES_DEFAULT: Preferences = {
   theme: 'system',
   accent: 'plexor',
   fontSize: 'medium',
+  language: 'en',
 };
 
 const STORAGE_KEY = 'plexor-preferences';
@@ -67,7 +75,11 @@ function loadFromStorage(): Preferences {
       parsed.fontSize && parsed.fontSize in FONT_SIZE_VALUES
         ? (parsed.fontSize as FontSize)
         : PREFERENCES_DEFAULT.fontSize;
-    return { theme, accent, fontSize };
+    const language: Language =
+      parsed.language === 'en' || parsed.language === 'ru'
+        ? parsed.language
+        : (i18n.language as Language) || PREFERENCES_DEFAULT.language;
+    return { theme, accent, fontSize, language };
   } catch {
     return PREFERENCES_DEFAULT;
   }
@@ -97,6 +109,13 @@ function applyToDocument(prefs: Preferences) {
   // through rem (1rem = font-size on <html>), so changing this scales
   // the entire UI proportionally.
   root.style.fontSize = FONT_SIZE_VALUES[prefs.fontSize];
+
+  // Language — keep i18n in sync with the pref. i18next's own
+  // localStorage key 'plexor-lang' is only used on init detection;
+  // the pref is the source of truth after that.
+  if (i18n.language !== prefs.language) {
+    void i18n.changeLanguage(prefs.language);
+  }
 }
 
 export interface PreferencesProviderProps {

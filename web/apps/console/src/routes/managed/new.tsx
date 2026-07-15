@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowBack, Save } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { toast } from 'sonner';
@@ -57,6 +58,7 @@ const PRESETS = [
  * липкая `SummaryPanel`. Крошки — в баре (staticData). Создание — заглушка (toast).
  */
 function CreateClusterPage() {
+  const { t } = useTranslation();
   const { engine: engineParam } = Route.useSearch();
   const navigate = useNavigate();
   const { engines } = useEngines();
@@ -103,7 +105,7 @@ function CreateClusterPage() {
 
   const handleCreate = () => {
     if (!engine || !runtime) return;
-    toast(`Creating cluster ${effectiveName}`, {
+    toast(t('managed.new.toast', { name: effectiveName }), {
       description: `${engine.name} · ${resources.cpu} vCPU / ${SizeUtils.format(resources.ramBytes)} / ${SizeUtils.format(resources.diskBytes)} · ${RUNTIME_META[runtime].label} · ${targetNode ?? '—'}`,
     });
     void navigate({ to: backRoute });
@@ -113,7 +115,7 @@ function CreateClusterPage() {
     <PageTemplate
       data-od-id="managed-new"
       width="full"
-      title={engine ? `Create ${engine.name} cluster` : 'Create cluster'}
+      title={engine ? t('managed.new.title', { engine: engine.name }) : t('managed.new.fallbackTitle')}
       description="The engine is decoupled from the runtime — choose where to bring it up."
       actions={
         <Button variant="ghost" nativeButton={false} render={<Link to={backRoute} />}>

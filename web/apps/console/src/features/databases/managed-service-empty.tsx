@@ -1,4 +1,5 @@
 import { Add, BarChart, Bolt, Database } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { useTranslation } from 'react-i18next';
 import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/shared/ui/primitives/button';
@@ -20,11 +21,12 @@ const KIND_ICON: Record<DbKind, Icon> = {
  * просто говорит «пусто».
  */
 export function ManagedServiceEmpty({ engine }: { engine: DbEngine }) {
+  const { t } = useTranslation();
   return (
     <EmptyState
       data-od-id={`managed-empty-${engine.id}`}
       media={<TechIcon slug={engine.id} fallback={KIND_ICON[engine.kind]} className="size-20" />}
-      title={`Create your first ${engine.name} cluster`}
+      title={t('managed.empty.title', { engine: engine.name })}
       description={
         <>
           <p className="text-sm text-muted-foreground">{engine.about}</p>

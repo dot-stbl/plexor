@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/shared/lib/i18n';
 import {
   Dialog,
   DialogContent,
@@ -166,15 +165,15 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
             <FieldLabel>{t('preferences.language')}</FieldLabel>
             <FieldDescription>{t('preferences.languageDescription')}</FieldDescription>
             <div role="radiogroup" className="grid grid-cols-2 gap-2">
-              {[{ value: 'en', label: 'English' }, { value: 'ru', label: 'Русский' }].map((l) => {
-                const isActive = i18n.language === l.value;
+              {[{ value: 'en' as const, label: 'English' }, { value: 'ru' as const, label: 'Русский' }].map((l) => {
+                const isActive = preferences.language === l.value;
                 return (
                   <button
                     key={l.value}
                     type="button"
                     role="radio"
                     aria-checked={isActive}
-                    onClick={() => i18n.changeLanguage(l.value)}
+                    onClick={() => update('language', l.value)}
                     className={cn(
                       'rounded-md border bg-background p-2.5 text-sm transition-colors hover:border-foreground/30',
                       isActive

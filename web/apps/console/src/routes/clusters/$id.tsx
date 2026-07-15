@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   Add,
@@ -31,6 +32,7 @@ const SELF_HELP_LINKS = [
 ];
 
 function ClusterDetailPage() {
+  const { t } = useTranslation();
   const { id } = Route.useParams();
   const { cluster } = useGetCluster(id);
   const [addOpen, setAddOpen] = useState(false);
@@ -82,11 +84,11 @@ function ClusterDetailPage() {
           <>
             <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />}>
               <ArrowBack />
-              Назад
+              {t('common.back')}
             </Button>
             <Button onClick={() => setAddOpen(true)}>
               <Add />
-              Добавить нод
+              {t('clusters.detail.addNode')}
             </Button>
           </>
         }
@@ -97,7 +99,7 @@ function ClusterDetailPage() {
           <CardHeader className="gap-0.5 border-b border-border p-4">
             <div className="flex items-center justify-between gap-2">
               <div className="space-y-0.5">
-                <CardTitle className="text-sm">Install providers</CardTitle>
+                <CardTitle className="text-sm">{t('clusters.detail.installProviders')}</CardTitle>
                 <CardDescription>
                   Выбраны при <code className="rounded bg-muted px-1 font-mono text-[10px]">plx init</code>{' '}
                   · endpoint{' '}
@@ -133,19 +135,19 @@ function ClusterDetailPage() {
                   <div className="space-y-0.5">
                     <CardTitle className="text-sm">Plexor.NodeAgent инстансы</CardTitle>
                     <CardDescription>
-                      Запускаются на вашем железе. Подключаются через join-токен из вкладки «Join-токены».
+                      {t('clusters.detail.nodesDescription')}
                     </CardDescription>
                   </div>
                   <Button size="sm" onClick={() => setAddOpen(true)}>
                     <Add />
-                    Добавить нод
+                    {t('clusters.detail.addNode')}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 {nodes.length === 0 ? (
                   <div className="p-6 text-center text-sm text-muted-foreground">
-                    Нодов нет. Сгенерируйте join-токен и установите Plexor ISO.
+                    {t('clusters.detail.noNodes')}
                   </div>
                 ) : (
                   <div className="divide-y divide-border">
@@ -177,7 +179,7 @@ function ClusterDetailPage() {
               <CardContent className="p-0">
                 {tokens.length === 0 ? (
                   <div className="p-6 text-center text-sm text-muted-foreground">
-                    Токенов нет.
+                    {t('clusters.detail.noTokens')}
                   </div>
                 ) : (
                   <div className="divide-y divide-border">
