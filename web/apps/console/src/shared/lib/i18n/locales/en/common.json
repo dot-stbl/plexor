@@ -101,6 +101,15 @@
     "administrationCaption": "Nodes, providers",
     "settingsCaption": "Profile, keys, theme"
   },
+  "createMenu": {
+    "create": "Create",
+    "infrastructure": "Infrastructure",
+    "snapshot": "Snapshot",
+    "sshKey": "SSH key",
+    "networkStorage": "Network and storage",
+    "network": "Network (VPC)",
+    "disk": "Disk"
+  },
   "home": {
     "title": "Overview",
     "description": "Project sections. Full service catalog — \"All services\" in the sidebar."

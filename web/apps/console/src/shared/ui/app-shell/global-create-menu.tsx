@@ -1,4 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
   Add,
@@ -34,41 +35,42 @@ import type { AppRoute } from './nav-config';
  * от features/*.
  */
 interface CreateItem {
-  label: string;
+  labelKey: string;
   icon: Icon;
   /** Готовый маршрут создания; без него — toast «скоро». */
   to?: AppRoute;
 }
 
 interface CreateGroup {
-  label: string;
+  labelKey: string;
   items: CreateItem[];
 }
 
 const GROUPS: CreateGroup[] = [
   {
-    label: 'Infrastructure',
+    labelKey: 'createMenu.infrastructure',
     items: [
-      { label: 'Image', icon: Image, to: '/images' },
-      { label: 'Snapshot', icon: Camera },
-      { label: 'SSH key', icon: Key },
+      { labelKey: 'createMenu.image', icon: Image, to: '/images' },
+      { labelKey: 'createMenu.snapshot', icon: Camera },
+      { labelKey: 'createMenu.sshKey', icon: Key },
     ],
   },
   {
-    label: 'Network and storage',
+    labelKey: 'createMenu.networkStorage',
     items: [
-      { label: 'Network (VPC)', icon: Lan, to: '/networks' },
-      { label: 'Disk', icon: HardDrive },
+      { labelKey: 'createMenu.network', icon: Lan, to: '/networks' },
+      { labelKey: 'createMenu.disk', icon: HardDrive },
     ],
   },
 ];
 
 export function GlobalCreateMenu() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const onSelect = (item: CreateItem) => {
     if (item.to) void navigate({ to: item.to });
-    else toast(`Creating "${item.label}" — coming soon`);
+    else toast(t('common.soon'));
   };
 
   return (
@@ -86,13 +88,13 @@ export function GlobalCreateMenu() {
         {GROUPS.map((group, gi) => (
           <DropdownMenuGroup key={group.label}>
             {gi > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+            <DropdownMenuLabel>{t(group.labelKey)}</DropdownMenuLabel>
             {group.items.map((item) => {
               const IconCmp = item.icon;
               return (
-                <DropdownMenuItem key={item.label} onClick={() => onSelect(item)}>
+                <DropdownMenuItem key={item.labelKey} onClick={() => onSelect(item)}>
                   <IconCmp />
-                  {item.label}
+                  {t(item.labelKey)}
                 </DropdownMenuItem>
               );
             })}

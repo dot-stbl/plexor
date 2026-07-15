@@ -28,16 +28,20 @@ import {
 export type AppRoute = '/' | '/vms' | '/networks' | '/audit' | '/clusters';
 
 export type NavPage = {
+  /** i18n key for the title (resolved at render time with t()). */
   title: string;
+  /** i18n key for the description. */
   description: string;
   icon: Icon;
-  /** Present only for shipped routes; absent = roadmap («скоро»). */
+  /** Present only for shipped routes; absent = roadmap. */
   to?: AppRoute;
 };
 
 export type Section = {
   id: string;
+  /** i18n key for the section label. */
   label: string;
+  /** i18n key for the section caption. */
   caption: string;
   icon: Icon;
   /** Whole section is roadmap. */
@@ -47,83 +51,84 @@ export type Section = {
 
 /**
  * Single source of truth for BOTH the contextual sidebar (pages of the current
- * section) and the app launcher catalog. Grounded in the architecture docs;
- * self-hosted (no billing). Only pages with `to` are shipped today.
+ * section) and the app launcher catalog. All `label`/`title`/`description`/
+ * `caption` fields are i18n KEYS (e.g. 'nav.vmsTitle'), resolved with t() at
+ * render time. Grounded in the architecture docs; self-hosted (no billing).
  */
 export const SECTIONS: Section[] = [
   {
     id: 'compute',
-    label: 'Вычисления',
-    caption: 'Кластеры, ВМ, образы',
+    label: 'nav.sections.compute',
+    caption: 'nav.sections.computeCaption',
     icon: DeployedCode,
     pages: [
-      { title: 'Виртуальные машины', description: 'Инстансы и статусы', icon: DeployedCode, to: '/vms' },
-      { title: 'Вычислительные кластеры', description: 'Пул нод и ресурсы', icon: Stacks, to: '/clusters' },
-      { title: 'Создать ВМ', description: 'Мастер, 6 шагов', icon: Add },
-      { title: 'Образы', description: 'ОС и свои образы', icon: Image },
-      { title: 'Снапшоты ВМ', description: 'Копии дисков', icon: Camera },
-      { title: 'K8s-кластеры', description: 'Managed K3s', icon: Hexagon },
+      { title: 'nav.vmsTitle', description: 'nav.vmsDesc', icon: DeployedCode, to: '/vms' },
+      { title: 'nav.clustersTitle', description: 'nav.clustersDesc', icon: Stacks, to: '/clusters' },
+      { title: 'nav.createVmTitle', description: 'nav.createVmDesc', icon: Add },
+      { title: 'nav.imagesTitle', description: 'nav.imagesDesc', icon: Image },
+      { title: 'nav.snapshotsTitle', description: 'nav.snapshotsDesc', icon: Camera },
+      { title: 'nav.k8sTitle', description: 'nav.k8sDesc', icon: Hexagon },
     ],
   },
   {
     id: 'network',
-    label: 'Сеть',
-    caption: 'VPC, доступ, трафик',
+    label: 'nav.sections.network',
+    caption: 'nav.sections.networkCaption',
     icon: AccountTree,
     pages: [
-      { title: 'VPC и подсети', description: 'Изолированные сети', icon: AccountTree, to: '/networks' },
-      { title: 'Security Groups', description: 'Правила доступа', icon: VerifiedUser },
-      { title: 'Floating IP', description: 'Внешние адреса', icon: Globe },
-      { title: 'Балансировщики', description: 'HAProxy L4/L7', icon: Balance },
-      { title: 'DNS-зоны', description: 'PowerDNS', icon: Globe },
+      { title: 'nav.vpcTitle', description: 'nav.vpcDesc', icon: AccountTree, to: '/networks' },
+      { title: 'nav.sgTitle', description: 'nav.sgDesc', icon: VerifiedUser },
+      { title: 'nav.fipTitle', description: 'nav.fipDesc', icon: Globe },
+      { title: 'nav.lbTitle', description: 'nav.lbDesc', icon: Balance },
+      { title: 'nav.dnsTitle', description: 'nav.dnsDesc', icon: Globe },
     ],
   },
   {
     id: 'storage',
-    label: 'Хранилище',
-    caption: 'Блочное и объектное',
+    label: 'nav.sections.storage',
+    caption: 'nav.sections.storageCaption',
     icon: HardDisk,
     pages: [
-      { title: 'Диски', description: 'Block volumes (SSD/HDD)', icon: HardDisk },
-      { title: 'Бакеты', description: 'S3-совместимые', icon: Archive },
-      { title: 'Снапшоты', description: 'Копии томов', icon: Camera },
+      { title: 'nav.disksTitle', description: 'nav.disksDesc', icon: HardDisk },
+      { title: 'nav.bucketsTitle', description: 'nav.bucketsDesc', icon: Archive },
+      { title: 'nav.volSnapshotsTitle', description: 'nav.volSnapshotsDesc', icon: Camera },
     ],
   },
   {
     id: 'iam',
-    label: 'Доступы · IAM',
-    caption: 'Пользователи и ключи',
+    label: 'nav.sections.access',
+    caption: 'nav.sections.accessCaption',
     icon: Groups,
     pages: [
-      { title: 'Пользователи', description: 'Учётные записи', icon: Groups },
-      { title: 'Роли', description: 'RBAC-права', icon: VerifiedUser },
-      { title: 'SSH-ключи', description: 'Доступ к ВМ', icon: Key },
-      { title: 'API-ключи', description: 'Сервисные аккаунты', icon: Token },
+      { title: 'nav.usersTitle', description: 'nav.usersDesc', icon: Groups },
+      { title: 'nav.rolesTitle', description: 'nav.rolesDesc', icon: VerifiedUser },
+      { title: 'nav.sshKeysTitle', description: 'nav.sshKeysDesc', icon: Key },
+      { title: 'nav.apiKeysTitle', description: 'nav.apiKeysDesc', icon: Token },
     ],
   },
   {
     id: 'observability',
-    label: 'Наблюдаемость',
-    caption: 'Метрики, логи, аудит',
+    label: 'nav.sections.observability',
+    caption: 'nav.sections.observabilityCaption',
     icon: ShowChart,
     pages: [
-      { title: 'Метрики', description: 'Prometheus', icon: ShowChart },
-      { title: 'Логи', description: 'Поиск по логам', icon: List },
-      { title: 'Журнал аудита', description: 'История действий', icon: History, to: '/audit' },
+      { title: 'nav.metricsTitle', description: 'nav.metricsDesc', icon: ShowChart },
+      { title: 'nav.logsTitle', description: 'nav.logsDesc', icon: List },
+      { title: 'nav.auditTitle', description: 'nav.auditDesc', icon: History, to: '/audit' },
     ],
   },
   {
     id: 'data',
-    label: 'Платформа данных',
-    caption: 'Управляемые СУБД',
+    label: 'nav.sections.databases',
+    caption: 'nav.sections.databasesCaption',
     icon: Database,
     soon: true,
     pages: [
-      { title: 'PostgreSQL', description: 'CloudNativePG', icon: Database },
-      { title: 'Redis', description: 'Кэш и очереди', icon: Bolt },
-      { title: 'ClickHouse', description: 'Аналитика', icon: BarChart },
-      { title: 'Kafka', description: 'Стриминг', icon: Bolt },
-      { title: 'Container Registry', description: 'Образы контейнеров', icon: Package },
+      { title: 'nav.postgresTitle', description: 'nav.postgresDesc', icon: Database },
+      { title: 'nav.redisTitle', description: 'nav.redisDesc', icon: Bolt },
+      { title: 'nav.clickhouseTitle', description: 'nav.clickhouseDesc', icon: BarChart },
+      { title: 'nav.kafkaTitle', description: 'nav.kafkaDesc', icon: Bolt },
+      { title: 'nav.registryTitle', description: 'nav.registryDesc', icon: Package },
     ],
   },
 ];

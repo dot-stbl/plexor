@@ -101,6 +101,15 @@
     "administrationCaption": "Ноды, провайдеры",
     "settingsCaption": "Профиль, ключи, тема"
   },
+  "createMenu": {
+    "create": "Создать",
+    "infrastructure": "Инфраструктура",
+    "snapshot": "Снапшот",
+    "sshKey": "SSH-ключ",
+    "networkStorage": "Сеть и хранилище",
+    "network": "Сеть (VPC)",
+    "disk": "Диск"
+  },
   "home": {
     "title": "Обзор",
     "description": "Разделы проекта. Полный каталог сервисов — «Все сервисы» в сайдбаре."

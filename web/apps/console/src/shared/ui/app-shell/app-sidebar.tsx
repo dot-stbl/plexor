@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { GridView, Logout, Settings } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import {
   Sidebar,
@@ -56,16 +57,17 @@ const railPill =
  * User lives at the bottom; its menu opens the Settings modal.
  */
 export function AppSidebar() {
+  const { t } = useTranslation();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [launcherOpen, setLauncherOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const section = SECTIONS.find((s) => s.id === sectionIdForPathname(pathname));
 
-  const groupLabel = section ? section.label : 'Разделы';
+  const groupLabel = section ? t(section.label) : t('shell.applications');
   const items: SidebarItem[] = section
-    ? section.pages.map((p) => ({ title: p.title, icon: p.icon, to: p.to }))
-    : SECTIONS.map((s) => ({ title: s.label, icon: s.icon, to: sectionPrimaryRoute(s) }));
+    ? section.pages.map((p) => ({ title: t(p.title), icon: p.icon, to: p.to }))
+    : SECTIONS.map((s) => ({ title: t(s.label), icon: s.icon, to: sectionPrimaryRoute(s) }));
 
   return (
     <>
@@ -76,7 +78,7 @@ export function AppSidebar() {
           <div className="flex items-center gap-2">
             <Link
               to="/"
-              aria-label="Plexor — на главную"
+              aria-label={t('shell.goHome')}
               className="flex items-center gap-2 rounded-md p-1 text-foreground outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
             >
               <PlexorMark className="h-6 w-auto shrink-0 group-data-[collapsible=icon]:h-5" />
@@ -85,7 +87,7 @@ export function AppSidebar() {
               </span>
             </Link>
             <SidebarTrigger
-              aria-label="Свернуть меню"
+              aria-label={t('shell.collapseMenu')}
               className="ml-auto size-7 group-data-[collapsible=icon]:hidden"
             />
           </div>
@@ -93,10 +95,10 @@ export function AppSidebar() {
             <SidebarMenuItem className="group/menu-item relative">
               <SidebarMenuButton onClick={() => setLauncherOpen(true)} className="font-medium">
                 <GridView />
-                <span>Приложения</span>
+                <span>{t('shell.applications')}</span>
               </SidebarMenuButton>
               <span aria-hidden="true" className={railPill}>
-                Приложения
+                {t('shell.applications')}
               </span>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -155,7 +157,7 @@ export function AppSidebar() {
               render={
                 <Button
                   variant="ghost"
-                  aria-label="Аккаунт"
+                  aria-label={t('shell.account')}
                   className="h-auto w-full justify-start gap-2 p-2 font-normal group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
                 />
               }

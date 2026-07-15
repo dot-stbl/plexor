@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Dialog } from '@base-ui/react/dialog';
 import type { Icon } from '@nine-thirty-five/material-symbols-react';
+import { useTranslation } from 'react-i18next';
 import {
   Close,
   GridView,
@@ -22,14 +23,14 @@ import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { cn } from '@/lib/utils';
 import { SECTIONS, type AppRoute, type NavPage, type Section } from './nav-config';
 
-type MetaHub = { name: string; caption: string; icon: Icon; to?: AppRoute; soon?: boolean };
+type MetaHub = { nameKey: string; captionKey: string; icon: Icon; to?: AppRoute; soon?: boolean };
 
 /** Row 1 — cross-cutting entry hubs (4). */
 const META: MetaHub[] = [
-  { name: 'Обзор проекта', caption: 'Сводка и действия', icon: GridView, to: '/' },
-  { name: 'Документация', caption: 'API (Scalar) и гайды', icon: MenuBook, soon: true },
-  { name: 'Администрирование', caption: 'Ноды, провайдеры', icon: Settings, soon: true },
-  { name: 'Настройки', caption: 'Профиль, ключи, тема', icon: Tune, soon: true },
+  { nameKey: 'shell.overview', captionKey: 'shell.overviewCaption', icon: GridView, to: '/' },
+  { nameKey: 'shell.documentation', captionKey: 'shell.documentationCaption', icon: MenuBook, soon: true },
+  { nameKey: 'shell.administration', captionKey: 'shell.administrationCaption', icon: Settings, soon: true },
+  { nameKey: 'shell.settings', captionKey: 'shell.settingsCaption', icon: Tune, soon: true },
 ];
 
 /** Row 2 — at-a-glance summary (3). No backend yet → honest empty state. */
@@ -50,6 +51,7 @@ const SoonTag = () => (
 );
 
 function MetaCard({ hub, onNavigate }: { hub: MetaHub; onNavigate: () => void }) {
+  const { t } = useTranslation();
   const HubIcon = hub.icon;
   const inner = (
     <div className={cn('flex h-full items-center gap-2.5 px-3 py-2.5', tile, hub.to ? 'hover:bg-muted' : 'opacity-60')}>
@@ -58,10 +60,10 @@ function MetaCard({ hub, onNavigate }: { hub: MetaHub; onNavigate: () => void })
       </span>
       <div className="min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="truncate text-xs font-medium">{hub.name}</span>
+          <span className="truncate text-xs font-medium">{t(hub.nameKey)}</span>
           {hub.soon && <SoonTag />}
         </div>
-        <div className="truncate text-[10.5px] text-muted-foreground">{hub.caption}</div>
+        <div className="truncate text-[10.5px] text-muted-foreground">{t(hub.captionKey)}</div>
       </div>
     </div>
   );
@@ -75,6 +77,7 @@ function MetaCard({ hub, onNavigate }: { hub: MetaHub; onNavigate: () => void })
 }
 
 function FnButton({ page, onNavigate }: { page: NavPage; onNavigate: () => void }) {
+  const { t } = useTranslation();
   const ItemIcon = page.icon;
   const inner = (
     <>
@@ -82,8 +85,8 @@ function FnButton({ page, onNavigate }: { page: NavPage; onNavigate: () => void 
         <ItemIcon className="size-4" />
       </span>
       <span className="min-w-0 flex-1 text-left">
-        <span className="block truncate text-xs font-medium">{page.title}</span>
-        <span className="block truncate text-[10px] font-normal text-muted-foreground">{page.description}</span>
+        <span className="block truncate text-xs font-medium">{t(page.title)}</span>
+        <span className="block truncate text-[10px] font-normal text-muted-foreground">{t(page.description)}</span>
       </span>
       {!page.to && <SoonTag />}
     </>
@@ -104,6 +107,7 @@ function FnButton({ page, onNavigate }: { page: NavPage; onNavigate: () => void 
 }
 
 function BlockCard({ section, onNavigate }: { section: Section; onNavigate: () => void }) {
+  const { t } = useTranslation();
   const BlockIcon = section.icon;
   return (
     <Card className="gap-0 overflow-visible py-0" data-od-id={`launcher-block-${section.id}`}>
@@ -112,8 +116,8 @@ function BlockCard({ section, onNavigate }: { section: Section; onNavigate: () =
             <BlockIcon className="size-[18px]" />
           </span>
           <div className="min-w-0 flex-1">
-            <CardTitle className="text-[13px]">{section.label}</CardTitle>
-            <CardDescription className="text-[11px]">{section.caption}</CardDescription>
+            <CardTitle className="text-[13px]">{t(section.label)}</CardTitle>
+            <CardDescription className="text-[11px]">{t(section.caption)}</CardDescription>
           </div>
           {section.soon && <SoonTag />}
         </div>
