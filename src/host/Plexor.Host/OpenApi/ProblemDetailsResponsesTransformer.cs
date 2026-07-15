@@ -69,8 +69,6 @@ public sealed class ProblemDetailsResponsesTransformer : IOpenApiOperationTransf
         OpenApiOperationTransformerContext context,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(operation);
-        ArgumentNullException.ThrowIfNull(context);
 
         var requiresAuth = context.Description.ActionDescriptor?.EndpointMetadata
             .OfType<AuthorizeAttribute>()

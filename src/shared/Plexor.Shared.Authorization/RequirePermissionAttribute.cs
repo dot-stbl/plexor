@@ -68,7 +68,6 @@ public sealed class RequirePermissionAttribute : Attribute, IAuthorizeData
     /// </param>
     public RequirePermissionAttribute(params string[] permissions)
     {
-        ArgumentNullException.ThrowIfNull(permissions);
 
         var tokens = permissions
             .Where(static p => p is not null)

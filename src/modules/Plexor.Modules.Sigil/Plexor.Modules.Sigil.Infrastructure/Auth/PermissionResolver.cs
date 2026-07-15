@@ -27,8 +27,6 @@ public sealed class PermissionResolver(IdentityDbContext db) : IPermissionResolv
         Guid orgId,
         CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfEqual(userId, Guid.Empty);
-        ArgumentOutOfRangeException.ThrowIfEqual(orgId, Guid.Empty);
 
         return await db.RoleBindings
             .AsNoTracking()
@@ -41,6 +39,6 @@ public sealed class PermissionResolver(IdentityDbContext db) : IPermissionResolv
             .SelectMany(static perms => perms)
             .Select(static scope => scope.Value)
             .Distinct()
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
     }
 }

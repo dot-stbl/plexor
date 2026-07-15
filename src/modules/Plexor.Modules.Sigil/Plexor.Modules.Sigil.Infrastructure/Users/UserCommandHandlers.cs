@@ -13,6 +13,7 @@ using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
+using Plexor.Modules.Sigil.Infrastructure.Mappers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Users;
@@ -35,7 +36,6 @@ public sealed class CreateUserCommandHandler(
         CreateUserCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (string.IsNullOrWhiteSpace(command.Email) || !command.Email.Contains('@', StringComparison.Ordinal))
         {
@@ -93,14 +93,14 @@ public sealed class CreateUserCommandHandler(
 /// </summary>
 /// <param name="db"></param>
 public sealed class UpdateUserCommandHandler(
-    IdentityDbContext db) : ICommandHandler<UpdateUserCommand, UserSummary>
+    IdentityDbContext db,
+    ISigilMapper mapper) : ICommandHandler<UpdateUserCommand, UserSummary>
 {
     /// <inheritdoc />
     public async Task<UserSummary> HandleAsync(
         UpdateUserCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         var exists = await db.Users
             .AsNoTracking()
@@ -139,15 +139,7 @@ public sealed class UpdateUserCommandHandler(
         return await db.Users
             .AsNoTracking()
             .Where(u => u.Id == command.UserId)
-            .Select(u => new UserSummary(
-                u.Id,
-                u.OrgId,
-                u.Email.Value,
-                u.DisplayName,
-                u.Status,
-                u.CreatedAt,
-                u.UpdatedAt,
-                u.LastLoginAt))
+            .Select(u => mapper.ToUserSummary(u))
             .FirstAsync(cancellationToken);
     }
 }
@@ -160,14 +152,14 @@ public sealed class UpdateUserCommandHandler(
 /// <param name="refreshTokens"></param>
 public sealed class DisableUserCommandHandler(
     IdentityDbContext db,
-    IRefreshTokenStore refreshTokens) : ICommandHandler<DisableUserCommand, UserSummary>
+    IRefreshTokenStore refreshTokens,
+    ISigilMapper mapper) : ICommandHandler<DisableUserCommand, UserSummary>
 {
     /// <inheritdoc />
     public async Task<UserSummary> HandleAsync(
         DisableUserCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (!await db.Users
                 .AsNoTracking()
@@ -194,7 +186,7 @@ public sealed class DisableUserCommandHandler(
             .Where(token => token.UserId == command.UserId)
             .Select(token => token.FamilyId)
             .Distinct()
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
         foreach (var familyId in familyIds)
         {
             await refreshTokens.RevokeFamilyAsync(familyId, cancellationToken);
@@ -203,15 +195,7 @@ public sealed class DisableUserCommandHandler(
         return await db.Users
             .AsNoTracking()
             .Where(u => u.Id == command.UserId)
-            .Select(u => new UserSummary(
-                u.Id,
-                u.OrgId,
-                u.Email.Value,
-                u.DisplayName,
-                u.Status,
-                u.CreatedAt,
-                u.UpdatedAt,
-                u.LastLoginAt))
+            .Select(u => mapper.ToUserSummary(u))
             .FirstAsync(cancellationToken);
     }
 }
@@ -221,27 +205,19 @@ public sealed class DisableUserCommandHandler(
 /// </summary>
 /// <param name="db"></param>
 public sealed class GetUserQueryHandler(
-    IdentityDbContext db) : ICommandHandler<GetUserQuery, UserSummary>
+    IdentityDbContext db,
+    ISigilMapper mapper) : ICommandHandler<GetUserQuery, UserSummary>
 {
     /// <inheritdoc />
     public async Task<UserSummary> HandleAsync(
         GetUserQuery query,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(query);
 
         var summary = await db.Users
             .AsNoTracking()
             .Where(u => u.Id == query.UserId)
-            .Select(u => new UserSummary(
-                u.Id,
-                u.OrgId,
-                u.Email.Value,
-                u.DisplayName,
-                u.Status,
-                u.CreatedAt,
-                u.UpdatedAt,
-                u.LastLoginAt))
+            .Select(u => mapper.ToUserSummary(u))
             .FirstOrDefaultAsync(cancellationToken);
 
         return summary ?? throw new IdentityException(
@@ -256,7 +232,7 @@ public sealed class GetUserQueryHandler(
 /// </summary>
 /// <param name="db"></param>
 public sealed class ListUsersQueryHandler(
-    IdentityDbContext db) : ICommandHandler<ListUsersQuery, UserPage>
+    IdentityDbContext db, ISigilMapper mapper) : ICommandHandler<ListUsersQuery, UserPage>
 {
     /// <summary>Hard cap on page size — protects against accidental
     /// full-table dumps.</summary>
@@ -267,7 +243,6 @@ public sealed class ListUsersQueryHandler(
         ListUsersQuery query,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(query);
 
         var pageSize = Math.Clamp(query.PageSize, 1, MaxPageSize);
         var page = Math.Max(1, query.Page);
@@ -279,16 +254,8 @@ public sealed class ListUsersQueryHandler(
             .OrderBy(u => u.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(u => new UserSummary(
-                u.Id,
-                u.OrgId,
-                u.Email.Value,
-                u.DisplayName,
-                u.Status,
-                u.CreatedAt,
-                u.UpdatedAt,
-                u.LastLoginAt))
-            .ToListAsync(cancellationToken);
+            .Select(u => mapper.ToUserSummary(u))
+            .ToArrayAsync(cancellationToken);
 
         return new UserPage(items, total, page, pageSize);
     }

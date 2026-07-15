@@ -34,8 +34,6 @@ public sealed class EfApiKeyAuthenticationService(
         string rawSecret,
         CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfEqual(keyId, Guid.Empty);
-        ArgumentException.ThrowIfNullOrEmpty(rawSecret);
 
         var key = await db.ApiKeys
             .AsNoTracking()

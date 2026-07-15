@@ -339,6 +339,28 @@ return symbols.ToArray();
 public List<string> Symbols { get; }
 ```
 
+### Materialization — never double-allocate after EF tracks
+
+EF Core's <c>ToListAsync()</c> returns <c>List&lt;T&gt;</c> (tracked or
+no-tracking, depending on query). Do not run <c>.ToList()</c> on the
+result — it's already a <c>List&lt;T&gt;</c>; one more copy is wasted.
+
+```csharp
+// ❌ Wrong — List → List copy is wasted
+var items = await db.Clusters.AsNoTracking().ToListAsync(ct);
+return new ClusterDetail(..., items.ToList(), ...);
+
+// ✅ Correct — items is List<T>, assign directly
+var items = await db.Clusters.AsNoTracking().ToListAsync(ct);
+return new ClusterDetail(..., items, ...);
+```
+
+When the return type is <c>IReadOnlyList&lt;T&gt;</c>, <c>List&lt;T&gt;</c>
+is implicitly castable (it implements <c>IReadOnlyList&lt;T&gt;</c>);
+no cast, no copy. Only fall back to <c>.ToArray()</c> when the EF
+provider gives you a non-list materialization (rare — Dapper raw
+queries, custom SqlQuery) and the caller needs array semantics.
+
 ### Empty collections
 
 ```csharp
@@ -1150,10 +1172,14 @@ ArgumentNullException.ThrowIfNull(instance);
 **Self-audit grep (перед коммитом):**
 
 ```bash
-rg -n 'ArgumentNullException\.ThrowIf|ArgumentException\.ThrowIf' src/ --type cs
+rg -n 'Argument(Null|Exception|OutOfRangeException)\.ThrowIf' src/ tests/
 ```
 
-Должно быть пусто (или содержать только `// boundary:` комментарии).
+Должно быть пусто. Существующие исключения в pre-existing коде —
+forward-only: каждый PR, который трогает файл, должен удалить
+`ThrowIf*` из него. **В новой работе — никаких исключений.**
+Единственное разрешённое исключение — `// boundary:` комментарий
+для nullable-oblivious код (reflection/interop/serialization).
 
 ---
 

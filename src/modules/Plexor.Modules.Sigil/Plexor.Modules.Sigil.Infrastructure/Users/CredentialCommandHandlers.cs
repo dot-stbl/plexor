@@ -12,6 +12,7 @@ using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
+using Plexor.Modules.Sigil.Infrastructure.Mappers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Users;
@@ -32,7 +33,6 @@ public sealed class IssueApiKeyCommandHandler(
         IssueApiKeyCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (string.IsNullOrWhiteSpace(command.Name))
         {
@@ -103,7 +103,6 @@ public sealed class RevokeApiKeyCommandHandler(
         RevokeApiKeyCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         var rows = await db.ApiKeys
             .Where(key => key.Id == command.KeyId && key.RevokedAt == null)
@@ -123,30 +122,22 @@ public sealed class RevokeApiKeyCommandHandler(
 
 /// <summary>List API keys for a user.</summary>
 /// <param name="db"></param>
+/// <param name="mapper">Entity → DTO mapper (Mapperly-generated).</param>
 public sealed class ListApiKeysQueryHandler(
-    IdentityDbContext db) : ICommandHandler<ListApiKeysQuery, IReadOnlyCollection<ApiKeySummary>>
+    IdentityDbContext db,
+    ISigilMapper mapper) : ICommandHandler<ListApiKeysQuery, IReadOnlyCollection<ApiKeySummary>>
 {
     /// <inheritdoc />
     public Task<IReadOnlyCollection<ApiKeySummary>> HandleAsync(
         ListApiKeysQuery query,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(query);
         return db.ApiKeys
             .AsNoTracking()
             .Where(key => key.UserId == query.OwnerId)
             .OrderByDescending(key => key.CreatedAt)
-            .Select(key => new ApiKeySummary(
-                key.Id,
-                key.UserId,
-                key.OrgId,
-                key.Name,
-                key.Permissions.Select(static p => p.Value).ToArray(),
-                key.ExpiresAt,
-                key.LastUsedAt,
-                key.RevokedAt,
-                key.CreatedAt))
-            .ToListAsync(cancellationToken)
+            .Select(key => mapper.ToApiKeySummary(key))
+            .ToArrayAsync(cancellationToken)
             .ContinueWith(
                 static task => (IReadOnlyCollection<ApiKeySummary>)task.Result,
                 cancellationToken,
@@ -161,14 +152,14 @@ public sealed class ListApiKeysQueryHandler(
 /// </summary>
 /// <param name="db"></param>
 public sealed class AddSshKeyCommandHandler(
-    IdentityDbContext db) : ICommandHandler<AddSshKeyCommand, SshKeySummary>
+    IdentityDbContext db,
+    ISigilMapper mapper) : ICommandHandler<AddSshKeyCommand, SshKeySummary>
 {
     /// <inheritdoc />
     public async Task<SshKeySummary> HandleAsync(
         AddSshKeyCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (string.IsNullOrWhiteSpace(command.PublicKey))
         {
@@ -217,10 +208,7 @@ public sealed class AddSshKeyCommandHandler(
         await db.SshKeys.AddAsync(sshKey, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
-        return new SshKeySummary(
-            sshKey.Id, sshKey.UserId, sshKey.OrgId, sshKey.Name,
-            sshKey.Fingerprint, sshKey.LastUsedAt, sshKey.RevokedAt,
-            sshKey.CreatedAt);
+        return mapper.ToSshKeySummary(sshKey);
     }
 
     /// <summary>
@@ -247,7 +235,6 @@ public sealed class RevokeSshKeyCommandHandler(
         RevokeSshKeyCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         var rows = await db.SshKeys
             .Where(key => key.Id == command.KeyId && key.RevokedAt == null)
@@ -268,28 +255,20 @@ public sealed class RevokeSshKeyCommandHandler(
 /// <summary>List SSH keys for a user.</summary>
 /// <param name="db"></param>
 public sealed class ListSshKeysQueryHandler(
-    IdentityDbContext db) : ICommandHandler<ListSshKeysQuery, IReadOnlyCollection<SshKeySummary>>
+    IdentityDbContext db,
+    ISigilMapper mapper) : ICommandHandler<ListSshKeysQuery, IReadOnlyCollection<SshKeySummary>>
 {
     /// <inheritdoc />
     public Task<IReadOnlyCollection<SshKeySummary>> HandleAsync(
         ListSshKeysQuery query,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(query);
         return db.SshKeys
             .AsNoTracking()
             .Where(key => key.UserId == query.OwnerId)
             .OrderByDescending(key => key.CreatedAt)
-            .Select(key => new SshKeySummary(
-                key.Id,
-                key.UserId,
-                key.OrgId,
-                key.Name,
-                key.Fingerprint,
-                key.LastUsedAt,
-                key.RevokedAt,
-                key.CreatedAt))
-            .ToListAsync(cancellationToken)
+            .Select(key => mapper.ToSshKeySummary(key))
+            .ToArrayAsync(cancellationToken)
             .ContinueWith(
                 static task => (IReadOnlyCollection<SshKeySummary>)task.Result,
                 cancellationToken,

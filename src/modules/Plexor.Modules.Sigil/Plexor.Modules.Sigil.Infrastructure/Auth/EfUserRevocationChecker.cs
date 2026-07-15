@@ -24,7 +24,6 @@ public sealed class EfUserRevocationChecker(IdentityDbContext db) : IUserRevocat
         DateTimeOffset tokenIssuedAtUtc,
         CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfEqual(userId, Guid.Empty);
 
         var snapshot = await db.Users
             .AsNoTracking()

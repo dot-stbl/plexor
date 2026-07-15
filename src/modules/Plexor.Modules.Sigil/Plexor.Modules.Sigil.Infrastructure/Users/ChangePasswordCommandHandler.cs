@@ -34,7 +34,6 @@ public sealed class ChangePasswordCommandHandler(
         ChangePasswordCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (string.IsNullOrEmpty(command.CurrentPassword))
         {
@@ -82,7 +81,7 @@ public sealed class ChangePasswordCommandHandler(
             .Where(token => token.UserId == command.UserId)
             .Select(token => token.FamilyId)
             .Distinct()
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
 
         await db.Users
             .Where(u => u.Id == command.UserId)

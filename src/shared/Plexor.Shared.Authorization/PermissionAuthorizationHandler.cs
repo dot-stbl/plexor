@@ -43,8 +43,6 @@ public sealed class PermissionAuthorizationHandler(
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
     {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(requirement);
 
         var hasClaim = context.User.Claims.Any(claim =>
             string.Equals(

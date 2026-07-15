@@ -8,6 +8,7 @@ using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
+using Plexor.Modules.Sigil.Infrastructure.Mappers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Users;
@@ -26,7 +27,6 @@ public sealed class CreateRoleBindingCommandHandler(
         CreateRoleBindingCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         // Verify the role exists in the org before creating the binding.
         var roleExists = await db.Roles
@@ -78,7 +78,6 @@ public sealed class DeleteRoleBindingCommandHandler(
         DeleteRoleBindingCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         var rows = await db.RoleBindings
             .Where(binding => binding.Id == command.BindingId)
@@ -97,27 +96,19 @@ public sealed class DeleteRoleBindingCommandHandler(
 /// <summary>List role bindings for a user (all scopes).</summary>
 /// <param name="db"></param>
 public sealed class ListRoleBindingsQueryHandler(
-    IdentityDbContext db) : ICommandHandler<ListRoleBindingsQuery, IReadOnlyCollection<RoleBindingSummary>>
+    IdentityDbContext db, ISigilMapper mapper) : ICommandHandler<ListRoleBindingsQuery, IReadOnlyCollection<RoleBindingSummary>>
 {
     /// <inheritdoc />
     public Task<IReadOnlyCollection<RoleBindingSummary>> HandleAsync(
         ListRoleBindingsQuery query,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(query);
         return db.RoleBindings
             .AsNoTracking()
             .Where(binding => binding.UserId == query.UserId)
             .OrderByDescending(binding => binding.CreatedAt)
-            .Select(binding => new RoleBindingSummary(
-                binding.Id,
-                binding.OrgId,
-                binding.UserId,
-                binding.RoleId,
-                binding.TeamId,
-                binding.FolderId,
-                binding.CreatedAt))
-            .ToListAsync(cancellationToken)
+            .Select(binding => mapper.ToRoleBindingSummary(binding))
+            .ToArrayAsync(cancellationToken)
             .ContinueWith(
                 static task => (IReadOnlyCollection<RoleBindingSummary>)task.Result,
                 cancellationToken,

@@ -27,7 +27,6 @@ public static class PlexorSharedAuthorizationServiceCollectionExtensions
     /// <returns>The same <paramref name="services" /> for chaining.</returns>
     public static IServiceCollection AddPlexorAuthorization(this IServiceCollection services)
     {
-        ArgumentNullException.ThrowIfNull(services);
 
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();

@@ -62,7 +62,7 @@ public sealed class EfSigningKeyRepository(IdentityDbContext db) : ISigningKeyRe
             .AsNoTracking()
             .Where(key => key.NotAfter == null || key.NotAfter > now)
             .OrderByDescending(key => key.CreatedAt)
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
     }
 
     /// <inheritdoc />

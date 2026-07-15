@@ -55,7 +55,7 @@ public static class QueryablePagingExtensions
         var items = await source
                 .Skip(normalized.Skip())
                 .Take(normalized.PageSize)
-                .ToListAsync(cancellationToken);
+                .ToArrayAsync(cancellationToken);
 
         return new PageResult<T>(
             items,

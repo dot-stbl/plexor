@@ -84,7 +84,6 @@ public sealed class PermissionPolicyProvider(
     /// </returns>
     public Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
     {
-        ArgumentNullException.ThrowIfNull(policyName);
 
         if (!policyName.StartsWith(AuthorizationPolicyNames.Prefix, StringComparison.Ordinal))
         {

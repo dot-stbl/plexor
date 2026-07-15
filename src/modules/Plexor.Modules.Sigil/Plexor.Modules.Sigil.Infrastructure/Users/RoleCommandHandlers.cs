@@ -10,6 +10,7 @@ using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
+using Plexor.Modules.Sigil.Infrastructure.Mappers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Users;
@@ -27,7 +28,6 @@ public sealed class CreateRoleCommandHandler(
         CreateRoleCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (string.IsNullOrWhiteSpace(command.Name))
         {
@@ -65,14 +65,13 @@ public sealed class CreateRoleCommandHandler(
 /// </summary>
 /// <param name="db"></param>
 public sealed class UpdateRoleCommandHandler(
-    IdentityDbContext db) : ICommandHandler<UpdateRoleCommand, RoleSummary>
+    IdentityDbContext db, ISigilMapper mapper) : ICommandHandler<UpdateRoleCommand, RoleSummary>
 {
     /// <inheritdoc />
     public async Task<RoleSummary> HandleAsync(
         UpdateRoleCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (await db.Roles
                 .FirstOrDefaultAsync(r => r.Id == command.RoleId, cancellationToken)
@@ -113,15 +112,7 @@ public sealed class UpdateRoleCommandHandler(
         return await db.Roles
             .AsNoTracking()
             .Where(r => r.Id == command.RoleId)
-            .Select(r => new RoleSummary(
-                r.Id,
-                r.OrgId,
-                r.Name,
-                r.Description,
-                r.Permissions.Select(static p => p.Value).ToArray(),
-                r.BuiltIn,
-                r.CreatedAt,
-                r.UpdatedAt))
+            .Select(r => mapper.ToRoleSummary(r))
             .FirstAsync(cancellationToken);
     }
 }
@@ -139,7 +130,6 @@ public sealed class DeleteRoleCommandHandler(
         DeleteRoleCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (await db.Roles
                 .FirstOrDefaultAsync(r => r.Id == command.RoleId, cancellationToken)
@@ -172,27 +162,19 @@ public sealed class DeleteRoleCommandHandler(
 /// <summary>Fetch a single role by id.</summary>
 /// <param name="db"></param>
 public sealed class GetRoleQueryHandler(
-    IdentityDbContext db) : ICommandHandler<GetRoleQuery, RoleSummary>
+    IdentityDbContext db,
+    ISigilMapper mapper) : ICommandHandler<GetRoleQuery, RoleSummary>
 {
     /// <inheritdoc />
     public async Task<RoleSummary> HandleAsync(
         GetRoleQuery query,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(query);
 
         var summary = await db.Roles
             .AsNoTracking()
             .Where(r => r.Id == query.RoleId)
-            .Select(r => new RoleSummary(
-                r.Id,
-                r.OrgId,
-                r.Name,
-                r.Description,
-                r.Permissions.Select(static p => p.Value).ToArray(),
-                r.BuiltIn,
-                r.CreatedAt,
-                r.UpdatedAt))
+            .Select(r => mapper.ToRoleSummary(r))
             .FirstOrDefaultAsync(cancellationToken);
 
         return summary ?? throw new IdentityException(
@@ -204,29 +186,21 @@ public sealed class GetRoleQueryHandler(
 /// <summary>List roles in an organization.</summary>
 /// <param name="db"></param>
 public sealed class ListRolesQueryHandler(
-    IdentityDbContext db) : ICommandHandler<ListRolesQuery, IReadOnlyCollection<RoleSummary>>
+    IdentityDbContext db,
+    ISigilMapper mapper) : ICommandHandler<ListRolesQuery, IReadOnlyCollection<RoleSummary>>
 {
     /// <inheritdoc />
     public Task<IReadOnlyCollection<RoleSummary>> HandleAsync(
         ListRolesQuery query,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(query);
         return db.Roles
             .AsNoTracking()
             .Where(r => r.OrgId == query.OrgId)
             .OrderBy(r => r.BuiltIn ? 0 : 1)
             .ThenBy(r => r.Name)
-            .Select(r => new RoleSummary(
-                r.Id,
-                r.OrgId,
-                r.Name,
-                r.Description,
-                r.Permissions.Select(static p => p.Value).ToArray(),
-                r.BuiltIn,
-                r.CreatedAt,
-                r.UpdatedAt))
-            .ToListAsync(cancellationToken)
+            .Select(r => mapper.ToRoleSummary(r))
+            .ToArrayAsync(cancellationToken)
             .ContinueWith(static task => (IReadOnlyCollection<RoleSummary>)task.Result,
                 cancellationToken,
                 TaskContinuationOptions.OnlyOnRanToCompletion,

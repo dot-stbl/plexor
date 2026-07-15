@@ -35,7 +35,6 @@ public sealed record PermissionRequirement : IAuthorizationRequirement
     /// </param>
     public PermissionRequirement(string permission)
     {
-        ArgumentNullException.ThrowIfNull(permission);
         var trimmed = permission.Trim();
         if (trimmed.Length == 0)
         {

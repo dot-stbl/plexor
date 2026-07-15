@@ -52,7 +52,6 @@ public sealed class LoginCommandHandler(
         LoginCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (string.IsNullOrEmpty(command.Password))
         {
@@ -245,7 +244,7 @@ public sealed class LoginCommandHandler(
                 role => role.Id,
                 (_, role) => role.Name)
             .Distinct()
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
     }
 }
 
@@ -268,7 +267,6 @@ public sealed class RefreshCommandHandler(
         RefreshCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (string.IsNullOrWhiteSpace(command.RefreshToken))
         {
@@ -346,7 +344,7 @@ public sealed class RefreshCommandHandler(
                 role => role.Id,
                 (_, role) => role.Name)
             .Distinct()
-            .ToListAsync(cancellationToken);
+            .ToArrayAsync(cancellationToken);
     }
 }
 
@@ -364,7 +362,6 @@ public sealed class LogoutCommandHandler(
         LogoutCommand command,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(command);
 
         if (string.IsNullOrWhiteSpace(command.RefreshToken))
         {
@@ -391,7 +388,6 @@ public sealed class MeQueryHandler(
         MeQuery query,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(query);
 
         if (currentUser.UserId == Guid.Empty)
         {

@@ -49,9 +49,6 @@ public sealed class JwtSigningService(
         TimeSpan lifetime,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(principal);
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(lifetime, TimeSpan.Zero);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(lifetime, IJwtSigningService.AccessTokenLifetime);
 
         return IssueInternalAsync(principal, lifetime, cancellationToken);
     }
@@ -61,7 +58,6 @@ public sealed class JwtSigningService(
         ClaimsPrincipal principal,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(principal);
         return IssueInternalAsync(principal, lifetime: null, cancellationToken);
     }
 

@@ -39,8 +39,6 @@ public sealed class TokenIssuer(
         IReadOnlyCollection<string> roles,
         CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfEqual(userId, Guid.Empty);
-        ArgumentOutOfRangeException.ThrowIfEqual(orgId, Guid.Empty);
 
         var resolvedPermissions = await permissions.ResolveAsync(
             userId, orgId, cancellationToken);
@@ -58,9 +56,6 @@ public sealed class TokenIssuer(
         TimeSpan overrideLifetime,
         CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfEqual(userId, Guid.Empty);
-        ArgumentOutOfRangeException.ThrowIfEqual(orgId, Guid.Empty);
-        ArgumentNullException.ThrowIfNull(overridePermissions);
 
         var principal = BuildPrincipal(userId, orgId, roles, overridePermissions);
         return await signing.IssueWithLifetimeAsync(

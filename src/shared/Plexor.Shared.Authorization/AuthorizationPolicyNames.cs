@@ -38,7 +38,6 @@ public static class AuthorizationPolicyNames
     /// </exception>
     public static string For(params string[] permissions)
     {
-        ArgumentNullException.ThrowIfNull(permissions);
 
         var tokens = permissions
             .Where(static p => p is not null)
