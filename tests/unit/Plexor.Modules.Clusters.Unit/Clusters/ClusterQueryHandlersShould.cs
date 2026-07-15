@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using NSubstitute;
 using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;

@@ -6,7 +6,6 @@
 // after AddSigilApplicationCore + AddSigilInfrastructureCore.
 // ============================================================================
 
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Infrastructure.Auth;

@@ -18,7 +18,6 @@ using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
-using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;
 using Plexor.Shared.Contracts.Pagination;
 using Plexor.Shared.Filtering.Persistence;

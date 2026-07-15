@@ -7,14 +7,12 @@
 // authorization pipeline.
 // ==========================================================================
 
-using System.IO;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
-using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;

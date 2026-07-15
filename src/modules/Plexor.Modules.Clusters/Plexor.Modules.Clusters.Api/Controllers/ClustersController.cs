@@ -12,7 +12,6 @@ using Plexor.Modules.Clusters.Api.Models;
 using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Application.Authorization;
 using Plexor.Modules.Clusters.Application.Clusters;
-using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Pagination;

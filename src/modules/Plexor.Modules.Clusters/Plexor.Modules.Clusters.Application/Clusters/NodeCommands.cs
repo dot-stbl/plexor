@@ -6,7 +6,6 @@
 // ============================================================================
 
 using Plexor.Modules.Clusters.Domain;
-using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Shared.Identifiers;
 
 namespace Plexor.Modules.Clusters.Application.Clusters;

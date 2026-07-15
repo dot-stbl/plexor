@@ -22,12 +22,18 @@ namespace Plexor.Shared.Persistence;
 /// </summary>
 /// <typeparam name="T">Entity table row.</typeparam>
 /// <typeparam name="TResult">Projection returned to the caller.</typeparam>
-public class Specification<T, TResult> : ISpecification<T, TResult>
+/// <remarks>
+///     Construct from an optional projection expression. Most
+///     callers use the <see cref="SpecificationFactory.Default{T, TResult}(Expression{Func{T, TResult}})" /> /
+///     <see cref="SpecificationFactory.Identity{T}" /> factory methods; subclass ctors
+///     pass the projection explicitly.
+/// </remarks>
+public class Specification<T, TResult>(Expression<Func<T, TResult>>? projection) : ISpecification<T, TResult>
     where T : class
 {
     private readonly List<Expression<Func<T, bool>>> whereClauses = [];
     private Func<IQueryable<T>, IOrderedQueryable<T>>? orderByClause;
-    private Expression<Func<T, TResult>>? projection;
+    private Expression<Func<T, TResult>>? projection = projection;
     private bool asNoTracking;
     private int? skip;
     private int? take;
@@ -42,17 +48,6 @@ public class Specification<T, TResult> : ISpecification<T, TResult>
     {
         get => projection;
         init => projection = value;
-    }
-
-    /// <summary>
-    ///     Construct from an optional projection expression. Most
-    ///     callers use the <see cref="SpecificationFactory.Default{T, TResult}(Expression{Func{T, TResult}})" /> /
-    ///     <see cref="SpecificationFactory.Identity{T}" /> factory methods; subclass ctors
-    ///     pass the projection explicitly.
-    /// </summary>
-    public Specification(Expression<Func<T, TResult>>? projection)
-    {
-        this.projection = projection;
     }
 
     /// <inheritdoc />
