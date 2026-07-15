@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useLocalStorage } from '@uidotdev/usehooks';
+import { useTranslation } from 'react-i18next';
 import { Add, Hexagon } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
@@ -17,6 +18,7 @@ export const Route = createFileRoute('/k8s/')({
  * creation flows from the header CTA / empty-state action.
  */
 function K8sPage() {
+  const { t } = useTranslation();
   const rows = listK8s();
   const [colState, setColState] = useLocalStorage<DataTableColumnsState>('plexor-cols-k8s', {
     hidden: [],
@@ -27,7 +29,7 @@ function K8sPage() {
     <PageTemplate
       data-od-id="k8s-list"
       width="full"
-      title="Kubernetes clusters"
+      title={t('k8s.list.title')}
       description={
         <>
           <MonoNum>{rows.length}</MonoNum> <span className="text-muted-foreground">cluster(s)</span>
@@ -37,7 +39,7 @@ function K8sPage() {
         rows.length > 0 ? (
           <Button nativeButton={false} render={<Link to="/k8s/new" />}>
             <Add />
-            Create cluster
+            {t('k8s.list.create')}
           </Button>
         ) : undefined
       }
@@ -58,8 +60,8 @@ function K8sPage() {
       ) : (
         <EmptyState
           icon={Hexagon}
-          title="No Kubernetes clusters yet"
-          description="Plexor provisions managed K3s across your nodes — you pick node pools, CNI and storage; Plexor wires the rest."
+          title={t('k8s.list.empty.title')}
+          description={t('k8s.list.empty.description')}
           docsLabel="Learn more:"
           docs={[
             { href: 'https://plexor.dev/docs/k8s', label: 'Managed Kubernetes (K3s)' },
@@ -68,7 +70,7 @@ function K8sPage() {
           action={
             <Button nativeButton={false} render={<Link to="/k8s/new" />}>
               <Add className="size-3.5" />
-              Create cluster
+              {t('k8s.list.create')}
             </Button>
           }
         />

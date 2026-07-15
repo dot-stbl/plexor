@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useLocalStorage } from '@uidotdev/usehooks';
+import { useTranslation } from 'react-i18next';
 import { Add, DeployedCode } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
@@ -17,6 +18,7 @@ export const Route = createFileRoute('/lxc/')({
  * from the header CTA / empty-state action, both linking to the create form.
  */
 function LxcPage() {
+  const { t } = useTranslation();
   const rows = listLxc();
   const [colState, setColState] = useLocalStorage<DataTableColumnsState>('plexor-cols-lxc', {
     hidden: [],
@@ -27,7 +29,7 @@ function LxcPage() {
     <PageTemplate
       data-od-id="lxc-list"
       width="full"
-      title="LXC containers"
+      title={t('lxc.list.title')}
       description={
         <>
           <MonoNum>{rows.length}</MonoNum>{' '}
@@ -38,7 +40,7 @@ function LxcPage() {
         rows.length > 0 ? (
           <Button nativeButton={false} render={<Link to="/lxc/new" />}>
             <Add />
-            Create container
+            {t('lxc.list.create')}
           </Button>
         ) : undefined
       }
@@ -59,8 +61,8 @@ function LxcPage() {
       ) : (
         <EmptyState
           icon={DeployedCode}
-          title="No containers yet"
-          description="LXC containers are lightweight system containers sharing the host kernel — fast to boot, dense on the node."
+          title={t('lxc.list.empty.title')}
+          description={t('lxc.list.empty.description')}
           docsLabel="Learn more:"
           docs={[
             { href: 'https://plexor.dev/docs/lxc', label: 'How LXC works' },
@@ -69,7 +71,7 @@ function LxcPage() {
           action={
             <Button nativeButton={false} render={<Link to="/lxc/new" />}>
               <Add className="size-3.5" />
-              Create container
+              {t('lxc.list.create')}
             </Button>
           }
         />

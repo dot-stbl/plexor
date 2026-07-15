@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { toast } from 'sonner';
 import { Add, Image } from '@nine-thirty-five/material-symbols-react/rounded/700';
@@ -20,6 +21,7 @@ export const Route = createFileRoute('/images')({
  * кнопка бара / CTA в шапке (пока заглушка).
  */
 function ImagesPage() {
+  const { t } = useTranslation();
   const images = listImages();
   const [colState, setColState] = useLocalStorage<DataTableColumnsState>('plexor-cols-images', {
     hidden: [],
@@ -29,7 +31,7 @@ function ImagesPage() {
   const createCta = (
     <Button onClick={() => toast('Creating image — coming soon')}>
       <Add />
-      Create image
+      {t('images.create')}
     </Button>
   );
 
@@ -37,7 +39,7 @@ function ImagesPage() {
     <PageTemplate
       data-od-id="images-list"
       width="full"
-      title="Images"
+      title={t('images.title')}
       description={
         <>
           <MonoNum>{images.length}</MonoNum> <span className="text-muted-foreground">image(s)</span>

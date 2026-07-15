@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { Add, Stacks } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
@@ -11,6 +12,7 @@ export const Route = createFileRoute('/clusters/')({
 });
 
 function ClustersPage() {
+  const { t } = useTranslation();
   const { clusters } = useListClusters();
   const totals = clusters.reduce(
     (acc, c) => {
@@ -25,7 +27,7 @@ function ClustersPage() {
 
   return (
     <PageTemplate
-      title="Кластеры Plexor"
+      title={t('clusters.list.title')}
       width="full"
       data-od-id="clusters-list"
       description={
@@ -38,7 +40,7 @@ function ClustersPage() {
       actions={
         <Button nativeButton={false} render={<Link to="/clusters" />}>
           <Add />
-          Документация
+          {t('clusters.list.docs')}
         </Button>
       }
     >
@@ -56,23 +58,18 @@ function ClustersPage() {
 }
 
 function EmptyClusters() {
+  const { t } = useTranslation();
   return (
     <EmptyState
       data-od-id="clusters-empty"
       icon={Stacks}
-      title="Нет зарегистрированных кластеров"
-      description={
-        <>
-          Установите Plexor на своём сервере через{' '}
-          <code className="rounded bg-muted px-1 font-mono text-[11px]">plx init</code>{' '}
-          или ISO-образ, затем зарегистрируйте control-plane здесь.
-        </>
-      }
-      docs={[{ href: 'https://plexor.dev/docs/install', label: 'Документация по установке' }]}
+      title={t('clusters.list.empty.title')}
+      description={t('clusters.list.empty.description', { code: 'plx init' })}
+      docs={[{ href: 'https://plexor.dev/docs/install', label: t('clusters.list.empty.docsLabel') }]}
       action={
         <Button nativeButton={false} render={<Link to="/clusters" />}>
           <Add />
-          Документация по установке
+          {t('clusters.list.empty.docsLabel')}
         </Button>
       }
     />

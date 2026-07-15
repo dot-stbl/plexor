@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
   Add,
@@ -88,6 +89,7 @@ const STORAGE_CLASS_LABELS: Record<string, string> = {
  * Full-width, cards left + sticky SummaryPanel right (like /vms/new).
  */
 function CreateK8sPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { clusters } = useListClusters();
 
@@ -165,12 +167,12 @@ function CreateK8sPage() {
     <PageTemplate
       data-od-id="k8s-new"
       width="full"
-      title="Create Kubernetes cluster"
-      description="Managed K3s on the Plexor fleet — control plane, node pools, networking and storage are all yours to set."
+      title={t('k8s.new.title')}
+      description={t('k8s.new.description')}
       actions={
         <Button variant="ghost" nativeButton={false} render={<Link to="/" />}>
           <ArrowBack />
-          Back
+          {t('common.back')}
         </Button>
       }
     >
@@ -180,8 +182,8 @@ function CreateK8sPage() {
           <EmptyState
             data-od-id="k8s-new-no-cluster"
             icon={DeployedCode}
-            title="Plexor control plane is not registered"
-            description="To create a Kubernetes cluster, you first need to install Plexor on a server. The installation sets up the control plane and registers it in the UI."
+            title={t('k8s.new.noCluster.title')}
+            description={t('k8s.new.noCluster.description')}
             docs={[{ href: 'https://plexor.dev/docs/install', label: 'Installation docs' }]}
           />
         </div>
@@ -193,12 +195,12 @@ function CreateK8sPage() {
           <EmptyState
             data-od-id="k8s-new-no-ready-nodes"
             icon={Stacks}
-            title="No ready nodes"
-            description="Connect Plexor.NodeAgent to the cluster with a join token. After a heartbeat (≤ 2 min) the node appears here and you can host a Kubernetes cluster on it."
+            title={t('k8s.new.noReady.title')}
+            description={t('k8s.new.noReady.description')}
             action={
               <Button nativeButton={false} render={<Link to="/clusters/$id" params={{ id: clusters[0]!.id }} />}>
                 <ArrowBack />
-                Go to cluster
+                {t('common.goToCluster')}
               </Button>
             }
           />
@@ -211,7 +213,7 @@ function CreateK8sPage() {
             {/* ─── Cluster basics ────────────────────────────────────── */}
             <Card data-od-id="k8s-basics">
               <CardHeader className="border-b border-border">
-                <CardTitle className="text-sm">Cluster basics</CardTitle>
+                <CardTitle className="text-sm">{t('k8s.new.basics')}</CardTitle>
                 <CardDescription>Name, Kubernetes version, and which Plexor fleet hosts it.</CardDescription>
               </CardHeader>
               <CardContent className="divide-y divide-border">
@@ -236,7 +238,7 @@ function CreateK8sPage() {
             {/* ─── Control plane ─────────────────────────────────────── */}
             <Card>
               <CardHeader className="border-b border-border">
-                <CardTitle className="text-sm">Control plane</CardTitle>
+                <CardTitle className="text-sm">{t('k8s.new.controlPlane')}</CardTitle>
                 <CardDescription>How the K3s API server and datastore are laid out.</CardDescription>
               </CardHeader>
               <CardContent className="divide-y divide-border">
@@ -260,7 +262,7 @@ function CreateK8sPage() {
             {/* ─── Node pools ────────────────────────────────────────── */}
             <Card data-od-id="k8s-node-pools">
               <CardHeader className="border-b border-border">
-                <CardTitle className="text-sm">Node pools</CardTitle>
+                <CardTitle className="text-sm">{t('k8s.new.nodePools')}</CardTitle>
                 <CardDescription>Groups of identical nodes that span the fleet. Sizes are exact — self-hosted, not fixed cloud «flavors».</CardDescription>
               </CardHeader>
               <CardContent>
@@ -296,7 +298,7 @@ function CreateK8sPage() {
             {/* ─── Networking ────────────────────────────────────────── */}
             <Card>
               <CardHeader className="border-b border-border">
-                <CardTitle className="text-sm">Networking</CardTitle>
+                <CardTitle className="text-sm">{t('k8s.new.networking')}</CardTitle>
                 <CardDescription>CNI, ingress and the service load balancer. CIDRs live under «Advanced».</CardDescription>
               </CardHeader>
               <CardContent className="divide-y divide-border">
@@ -325,7 +327,7 @@ function CreateK8sPage() {
             {/* ─── Storage ───────────────────────────────────────────── */}
             <Card>
               <CardHeader className="border-b border-border">
-                <CardTitle className="text-sm">Storage</CardTitle>
+                <CardTitle className="text-sm">{t('k8s.new.storage')}</CardTitle>
                 <CardDescription>Default StorageClass for dynamic volumes. Backends come from the fleet's providers.</CardDescription>
               </CardHeader>
               <CardContent>
@@ -344,7 +346,7 @@ function CreateK8sPage() {
             {/* ─── Add-ons ───────────────────────────────────────────── */}
             <Card>
               <CardHeader className="border-b border-border">
-                <CardTitle className="text-sm">Add-ons</CardTitle>
+                <CardTitle className="text-sm">{t('k8s.new.addons')}</CardTitle>
                 <CardDescription>Cluster components installed at bootstrap.</CardDescription>
               </CardHeader>
               <CardContent className="divide-y divide-border">
@@ -366,7 +368,7 @@ function CreateK8sPage() {
             {/* ─── Options ───────────────────────────────────────────── */}
             <Card>
               <CardHeader className="border-b border-border">
-                <CardTitle className="text-sm">Options</CardTitle>
+                <CardTitle className="text-sm">{t('k8s.new.options')}</CardTitle>
                 <CardDescription>Upgrade behavior, protection, labels.</CardDescription>
               </CardHeader>
               <CardContent className="divide-y divide-border">
@@ -395,17 +397,17 @@ function CreateK8sPage() {
 
             <div className="flex items-center justify-between">
               <Button variant="outline" nativeButton={false} render={<Link to="/" />}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button onClick={handleCreate} disabled={!canCreate}>
                 <Add />
-                Create cluster
+                {t('k8s.new.create')}
               </Button>
             </div>
           </div>
 
           {/* ─── Sticky summary ──────────────────────────────────────── */}
-          <SummaryPanel title="What will be deployed">
+          <SummaryPanel title={t('k8s.new.summary')}>
             <div>
               <SummaryRow label="Name">{name.trim() || '—'}</SummaryRow>
               <SummaryRow label="Version">{version}</SummaryRow>
