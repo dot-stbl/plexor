@@ -150,3 +150,93 @@ inside the host's startup path.
 **Action**: defer to Phase 4 (endpoints) when we have an integration
 test container that runs Postgres alongside the host. Until then, dev
 runs `docker compose up postgres` (or equivalent) before `dotnet build`.
+
+---
+
+## Sigil captive-dependency cycle — DI scope validator rejects 8 services at startup
+
+**Status**: accepted technical debt — Production is unaffected (no
+scope validation in `Production`), but blocks `WebApplicationFactory<Program>`
+test wiring and any Development-mode integration.
+
+**Discovered when**: writing `MapprlyApiSmokeTests` against the real
+`Plexor.Host`. The `BearerAuthenticationHandler` + `SigningKeyBootstrapper`
++ auth command handlers form a captive-dependency cluster that
+`ServiceProviderOptions.ValidateScopes` rejects at `Build()` time.
+
+**Cluster (graph)**:
+
+```
+IHttpContextAccessor ─[missing]──> HttpContextCurrentUser (Scoped)
+                                              ↑
+ISigningKeyRepository   (Scoped) ─────────────┤
+                          ↑                    │
+JwtSigningService    (Singleton) ─────────────┤
+                          ↑                    │
+SigningKeyBootstrapper (Singleton Hosted) ─────┤
+                          ↑                    │
+BearerAuthenticationHandler (Transient) ───────┘
+
+IPermissionResolver   (Scoped) ───────────────┐
+                          ↑                   │
+TokenIssuer         (Singleton) ──────────────┤
+                          ↑                   │
+LoginCommandHandler    (Scoped) ──────────────┤
+RefreshCommandHandler  (Scoped) ──────────────┘
+```
+
+8 validations fail at `Build()`; same underlying issue compounds via
+3 transitive chains.
+
+**Why it doesn't break Production**: `WebApplication.CreateBuilder` defaults
+to `ServiceProviderOptions { ValidateScopes = false }` when
+`DOTNET_ENVIRONMENT` is unset or `Production`. The host boots and serves
+traffic. The captive dependencies are real bugs — `ISigningKeyRepository`
+captured into a singleton keeps a stale `DbContext` between requests,
+eventually throwing `ObjectDisposedException` under load — but the
+DI container does not surface them because validation is off.
+
+**Why it breaks Development + WebApplicationFactory**: both run with
+`ValidateScopes = true`. `dotnet build` in Development mode would also
+fail; today the host is `Production`-only for the OpenAPI extraction
+build target, so the captive deps silently live in the production path.
+
+**Cleaner path forward** (3 options, owner to decide):
+
+1. **Convert to `IServiceScopeFactory` injection** (recommended).
+   `JwtSigningService`, `TokenIssuer`, `SigningKeyBootstrapper` become
+   scope-aware: each method that needs a repository resolves a fresh
+   scope via `services.CreateScope()` and disposes it after the unit of
+   work. Mirrors `PER_CALL` lifetime from the worker pattern. Touch:
+   ~5 small file edits in `Sigil.Infrastructure/Auth/`.
+
+2. **Re-register scoped**. `BearerAuthenticationHandler` is the only
+   transient that pulls `IJwtSigningService`, so the singleton
+   lifetime on `IJwtSigningService` / `ITokenIssuer` is suspect. If
+   those two services are actually stateless on a per-request basis
+   (which they likely are — repos cached via `IMemoryCache`), drop
+   to `Scoped`. Touch: 2 lifetime flips in
+   `SigilInfrastructureInstaller.cs`.
+
+3. **Disable scope validation globally** in
+   `Directory.Build.props : ServiceProviderOptions` for Production
+   only. Punts the captive-dep cost into the runtime. NOT recommended
+   — the real bugs above become data-corruption bugs under load.
+
+**Action**: defer. The captive deps do not block plan-clusters backend
+(or any module backend that does not boot the host). The plan-runtime
+providers + plan-k8s work touches
+`Plexor.Host/Program.cs` and will trip these validations on every
+test, so pick option 1 or 2 before plan-runtime-providers
+Phase 2 (Tasks per `SigilInfrastructureInstaller.cs`).
+
+**Revisit**: before `plan-runtime-providers` Phase 2 starts, OR
+when any Sigil `/api/v1/iam/*` integration test is added to
+`Plexor.Host.UnitTests`.
+
+**Workarounds in tests today**: `MapprlyApiSmokeTests` uses an
+`IClassFixture<WebApplicationFactory<Program>>`-bypassing direct
+DbContext fixture (`PostgresFixture`). Future Sigil API tests will
+need either (a) the option-1 fix landed, or (b) a `ConfigureTestServices`
+override that re-wires the affected services into a manually-managed
+scope (verbose; not recommended).
