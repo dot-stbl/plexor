@@ -5,6 +5,7 @@ using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
+using Plexor.Shared.Identifiers;
 using Shouldly;
 using Xunit;
 
@@ -15,7 +16,7 @@ public sealed class NodeJoinCommandHandlerShould
     [Fact(DisplayName = "Given valid active token + matching role + fresh hostname, when Join, then creates node + revokes token")]
     public async Task JoinCreatesNodeAndRevokesToken()
     {
-        var clusterId = Guid.NewGuid();
+        var clusterId = IdGenerator.NewClusterId();
         var tokenSecret = "test-secret-12345";
         await using var db = await TestDb.CreateAsync();
         var now = DateTimeOffset.UtcNow;
@@ -33,7 +34,7 @@ public sealed class NodeJoinCommandHandlerShould
         var tokenHash = await TokenHasher.HashAsync(tokenSecret, CancellationToken.None);
         await db.JoinTokens.AddAsync(new JoinToken
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewTokenId(),
             ClusterId = clusterId,
             OrgId = Guid.NewGuid(),
             Label = "initial",
@@ -53,7 +54,7 @@ public sealed class NodeJoinCommandHandlerShould
             NodeRole.Compute,
             new NodeSpec(8, 32, 200, ["kvm"])));
 
-        result.NodeId.ShouldNotBe(Guid.Empty);
+        result.NodeId.ShouldNotBe(default(NodeId));
         result.ClusterId.ShouldBe(clusterId);
         result.NodeToken.ShouldNotBeNullOrWhiteSpace();
 
@@ -66,7 +67,7 @@ public sealed class NodeJoinCommandHandlerShould
     [Fact(DisplayName = "Given consumed (revoked) token, when Join, then throws InvalidJoinToken")]
     public async Task JoinRejectsConsumedToken()
     {
-        var clusterId = Guid.NewGuid();
+        var clusterId = IdGenerator.NewClusterId();
         var tokenSecret = "consumed-secret";
         await using var db = await TestDb.CreateAsync();
         var now = DateTimeOffset.UtcNow;
@@ -84,7 +85,7 @@ public sealed class NodeJoinCommandHandlerShould
         var tokenHash = await TokenHasher.HashAsync(tokenSecret, CancellationToken.None);
         await db.JoinTokens.AddAsync(new JoinToken
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewTokenId(),
             ClusterId = clusterId,
             OrgId = Guid.NewGuid(),
             Label = "initial",
@@ -107,7 +108,7 @@ public sealed class NodeJoinCommandHandlerShould
     [Fact(DisplayName = "Given token for Control role but node requests Compute, when Join, then throws InvalidJoinToken")]
     public async Task JoinRejectsRoleMismatch()
     {
-        var clusterId = Guid.NewGuid();
+        var clusterId = IdGenerator.NewClusterId();
         var tokenSecret = "control-only-secret";
         await using var db = await TestDb.CreateAsync();
         var now = DateTimeOffset.UtcNow;
@@ -125,7 +126,7 @@ public sealed class NodeJoinCommandHandlerShould
         var tokenHash = await TokenHasher.HashAsync(tokenSecret, CancellationToken.None);
         await db.JoinTokens.AddAsync(new JoinToken
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewTokenId(),
             ClusterId = clusterId,
             OrgId = Guid.NewGuid(),
             Label = "control-only",

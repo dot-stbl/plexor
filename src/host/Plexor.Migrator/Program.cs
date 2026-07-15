@@ -17,8 +17,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Plexor.Migrator;
+using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Shared.Persistence;
+
+// Hint the runtime to load every Plexor.Modules.* assembly now so
+// AddPlexorModuleDbContexts() reflection finds all sealed DbContext
+// subclasses. Without these hints, lazy assembly loading can cause
+// the reflection scan to miss freshly-referenced modules.
+_ = typeof(ClusterDbContext).Assembly;
 
 var builder = Host.CreateApplicationBuilder(args);
 

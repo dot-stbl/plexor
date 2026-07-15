@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
+using Plexor.Shared.Identifiers;
 using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Persistence;
@@ -55,7 +56,11 @@ internal sealed class ClusterConfiguration : IEntityTypeConfiguration<Cluster>
 
         builder.Property(static cluster => cluster.Id)
             .HasColumnName("id")
-            .HasColumnType("uuid")
+            .HasColumnType("varchar(64)")
+            .HasConversion(
+                static id => id.ToString(),
+                static raw => IdParse.ParseClusterId(raw))
+            .HasMaxLength(64)
             .IsRequired();
 
         builder.Property(static cluster => cluster.OrgId)
@@ -146,12 +151,20 @@ internal sealed class NodeConfiguration : IEntityTypeConfiguration<Node>
 
         builder.Property(static node => node.Id)
             .HasColumnName("id")
-            .HasColumnType("uuid")
+            .HasColumnType("varchar(64)")
+            .HasConversion(
+                static id => id.ToString(),
+                static raw => IdParse.ParseNodeId(raw))
+            .HasMaxLength(64)
             .IsRequired();
 
         builder.Property(static node => node.ClusterId)
             .HasColumnName("cluster_id")
-            .HasColumnType("uuid")
+            .HasColumnType("varchar(64)")
+            .HasConversion(
+                static id => id.ToString(),
+                static raw => IdParse.ParseClusterId(raw))
+            .HasMaxLength(64)
             .IsRequired();
 
         builder.Property(static node => node.OrgId)
@@ -240,12 +253,20 @@ internal sealed class JoinTokenConfiguration : IEntityTypeConfiguration<JoinToke
 
         builder.Property(static token => token.Id)
             .HasColumnName("id")
-            .HasColumnType("uuid")
+            .HasColumnType("varchar(64)")
+            .HasConversion(
+                static id => id.ToString(),
+                static raw => IdParse.ParseTokenId(raw))
+            .HasMaxLength(64)
             .IsRequired();
 
         builder.Property(static token => token.ClusterId)
             .HasColumnName("cluster_id")
-            .HasColumnType("uuid")
+            .HasColumnType("varchar(64)")
+            .HasConversion(
+                static id => id.ToString(),
+                static raw => IdParse.ParseClusterId(raw))
+            .HasMaxLength(64)
             .IsRequired();
 
         builder.Property(static token => token.OrgId)
@@ -291,7 +312,8 @@ internal sealed class JoinTokenConfiguration : IEntityTypeConfiguration<JoinToke
 
         builder.Property(static token => token.RedeemedByNodeId)
             .HasColumnName("redeemed_by_node_id")
-            .HasColumnType("uuid");
+            .HasColumnType("varchar(64)")
+            .HasConversion<NullableNodeIdConverter>();
 
         // Lookup the active token for a cluster (rotate-then-revoke flow).
         builder.HasIndex(static token => new { token.ClusterId, token.Status })

@@ -4,6 +4,7 @@ using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
+using Plexor.Shared.Identifiers;
 using Shouldly;
 using Xunit;
 
@@ -14,7 +15,7 @@ public sealed class DeleteClusterCommandHandlerShould
     [Fact(DisplayName = "Given cluster with 2 nodes, when DeleteCluster, then cluster + nodes flipped to terminal status")]
     public async Task DeleteClusterCascadesNodeStatus()
     {
-        var clusterId = Guid.NewGuid();
+        var clusterId = IdGenerator.NewClusterId();
         await using var db = await TestDb.CreateAsync();
         var now = DateTimeOffset.UtcNow;
         await db.Clusters.AddAsync(new Cluster
@@ -29,7 +30,7 @@ public sealed class DeleteClusterCommandHandlerShould
         });
         await db.Nodes.AddAsync(new Node
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewNodeId(),
             ClusterId = clusterId,
             OrgId = Guid.NewGuid(),
             Hostname = "node-1",
@@ -41,7 +42,7 @@ public sealed class DeleteClusterCommandHandlerShould
         });
         await db.Nodes.AddAsync(new Node
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewNodeId(),
             ClusterId = clusterId,
             OrgId = Guid.NewGuid(),
             Hostname = "node-2",
@@ -71,7 +72,7 @@ public sealed class DeleteClusterCommandHandlerShould
         var sut = new DeleteClusterCommandHandler(db);
 
         var ex = await Should.ThrowAsync<ClustersException>(
-            () => sut.HandleAsync(new DeleteClusterCommand(Guid.NewGuid())));
+            () => sut.HandleAsync(new DeleteClusterCommand(IdGenerator.NewClusterId())));
         ex.Code.ShouldBe(ClustersExceptions.ClusterNotFound);
     }
 }

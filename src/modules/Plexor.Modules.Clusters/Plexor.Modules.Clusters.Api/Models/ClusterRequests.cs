@@ -42,10 +42,13 @@ public sealed record NodeJoinRequest(
 /// <summary>
 ///     Wire shape for <c>POST /api/v1/compute/clusters/{id}/heartbeat</c>.
 /// </summary>
-/// <param name="NodeId">Caller's own node id (from the node-bearer token).</param>
+/// <param name="NodeId">Caller's own node id, in wire format
+/// (<c>node_&lt;UUIDv7&gt;</c>). Parsed into a strongly-typed
+/// <see cref="Plexor.Shared.Identifiers.NodeId" /> on the server
+/// side via <see cref="Plexor.Shared.Identifiers.IdParse" />.</param>
 /// <param name="Hardware">Fresh hardware snapshot.</param>
 public sealed record NodeHeartbeatRequest(
-    Guid NodeId,
+    string NodeId,
     NodeHardware Hardware);
 
 /// <summary>

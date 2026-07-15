@@ -5,6 +5,7 @@
 // ==========================================================================
 
 using Plexor.Modules.Clusters.Domain.Entities;
+using Plexor.Shared.Identifiers;
 using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;
@@ -20,7 +21,7 @@ public sealed class NodesByClusterSpec : Specification<Node, Node>
 {
     /// <summary>Construct from the filter parameters.</summary>
     /// <param name="clusterId">Cluster the nodes belong to.</param>
-    public NodesByClusterSpec(Guid clusterId) : base(projection: null)
+    public NodesByClusterSpec(ClusterId clusterId) : base(projection: null)
     {
         WithWhere(n => n.ClusterId == clusterId);
         WithOrderByDescending(n => n.CreatedAt);

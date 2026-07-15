@@ -14,6 +14,7 @@ using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Shared.Contracts.Routes;
+using Plexor.Shared.Identifiers;
 
 namespace Plexor.Modules.Clusters.Api.Controllers;
 
@@ -65,11 +66,11 @@ public sealed class NodeAgentController(
     /// <param name="clusterId"></param>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [HttpPost("{clusterId:guid}/heartbeat", Name = "clusters-node-heartbeat")]
+    [HttpPost("{clusterId}/heartbeat", Name = "clusters-node-heartbeat")]
     [EndpointSummary("NodeAgent keepalive")]
     [ProducesResponseType<NodeHeartbeatResult>(StatusCodes.Status200OK)]
     public async Task<ActionResult<NodeHeartbeatResult>> HeartbeatAsync(
-        Guid clusterId,
+        [FromRoute] ClusterId clusterId,
         [FromBody] NodeHeartbeatRequest request,
         CancellationToken cancellationToken)
     {
@@ -80,7 +81,7 @@ public sealed class NodeAgentController(
             request.Hardware.DiskGb,
             request.Hardware.Providers);
         return Ok(await heartbeatHandler.HandleAsync(
-            new NodeHeartbeatCommand(request.NodeId, clusterId, hardware),
+            new NodeHeartbeatCommand(IdParse.ParseNodeId(request.NodeId), clusterId, hardware),
             cancellationToken));
     }
 }

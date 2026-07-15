@@ -16,6 +16,7 @@
     <ProjectReference Include="..\Plexor.Modules.Clusters.Domain\Plexor.Modules.Clusters.Domain.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Identifiers\Plexor.Shared.Identifiers.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -14,6 +14,7 @@ using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;
+using Plexor.Shared.Identifiers;
 using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
@@ -92,7 +93,7 @@ public sealed class NodeJoinCommandHandler(
         }
 
         var now = DateTimeOffset.UtcNow;
-        var nodeId = Guid.NewGuid();
+        var nodeId = IdGenerator.NewNodeId();
         var node = new Node
         {
             Id = nodeId,

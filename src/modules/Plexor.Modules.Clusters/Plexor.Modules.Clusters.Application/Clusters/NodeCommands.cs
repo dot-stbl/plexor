@@ -7,6 +7,7 @@
 
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
+using Plexor.Shared.Identifiers;
 
 namespace Plexor.Modules.Clusters.Application.Clusters;
 
@@ -38,13 +39,13 @@ public sealed record NodeJoinCommand(
 /// <param name="ClusterId">Cluster the node belongs to.</param>
 /// <param name="Hardware">Fresh hardware snapshot (may drift over time).</param>
 public sealed record NodeHeartbeatCommand(
-    Guid NodeId,
-    Guid ClusterId,
+    NodeId NodeId,
+    ClusterId ClusterId,
     NodeSpec Hardware);
 
 /// <summary>List nodes in one cluster.</summary>
 /// <param name="ClusterId">Target cluster.</param>
-public sealed record ListNodesQuery(Guid ClusterId);
+public sealed record ListNodesQuery(ClusterId ClusterId);
 
 // --- projections ------------------------------------------------------------
 
@@ -54,11 +55,11 @@ public sealed record ListNodesQuery(Guid ClusterId);
 /// <c>ClusterMappers.ToNodeSummary</c>).</summary>
 public sealed partial class NodeSummary
 {
-    /// <summary>UUID v7 node id.</summary>
-    public Guid Id { get; init; }
+    /// <summary>Node id (node_&lt;UUIDv7&gt;).</summary>
+    public NodeId Id { get; init; }
 
     /// <summary>Parent cluster.</summary>
-    public Guid ClusterId { get; init; }
+    public ClusterId ClusterId { get; init; }
 
     /// <summary>Tenant scope (denormalized for org-scoped queries).</summary>
     public Guid OrgId { get; init; }
@@ -96,8 +97,8 @@ public sealed partial class NodeSummary
 /// <param name="ControlPlaneUrl">Post-join rendezvous point (mTLS + WireGuard).</param>
 /// <param name="WireguardConfig">Base64-encoded <c>wg-quick.conf</c> blob.</param>
 public sealed record NodeJoinResult(
-    Guid NodeId,
-    Guid ClusterId,
+    NodeId NodeId,
+    ClusterId ClusterId,
     string NodeToken,
     string ControlPlaneUrl,
     string WireguardConfig);
@@ -108,6 +109,6 @@ public sealed record NodeJoinResult(
 /// behaviour (e.g. <c>Offline</c> ⇒ NodeAgent should drain + exit).</param>
 /// <param name="ServerTime">Host's UTC now — NodeAgent uses this for clock-skew checks.</param>
 public sealed record NodeHeartbeatResult(
-    Guid NodeId,
+    NodeId NodeId,
     ClusterStatus ClusterStatus,
     DateTimeOffset ServerTime);

@@ -13,6 +13,7 @@ using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
+using Plexor.Shared.Identifiers;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 
@@ -51,7 +52,7 @@ public sealed class CreateClusterCommandHandler(
         }
 
         var now = DateTimeOffset.UtcNow;
-        var clusterId = Guid.NewGuid();
+        var clusterId = IdGenerator.NewClusterId();
         var cluster = new Cluster
         {
             Id = clusterId,
@@ -68,7 +69,7 @@ public sealed class CreateClusterCommandHandler(
         var tokenHash = await TokenHasher.HashAsync(tokenSecret, cancellationToken);
         var joinToken = new JoinToken
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewTokenId(),
             ClusterId = clusterId,
             OrgId = command.OrgId,
             Label = $"initial ({command.InitialNodeRole})",
@@ -245,7 +246,7 @@ public sealed class RotateJoinTokenCommandHandler(
         var tokenHash = await TokenHasher.HashAsync(tokenSecret, cancellationToken);
         var joinToken = new JoinToken
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewTokenId(),
             ClusterId = command.ClusterId,
             OrgId = cluster.OrgId,
             Label = $"rotated at {now:O}",

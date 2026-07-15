@@ -4,6 +4,7 @@ using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
+using Plexor.Shared.Identifiers;
 using Shouldly;
 using Xunit;
 
@@ -24,7 +25,7 @@ public sealed class CreateClusterCommandHandlerShould
 
         var result = await sut.HandleAsync(command);
 
-        result.ClusterId.ShouldNotBe(Guid.Empty);
+        result.ClusterId.ShouldNotBe(default(ClusterId));
         result.Token.ShouldNotBeNullOrWhiteSpace();
         result.ExpiresAt.ShouldBeGreaterThan(DateTimeOffset.UtcNow);
 
@@ -47,7 +48,7 @@ public sealed class CreateClusterCommandHandlerShould
         var now = DateTimeOffset.UtcNow;
         await db.Clusters.AddAsync(new Cluster
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewClusterId(),
             OrgId = orgId,
             Name = "prod-eu-1",
             Region = "eu-central-1",

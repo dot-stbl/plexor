@@ -114,6 +114,8 @@
     <PackageVersion Include="YamlDotNet" Version="16.*" />
     <!-- System.CommandLine — AOT-friendly CLI parsing for `plx`. -->
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.*" />
+    <!-- UUIDNext — RFC 9562 UUIDv7 generator (Plexor entity IDs). -->
+    <PackageVersion Include="UUIDNext" Version="2.0.1" />
 
     <!-- ============ Testing ============ -->
     <PackageVersion Include="JunitXml.TestLogger" Version="6.1.0" />

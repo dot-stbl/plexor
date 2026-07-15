@@ -9,6 +9,7 @@
 // ============================================================================
 
 using Plexor.Shared.Filtering.Registry;
+using Plexor.Shared.Identifiers;
 using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Clusters.Domain.Entities;
@@ -19,11 +20,14 @@ namespace Plexor.Modules.Clusters.Domain.Entities;
 /// </summary>
 public sealed class Node : IFilterableEntity, ICreatedAt, IUpdatedAt
 {
-    /// <summary>Unique identifier (UUID v7).</summary>
-    public Guid Id { get; init; }
+    /// <summary>
+    ///     NodeId — strongly-typed <c>node_&lt;UUIDv7&gt;</c> wire format.
+    ///     Used as the CN of the X.509 client cert in Phase B mTLS.
+    /// </summary>
+    public NodeId Id { get; init; }
 
     /// <summary>FK to <see cref="Cluster.Id" />.</summary>
-    public Guid ClusterId { get; init; }
+    public ClusterId ClusterId { get; init; }
 
     /// <summary>Tenant scope (denormalized for org-scoped queries).</summary>
     public Guid OrgId { get; init; }

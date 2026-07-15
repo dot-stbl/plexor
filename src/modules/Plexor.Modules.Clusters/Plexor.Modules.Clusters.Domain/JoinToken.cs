@@ -9,6 +9,7 @@
 // ============================================================================
 
 using Plexor.Shared.Filtering.Registry;
+using Plexor.Shared.Identifiers;
 using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Clusters.Domain.Entities;
@@ -21,11 +22,11 @@ namespace Plexor.Modules.Clusters.Domain.Entities;
 /// </summary>
 public sealed class JoinToken : IFilterableEntity, ICreatedAt
 {
-    /// <summary>Unique identifier (UUID v7).</summary>
-    public Guid Id { get; init; }
+    /// <summary>TokenId — strongly-typed <c>tok_&lt;UUIDv7&gt;</c> wire format.</summary>
+    public TokenId Id { get; init; }
 
     /// <summary>FK to <see cref="Cluster.Id" />.</summary>
-    public Guid ClusterId { get; init; }
+    public ClusterId ClusterId { get; init; }
 
     /// <summary>Tenant scope (denormalized).</summary>
     public Guid OrgId { get; init; }
@@ -72,5 +73,5 @@ public sealed class JoinToken : IFilterableEntity, ICreatedAt
     /// node's id is recorded here. Combined with
     /// <see cref="Status" /> = <see cref="TokenStatus.Revoked" />
     /// it makes the join flow audit-clear.</summary>
-    public Guid? RedeemedByNodeId { get; init; }
+    public NodeId? RedeemedByNodeId { get; init; }
 }

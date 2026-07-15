@@ -8,6 +8,7 @@
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Shared.Filtering.Query;
+using Plexor.Shared.Identifiers;
 
 namespace Plexor.Modules.Clusters.Application.Clusters;
 
@@ -36,7 +37,7 @@ public sealed record CreateClusterCommand(
 /// <param name="Name">New name (null = leave unchanged).</param>
 /// <param name="Region">New region (null = leave unchanged).</param>
 public sealed record UpdateClusterCommand(
-    Guid ClusterId,
+    ClusterId ClusterId,
     string? Name,
     string? Region);
 
@@ -46,7 +47,7 @@ public sealed record UpdateClusterCommand(
 ///     in <c>forge.clusters</c> for audit + FK integrity.
 /// </summary>
 /// <param name="ClusterId">Target cluster.</param>
-public sealed record DeleteClusterCommand(Guid ClusterId);
+public sealed record DeleteClusterCommand(ClusterId ClusterId);
 
 /// <summary>
 ///     Rotate the cluster's join token. Old token is revoked; the new
@@ -54,11 +55,11 @@ public sealed record DeleteClusterCommand(Guid ClusterId);
 ///     page in the console.
 /// </summary>
 /// <param name="ClusterId">Target cluster.</param>
-public sealed record RotateJoinTokenCommand(Guid ClusterId);
+public sealed record RotateJoinTokenCommand(ClusterId ClusterId);
 
 /// <summary>Fetch one cluster by id.</summary>
 /// <param name="ClusterId">Target cluster.</param>
-public sealed record GetClusterQuery(Guid ClusterId);
+public sealed record GetClusterQuery(ClusterId ClusterId);
 
 /// <summary>List clusters in the caller's org, paged + filtered
 /// via the standard <see cref="FilterQuery" /> URL envelope
@@ -80,8 +81,8 @@ public sealed record ListClustersQuery(
 /// object-initializer syntax.</summary>
 public sealed partial class ClusterSummary
 {
-    /// <summary>UUID v7 cluster id.</summary>
-    public Guid Id { get; init; }
+    /// <summary>Cluster id (cluster_&lt;UUIDv7&gt;).</summary>
+    public ClusterId Id { get; init; }
 
     /// <summary>Tenant scope.</summary>
     public Guid OrgId { get; init; }
@@ -115,8 +116,8 @@ public sealed partial class ClusterSummary
 /// <c>sealed partial class</c> with init-only properties.</summary>
 public sealed partial class ClusterDetail
 {
-    /// <summary>UUID v7 cluster id.</summary>
-    public Guid Id { get; init; }
+    /// <summary>Cluster id.</summary>
+    public ClusterId Id { get; init; }
 
     /// <summary>Tenant scope.</summary>
     public Guid OrgId { get; init; }
@@ -161,7 +162,7 @@ public sealed partial class ClusterDetail
 /// <param name="ExpiresAt">When the token expires (UTC).</param>
 /// <param name="Endpoint">Where <c>plx node join</c> should POST.</param>
 public sealed record JoinTokenResult(
-    Guid ClusterId,
+    ClusterId ClusterId,
     string Token,
     DateTimeOffset ExpiresAt,
     string Endpoint);

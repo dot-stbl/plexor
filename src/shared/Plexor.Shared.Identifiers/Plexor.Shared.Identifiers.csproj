@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Plexor.Shared.Identifiers</RootNamespace>
+    <AssemblyName>Plexor.Shared.Identifiers</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="UUIDNext" Version="2.0.1" />
+  </ItemGroup>
+
+</Project>

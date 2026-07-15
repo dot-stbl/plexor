@@ -7,6 +7,7 @@ using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
+using Plexor.Shared.Identifiers;
 using Shouldly;
 using Xunit;
 
@@ -17,7 +18,7 @@ public sealed class GetClusterQueryHandlerShould
     [Fact(DisplayName = "Given existing cluster with nodes, when GetCluster, then returns detail with nodes")]
     public async Task GetClusterReturnsDetailWithNodes()
     {
-        var clusterId = Guid.NewGuid();
+        var clusterId = IdGenerator.NewClusterId();
         await using var db = await TestDb.CreateAsync();
         var now = DateTimeOffset.UtcNow;
         await db.Clusters.AddAsync(new Cluster
@@ -33,7 +34,7 @@ public sealed class GetClusterQueryHandlerShould
         });
         await db.Nodes.AddAsync(new Node
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenerator.NewNodeId(),
             ClusterId = clusterId,
             OrgId = Guid.NewGuid(),
             Hostname = "node-1",
@@ -68,7 +69,7 @@ public sealed class GetClusterQueryHandlerShould
             new ClusterMapper());
 
         var ex = await Should.ThrowAsync<ClustersException>(
-            () => sut.HandleAsync(new GetClusterQuery(Guid.NewGuid())));
+            () => sut.HandleAsync(new GetClusterQuery(IdGenerator.NewClusterId())));
         ex.Code.ShouldBe(ClustersExceptions.ClusterNotFound);
     }
 }
@@ -85,7 +86,7 @@ public sealed class ListClustersQueryHandlerShould
         {
             await db.Clusters.AddAsync(new Cluster
             {
-                Id = Guid.NewGuid(),
+                Id = IdGenerator.NewClusterId(),
                 OrgId = orgId,
                 Name = $"cluster-{i}",
                 Region = "eu-central-1",

@@ -9,6 +9,7 @@
 // ============================================================================
 
 using Plexor.Shared.Filtering.Registry;
+using Plexor.Shared.Identifiers;
 using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Clusters.Domain.Entities;
@@ -20,8 +21,11 @@ namespace Plexor.Modules.Clusters.Domain.Entities;
 /// </summary>
 public sealed class Cluster : IFilterableEntity, ICreatedAt, IUpdatedAt
 {
-    /// <summary>Unique identifier (UUID v7, sortable by creation).</summary>
-    public Guid Id { get; init; }
+    /// <summary>
+    ///     ClusterId — strongly-typed <c>cluster_&lt;UUIDv7&gt;</c>
+    ///     wire format (see <see cref="Plexor.Shared.Identifiers.ClusterId" />).
+    /// </summary>
+    public ClusterId Id { get; init; }
 
     /// <summary>Cluster name as it appears in `plx.yaml` /
     /// `plx init` output. Unique per organization

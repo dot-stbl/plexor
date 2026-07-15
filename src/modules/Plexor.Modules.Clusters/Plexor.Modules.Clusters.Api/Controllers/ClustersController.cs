@@ -18,6 +18,7 @@ using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Pagination;
 using Plexor.Shared.Filtering.Query;
 using Plexor.Shared.Contracts.Routes;
+using Plexor.Shared.Identifiers;
 
 namespace Plexor.Modules.Clusters.Api.Controllers;
 
@@ -95,12 +96,12 @@ public sealed class ClustersController(
     /// </summary>
     /// <param name="clusterId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpGet("{clusterId:guid}", Name = "clusters-get")]
+    [HttpGet("{clusterId}", Name = "clusters-get")]
     [EndpointSummary("Fetch one cluster with its nodes")]
     [RequirePermission(ClusterPermissions.Read)]
     [ProducesResponseType<ClusterDetail>(StatusCodes.Status200OK)]
     public async Task<ActionResult<ClusterDetail>> GetAsync(
-        Guid clusterId,
+        [FromRoute] ClusterId clusterId,
         CancellationToken cancellationToken)
     {
         return Ok(await getHandler.HandleAsync(new GetClusterQuery(clusterId), cancellationToken));
@@ -113,12 +114,12 @@ public sealed class ClustersController(
     /// <param name="clusterId"></param>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [HttpPatch("{clusterId:guid}", Name = "clusters-update")]
+    [HttpPatch("{clusterId}", Name = "clusters-update")]
     [EndpointSummary("Rename or change region for a cluster")]
     [RequirePermission(ClusterPermissions.Update)]
     [ProducesResponseType<ClusterSummary>(StatusCodes.Status200OK)]
     public async Task<ActionResult<ClusterSummary>> UpdateAsync(
-        Guid clusterId,
+        [FromRoute] ClusterId clusterId,
         [FromBody] UpdateClusterRequest request,
         CancellationToken cancellationToken)
     {
@@ -134,12 +135,12 @@ public sealed class ClustersController(
     /// </summary>
     /// <param name="clusterId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpDelete("{clusterId:guid}", Name = "clusters-delete")]
+    [HttpDelete("{clusterId}", Name = "clusters-delete")]
     [EndpointSummary("Soft-delete a cluster")]
     [RequirePermission(ClusterPermissions.Delete)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> DeleteAsync(
-        Guid clusterId,
+        [FromRoute] ClusterId clusterId,
         CancellationToken cancellationToken)
     {
         await deleteHandler.HandleAsync(new DeleteClusterCommand(clusterId), cancellationToken);
@@ -152,12 +153,12 @@ public sealed class ClustersController(
     /// </summary>
     /// <param name="clusterId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpPost("{clusterId:guid}/rotate-join-token", Name = "clusters-rotate-join-token")]
+    [HttpPost("{clusterId}/rotate-join-token", Name = "clusters-rotate-join-token")]
     [EndpointSummary("Rotate the cluster's join token")]
     [RequirePermission(ClusterPermissions.Update)]
     [ProducesResponseType<JoinTokenResult>(StatusCodes.Status200OK)]
     public async Task<ActionResult<JoinTokenResult>> RotateJoinTokenAsync(
-        Guid clusterId,
+        [FromRoute] ClusterId clusterId,
         CancellationToken cancellationToken)
     {
         return Ok(await rotateHandler.HandleAsync(
@@ -171,12 +172,12 @@ public sealed class ClustersController(
     /// </summary>
     /// <param name="clusterId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpGet("{clusterId:guid}/nodes", Name = "clusters-list-nodes")]
+    [HttpGet("{clusterId}/nodes", Name = "clusters-list-nodes")]
     [EndpointSummary("List nodes in one cluster")]
     [RequirePermission(ClusterPermissions.NodesRead)]
     [ProducesResponseType<IReadOnlyList<NodeSummary>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<NodeSummary>>> ListNodesAsync(
-        Guid clusterId,
+        [FromRoute] ClusterId clusterId,
         CancellationToken cancellationToken)
     {
         return Ok(await listNodesHandler.HandleAsync(

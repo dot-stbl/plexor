@@ -8,5 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\..\shared\Plexor.Shared.Filtering\Plexor.Shared.Filtering.csproj" />
+    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Identifiers\Plexor.Shared.Identifiers.csproj" />
   </ItemGroup>
 </Project>

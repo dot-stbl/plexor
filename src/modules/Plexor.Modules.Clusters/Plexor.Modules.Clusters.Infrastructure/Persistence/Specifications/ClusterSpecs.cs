@@ -10,6 +10,7 @@
 // ==========================================================================
 
 using Plexor.Modules.Clusters.Domain.Entities;
+using Plexor.Shared.Identifiers;
 using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;
@@ -45,7 +46,7 @@ public sealed class ClusterByIdSpec : Specification<Cluster, Cluster>
 {
     /// <summary>Construct from the filter parameters.</summary>
     /// <param name="clusterId">Target cluster id.</param>
-    public ClusterByIdSpec(Guid clusterId) : base(projection: null)
+    public ClusterByIdSpec(ClusterId clusterId) : base(projection: null)
     {
         WithWhere(c => c.Id == clusterId);
     }
