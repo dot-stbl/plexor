@@ -22,12 +22,19 @@ namespace Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : PlexorDbContext(options)
 {
+    /// <summary>Users (sigil.users) — operator accounts with email + password.</summary>
     public DbSet<User> Users => Set<User>();
+    /// <summary>Roles (sigil.roles) — named permission bundles.</summary>
     public DbSet<Role> Roles => Set<Role>();
+    /// <summary>RoleBindings (sigil.role_bindings) — user↔role grant with 3-tier scope.</summary>
     public DbSet<RoleBinding> RoleBindings => Set<RoleBinding>();
+    /// <summary>RefreshTokens (sigil.refresh_tokens) — JWT refresh, revocable per-family.</summary>
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    /// <summary>ApiKeys (sigil.api_keys) — long-lived service-account credentials.</summary>
     public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
+    /// <summary>SshKeys (sigil.ssh_keys) — public keys for VM access.</summary>
     public DbSet<SshKey> SshKeys => Set<SshKey>();
+    /// <summary>SigningKeys (sigil.signing_keys) — JWT signing keys (rotation history).</summary>
     public DbSet<SigningKey> SigningKeys => Set<SigningKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -17,8 +17,11 @@ namespace Plexor.Modules.Realm.Infrastructure.Persistence;
 
 public sealed class RealmDbContext(DbContextOptions<RealmDbContext> options) : PlexorDbContext(options)
 {
+    /// <summary>Organizations (realm.organizations) — top-level tenant scope.</summary>
     public DbSet<Organization> Organizations => Set<Organization>();
+    /// <summary>Teams (realm.teams) — IAM aggregation group inside an org.</summary>
     public DbSet<Team> Teams => Set<Team>();
+    /// <summary>Folders (realm.folders) — resource namespace inside a team.</summary>
     public DbSet<Folder> Folders => Set<Folder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

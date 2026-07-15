@@ -21,8 +21,11 @@ namespace Plexor.Modules.Clusters.Infrastructure.Persistence;
 
 public sealed class ClusterDbContext(DbContextOptions<ClusterDbContext> options) : PlexorDbContext(options)
 {
+    /// <summary>Clusters (forge.clusters) — Plexor.Host + joined nodes, one row per fleet.</summary>
     public DbSet<Cluster> Clusters => Set<Cluster>();
+    /// <summary>Nodes (forge.nodes) — joined Plexor.NodeAgent instances.</summary>
     public DbSet<Node> Nodes => Set<Node>();
+    /// <summary>JoinTokens (forge.join_tokens) — one-time credentials for first node attach.</summary>
     public DbSet<JoinToken> JoinTokens => Set<JoinToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

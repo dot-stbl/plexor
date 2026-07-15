@@ -116,6 +116,11 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.*" />
     <!-- UUIDNext — RFC 9562 UUIDv7 generator (Plexor entity IDs). -->
     <PackageVersion Include="UUIDNext" Version="2.0.1" />
+    <!-- BouncyCastle — REMOVED in favor of System.Security.Cryptography
+         built-ins. CertificateRequest + X509CertificateLoader +
+         RSA.Create cover everything our self-hosted CA needs; the
+         BC dependency was adding 3 MB and unstable 2.5.x API
+         surface. -->
 
     <!-- ============ Testing ============ -->
     <PackageVersion Include="JunitXml.TestLogger" Version="6.1.0" />

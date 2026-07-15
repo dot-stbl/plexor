@@ -43,6 +43,7 @@
         <Project Path="src/shared/Plexor.Shared.Console/Plexor.Shared.Console.csproj" />
         <Project Path="src/shared/Plexor.Shared.NodeApi/Plexor.Shared.NodeApi.csproj" />
         <Project Path="src/shared/Plexor.Shared.Workloads/Plexor.Shared.Workloads.csproj" />
+        <Project Path="src/shared/Plexor.Shared.Mtls/Plexor.Shared.Mtls.csproj" />
     <Project Path="src/shared/Plexor.Shared.Authorization/Plexor.Shared.Authorization.csproj" />
     <Project Path="src/shared/Plexor.Shared.Identifiers/Plexor.Shared.Identifiers.csproj" />
 
