@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Errors;
+using Plexor.Modules.Sigil.Infrastructure.Mappers;
 using Plexor.Modules.Sigil.Infrastructure.Users;
 
 namespace Plexor.Modules.Sigil.Api;
@@ -35,7 +36,6 @@ public static class PlexorSigilApiServiceCollectionExtensions
     /// <returns>The same <paramref name="services" /> for chaining.</returns>
     public static IServiceCollection AddPlexorSigilApi(this IServiceCollection services)
     {
-        ArgumentNullException.ThrowIfNull(services);
 
         // Handlers — scoped per request so DbContext is reused across
         // the multi-DB-roundtrip pipeline (login does user lookup,
@@ -74,6 +74,11 @@ public static class PlexorSigilApiServiceCollectionExtensions
 
         // User lookup — read-only, scoped.
         services.AddScoped<IUserLookup, EfUserLookup>();
+
+        // Mapperly source-generated DTO mapper. Singleton — generated
+        // methods are stateless. Interface (ISigilMapper) decouples
+        // handlers from the concrete generated class.
+        services.AddSingleton<ISigilMapper, SigilMapper>();
 
         // Global exception handler. Order matters: this one runs
         // first; non-IdentityException passes through to the default

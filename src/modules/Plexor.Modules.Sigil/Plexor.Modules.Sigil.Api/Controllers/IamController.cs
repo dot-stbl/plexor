@@ -52,7 +52,6 @@ public sealed class IamController(
         [FromBody] CreateUserRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         var result = await createHandler.HandleAsync(
             new CreateUserCommand(
@@ -125,7 +124,6 @@ public sealed class IamController(
         [FromBody] UpdateUserRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         var summary = await updateHandler.HandleAsync(
             new UpdateUserCommand(userId, request.DisplayName, request.Status),
@@ -170,7 +168,6 @@ public sealed class IamController(
         [FromBody] ChangePasswordRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         return Ok(await changePasswordHandler.HandleAsync(
             new ChangePasswordCommand(userId, request.CurrentPassword, request.NewPassword),

@@ -47,7 +47,6 @@ public sealed class IamRolesController(
         [FromBody] CreateRoleRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         var result = await createHandler.HandleAsync(
             new CreateRoleCommand(
@@ -109,7 +108,6 @@ public sealed class IamRolesController(
         [FromBody] UpdateRoleRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         return Ok(await updateHandler.HandleAsync(
             new UpdateRoleCommand(roleId, request.Description, request.Permissions),
@@ -178,7 +176,6 @@ public sealed class IamBindingsController(
         [FromBody] CreateRoleBindingRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         var result = await createHandler.HandleAsync(
             new CreateRoleBindingCommand(request.OrgId, request.UserId, request.RoleId),
@@ -280,7 +277,6 @@ public sealed class IamApiKeysController(
         [FromBody] IssueApiKeyRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         return Ok(await issueHandler.HandleAsync(
             new IssueApiKeyCommand(
@@ -365,7 +361,6 @@ public sealed class IamSshKeysController(
         [FromBody] AddSshKeyRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         return Ok(await addHandler.HandleAsync(
             new AddSshKeyCommand(userId, request.OrgId, request.Name, request.PublicKey),

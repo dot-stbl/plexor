@@ -57,7 +57,6 @@ public sealed class AuthController(
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         var result = await loginHandler.HandleAsync(
             new LoginCommand(
@@ -88,7 +87,6 @@ public sealed class AuthController(
         [FromBody] RefreshRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         var result = await refreshHandler.HandleAsync(
             new RefreshCommand(request.RefreshToken),
@@ -115,7 +113,6 @@ public sealed class AuthController(
         [FromBody] LogoutRequest request,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
 
         var result = await logoutHandler.HandleAsync(
             new LogoutCommand(request.RefreshToken),
