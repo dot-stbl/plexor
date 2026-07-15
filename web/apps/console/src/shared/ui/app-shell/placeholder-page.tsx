@@ -1,4 +1,5 @@
 import type { Icon } from '@nine-thirty-five/material-symbols-react';
+import { useTranslation } from 'react-i18next';
 import { PageTemplate } from './page-template';
 
 /**
@@ -22,6 +23,7 @@ export function PlaceholderPage({
   actions?: React.ReactNode;
   width?: '3xl' | '6xl' | 'full';
 }) {
+  const { t } = useTranslation();
   return (
     <PageTemplate
       title={title}
@@ -34,9 +36,9 @@ export function PlaceholderPage({
           <PageIcon className="size-5" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium">Экран в разработке</p>
+          <p className="text-sm font-medium">{t('placeholder.inDevelopment')}</p>
           <p className="text-xs text-muted-foreground">
-            Каркас готов — контент появится в следующем проходе.
+            {t('placeholder.scaffoldReady')}
           </p>
         </div>
       </div>

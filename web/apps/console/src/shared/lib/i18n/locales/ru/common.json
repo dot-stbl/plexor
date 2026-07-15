@@ -9,39 +9,130 @@
     "copy": "Копировать",
     "close": "Закрыть",
     "loading": "Загрузка…",
+    "retry": "Повторить",
     "soon": "скоро",
     "settings": "Настройки",
-    "configure": "Настроить"
+    "configure": "Настроить",
+    "done": "Готово",
+    "reset": "Сбросить настройки",
+    "docs": "Документация",
+    "goToCluster": "Перейти к кластеру",
+    "installationDocs": "Документация по установке"
   },
   "nav": {
-    "overview": "Обзор",
-    "vms": "Виртуальные машины",
-    "clusters": "Кластеры Plexor",
-    "networks": "Сети",
-    "images": "Образы",
-    "audit": "Журнал аудита",
-    "billing": "Расходы",
-    "k8s": "Kubernetes",
-    "lxc": "Контейнеры",
-    "databases": "Платформа данных"
+    "sections": {
+      "compute": "Вычисления",
+      "computeCaption": "Кластеры, ВМ, образы",
+      "network": "Сеть",
+      "networkCaption": "VPC, доступ, трафик",
+      "storage": "Хранилище",
+      "storageCaption": "Блочное и объектное",
+      "access": "Доступ",
+      "accessCaption": "Пользователи и ключи",
+      "observability": "Наблюдение",
+      "observabilityCaption": "Метрики, логи, аудит",
+      "databases": "Базы данных",
+      "databasesCaption": "Управляемые СУБД"
+    },
+    "vmsTitle": "Виртуальные машины",
+    "vmsDesc": "Инстансы и статусы",
+    "clustersTitle": "Вычислительные кластеры",
+    "clustersDesc": "Пул нод и ресурсы",
+    "createVmTitle": "Создать ВМ",
+    "createVmDesc": "Мастер, 6 шагов",
+    "imagesTitle": "Образы",
+    "imagesDesc": "ОС и свои образы",
+    "snapshotsTitle": "Снапшоты ВМ",
+    "snapshotsDesc": "Копии дисков",
+    "k8sTitle": "K8s-кластеры",
+    "k8sDesc": "Managed K3s",
+    "vpcTitle": "VPC и подсети",
+    "vpcDesc": "Изолированные сети",
+    "sgTitle": "Security Groups",
+    "sgDesc": "Правила доступа",
+    "fipTitle": "Floating IP",
+    "fipDesc": "Внешние адреса",
+    "lbTitle": "Балансировщики",
+    "lbDesc": "HAProxy L4/L7",
+    "dnsTitle": "DNS-зоны",
+    "dnsDesc": "PowerDNS",
+    "disksTitle": "Диски",
+    "disksDesc": "Block volumes (SSD/HDD)",
+    "bucketsTitle": "Бакеты",
+    "bucketsDesc": "S3-совместимые",
+    "volSnapshotsTitle": "Снапшоты",
+    "volSnapshotsDesc": "Копии томов",
+    "usersTitle": "Пользователи",
+    "usersDesc": "Учётные записи",
+    "rolesTitle": "Роли",
+    "rolesDesc": "RBAC-права",
+    "sshKeysTitle": "SSH-ключи",
+    "sshKeysDesc": "Доступ к ВМ",
+    "apiKeysTitle": "API-ключи",
+    "apiKeysDesc": "Сервисные аккаунты",
+    "metricsTitle": "Метрики",
+    "metricsDesc": "Prometheus",
+    "logsTitle": "Логи",
+    "logsDesc": "Поиск по логам",
+    "auditTitle": "Журнал аудита",
+    "auditDesc": "История действий",
+    "postgresTitle": "PostgreSQL",
+    "postgresDesc": "CloudNativePG",
+    "redisTitle": "Redis",
+    "redisDesc": "Кэш и очереди",
+    "clickhouseTitle": "ClickHouse",
+    "clickhouseDesc": "Аналитика",
+    "kafkaTitle": "Kafka",
+    "kafkaDesc": "Стриминг",
+    "registryTitle": "Container Registry",
+    "registryDesc": "Образы контейнеров"
+  },
+  "shell": {
+    "appName": "Plexor",
+    "goHome": "На главную",
+    "collapseMenu": "Свернуть меню",
+    "account": "Аккаунт",
+    "applications": "Приложения",
+    "overview": "Обзор проекта",
+    "overviewCaption": "Сводка и действия",
+    "documentation": "Документация",
+    "documentationCaption": "API (Scalar) и гайды",
+    "administration": "Администрирование",
+    "administrationCaption": "Ноды, провайдеры",
+    "settingsCaption": "Профиль, ключи, тема"
+  },
+  "home": {
+    "title": "Обзор",
+    "description": "Разделы проекта. Полный каталог сервисов — «Все сервисы» в сайдбаре."
+  },
+  "placeholder": {
+    "inDevelopment": "Экран в разработке",
+    "scaffoldReady": "Каркас готов — контент появится в следующем проходе."
   },
   "vms": {
     "list": {
       "title": "Виртуальные машины",
       "create": "Создать ВМ",
+      "runningOf": "running of",
+      "total": "total",
+      "deleteTitle": "Удалить {{count}} VM?",
+      "deleteDescription": "Действие необратимо. Ресурсы ВМ и связанные диски будут освобождены.",
       "empty": {
         "title": "Виртуальных машин пока нет",
         "description": "Создайте первую ВМ, чтобы начать. Доступны Ubuntu, Debian, Alpine и свои образы.",
         "noResults": "Ничего не найдено",
         "noResultsDescription": "Попробуйте изменить фильтры или сбросить их.",
         "reset": "Сбросить фильтры"
-      }
+      },
+      "errorTitle": "Не удалось загрузить список VM"
     },
     "new": {
       "title": "Создать виртуальную машину",
       "description": "Настройки ВМ. Нод и кластер выбираются ниже.",
       "node": "Нод",
       "nodeDescription": "Только {{badge}} ноды принимают новые ВМ. Pending/draining/offline — фильтруются.",
+      "nodePlaceholder": "Выберите нод",
+      "noReadyNodes": "Нет ready нодов",
       "params": "Параметры ВМ",
       "paramsDescription": "Имя, образ, сеть и SSH-ключ.",
       "name": "Имя",
@@ -53,7 +144,6 @@
       "network": "Сеть",
       "sshKey": "SSH-ключ",
       "sshKeyPlaceholder": "Выберите ключ",
-      "noReadyNodes": "Нет ready нодов",
       "noCluster": {
         "title": "Plexor control plane не зарегистрирован",
         "description": "Чтобы создавать ВМ, нужно сначала установить Plexor на сервере. Установка ставит control plane и регистрирует его в UI."
@@ -62,10 +152,22 @@
         "title": "Нет ready-нодов",
         "description": "Подключите Plexor.NodeAgent к кластеру через join-токен. После heartbeat (≤ 2 мин) нод появится здесь и можно будет создавать ВМ."
       },
-      "summary": "Что будет создано"
+      "summary": "Что будет создано",
+      "create": "Создать ВМ"
     }
   },
   "k8s": {
+    "list": {
+      "title": "K8s-кластеры",
+      "create": "Create cluster",
+      "empty": {
+        "title": "K8s-кластеров пока нет",
+        "description": "Развёртывание managed K3s на вашем Plexor fleet — control plane, node pools, сеть.",
+        "noResults": "Ничего не найдено",
+        "noResultsDescription": "Попробуйте изменить фильтры или сбросить их.",
+        "reset": "Сбросить фильтры"
+      }
+    },
     "new": {
       "title": "Создать кластер Kubernetes",
       "description": "Managed K3s на вашем Plexor fleet — control plane, node pools, сеть и storage настраиваете вы.",
@@ -77,6 +179,7 @@
       "addons": "Дополнения",
       "options": "Параметры",
       "summary": "Что будет развёрнуто",
+      "create": "Create cluster",
       "noCluster": {
         "title": "Plexor control plane не зарегистрирован",
         "description": "Чтобы создать кластер Kubernetes, нужно сначала установить Plexor на сервере. Установка ставит control plane и регистрирует его в UI."
@@ -87,17 +190,81 @@
       }
     }
   },
+  "lxc": {
+    "list": {
+      "title": "Контейнеры",
+      "create": "Create container",
+      "empty": {
+        "title": "Контейнеров пока нет",
+        "description": "Развёртывание LXC-контейнеров на ready-нодах с LXD/LXC runtime.",
+        "noResults": "Ничего не найдено",
+        "noResultsDescription": "Попробуйте изменить фильтры или сбросить их.",
+        "reset": "Сбросить фильтры"
+      }
+    },
+    "new": {
+      "title": "Создать LXC-контейнер",
+      "noCluster": {
+        "title": "Plexor control plane не зарегистрирован",
+        "description": "Чтобы создавать контейнеры, нужно сначала установить Plexor на сервере. Установка ставит control plane и регистрирует его в UI."
+      },
+      "noReady": {
+        "title": "Нет LXC-совместимых нодов",
+        "description": "Контейнерам нужен ready-нод с LXD/LXC runtime. Подключите LXD-нод (выберите провайдер lxd при установке), затем он появится здесь."
+      },
+      "create": "Create container"
+    }
+  },
   "clusters": {
     "list": {
       "title": "Кластеры Plexor",
+      "docs": "Документация",
       "empty": {
         "title": "Нет зарегистрированных кластеров",
-        "description": "Установите Plexor на своём сервере через {{code}} или ISO-образ, затем зарегистрируйте control-plane здесь."
+        "description": "Установите Plexor на своём сервере через {{code}} или ISO-образ, затем зарегистрируйте control-plane здесь.",
+        "docsLabel": "Документация по установке"
       }
     },
     "detail": {
       "notFound": "Кластер не найден",
-      "notFoundDescription": "Кластер с id {{id}} не существует или удалён."
+      "notFoundDescription": "Кластер с id {{id}} не существует или удалён.",
+      "backToClusters": "Назад к кластерам",
+      "addNode": "Добавить нод",
+      "installProviders": "Install providers",
+      "nodes": "Ноды",
+      "joinTokens": "Join-токены",
+      "docs": "Документация",
+      "selfHelp": "Самостоятельная установка",
+      "selfHelpDescription": "Plexor self-hosted — вы ставите control-plane и ноды на своём железе."
+    }
+  },
+  "images": {
+    "title": "Образы",
+    "description": "Образы ОС и свои снапшоты для создания ВМ.",
+    "create": "Create image"
+  },
+  "networks": {
+    "title": "Сети и VPC",
+    "description": "VPC, подсети и security groups проекта.",
+    "create": "Создать сеть"
+  },
+  "audit": {
+    "title": "Журнал аудита",
+    "description": "История действий пользователей и системы в проекте.",
+    "filter": "Фильтр"
+  },
+  "billing": {
+    "title": "Расходы",
+    "description": "Биллинг и потребление ресурсов по проекту.",
+    "export": "Экспорт"
+  },
+  "managed": {
+    "title": "Платформа данных",
+    "description": "running of · бэкапы, HA, тонкая настройка",
+    "create": "Создать {{engine}}",
+    "empty": {
+      "title": "Нет инстансов {{engine}}",
+      "create": "Создать {{engine}}"
     }
   },
   "preferences": {
@@ -112,6 +279,7 @@
     "fontSizeSmall": "Маленький",
     "fontSizeMedium": "Обычный",
     "fontSizeLarge": "Большой",
+    "fontSizeDescription": "Масштабирует всю UI пропорционально.",
     "language": "Язык",
     "languageDescription": "Язык интерфейса. Изменения применяются сразу.",
     "reset": "Сбросить настройки",

@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Download, Receipt } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { useTranslation } from 'react-i18next';
 import { PlaceholderPage } from '@/shared/ui/app-shell';
 import { Button } from '@/shared/ui/primitives/button';
 
@@ -8,15 +9,16 @@ export const Route = createFileRoute('/billing')({
 });
 
 function BillingPage() {
+  const { t } = useTranslation();
   return (
     <PlaceholderPage
-      title="Расходы"
-      description="Биллинг и потребление ресурсов по проекту."
+      title={t('billing.title')}
+      description={t('billing.description')}
       icon={Receipt}
       actions={
         <Button variant="outline">
           <Download className="size-4" />
-          Экспорт
+          {t('billing.export')}
         </Button>
       }
     />

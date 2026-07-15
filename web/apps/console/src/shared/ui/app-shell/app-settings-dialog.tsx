@@ -8,6 +8,7 @@ import {
 import { PreferencesDialog } from '@/shared/ui/primitives/preferences-dialog';
 import { Button } from '@/shared/ui/primitives/button';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Tune } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 /**
@@ -22,6 +23,7 @@ export function AppSettingsDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const [prefsOpen, setPrefsOpen] = useState(false);
 
   return (
@@ -29,25 +31,25 @@ export function AppSettingsDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md" data-od-id="settings-dialog">
           <DialogHeader>
-            <DialogTitle className="text-sm">Настройки</DialogTitle>
-            <DialogDescription>Оформление и параметры аккаунта</DialogDescription>
+            <DialogTitle className="text-sm">{t('preferences.settings.title')}</DialogTitle>
+            <DialogDescription>{t('preferences.settings.description')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <section className="space-y-2" data-od-id="settings-appearance">
               <h3 className="text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase">
-                Оформление
+                {t('preferences.settings.appearance')}
               </h3>
               <div className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div className="min-w-0">
-                  <div className="text-xs font-medium">Визуальные настройки</div>
+                  <div className="text-xs font-medium">{t('preferences.settings.visualSettings')}</div>
                   <div className="text-[11px] text-muted-foreground">
-                    Тема, акцентный цвет, размер текста
+                    {t('preferences.settings.visualSettingsDescription')}
                   </div>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setPrefsOpen(true)}>
                   <Tune className="size-3.5" />
-                  Настроить
+                  {t('common.configure')}
                 </Button>
               </div>
             </section>

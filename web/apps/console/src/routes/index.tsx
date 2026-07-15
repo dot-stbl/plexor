@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { PageTemplate, SECTIONS, sectionPrimaryRoute } from '@/shared/ui/app-shell';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 
@@ -10,12 +11,13 @@ const cardBase =
   'flex items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-all';
 
 function HomePage() {
+  const { t } = useTranslation();
   return (
     <PageTemplate
-      title="Обзор"
+      title={t('home.title')}
       width="full"
       data-od-id="home"
-      description="Разделы проекта. Полный каталог сервисов — «Все сервисы» в сайдбаре."
+      description={t('home.description')}
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {SECTIONS.map((section) => {
@@ -31,7 +33,7 @@ function HomePage() {
                   <span className="text-sm font-medium text-foreground">{section.label}</span>
                   {!to && (
                     <StatusPill variant="idle" hideDot className="px-1.5 py-0 text-[9.5px] font-normal">
-                      скоро
+                      {t('common.soon')}
                     </StatusPill>
                   )}
                 </div>

@@ -9,39 +9,130 @@
     "copy": "Copy",
     "close": "Close",
     "loading": "Loading…",
+    "retry": "Retry",
     "soon": "soon",
     "settings": "Settings",
-    "configure": "Configure"
+    "configure": "Configure",
+    "done": "Done",
+    "reset": "Reset to defaults",
+    "docs": "Documentation",
+    "goToCluster": "Go to cluster",
+    "installationDocs": "Installation docs"
   },
   "nav": {
-    "overview": "Overview",
-    "vms": "Virtual machines",
-    "clusters": "Plexor clusters",
-    "networks": "Networks",
-    "images": "Images",
-    "audit": "Audit log",
-    "billing": "Billing",
-    "k8s": "Kubernetes",
-    "lxc": "Containers",
-    "databases": "Data platform"
+    "sections": {
+      "compute": "Compute",
+      "computeCaption": "Clusters, VMs, images",
+      "network": "Network",
+      "networkCaption": "VPC, access, traffic",
+      "storage": "Storage",
+      "storageCaption": "Block and object",
+      "access": "Access",
+      "accessCaption": "Users and keys",
+      "observability": "Observability",
+      "observabilityCaption": "Metrics, logs, audit",
+      "databases": "Databases",
+      "databasesCaption": "Managed DBs"
+    },
+    "vmsTitle": "Virtual machines",
+    "vmsDesc": "Instances and status",
+    "clustersTitle": "Compute clusters",
+    "clustersDesc": "Node pool and resources",
+    "createVmTitle": "Create VM",
+    "createVmDesc": "Wizard, 6 steps",
+    "imagesTitle": "Images",
+    "imagesDesc": "OS and custom images",
+    "snapshotsTitle": "VM snapshots",
+    "snapshotsDesc": "Disk copies",
+    "k8sTitle": "Kubernetes clusters",
+    "k8sDesc": "Managed K3s",
+    "vpcTitle": "VPC and subnets",
+    "vpcDesc": "Isolated networks",
+    "sgTitle": "Security Groups",
+    "sgDesc": "Access rules",
+    "fipTitle": "Floating IP",
+    "fipDesc": "External addresses",
+    "lbTitle": "Load balancers",
+    "lbDesc": "HAProxy L4/L7",
+    "dnsTitle": "DNS zones",
+    "dnsDesc": "PowerDNS",
+    "disksTitle": "Disks",
+    "disksDesc": "Block volumes (SSD/HDD)",
+    "bucketsTitle": "Buckets",
+    "bucketsDesc": "S3-compatible",
+    "volSnapshotsTitle": "Snapshots",
+    "volSnapshotsDesc": "Volume copies",
+    "usersTitle": "Users",
+    "usersDesc": "User accounts",
+    "rolesTitle": "Roles",
+    "rolesDesc": "RBAC permissions",
+    "sshKeysTitle": "SSH keys",
+    "sshKeysDesc": "VM access",
+    "apiKeysTitle": "API keys",
+    "apiKeysDesc": "Service accounts",
+    "metricsTitle": "Metrics",
+    "metricsDesc": "Prometheus",
+    "logsTitle": "Logs",
+    "logsDesc": "Log search",
+    "auditTitle": "Audit log",
+    "auditDesc": "Action history",
+    "postgresTitle": "PostgreSQL",
+    "postgresDesc": "CloudNativePG",
+    "redisTitle": "Redis",
+    "redisDesc": "Cache and queues",
+    "clickhouseTitle": "ClickHouse",
+    "clickhouseDesc": "Analytics",
+    "kafkaTitle": "Kafka",
+    "kafkaDesc": "Streaming",
+    "registryTitle": "Container Registry",
+    "registryDesc": "Container images"
+  },
+  "shell": {
+    "appName": "Plexor",
+    "goHome": "Go home",
+    "collapseMenu": "Collapse menu",
+    "account": "Account",
+    "applications": "Applications",
+    "overview": "Project overview",
+    "overviewCaption": "Summary and actions",
+    "documentation": "Documentation",
+    "documentationCaption": "API (Scalar) and guides",
+    "administration": "Administration",
+    "administrationCaption": "Nodes, providers",
+    "settingsCaption": "Profile, keys, theme"
+  },
+  "home": {
+    "title": "Overview",
+    "description": "Project sections. Full service catalog — \"All services\" in the sidebar."
+  },
+  "placeholder": {
+    "inDevelopment": "Screen in development",
+    "scaffoldReady": "Scaffold is ready — content will appear in the next pass."
   },
   "vms": {
     "list": {
       "title": "Virtual machines",
       "create": "Create VM",
+      "runningOf": "running of",
+      "total": "total",
+      "deleteTitle": "Delete {{count}} VM?",
+      "deleteDescription": "This action is irreversible. VM resources and associated disks will be released.",
       "empty": {
         "title": "No virtual machines yet",
         "description": "Create your first VM — Plexor brings it up on the chosen runtime.",
         "noResults": "Nothing found",
         "noResultsDescription": "Try adjusting the filters or reset them.",
         "reset": "Reset filters"
-      }
+      },
+      "errorTitle": "Failed to load VM list"
     },
     "new": {
       "title": "Create virtual machine",
       "description": "VM-specific settings. Node and cluster are selected below.",
       "node": "Node",
       "nodeDescription": "Only {{badge}} nodes accept new VMs. Pending/draining/offline are filtered out.",
+      "nodePlaceholder": "Select a node",
+      "noReadyNodes": "No ready nodes",
       "params": "VM parameters",
       "paramsDescription": "Name, image, network and SSH key.",
       "name": "Name",
@@ -53,7 +144,6 @@
       "network": "Network",
       "sshKey": "SSH key",
       "sshKeyPlaceholder": "Select a key",
-      "noReadyNodes": "No ready nodes",
       "noCluster": {
         "title": "Plexor control plane is not registered",
         "description": "To create VMs, you first need to install Plexor on a server. The installation sets up the control plane and registers it in the UI."
@@ -62,10 +152,22 @@
         "title": "No ready nodes",
         "description": "Connect Plexor.NodeAgent to the cluster via a join token. After a heartbeat (≤ 2 min) the node appears here and you can create VMs."
       },
-      "summary": "What will be deployed"
+      "summary": "What will be deployed",
+      "create": "Create VM"
     }
   },
   "k8s": {
+    "list": {
+      "title": "Kubernetes clusters",
+      "create": "Create cluster",
+      "empty": {
+        "title": "No Kubernetes clusters yet",
+        "description": "Deploy managed K3s on your Plexor fleet — control plane, node pools, networking.",
+        "noResults": "Nothing found",
+        "noResultsDescription": "Try adjusting the filters or reset them.",
+        "reset": "Reset filters"
+      }
+    },
     "new": {
       "title": "Create Kubernetes cluster",
       "description": "Managed K3s on the Plexor fleet — control plane, node pools, networking and storage are all yours to set.",
@@ -77,6 +179,7 @@
       "addons": "Add-ons",
       "options": "Options",
       "summary": "What will be deployed",
+      "create": "Create cluster",
       "noCluster": {
         "title": "Plexor control plane is not registered",
         "description": "To create a Kubernetes cluster, you first need to install Plexor on a server. The installation sets up the control plane and registers it in the UI."
@@ -87,17 +190,81 @@
       }
     }
   },
+  "lxc": {
+    "list": {
+      "title": "Containers",
+      "create": "Create container",
+      "empty": {
+        "title": "No containers yet",
+        "description": "Deploy LXC containers on ready nodes with an LXD/LXC runtime provider.",
+        "noResults": "Nothing found",
+        "noResultsDescription": "Try adjusting the filters or reset them.",
+        "reset": "Reset filters"
+      }
+    },
+    "new": {
+      "title": "Create LXC container",
+      "noCluster": {
+        "title": "Plexor control plane is not registered",
+        "description": "To create containers, you first need to install Plexor on a server. The installation sets up the control plane and registers it in the UI."
+      },
+      "noReady": {
+        "title": "No LXC-capable nodes",
+        "description": "Containers need a ready node with an LXD/LXC runtime provider. Connect an LXD-capable node (select the lxd provider at install), then it appears here."
+      },
+      "create": "Create container"
+    }
+  },
   "clusters": {
     "list": {
       "title": "Plexor clusters",
+      "docs": "Documentation",
       "empty": {
         "title": "No registered clusters",
-        "description": "Install Plexor on your server via {{code}} or an ISO image, then register the control plane here."
+        "description": "Install Plexor on your server via {{code}} or an ISO image, then register the control plane here.",
+        "docsLabel": "Installation docs"
       }
     },
     "detail": {
       "notFound": "Cluster not found",
-      "notFoundDescription": "Cluster with id {{id}} does not exist or was deleted."
+      "notFoundDescription": "Cluster with id {{id}} does not exist or was deleted.",
+      "backToClusters": "Back to clusters",
+      "addNode": "Add node",
+      "installProviders": "Install providers",
+      "nodes": "Nodes",
+      "joinTokens": "Join tokens",
+      "docs": "Documentation",
+      "selfHelp": "Self-service installation",
+      "selfHelpDescription": "Plexor self-hosted — you install control-plane and nodes on your own hardware."
+    }
+  },
+  "images": {
+    "title": "Images",
+    "description": "OS images and custom snapshots for VM provisioning.",
+    "create": "Create image"
+  },
+  "networks": {
+    "title": "Networks and VPC",
+    "description": "VPC, subnets and security groups for the project.",
+    "create": "Create network"
+  },
+  "audit": {
+    "title": "Audit log",
+    "description": "History of user and system actions in the project.",
+    "filter": "Filter"
+  },
+  "billing": {
+    "title": "Billing",
+    "description": "Resource billing and consumption by project.",
+    "export": "Export"
+  },
+  "managed": {
+    "title": "Data platform",
+    "description": "running of · backups, HA, fine-tuning",
+    "create": "Create {{engine}} cluster",
+    "empty": {
+      "title": "No {{engine}} instances",
+      "create": "Create {{engine}} cluster"
     }
   },
   "preferences": {
@@ -112,6 +279,7 @@
     "fontSizeSmall": "Small",
     "fontSizeMedium": "Medium",
     "fontSizeLarge": "Large",
+    "fontSizeDescription": "Scales the entire UI proportionally.",
     "language": "Language",
     "languageDescription": "Interface language. Changes apply immediately.",
     "reset": "Reset to defaults",

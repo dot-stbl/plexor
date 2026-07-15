@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { AccountTree, Add } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { useTranslation } from 'react-i18next';
 import { PlaceholderPage } from '@/shared/ui/app-shell';
 import { Button } from '@/shared/ui/primitives/button';
 
@@ -8,15 +9,16 @@ export const Route = createFileRoute('/networks')({
 });
 
 function NetworksPage() {
+  const { t } = useTranslation();
   return (
     <PlaceholderPage
-      title="Сети и VPC"
-      description="VPC, подсети и security groups проекта."
+      title={t('networks.title')}
+      description={t('networks.description')}
       icon={AccountTree}
       actions={
         <Button>
           <Add className="size-4" />
-          Создать сеть
+          {t('networks.create')}
         </Button>
       }
     />

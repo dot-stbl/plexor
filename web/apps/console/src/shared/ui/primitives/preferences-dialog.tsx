@@ -22,22 +22,22 @@ interface PreferencesDialogProps {
 
 const ACCENTS: Array<{ value: Accent; label: string; preview: string }> = [
   { value: 'plexor', label: 'Plexor',      preview: 'oklch(28% 0.02 255)' },
-  { value: 'blue',   label: 'Синий',       preview: 'oklch(55% 0.18 252)' },
-  { value: 'green',  label: 'Зелёный',     preview: 'oklch(58% 0.15 155)' },
-  { value: 'orange', label: 'Оранжевый',   preview: 'oklch(68% 0.16 50)' },
-  { value: 'pink',   label: 'Розовый',     preview: 'oklch(64% 0.18 0)' },
+  { value: 'blue',   label: 'Blue',     preview: 'oklch(55% 0.18 252)' },
+  { value: 'green',  label: 'Green',    preview: 'oklch(58% 0.15 155)' },
+  { value: 'orange', label: 'Orange',   preview: 'oklch(68% 0.16 50)' },
+  { value: 'pink',   label: 'Pink',     preview: 'oklch(64% 0.18 0)' },
 ];
 
 const FONT_SIZES: Array<{ value: FontSize; label: string }> = [
-  { value: 'small',  label: 'Маленький' },
-  { value: 'medium', label: 'Обычный' },
-  { value: 'large',  label: 'Большой' },
+  { value: 'small',  label: '' },
+  { value: 'medium', label: '' },
+  { value: 'large',  label: '' },
 ];
 
 const THEMES: Array<{ value: Theme; label: string; Icon: typeof LightMode }> = [
-  { value: 'light',  label: 'Светлая',  Icon: LightMode },
-  { value: 'dark',   label: 'Тёмная',   Icon: DarkMode },
-  { value: 'system', label: 'Системная', Icon: LightMode }, // Material Symbols — no half-circle; LightMode icon re-used
+  { value: 'light',  label: '', Icon: LightMode },
+  { value: 'dark',   label: '',  Icon: DarkMode },
+  { value: 'system', label: '', Icon: LightMode }, // Material Symbols — no half-circle; LightMode icon re-used
 ];
 
 /**
@@ -61,15 +61,15 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-sm">Визуальные настройки</DialogTitle>
+          <DialogTitle className="text-sm">{t('preferences.title')}</DialogTitle>
           <DialogDescription>
-            Тема, акцентный цвет и размер текста. Сохраняются в этом браузере.
+            {t('preferences.description')}
           </DialogDescription>
         </DialogHeader>
 
         <FieldGroup>
           <Field>
-            <FieldLabel>Тема</FieldLabel>
+            <FieldLabel>{t('preferences.theme')}</FieldLabel>
             <div role="radiogroup" className="grid grid-cols-3 gap-2">
               {THEMES.map((t) => {
                 const isActive = preferences.theme === t.value;
@@ -97,7 +97,7 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
           </Field>
 
           <Field>
-            <FieldLabel>Акцентный цвет</FieldLabel>
+            <FieldLabel>{t('preferences.accent')}</FieldLabel>
             <div className="grid grid-cols-5 gap-2">
               {ACCENTS.map((a) => {
                 const isActive = preferences.accent === a.value;
@@ -132,7 +132,7 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
           </Field>
 
           <Field>
-            <FieldLabel>Размер текста</FieldLabel>
+            <FieldLabel>{t('preferences.fontSize')}</FieldLabel>
             <div role="radiogroup" className="grid grid-cols-3 gap-2">
               {FONT_SIZES.map((f) => {
                 const isActive = preferences.fontSize === f.value;
@@ -158,7 +158,7 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
                 );
               })}
             </div>
-            <FieldDescription>Масштабирует всю UI пропорционально.</FieldDescription>
+            <FieldDescription>{t('preferences.fontSizeDescription')}</FieldDescription>
           </Field>
 
           {/* Language */}
@@ -191,7 +191,7 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
         </FieldGroup>
 
         <DialogFooter>
-          <Button
+            <Button
             variant="ghost"
             size="sm"
             onClick={() => {
@@ -200,9 +200,9 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
             }}
           >
             <Refresh className="size-3.5" />
-            Сбросить
+            {t('preferences.reset')}
           </Button>
-          <Button onClick={() => onOpenChange(false)}>Готово</Button>
+          <Button onClick={() => onOpenChange(false)}>{t('common.done')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
