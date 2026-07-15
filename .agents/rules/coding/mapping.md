@@ -1,183 +1,232 @@
 ---
-description: mapping — when to use Mapperly (static 1-to-1) vs hand-written (polymorphic dispatch, cross-aggregate assembly)
-globs: ["**/*.cs"]
-priority: medium
+description: plexor entity-to-DTO mapping pattern. Use Mapperly source generators + I{Entity}Mapper interface abstraction. Partial sealed class DTOs (not records) for init-only property compatibility.
+globs: ["**/Mappers/**/*.cs", "**/Application/**/*Dto.cs", "**/Application/**/*Summary.cs", "**/Application/**/*Detail.cs"]
+always: false
 ---
 
-# Mapping — Mapperly, manual projection, or hand-written
+# Mapping (entity → DTO)
 
-## Decision tree
+Plexor maps between domain entities and public DTOs (returned by
+controllers / serialized to JSON) through **Mapperly source-generated
+mappers**, fronted by a per-module **interface** so handlers depend on
+the contract, not the concrete class.
 
-```
-1. Static 1-to-1 mapping between two records/classes?
-   └── Mapperly ([Mapper] partial class, generated at build-time)
+## Stack
 
-2. EF Entity → API DTO with same shape (1:1 fields, no derivation)?
-   └── Mapperly
+| Piece | Library / Convention |
+|-------|---------------------|
+| Source generator | **Riok.Mapperly** (10.x in `Directory.Packages.props`) |
+| Interface per module | `I{Module}Mapper` in `*.Infrastructure/Mappers/` (singular — one mapper per module, NOT plural `IMappers`) |
+| Concrete implementation | `partial sealed class {Module}Mapper : I{Module}Mapper` with `[Mapper]` attribute (singular — `SigilMapper`, not `SigilMappers`) |
+| DTO shape | `sealed partial class` with init-only properties (NOT `record` — see below) |
+| Test pattern | Construct a real `{Module}Mapper()` instance — generated bodies are deterministic and unit-testable directly |
 
-3. API Request → Command with custom construction?
-   └── Mapperly + [MapProperty] for non-default cases
-
-4. Value-object unwrap (e.g. ObjectId → string, Money → decimal)?
-   └── Mapperly + [MapProperty] / [UserMapping]
-
-5. Collection-shape change (Set<T> → List<T>, projection)?
-   └── Mapperly (in newer versions) or hand-written `.Select(...)` 
-
-6. Cross-aggregate assembly (multiple entities → one DTO)?
-   └── Hand-written — Mapperly can't compose
-
-7. Polymorphic dispatch (Setting → one of N DTOs, sealed hierarchy)?
-   └── Hand-written switch (sealed hierarchy exhaustiveness required)
-
-8. Dynamic / runtime decision (different mapper per discriminator)?
-   └── Hand-written
-```
-
-## Anti-patterns
+## Naming — **singular, not plural**
 
 ```csharp
-// ❌ Wrong — manual 1-to-1 mapping that could be Mapperly
-public static SettingDefinitionResponse From(SettingDefinition definition)
+// ✅ Default — one mapper per module, singular
+public interface ISigilMapper { ... }                       // interface
+public sealed partial class SigilMapper : ISigilMapper { }   // concrete
+
+// ❌ Wrong — the mapper is one object with multiple methods,
+//    not a collection of multiple objects. Plural `mappers` reads
+//    as "a group of mapper objects" which is wrong.
+public interface ISigilMappers { ... }
+public sealed partial class SigilMappers : ISigilMappers { }
+```
+
+**Rule.** The mapper is one instance with N mapping methods (one
+per public DTO projection). Method names describe the destination
+type (singular): `ToUserSummary`, `ToApiKeySummary`, `ToNodeSummary`,
+not `ToUserSummaries` or `MapUserToSummary`. The mapper itself is
+named `{Module}Mapper` (singular) and its interface is
+`I{Module}Mapper` (singular).
+
+This matches the handler parameter convention — handlers inject
+`IClusterMapper mapper` (singular), not `IClusterMappers mappers`.
+
+If a module ends up with more mappers than fit in one class (rare;
+usually 3–8 methods is fine), split into
+`{Aggregate}Mapper : I{Aggregate}Mapper` per aggregate root, not
+`{Aggregate1}Mappers` / `{Aggregate2}Mappers`.
+
+## DTOs are `sealed partial class` with init properties, NOT records
+
+```csharp
+// ✅ Default — Mapperly + EF Core friendly
+public sealed partial class ClusterSummary
 {
-    return new SettingDefinitionResponse(
-        definition.Id.Value.ToString(),       // .Value.ToString() — manual unwrap
-        definition.Key,
-        definition.Type,
-        definition.Description,
-        [.. definition.AppliesToEntityTypes], // manual projection
-        definition.IsPlatformLevel,
-        definition.CreatedAt,
-        definition.UpdatedAt);
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    // ...
 }
 
-// ❌ Wrong — hand-rolled mapping in controller (besides wiring)
-return CreatedAtRoute("settings-get-by-key", new { key = request.Key },
-    new SettingDefinitionResponse(
-        id.Value.ToString(),
-        new SettingKey(request.Key),
-        request.Type,
-        // ... 8 lines of trivial copy
-        ));
+// ❌ Wrong — Mapperly cannot target positional records
+public sealed record ClusterSummary(Guid Id, string Name, ...);
+```
 
-// ✅ Correct — Mapperly, generated at build-time, compile-time check
-[Mapper]
-public partial class SettingDefinitionMapper
+`sealed record` (positional) breaks the Mapperly source generator:
+- Mapperly tries to emit `new T(...)` with positional args from the
+  generated mapping body.
+- The generated `.g.cs` calls the record's primary constructor
+  positionally, but a `record` constructor is treated as "no
+  accessible constructor with mappable arguments" by Mapperly 4.x.
+- EF Core LINQ projections (`Select(... new X { Prop = ... })`) work
+  fine with the `partial class` + object-initializer pattern.
+- Value-equality on DTOs is not needed (DTOs are JSON-serialized,
+  not compared in-memory).
+
+## Mapper interface + implementation
+
+```csharp
+// src/modules/<X>/<X>.Infrastructure/Mappers/I<Module>Mapper.cs
+public interface I<Module>Mapper
 {
-    public partial SettingDefinitionResponse Map(SettingDefinition source);
-    
-    public partial IReadOnlyList<SettingDefinitionResponse> Map(
-        IReadOnlyList<SettingDefinition> source);
+    <Summary> ToSummary(<Entity> source);
+
+    <Detail> ToDetail(<Entity> source, IReadOnlyList<NodeSummary> nodes);
+
+    NodeSummary ToNodeSummary(Node source);
+}
+
+// src/modules/<X>/<X>.Infrastructure/Mappers/<Module>Mapper.cs
+[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
+public partial class <Module>Mapper : I<Module>Mapper
+{
+    // Target must be mapped (a missing mapping breaks the build).
+    [MapperIgnoreTarget(nameof(<Summary>.NodeCounts))]
+    public partial <Summary> ToSummary(<Entity> source);
+
+    // MapProperty not needed: the additional parameter name
+    // ("nodes") matches the target property "Nodes" by name
+    // (case-insensitive).
+    public partial <Detail> ToDetail(<Entity> source, IReadOnlyList<NodeSummary> nodes);
+
+    public partial NodeSummary ToNodeSummary(Node source);
 }
 ```
 
-## Mapperly mechanics
+### RequiredMappingStrategy = Target (default)
 
-### Identity unwrap with `[MapProperty]`
+Every target DTO property must be mapped. A missing mapping breaks the
+build with `RMG005`, catching a silent runtime bug at compile time.
+
+- Computed properties (aggregations, lookups) → `[MapperIgnoreTarget]`
+  + caller post-maps (e.g. `with` expression, setter, or recompute
+  via repository call).
+- Properties sourced from additional method parameters → handled
+  automatically by parameter name (case-insensitive match).
+
+### DI registration
 
 ```csharp
-[Mapper]
-public partial class SettingDefinitionMapper
+// Singleton: generated bodies are stateless, allocation-free.
+services.AddSingleton<I<Domain>Mapper, <Domain>Mappers>();
+```
+
+Handlers depend on the interface:
+
+```csharp
+public sealed class GetClusterQueryHandler(
+    Repository<Cluster> clusterRepo,
+    Repository<Node> nodeRepo,
+    IClusterMapper mapper) : ICommandHandler<GetClusterQuery, ClusterDetail>
 {
-    [MapProperty(nameof(SettingDefinition.Id) + ".Value", 
-                  nameof(SettingDefinitionResponse.Id))]
-    public partial SettingDefinitionResponse Map(SettingDefinition source);
-}
-```
-
-`Id.Value.ToString()` lives in `[UserMapping]` (extension on `SettingDefinitionId`):
-
-```csharp
-public static class SettingDefinitionIdMappingExtensions
-{
-    public static string ToWire(this SettingDefinitionId id) => id.Value.ToString();
-}
-```
-
-### Collection-shape change
-
-`IReadOnlySet<string>` → `IReadOnlyList<string>` needs a `[UserMapping]` (spread):
-
-```csharp
-[UserMapping]
-private static IReadOnlyList<string> MapAppliesTo(IReadOnlySet<string> set) 
-    => [.. set];
-```
-
-Or use `Select` in the call-site — fine for one-off places:
-
-```csharp
-return definitions.Select(d => _mapper.Map(d)).ToList();
-```
-
-### When to skip the mapper
-
-```csharp
-// ❌ Wrong — Mapperly can't dispatch polymorphically on ISetting
-public partial SettingResponse Map(ISetting setting);   // won't compile
-
-// ✅ Correct — hand-written dispatcher (sealed hierarchy is exhaustive)
-public sealed class SettingResponseMapper
-{
-    public SettingResponse Map(ISetting setting) => setting switch
+    public async Task<ClusterDetail> HandleAsync(
+        GetClusterQuery query,
+        CancellationToken cancellationToken = default)
     {
-        BoolSetting b => new(b.Key.Canonical, nameof(BoolSetting), b.Value),
-        StringListSetting s => new(s.Key.Canonical, nameof(StringListSetting), s.Values),
-        NumberSetting n => new(n.Key.Canonical, nameof(NumberSetting), n.Value),
-        ObjectSetting o => new(o.Key.Canonical, nameof(ObjectSetting), o.Value),
-        _ => throw new InvalidOperationException(
-            $"Unknown setting type '{setting.GetType().Name}'.")
-    };
-}
-```
-
-## Mapper placement
-
-```
-src/modules/<M>/<M>.Application/Mappers/
-└── <Aggregate>Mapper.cs    // one per aggregate that needs DTO mapping
-```
-
-**One mapper per aggregate**, not per controller. Multiple endpoints that need
-the same entity→DTO mapping share one mapper instance via DI registration:
-
-```csharp
-// ApplicationInstaller
-services.AddSingleton<SettingDefinitionMapper>();
-```
-
-Controllers + handlers inject the mapper:
-
-```csharp
-public sealed class GetSettingDefinitionByKeyHandler(
-    ISettingDefinitionRepository repository,
-    SettingDefinitionMapper mapper) : IQueryHandler<...>
-{
-    public async ValueTask<...> HandleAsync(...)
-    {
-        return await repository.GetByKeyAsync(...) is { } d
-            ? mapper.Map(d)
-            : null;
+        if (await clusterRepo.FirstOrDefaultAsync(
+                new ClusterByIdSpec(query.ClusterId), cancellationToken)
+                is not { } cluster)
+        {
+            throw new ClustersException(ClustersExceptions.ClusterNotFound, ...);
+        }
+        var nodes = await nodeRepo.ListAsync(
+            new NodesByClusterSpec(query.ClusterId), cancellationToken);
+        return mapper.ToDetail(cluster, nodes);  // 1 line, no 13-field constructor
     }
 }
 ```
 
-## When NOT to introduce a mapper
+## Parameter name convention
 
-- **One-off mapping** with 1-2 fields and only one call site — manual is
-  cheaper than creating a mapper class.
-- **Tests** — use Builders (see testing-unit.md), not mappers. Mappers are
-  for production code shape transforms, not test data construction.
-- **Cross-module DTOs** — mappers should live in the **owning** module
-  (per `project-deps-and-tests.md` layer rules), not shared in `Shared/`.
+Use `source` for the source parameter — matches Mapperly best-practice
+guidance and makes the mapping direction obvious at the call site.
 
-## Enforcement
+```csharp
+public partial ClusterSummary ToSummary(Cluster source);
+```
 
-- **Build gate**: `dotnet build console.x.slnx -c Debug` — Mapperly is
-  source-generator, errors fail the build.
-- **Code review**: any `public static From(...)` factory that copies 3+ fields
-  is a reviewer-flagged pattern that should become a `[Mapper]` partial.
-- **Architecture test** (planned): grep for
-  `public static .*Response From(` in `Application/Models/` and
-  `Application/Endpoints/` — should be empty except where polymorphism forces
-  it.
+## Test pattern
+
+```csharp
+// Unit tests construct the real generated mapper — bodies are
+// deterministic and don't need mocking.
+var mapper = new ClusterMappers();
+var handler = new GetClusterQueryHandler(
+    new ClusterRepository(db),
+    new NodeRepository(db),
+    mapper);
+```
+
+If you need to verify a specific mapping branch (e.g. error
+handling), NSubstitute a custom `IClusterMapper` with explicit
+`.Returns(...)`. Default `Substitute.For<IClusterMapper>()` returns
+`null` for unconfigured methods, which surfaces as `NullReferenceException`
+deep in the handler — configure every method the test exercises.
+
+## EF Core LINQ projection — also fine with `partial class`
+
+`partial class` DTOs compose with EF Core's `Select(... new X { Prop = ... })`
+projection just as well as positional records do — the source generator
+emits object-initializer syntax. For complex projection in a
+Repository's PageAsync, prefer the Repository + FilterableFieldSet +
+Mapperly pipeline over inline `new T { ... }` blocks (see
+`architecture/persistence.md`).
+
+## Anti-patterns
+
+- ❌ `sealed record` DTOs — breaks Mapperly. See "DTOs are partial
+  class" above.
+- ❌ `Substitute.For<IMapper>()` without `.Returns(...)` — NRE in
+  handler. Always configure every method the test calls.
+- ❌ Hand-built 13-field constructor calls in handlers — exactly what
+  Mapperly is for.
+- ❌ `[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.None)]` —
+  silently misses unmapped properties; defeats the whole point of
+  strict mappings.
+- ❌ Mapper methods that take a positional DTO as source (e.g.
+  `ToDetail(ClusterDetail source)`) — mappers map entity → DTO,
+  never DTO → DTO (that's a different concern, e.g. version
+  conversion, which doesn't apply here).
+
+## Self-audit
+
+```bash
+# Mappers live in *.Infrastructure/Mappers/ — one directory per module
+ls src/modules/Plexor.Modules.<X>/Plexor.Modules.<X>.Infrastructure/Mappers/
+
+# All DTOs are partial class, not record
+rg -in "public sealed record.*(Summary|Detail|Dto)\(" src/ --type cs
+# Должно быть пусто (records with these suffixes — only commands/results,
+# never DTOs).
+
+# Every mapper class has [Mapper(RequiredMappingStrategy = Target)]
+rg -n "RequiredMappingStrategy = RequiredMappingStrategy.Target" src/ --type cs
+# Each Mappers/<X>Mappers.cs has it.
+
+# No inline 10+ field constructor calls in handlers
+rg -n "new ClusterSummary\(" src/ --type cs
+# Должно быть пусто — only ToSummary(mapper) / ToDetail(mapper) calls.
+```
+
+## Related rules
+
+- `architecture/persistence.md` — Repository<T> + Specification<T, TResult>
+  + PageAsync filter DSL — the read pipeline that hands off to
+  mappers at the end of the chain.
+- `coding/anti-patterns.md` §2 — DTO records were the old convention;
+  this rule supersedes that for DTOs specifically.
+- `coding/constructors-and-fields.md` — primary ctor for DI classes
+  (handlers); mappers are stateless, no ctor needed.
