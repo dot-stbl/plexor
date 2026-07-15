@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import {
   Add,
   ArrowBack,
@@ -54,6 +55,7 @@ const SSH_KEYS = ['alex@workstation', 'deploy@ci'] as const;
  * VM-specific fields (image, network, SSH key).
  */
 function CreateVmPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { clusters } = useListClusters();
 
@@ -78,13 +80,13 @@ function CreateVmPage() {
   return (
     <PageTemplate
       data-od-id="vms-new"
-      title="Создать виртуальную машину"
+      title={t('vms.new.title')}
       width="full"
-      description="VM-specific настройки. Нод и кластер выбираются ниже."
+      description={t('vms.new.description')}
       actions={
         <Button variant="ghost" nativeButton={false} render={<Link to="/vms" />}>
           <ArrowBack />
-          Назад
+          {t('common.back')}
         </Button>
       }
     >
@@ -94,9 +96,9 @@ function CreateVmPage() {
         <EmptyState
           data-od-id="vms-new-no-cluster"
           icon={DeployedCode}
-          title="Plexor control plane не зарегистрирован"
-          description="Чтобы создавать VM, нужно сначала установить Plexor на сервере. Установка ставит control plane и регистрирует его в UI."
-          docs={[{ href: 'https://plexor.dev/docs/install', label: 'Документация по установке' }]}
+          title={t('vms.new.noCluster.title')}
+          description={t('vms.new.noCluster.description')}
+          docs={[{ href: 'https://plexor.dev/docs/install', label: t('common.installationDocs') }]}
         />
       )}
 
@@ -105,12 +107,12 @@ function CreateVmPage() {
         <EmptyState
           data-od-id="vms-new-no-ready-nodes"
           icon={Stacks}
-          title="Нет ready-нодов"
-          description="Подключите Plexor.NodeAgent к кластеру через join-токен. После heartbeat (≤ 2 мин) нод появится здесь и можно будет создавать VM."
+          title={t('vms.new.noReady.title')}
+          description={t('vms.new.noReady.description')}
           action={
             <Button nativeButton={false} render={<Link to="/clusters/$id" params={{ id: clusters[0]!.id }} />}>
               <ArrowBack />
-              Перейти к кластеру
+              {t('common.goToCluster')}
             </Button>
           }
         />
@@ -124,9 +126,9 @@ function CreateVmPage() {
           <CardHeader className="gap-0.5 border-b border-border p-4">
             <div className="flex items-center justify-between gap-2">
               <div className="space-y-0.5">
-                <CardTitle className="text-sm">Нод</CardTitle>
+                <CardTitle className="text-sm">{t('vms.new.node')}</CardTitle>
                 <CardDescription>
-                  Только <Badge variant="secondary">ready</Badge> ноды принимают новые VM. Pending/draining/offline — фильтруются.
+                  {t('vms.new.nodeDescription', { badge: 'ready' })}
                 </CardDescription>
               </div>
               {readyNodes.length > 0 ? (
@@ -139,7 +141,7 @@ function CreateVmPage() {
                   onValueChange={(value) => setNodeId(value ?? '')}
                 >
                   <SelectTrigger className="min-w-[280px]">
-                    <SelectValue placeholder="Выберите нод" />
+                    <SelectValue placeholder={t('vms.new.nodePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {readyNodes.map((n) => (
@@ -191,33 +193,33 @@ function CreateVmPage() {
 
         <Card className="gap-0 p-0">
           <CardHeader className="gap-0.5 border-b border-border p-4">
-            <CardTitle className="text-sm">Параметры ВМ</CardTitle>
-            <CardDescription>Имя, образ, сеть и SSH-ключ.</CardDescription>
+            <CardTitle className="text-sm">{t('vms.new.params')}</CardTitle>
+            <CardDescription>{t('vms.new.paramsDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="p-4">
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="create-vm-name">Имя</FieldLabel>
+                <FieldLabel htmlFor="create-vm-name">{t('vms.new.name')}</FieldLabel>
                 <Input
                   id="create-vm-name"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  placeholder="например, web-prod-02"
+                  placeholder={t('vms.new.namePlaceholder')}
                 />
                 <FieldDescription>
-                  Используется как hostname. Строчные латинские буквы, цифры и дефис.
+                  {t('vms.new.nameDescription')}
                 </FieldDescription>
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="create-vm-image">Образ ОС</FieldLabel>
+                <FieldLabel htmlFor="create-vm-image">{t('vms.new.image')}</FieldLabel>
                 <Select
                   items={IMAGES.map((i) => ({ value: i, label: i }))}
                   value={image}
                   onValueChange={(value) => setImage(value ?? '')}
                 >
                   <SelectTrigger id="create-vm-image">
-                    <SelectValue placeholder="Выберите образ" />
+                    <SelectValue placeholder={t('vms.new.imagePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {IMAGES.map((i) => (
@@ -227,11 +229,11 @@ function CreateVmPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <FieldDescription>Базовый образ диска.</FieldDescription>
+                <FieldDescription>{t('vms.new.imageDescription')}</FieldDescription>
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="create-vm-network">Сеть</FieldLabel>
+                <FieldLabel htmlFor="create-vm-network">{t('vms.new.network')}</FieldLabel>
                 <Select
                   items={NETWORKS.map((n) => ({ value: n, label: n }))}
                   value={network}
@@ -251,14 +253,14 @@ function CreateVmPage() {
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="create-vm-ssh">SSH-ключ</FieldLabel>
+                <FieldLabel htmlFor="create-vm-ssh">{t('vms.new.sshKey')}</FieldLabel>
                 <Select
                   items={SSH_KEYS.map((k) => ({ value: k, label: k }))}
                   value={sshKey}
                   onValueChange={(value) => setSshKey(value ?? '')}
                 >
                   <SelectTrigger id="create-vm-ssh">
-                    <SelectValue placeholder="Выберите ключ" />
+                    <SelectValue placeholder={t('vms.new.sshKeyPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {SSH_KEYS.map((k) => (
@@ -275,20 +277,20 @@ function CreateVmPage() {
 
           <div className="flex items-center justify-between">
             <Button variant="outline" nativeButton={false} render={<Link to="/vms" />}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               onClick={() => navigate({ to: '/vms' })}
               disabled={!nodeId || !name || !image || !network || !sshKey}
             >
               <Add />
-              Create VM
+              {t('vms.new.create')}
             </Button>
           </div>
         </div>
 
         {/* ─── Sticky summary ──────────────────────────────────────── */}
-        <SummaryPanel title="What will be deployed">
+        <SummaryPanel title={t('vms.new.summary')}>
           <div>
             <SummaryRow label="Name">{name.trim() || '—'}</SummaryRow>
             <SummaryRow label="Node">

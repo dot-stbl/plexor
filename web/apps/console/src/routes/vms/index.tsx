@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { Add } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { useListVms } from '@/shared/api';
 import { Button } from '@/shared/ui/primitives/button';
@@ -26,6 +27,7 @@ export const Route = createFileRoute('/vms/')({
 const FILTER_DEFAULT: FilterValues = emptyFilters(vmColumns);
 
 function VmsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [filters, setFilters] = useState<FilterValues>(FILTER_DEFAULT);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
@@ -76,22 +78,22 @@ function VmsPage() {
   return (
     <div data-od-id="vms-list">
       <PageTemplate
-        title="Виртуальные машины"
+        title={t('vms.list.title')}
         width="full"
         description={
           isPending ? (
-            'Загрузка…'
+            t('common.loading')
           ) : (
             <span>
-              <MonoNum>{running}</MonoNum> <span className="text-muted-foreground">running of</span>{' '}
-              <MonoNum>{total}</MonoNum> <span className="text-muted-foreground">total</span>
+              <MonoNum>{running}</MonoNum> <span className="text-muted-foreground">{t('vms.list.runningOf')}</span>{' '}
+              <MonoNum>{total}</MonoNum> <span className="text-muted-foreground">{t('vms.list.total')}</span>
             </span>
           )
         }
         actions={
           <Button onClick={() => navigate({ to: '/vms/new' })}>
             <Add />
-            Создать ВМ
+            {t('vms.list.create')}
           </Button>
         }
       >
@@ -147,15 +149,15 @@ function VmsPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent size="default">
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить {selectedIds.size} VM?</AlertDialogTitle>
+            <AlertDialogTitle>{t('vms.list.deleteTitle', { count: selectedIds.size })}</AlertDialogTitle>
             <AlertDialogDescription>
-              Действие необратимо. Ресурсы ВМ и связанные диски будут освобождены.
+              {t('vms.list.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={confirmDelete}>
-              Удалить
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

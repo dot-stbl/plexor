@@ -3,6 +3,7 @@ import { Alert, AlertTitle, AlertDescription, AlertAction } from '@/shared/ui/pr
 import { Button } from '@/shared/ui/primitives/button';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { DeployedCode, Refresh, Search } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { useTranslation } from 'react-i18next';
 
 /** Loading skeleton — 5 placeholder rows shaped like the VM table. */
 export function VmSkeleton() {
@@ -22,17 +23,18 @@ interface VmErrorBannerProps {
 
 /** Error banner with retry button. */
 export function VmErrorBanner({ error, onRetry }: VmErrorBannerProps) {
-  const message = error instanceof Error ? error.message : 'Неизвестная ошибка';
+  const { t } = useTranslation();
+  const message = error instanceof Error ? error.message : 'Unknown error';
   return (
     <Alert variant="destructive" data-od-id="vms-error">
       <div>
-        <AlertTitle>Не удалось загрузить список VM</AlertTitle>
+        <AlertTitle>{t('vms.list.errorTitle')}</AlertTitle>
         <AlertDescription>{message}</AlertDescription>
       </div>
       <AlertAction>
         <Button variant="outline" size="sm" onClick={onRetry}>
           <Refresh />
-          Повторить
+          {t('common.retry')}
         </Button>
       </AlertAction>
     </Alert>
@@ -45,13 +47,14 @@ interface VmEmptyStateProps {
 
 /** Empty state — zero VMs in the project (before any filter). */
 export function VmEmptyState({ onCreate }: VmEmptyStateProps) {
+  const { t } = useTranslation();
   return (
     <EmptyState
       data-od-id="vms-empty"
       icon={DeployedCode}
-      title="Виртуальных машин пока нет"
-      description="Создайте первую ВМ, чтобы начать. Доступны Ubuntu, Debian, Alpine и свои образы."
-      action={onCreate ? <Button onClick={onCreate}>Создать ВМ</Button> : undefined}
+      title={t('vms.list.empty.title')}
+      description={t('vms.list.empty.description')}
+      action={onCreate ? <Button onClick={onCreate}>{t('vms.list.create')}</Button> : undefined}
     />
   );
 }
@@ -62,13 +65,14 @@ interface VmNoResultsStateProps {
 
 /** Empty state — filters returned nothing (VMs exist but none match). */
 export function VmNoResultsState({ onReset }: VmNoResultsStateProps) {
+  const { t } = useTranslation();
   return (
     <EmptyState
       data-od-id="vms-no-results"
       icon={Search}
-      title="Ничего не найдено"
-      description="Попробуйте изменить фильтры или сбросить их."
-      action={<Button variant="outline" size="sm" onClick={onReset}>Сбросить фильтры</Button>}
+      title={t('vms.list.empty.noResults')}
+      description={t('vms.list.empty.noResultsDescription')}
+      action={<Button variant="outline" size="sm" onClick={onReset}>{t('vms.list.empty.reset')}</Button>}
     />
   );
 }
