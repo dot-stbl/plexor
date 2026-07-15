@@ -214,22 +214,22 @@ function CreateK8sPage() {
             <Card data-od-id="k8s-basics">
               <CardHeader className="border-b border-border">
                 <CardTitle className="text-sm">{t('k8s.new.basics')}</CardTitle>
-                <CardDescription>Name, Kubernetes version, and which Plexor fleet hosts it.</CardDescription>
+                <CardDescription>{t('k8s.new.form.basicsDescription')}</CardDescription>
               </CardHeader>
-              <CardContent className="divide-y divide-border">
-                <FieldRow label="Name" htmlFor="k8s-name" required help="Cluster name. Lowercase letters, digits and hyphens.">
-                  <Input id="k8s-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. prod-k3s" />
+              <CardContent className="flex flex-col gap-2">
+                <FieldRow label={t('k8s.new.form.nameLabel')} htmlFor="k8s-name" required help={t('k8s.new.form.nameHelp')}>
+                  <Input id="k8s-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('k8s.new.form.namePlaceholder')} />
                 </FieldRow>
-                <FieldRow label="Kubernetes version" htmlFor="k8s-version" required help="K3s distribution + Kubernetes minor version.">
+                <FieldRow label={t('k8s.new.form.versionLabel')} htmlFor="k8s-version" required help={t('k8s.new.form.versionHelp')}>
                   <SimpleSelect id="k8s-version" value={version} onChange={setVersion} options={K8S_VERSIONS} />
                 </FieldRow>
-                <FieldRow label="Plexor cluster" htmlFor="k8s-fleet" required help="Which fleet hosts the cluster — nodes are provisioned from its ready hosts.">
+                <FieldRow label={t('k8s.new.form.fleetLabel')} htmlFor="k8s-fleet" required help={t('k8s.new.form.fleetHelp')}>
                   <SimpleSelect
                     id="k8s-fleet"
                     value={plexorCluster}
                     onChange={setPlexorCluster}
                     options={clusters.map((c) => c.name)}
-                    placeholder="Select a Plexor cluster"
+                    placeholder={t('k8s.new.form.fleetPlaceholder')}
                   />
                 </FieldRow>
               </CardContent>
@@ -239,20 +239,20 @@ function CreateK8sPage() {
             <Card>
               <CardHeader className="border-b border-border">
                 <CardTitle className="text-sm">{t('k8s.new.controlPlane')}</CardTitle>
-                <CardDescription>How the K3s API server and datastore are laid out.</CardDescription>
+                <CardDescription>{t('k8s.new.form.controlPlaneDescription')}</CardDescription>
               </CardHeader>
-              <CardContent className="divide-y divide-border">
-                <FieldRow label="Mode" help="HA runs 3 control-plane nodes with embedded etcd quorum.">
+              <CardContent className="flex flex-col gap-2">
+                <FieldRow label={t('k8s.new.form.modeLabel')} help={t('k8s.new.form.modeHelp')}>
                   <SegmentedControl aria-label="Control plane mode" value={cpMode} onValueChange={setCpMode} options={CP_MODE_OPTIONS} />
                 </FieldRow>
-                <FieldRow label="Datastore" help="Embedded etcd (self-managed quorum) or an external SQL datastore.">
+                <FieldRow label={t('k8s.new.form.datastoreLabel')} help={t('k8s.new.form.datastoreHelp')}>
                   <SegmentedControl aria-label="Datastore" value={datastore} onValueChange={setDatastore} options={DATASTORE_OPTIONS} />
                 </FieldRow>
-                <div className="pt-2">
-                  <Disclosure summary="Advanced · API server">
-                    <FieldRow label="Node placement" help="Let the scheduler place control-plane nodes automatically, or pin them to specific hosts.">
+                <div>
+                  <Disclosure variant="card" summary={t('k8s.new.form.advancedApiServer')}>
+                    <FieldRow label={t('k8s.new.form.nodePlacementLabel')} help={t('k8s.new.form.nodePlacementHelp')}>
                       <SegmentedControl aria-label="Node placement" value={apiPlacement} onValueChange={setApiPlacement} options={API_PLACEMENT_OPTIONS} />
-                      {apiPlacement === 'pin' && <p className="text-xs text-muted-foreground">Pin selection coming soon.</p>}
+                      {apiPlacement === 'pin' && <p className="text-xs text-muted-foreground">{t('k8s.new.form.pinSelectionComingSoon')}</p>}
                     </FieldRow>
                   </Disclosure>
                 </div>
@@ -263,24 +263,24 @@ function CreateK8sPage() {
             <Card data-od-id="k8s-node-pools">
               <CardHeader className="border-b border-border">
                 <CardTitle className="text-sm">{t('k8s.new.nodePools')}</CardTitle>
-                <CardDescription>Groups of identical nodes that span the fleet. Sizes are exact — self-hosted, not fixed cloud «flavors».</CardDescription>
+                <CardDescription>{t('k8s.new.form.nodePoolsDescription')}</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex flex-col gap-2">
                 <div className="space-y-3">
                   <RepeatableRows
                     rows={pools}
                     onChange={setPools}
                     newRow={() => ({ name: '', count: 1, runtime: 'vm', vcpu: 2, ramBytes: SizeUtils.gibToBytes(4), diskBytes: SizeUtils.gibToBytes(40) })}
-                    addLabel="Add node pool"
+                    addLabel={t('k8s.new.form.addNodePool')}
                     renderRow={(row, update) => (
                       <div className="space-y-2 rounded-md border border-border p-3">
                         <div className="flex flex-wrap items-center gap-2">
-                          <Input value={row.name} onChange={(e) => update({ ...row, name: e.target.value })} placeholder="pool name" className="flex-1" />
+                          <Input value={row.name} onChange={(e) => update({ ...row, name: e.target.value })} placeholder={t('k8s.new.form.poolNamePlaceholder')} className="flex-1" />
                           <Stepper value={row.count} onValueChange={(n) => update({ ...row, count: n })} min={1} max={50} suffix="nodes" />
                           <SegmentedControl aria-label="Backing runtime" value={row.runtime} onValueChange={(v) => update({ ...row, runtime: v })} options={RUNTIME_OPTIONS} />
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs text-muted-foreground">per node</span>
+                          <span className="text-xs text-muted-foreground">{t('k8s.new.form.perNode')}</span>
                           <Stepper value={row.vcpu} onValueChange={(n) => update({ ...row, vcpu: n })} min={1} max={64} suffix="vCPU" />
                           <SizeField bytes={row.ramBytes} onValueChange={(b) => update({ ...row, ramBytes: b })} units={['GiB']} min={SizeUtils.gibToBytes(1)} max={SizeUtils.gibToBytes(512)} />
                           <SizeField bytes={row.diskBytes} onValueChange={(b) => update({ ...row, diskBytes: b })} units={['GiB', 'TiB']} min={SizeUtils.gibToBytes(10)} />
@@ -289,7 +289,7 @@ function CreateK8sPage() {
                     )}
                   />
                   <p className="text-xs text-muted-foreground">
-                    <MonoNum>{totalNodes}</MonoNum> nodes · <MonoNum>{totalVcpu}</MonoNum> vCPU · <Size bytes={totalRamBytes} />
+                    <MonoNum>{totalNodes}</MonoNum> {t('k8s.new.form.totalsNodes')} · <MonoNum>{totalVcpu}</MonoNum> {t('k8s.new.form.totalsVcpu')} · <Size bytes={totalRamBytes} />
                   </p>
                 </div>
               </CardContent>
@@ -299,24 +299,24 @@ function CreateK8sPage() {
             <Card>
               <CardHeader className="border-b border-border">
                 <CardTitle className="text-sm">{t('k8s.new.networking')}</CardTitle>
-                <CardDescription>CNI, ingress and the service load balancer. CIDRs live under «Advanced».</CardDescription>
+                <CardDescription>{t('k8s.new.form.networkingDescription')}</CardDescription>
               </CardHeader>
-              <CardContent className="divide-y divide-border">
-                <FieldRow label="CNI" htmlFor="k8s-cni" help="Pod network plugin. Flannel is the K3s default; Cilium/Calico for policy + eBPF.">
+              <CardContent className="flex flex-col gap-2">
+                <FieldRow label={t('k8s.new.form.cniLabel')} htmlFor="k8s-cni" help={t('k8s.new.form.cniHelp')}>
                   <SimpleSelect id="k8s-cni" value={cni} onChange={setCni} options={CNI_OPTIONS} />
                 </FieldRow>
-                <FieldRow label="Ingress" help="Bundled ingress controller for HTTP routing.">
+                <FieldRow label={t('k8s.new.form.ingressLabel')} help={t('k8s.new.form.ingressHelp')}>
                   <SegmentedControl aria-label="Ingress" value={ingress} onValueChange={setIngress} options={INGRESS_OPTIONS} />
                 </FieldRow>
-                <FieldRow label="Load balancer" help="How LoadBalancer Services get an address. ServiceLB (klipper) is the K3s default.">
+                <FieldRow label={t('k8s.new.form.loadBalancerLabel')} help={t('k8s.new.form.loadBalancerHelp')}>
                   <SegmentedControl aria-label="Load balancer" value={loadBalancer} onValueChange={setLoadBalancer} options={LB_OPTIONS} />
                 </FieldRow>
-                <div className="pt-2">
-                  <Disclosure summary="Advanced · CIDRs">
-                    <FieldRow label="Pod CIDR" htmlFor="k8s-pod-cidr" help="Address range pods are allocated from.">
+                <div>
+                  <Disclosure variant="card" summary={t('k8s.new.form.advancedCidrs')}>
+                    <FieldRow label={t('k8s.new.form.podCidrLabel')} htmlFor="k8s-pod-cidr" help={t('k8s.new.form.podCidrHelp')}>
                       <Input id="k8s-pod-cidr" value={podCidr} onChange={(e) => setPodCidr(e.target.value)} placeholder="10.42.0.0/16" className="w-56 font-mono" />
                     </FieldRow>
-                    <FieldRow label="Service CIDR" htmlFor="k8s-svc-cidr" help="Address range ClusterIP Services are allocated from.">
+                    <FieldRow label={t('k8s.new.form.serviceCidrLabel')} htmlFor="k8s-svc-cidr" help={t('k8s.new.form.serviceCidrHelp')}>
                       <Input id="k8s-svc-cidr" value={serviceCidr} onChange={(e) => setServiceCidr(e.target.value)} placeholder="10.43.0.0/16" className="w-56 font-mono" />
                     </FieldRow>
                   </Disclosure>
@@ -328,10 +328,10 @@ function CreateK8sPage() {
             <Card>
               <CardHeader className="border-b border-border">
                 <CardTitle className="text-sm">{t('k8s.new.storage')}</CardTitle>
-                <CardDescription>Default StorageClass for dynamic volumes. Backends come from the fleet's providers.</CardDescription>
+                <CardDescription>{t('k8s.new.form.storageDescription')}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <FieldRow label="Default StorageClass" htmlFor="k8s-storageclass" required help="Only backends the chosen fleet actually runs are offered.">
+              <CardContent className="flex flex-col gap-2">
+                <FieldRow label={t('k8s.new.form.storageClassLabel')} htmlFor="k8s-storageclass" required help={t('k8s.new.form.storageClassHelp')}>
                   <SimpleSelect
                     id="k8s-storageclass"
                     value={effStorageClass}
@@ -347,19 +347,19 @@ function CreateK8sPage() {
             <Card>
               <CardHeader className="border-b border-border">
                 <CardTitle className="text-sm">{t('k8s.new.addons')}</CardTitle>
-                <CardDescription>Cluster components installed at bootstrap.</CardDescription>
+                <CardDescription>{t('k8s.new.form.addonsDescription')}</CardDescription>
               </CardHeader>
-              <CardContent className="divide-y divide-border">
-                <FieldRow label="metrics-server" htmlFor="k8s-metrics" help="Resource metrics API for `kubectl top` and the HPA.">
+              <CardContent className="flex flex-col gap-2">
+                <FieldRow label={t('k8s.new.form.metricsServerLabel')} htmlFor="k8s-metrics" help={t('k8s.new.form.metricsServerHelp')}>
                   <Switch id="k8s-metrics" checked={metricsServer} onCheckedChange={setMetricsServer} />
                 </FieldRow>
-                <FieldRow label="cert-manager" htmlFor="k8s-certmgr" help="Automated TLS certificate issuance and renewal.">
+                <FieldRow label={t('k8s.new.form.certManagerLabel')} htmlFor="k8s-certmgr" help={t('k8s.new.form.certManagerHelp')}>
                   <Switch id="k8s-certmgr" checked={certManager} onCheckedChange={setCertManager} />
                 </FieldRow>
-                <FieldRow label="Monitoring" htmlFor="k8s-monitoring" help="Prometheus + Grafana stack for metrics and dashboards.">
+                <FieldRow label={t('k8s.new.form.monitoringLabel')} htmlFor="k8s-monitoring" help={t('k8s.new.form.monitoringHelp')}>
                   <Switch id="k8s-monitoring" checked={monitoring} onCheckedChange={setMonitoring} />
                 </FieldRow>
-                <FieldRow label="Kubernetes Dashboard" htmlFor="k8s-dashboard" help="Web UI for browsing and managing cluster workloads.">
+                <FieldRow label={t('k8s.new.form.dashboardLabel')} htmlFor="k8s-dashboard" help={t('k8s.new.form.dashboardHelp')}>
                   <Switch id="k8s-dashboard" checked={dashboard} onCheckedChange={setDashboard} />
                 </FieldRow>
               </CardContent>
@@ -369,25 +369,25 @@ function CreateK8sPage() {
             <Card>
               <CardHeader className="border-b border-border">
                 <CardTitle className="text-sm">{t('k8s.new.options')}</CardTitle>
-                <CardDescription>Upgrade behavior, protection, labels.</CardDescription>
+                <CardDescription>{t('k8s.new.form.optionsDescription')}</CardDescription>
               </CardHeader>
-              <CardContent className="divide-y divide-border">
-                <FieldRow label="Auto-upgrade" htmlFor="k8s-autoupgrade" help="Follow the K3s release channel and upgrade nodes automatically.">
+              <CardContent className="flex flex-col gap-2">
+                <FieldRow label={t('k8s.new.form.autoUpgradeLabel')} htmlFor="k8s-autoupgrade" help={t('k8s.new.form.autoUpgradeHelp')}>
                   <Switch id="k8s-autoupgrade" checked={autoUpgrade} onCheckedChange={setAutoUpgrade} />
                 </FieldRow>
-                <FieldRow label="Protection" htmlFor="k8s-protect" help="Blocks accidental deletion until turned off.">
+                <FieldRow label={t('k8s.new.form.protectionLabel')} htmlFor="k8s-protect" help={t('k8s.new.form.protectionHelp')}>
                   <Switch id="k8s-protect" checked={protection} onCheckedChange={setProtection} />
                 </FieldRow>
-                <FieldRow label="Labels" help="key=value pairs for grouping and search.">
+                <FieldRow label={t('k8s.new.form.labelsLabel')} help={t('k8s.new.form.labelsHelp')}>
                   <RepeatableRows
                     rows={labels}
                     onChange={setLabels}
                     newRow={() => ({ key: '', value: '' })}
-                    addLabel="Add label"
+                    addLabel={t('k8s.new.form.addLabel')}
                     renderRow={(row, update) => (
                       <div className="flex gap-2">
-                        <Input value={row.key} onChange={(e) => update({ ...row, key: e.target.value })} placeholder="key" className="flex-1" />
-                        <Input value={row.value} onChange={(e) => update({ ...row, value: e.target.value })} placeholder="value" className="flex-1" />
+                        <Input value={row.key} onChange={(e) => update({ ...row, key: e.target.value })} placeholder={t('k8s.new.form.labelKeyPlaceholder')} className="flex-1" />
+                        <Input value={row.value} onChange={(e) => update({ ...row, value: e.target.value })} placeholder={t('k8s.new.form.labelValuePlaceholder')} className="flex-1" />
                       </div>
                     )}
                   />
@@ -407,28 +407,32 @@ function CreateK8sPage() {
           </div>
 
           {/* ─── Sticky summary ──────────────────────────────────────── */}
-          <SummaryPanel title={t('k8s.new.summary')}>
+          <SummaryPanel
+            title={t('k8s.new.summary')}
+            footer={
+              <div className="flex w-full flex-wrap gap-1.5">
+                {metricsServer && <Badge variant="outline">metrics-server</Badge>}
+                {certManager && <Badge variant="outline">cert-manager</Badge>}
+                {monitoring && <Badge variant="outline">monitoring</Badge>}
+                {dashboard && <Badge variant="outline">dashboard</Badge>}
+                {autoUpgrade && <Badge variant="outline">auto-upgrade</Badge>}
+                {protection && <Badge variant="outline">protected</Badge>}
+              </div>
+            }
+          >
             <div>
-              <SummaryRow label="Name">{name.trim() || '—'}</SummaryRow>
-              <SummaryRow label="Version">{version}</SummaryRow>
-              <SummaryRow label="Control plane">{controlPlaneSummary}</SummaryRow>
-              <SummaryRow label="Nodes">
-                <MonoNum>{totalNodes}</MonoNum> across {pools.length} pool(s)
+              <SummaryRow label={t('k8s.new.form.summaryName')}>{name.trim() || '—'}</SummaryRow>
+              <SummaryRow label={t('k8s.new.form.summaryVersion')}>{version}</SummaryRow>
+              <SummaryRow label={t('k8s.new.form.summaryControlPlane')}>{controlPlaneSummary}</SummaryRow>
+              <SummaryRow label={t('k8s.new.form.summaryNodes')}>
+                <MonoNum>{totalNodes}</MonoNum> {t('k8s.new.form.poolsCount', { count: pools.length })}
               </SummaryRow>
-              <SummaryRow label="Capacity">
+              <SummaryRow label={t('k8s.new.form.summaryCapacity')}>
                 <MonoNum>{totalVcpu}</MonoNum> vCPU · <Size bytes={totalRamBytes} />
               </SummaryRow>
-              <SummaryRow label="CNI">{cni}</SummaryRow>
-              <SummaryRow label="Ingress">{ingressLabel}</SummaryRow>
-              <SummaryRow label="StorageClass">{STORAGE_CLASS_LABELS[effStorageClass] ?? effStorageClass}</SummaryRow>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5 border-t border-border pt-2">
-              {metricsServer && <Badge variant="outline">metrics-server</Badge>}
-              {certManager && <Badge variant="outline">cert-manager</Badge>}
-              {monitoring && <Badge variant="outline">monitoring</Badge>}
-              {dashboard && <Badge variant="outline">dashboard</Badge>}
-              {autoUpgrade && <Badge variant="outline">auto-upgrade</Badge>}
-              {protection && <Badge variant="outline">protected</Badge>}
+              <SummaryRow label={t('k8s.new.form.summaryCni')}>{cni}</SummaryRow>
+              <SummaryRow label={t('k8s.new.form.summaryIngress')}>{ingressLabel}</SummaryRow>
+              <SummaryRow label={t('k8s.new.form.summaryStorageClass')}>{STORAGE_CLASS_LABELS[effStorageClass] ?? effStorageClass}</SummaryRow>
             </div>
           </SummaryPanel>
         </div>

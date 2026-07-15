@@ -116,11 +116,11 @@ function CreateClusterPage() {
       data-od-id="managed-new"
       width="full"
       title={engine ? t('managed.new.title', { engine: engine.name }) : t('managed.new.fallbackTitle')}
-      description="The engine is decoupled from the runtime — choose where to bring it up."
+      description={t('managed.new.form.description')}
       actions={
         <Button variant="ghost" nativeButton={false} render={<Link to={backRoute} />}>
           <ArrowBack />
-          Back
+          {t('common.back')}
         </Button>
       }
     >
@@ -129,18 +129,18 @@ function CreateClusterPage() {
         <div className="min-w-0 space-y-3">
           <Card>
             <CardHeader className="border-b border-border">
-              <CardTitle className="text-sm">Engine</CardTitle>
-              <CardDescription>Preinstalled managed engine. Plexor takes over the ready-made artifact.</CardDescription>
+              <CardTitle className="text-sm">{t('managed.new.form.engineTitle')}</CardTitle>
+              <CardDescription>{t('managed.new.form.engineCardDescription')}</CardDescription>
             </CardHeader>
-            <CardContent>
-              <FieldRow label="Engine" htmlFor="db-engine" required>
+            <CardContent className="flex flex-col gap-2">
+              <FieldRow label={t('managed.new.form.engineLabel')} htmlFor="db-engine" required>
                 <Select
                   items={engines.map((e) => ({ value: e.id, label: e.name }))}
                   value={engineId}
                   onValueChange={(v) => setEngineId(v ?? '')}
                 >
                   <SelectTrigger id="db-engine" className="w-full">
-                    <SelectValue placeholder="Select an engine" />
+                    <SelectValue placeholder={t('managed.new.form.enginePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {engines.map((e) => (
@@ -163,32 +163,32 @@ function CreateClusterPage() {
           {/* Ресурсы */}
           <Card>
             <CardHeader className="border-b border-border">
-              <CardTitle className="text-sm">Compute resources</CardTitle>
-              <CardDescription>A preset or an exact configuration matched to the node's resources.</CardDescription>
+              <CardTitle className="text-sm">{t('managed.new.form.resourcesTitle')}</CardTitle>
+              <CardDescription>{t('managed.new.form.resourcesCardDescription')}</CardDescription>
             </CardHeader>
-            <CardContent className="divide-y divide-border">
-              <FieldRow label="Configuration">
+            <CardContent className="flex flex-col gap-2">
+              <FieldRow label={t('managed.new.form.configurationLabel')}>
                 <SegmentedControl
-                  aria-label="Resource configuration mode"
+                  aria-label={t('managed.new.form.resModeAria')}
                   value={resMode}
                   onValueChange={setResMode}
                   options={[
-                    { value: 'preset', label: 'Presets' },
-                    { value: 'custom', label: 'Custom' },
+                    { value: 'preset', label: t('managed.new.form.presetsOption') },
+                    { value: 'custom', label: t('managed.new.form.customOption') },
                   ]}
                 />
               </FieldRow>
 
               {resMode === 'preset' ? (
-                <FieldRow label="Preset" required>
+                <FieldRow label={t('managed.new.form.presetLabel')} required>
                   <SelectableCardGrid value={preset} onValueChange={setPreset} options={PRESETS} columns={3} />
                 </FieldRow>
               ) : (
                 <>
-                  <FieldRow label="vCPU" htmlFor="res-cpu" required help="Number of cores. Limited by the runtime node's available resources.">
+                  <FieldRow label="vCPU" htmlFor="res-cpu" required help={t('managed.new.form.cpuHelp')}>
                     <Stepper id="res-cpu" value={Number(cpu)} onValueChange={(n) => setCpu(String(n))} min={1} max={64} suffix="vCPU" />
                   </FieldRow>
-                  <FieldRow label="RAM" htmlFor="res-ram" required help="Exact size, down to the MiB (like in Proxmox). Limited by the runtime node's available memory.">
+                  <FieldRow label={t('managed.new.form.ramLabel')} htmlFor="res-ram" required help={t('managed.new.form.ramHelp')}>
                     <SizeField
                       id="res-ram"
                       bytes={ramBytes}
@@ -198,7 +198,7 @@ function CreateClusterPage() {
                       max={SizeUtils.gibToBytes(1024)}
                     />
                   </FieldRow>
-                  <FieldRow label="Disk" htmlFor="res-disk" required help="Exact size, down to the MiB — how the volume is physically partitioned. Limited by the node's capacity.">
+                  <FieldRow label={t('managed.new.form.diskLabel')} htmlFor="res-disk" required help={t('managed.new.form.diskHelp')}>
                     <SizeField
                       id="res-disk"
                       bytes={diskBytes}
@@ -216,15 +216,15 @@ function CreateClusterPage() {
           {/* Параметры */}
           <Card>
             <CardHeader className="border-b border-border">
-              <CardTitle className="text-sm">Parameters</CardTitle>
-              <CardDescription>Name, access, backups, and runtime.</CardDescription>
+              <CardTitle className="text-sm">{t('managed.new.form.parametersTitle')}</CardTitle>
+              <CardDescription>{t('managed.new.form.parametersCardDescription')}</CardDescription>
             </CardHeader>
-            <CardContent className="divide-y divide-border">
+            <CardContent className="flex flex-col gap-2">
               <FieldRow
-                label="Name"
+                label={t('managed.new.form.nameLabel')}
                 htmlFor="db-name"
                 required
-                help="Latin letters, digits, and hyphens. Used as the cluster name and in DNS."
+                help={t('managed.new.form.nameHelp')}
               >
                 <Input
                   id="db-name"
@@ -235,10 +235,10 @@ function CreateClusterPage() {
               </FieldRow>
 
               <FieldRow
-                label="Automatic backups"
+                label={t('managed.new.form.backupsLabel')}
                 htmlFor="db-backups"
-                help="Scheduled backups (WAL/snapshots) retained on a schedule."
-                description={!backupsAllowed ? 'This engine has no built-in backups yet.' : undefined}
+                help={t('managed.new.form.backupsHelp')}
+                description={!backupsAllowed ? t('managed.new.form.backupsUnsupported') : undefined}
               >
                 <Switch
                   id="db-backups"
@@ -249,7 +249,7 @@ function CreateClusterPage() {
               </FieldRow>
 
               {backupsAllowed && backups && (
-                <FieldRow label="Backup retention" help="How long automatic backups are kept, in days.">
+                <FieldRow label={t('managed.new.form.retentionLabel')} help={t('managed.new.form.retentionHelp')}>
                   <div className="flex items-center gap-3">
                     <Slider
                       value={backupDays}
@@ -259,20 +259,20 @@ function CreateClusterPage() {
                       className="max-w-[240px]"
                     />
                     <span className="shrink-0 text-xs text-muted-foreground">
-                      <MonoNum>{backupDays}</MonoNum> days
+                      <MonoNum>{backupDays}</MonoNum> {t('managed.new.form.days')}
                     </span>
                   </div>
                 </FieldRow>
               )}
 
-              <FieldRow label="Password" htmlFor="db-pw" required help="Database superuser password.">
+              <FieldRow label={t('managed.new.form.passwordLabel')} htmlFor="db-pw" required help={t('managed.new.form.passwordHelp')}>
                 <SegmentedControl
-                  aria-label="Password entry method"
+                  aria-label={t('managed.new.form.pwModeAria')}
                   value={pwMode}
                   onValueChange={setPwMode}
                   options={[
-                    { value: 'manual', label: 'Enter manually' },
-                    { value: 'generate', label: 'Generate' },
+                    { value: 'manual', label: t('managed.new.form.pwManualOption') },
+                    { value: 'generate', label: t('managed.new.form.pwGenerateOption') },
                   ]}
                 />
                 {pwMode === 'manual' ? (
@@ -280,21 +280,21 @@ function CreateClusterPage() {
                     id="db-pw"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
+                    placeholder={t('managed.new.form.passwordPlaceholder')}
                   />
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    A strong password will be generated and shown once after creation.
+                    {t('managed.new.form.pwGenerateHint')}
                   </p>
                 )}
               </FieldRow>
 
-              <FieldRow label="Labels" help="key=value pairs for grouping and search.">
+              <FieldRow label={t('managed.new.form.labelsLabel')} help={t('managed.new.form.labelsHelp')}>
                 <RepeatableRows
                   rows={labels}
                   onChange={setLabels}
                   newRow={() => ({ key: '', value: '' })}
-                  addLabel="Add label"
+                  addLabel={t('managed.new.form.addLabel')}
                   renderRow={(row, update) => (
                     <div className="flex gap-2">
                       <Input
@@ -315,8 +315,8 @@ function CreateClusterPage() {
               </FieldRow>
 
               <FieldRow
-                label="Runtime"
-                description="All runtimes are shown; unavailable ones list the reason. Default is direct."
+                label={t('managed.new.form.runtimeLabel')}
+                description={t('managed.new.form.runtimeDescription')}
               >
                 <RuntimePicker options={options} value={runtime} onChange={setPicked} />
               </FieldRow>
@@ -325,51 +325,53 @@ function CreateClusterPage() {
 
           <div className="flex items-center justify-between">
             <Button variant="outline" nativeButton={false} render={<Link to={backRoute} />}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleCreate} disabled={!canCreate}>
               <Save />
-              Create cluster
+              {t('managed.new.form.createButton')}
             </Button>
           </div>
         </div>
 
         {/* Сводка (липкая) */}
         {engine && (
-          <SummaryPanel title="What will be deployed">
+          <SummaryPanel
+            title={t('managed.new.form.summaryTitle')}
+            footer={
+              <div className="w-full space-y-1.5">
+                <div>
+                  <div className="mb-0.5 text-[11px] text-muted-foreground">{t('managed.new.form.sourceLabel')}</div>
+                  <code className="block break-all font-mono text-[11px] text-foreground">{engine.source}</code>
+                </div>
+                <div>
+                  <div className="mb-0.5 text-[11px] text-muted-foreground">{t('managed.new.form.providesLabel')}</div>
+                  <code className="block break-all font-mono text-[11px] text-foreground">{engine.connstring}</code>
+                </div>
+              </div>
+            }
+          >
             <div>
-              <SummaryRow label="Engine">
+              <SummaryRow label={t('managed.new.form.summaryEngine')}>
                 {engine.name} · v{engine.version}
               </SummaryRow>
-              <SummaryRow label="Resources">
+              <SummaryRow label={t('managed.new.form.summaryResources')}>
                 <MonoNum>{resources.cpu}</MonoNum> vCPU · <Size bytes={resources.ramBytes} />
               </SummaryRow>
-              <SummaryRow label="Disk">
+              <SummaryRow label={t('managed.new.form.summaryDisk')}>
                 <Size bytes={resources.diskBytes} />
               </SummaryRow>
-              <SummaryRow label="Placement">
+              <SummaryRow label={t('managed.new.form.summaryPlacement')}>
                 {runtime ? RUNTIME_META[runtime].label : '—'}
                 {targetNode ? ` · ${targetNode}` : ''}
               </SummaryRow>
-              <SummaryRow label="Backups">
+              <SummaryRow label={t('managed.new.form.summaryBackups')}>
                 {backupsAllowed && backups ? (
-                  <>
-                    on · <MonoNum>{backupDays}</MonoNum> days
-                  </>
+                  t('managed.new.form.summaryBackupsOn', { count: backupDays })
                 ) : (
                   '—'
                 )}
               </SummaryRow>
-            </div>
-            <div className="mt-2 space-y-1.5 border-t border-border pt-2">
-              <div>
-                <div className="mb-0.5 text-[11px] text-muted-foreground">Source</div>
-                <code className="block break-all font-mono text-[11px] text-foreground">{engine.source}</code>
-              </div>
-              <div>
-                <div className="mb-0.5 text-[11px] text-muted-foreground">Provides (binding)</div>
-                <code className="block break-all font-mono text-[11px] text-foreground">{engine.connstring}</code>
-              </div>
             </div>
           </SummaryPanel>
         )}

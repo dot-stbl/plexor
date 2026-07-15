@@ -69,11 +69,19 @@ export function EmptyState({
     >
       <div
         className={cn(
-          'flex shrink-0 items-center justify-center rounded-2xl border border-border bg-surface-2 text-muted-foreground',
+          // Plexor branded frame: soft muted fill + inset ring (no hard stock
+          // border box), a faint dotted grid backdrop, icon in muted ink.
+          'relative flex shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted/40 text-muted-foreground shadow-sm ring-1 ring-inset ring-border/60',
           compact ? 'size-24' : 'size-40',
         )}
       >
-        {media ?? (IconCmp ? <IconCmp className={compact ? 'size-12' : 'size-20'} /> : null)}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-40 [background-image:radial-gradient(var(--border)_1px,transparent_1px)] [background-size:10px_10px]"
+        />
+        <span className="relative">
+          {media ?? (IconCmp ? <IconCmp className={compact ? 'size-11' : 'size-16'} /> : null)}
+        </span>
       </div>
 
       <div className="max-w-md space-y-4">

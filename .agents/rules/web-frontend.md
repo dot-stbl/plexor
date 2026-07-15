@@ -357,3 +357,77 @@ Required for screen readers to announce purpose.
     Material-generic fallback. НЕ Simple Icons (удалён).
 64. **Field-label: `?` HelpTooltip + красная `*` required** там, где уместно
     (config-формы). Помогает без загромождения.
+
+## Локализация (i18n) — react-i18next
+
+65. **Весь user-facing текст — через `t('...')`** (`useTranslation`). Ключи — в
+    `src/shared/lib/i18n/locales/{en,ru}/common.json` (вложенные). EN — первичный
+    язык, RU — вторичный. Хардкод-строк, которые видит пользователь, быть не должно:
+    заголовки, лейблы, описания, `help`, плейсхолдеры, тосты, `staticData.crumb`,
+    empty-states, bulk-действия, «N selected».
+66. **Технические/бэкенд-значения НЕ локализуем** — приходят с бэка, одинаковы в
+    любом языке: enum-статусы (`running`/`stopped`/`ready`), единицы
+    (`GiB`/`MiB`/`vCPU`/`MB/s`), proper nouns (`VirtIO`, `q35`, `UEFI`, `K3s`,
+    `Ceph RBD`, `PostgreSQL`), провайдеры, ID/hostname/CIDR/endpoint, значения
+    `filter.options`. Локализуем ТОЛЬКО натуральный текст (лейбл/плейсхолдер/help/заголовок).
+67. **Заголовки/фильтры колонок — через функцию, не `const`.** Колонки =
+    `export function getXColumns(t: TFunction): ColumnDef<T>[]` (module-level `const`
+    не может звать `t`). `header`/`filter.placeholder`/`copyLabel` → `t('table.*')`
+    (общий namespace; повторяющиеся заголовки Name/Status/Created переиспользуют ключ).
+    Консьюмер: `const columns = useMemo(() => getXColumns(t), [t])`.
+68. **Интерполяция — `{{var}}`** + `t('key', { var })`; без конкатенации переведённых
+    фрагментов (строки с разметкой → раздельные ключи `xBefore`/`xAfter`, `Trans` в
+    проекте не используется). Каждый `t('literal')` обязан иметь ключ в `en/common.json`
+    (иначе рендерится сырой ключ) — проверяй перед сдачей.
+
+## Формы (create) — каркас и поля
+
+69. **Каркас create-формы:** `PageTemplate width="full"` → грид
+    `lg:grid-cols-[minmax(0,1fr)_340px]`: слева карточки-секции (`Card`), справа
+    **липкая `SummaryPanel`** «что развернётся». Карточки идиоматично (`<Card>` +
+    `<CardHeader className="border-b border-border">` + `<CardContent>`), БЕЗ
+    костыля `gap-0 p-0` и ручных `p-4` (компонент сам держит отступы).
+70. **Поля — `FieldRow`** (горизонтально: label + `?`help + `*`required слева, контрол
+    справа). **Без разделительных линий** между полями и **без `py` на строке** —
+    равный вертикальный ритм задаёт ОДИН `gap` на контейнере:
+    `<CardContent className="flex flex-col gap-2">`. Правишь ритм формы одним `gap-2`.
+71. **«Advanced»-knob'ы — `<Disclosure variant="card">`** (поверх shadcn `Collapsible`):
+    разворачиваемая карточка (рамка + шапка-триггер, карет справа). Базовые поля видны
+    всегда, глубина — по клику. `variant="inline"` — лёгкий текст-триггер, когда рамка
+    избыточна. **НЕ `Accordion`** (фикс-высота/группа), **НЕ сырой div/button**.
+72. **Инпуты — наши примитивы поверх shadcn:** `SizeField` (RAM/диск — отдаёт БАЙТЫ,
+    точность до МиБ, единица-селект), `Stepper` (счётчики; кламп на blur; нативные
+    спиннеры скрыты `[appearance:textfield]`), `SimpleSelect` (строковые опции),
+    `SegmentedControl` (2-4 варианта, selected=ink), `PasswordInput`, `RepeatableRows`
+    (key=value / списки). Размеры ВСЕГДА байты → `<Size bytes>` / `SizeUtils.format`
+    (тосты/aria). Никогда `<MonoNum>{x} GiB</MonoNum>` — см. rule 53.
+73. **Self-hosted-глубина (эталон Proxmox, ≠ managed):** выставляй knob'ы, которые
+    managed-облако прячет (placement/нода, гипервизор machine/firmware/CPU-type,
+    storage пул/шина/кэш, сеть NIC/VLAN/IP/firewall, cloud-init, guest-agent). Опции
+    **адаптируются под `node.spec.providers`** (пулы/fabric/рантайм) — нельзя предложить
+    бэкенд, которого нет на выбранной ноде.
+
+## Таблицы, списки, ресурсы
+
+74. **Table-family компонуется** (не переизобретается): `DataTable` (`density="compact"`)
+    + `DataTableToolbar` (фильтры из `meta.filter` колонок + шестерёнка настройки колонок
+    в одном баре, `justify-between`, reset = icon-button) + `useRowSelection` →
+    `BulkActionToolbar` (чекбоксы + bulk-действия). Фильтрация: сервер →
+    `compactFilters(filters)` в API; локальные данные → `applyFilters(rows, filters, columns)`.
+    Новый фильтр = одна декларация `meta.filter` на колонке.
+75. **IA ресурса: список — вход, создание — из шапки списка.** Каждый разворачиваемый
+    ресурс = layout-роут + `index` (СПИСОК, full-width) + `new` (+ `$id` деталь). Nav/
+    лаунчер ведут на СПИСОК (`/vms`, `/lxc`, `/k8s`, `/images`), НИКОГДА на `/new`.
+    «Создать *» — CTA в шапке (`PageTemplate actions`) → `/new`. Пустой список — `EmptyState`.
+76. **`EmptyState`** — онбординг пустого списка/раздела: иллюстрация/иконка слева, справа
+    заголовок + текст + doc-ссылки + CTA. Это НЕ shadcn-дефолт `Empty` (тот центрированный,
+    для «ничего не найдено» после фильтра).
+
+## Gotchas
+
+77. **`scrollbar-gutter: stable` — только на `html`, НЕ на `*`.** На `*` любой
+    `overflow-hidden` элемент (badge/card/popup) получает фантомный правый отступ под
+    скроллбар.
+78. **`Badge`/`StatusPill` — `leading-none`** при фиксированной высоте (иначе текст не по
+    центру). `Badge` — только короткие токены, не широкий/смешанный контент (для этого —
+    muted-текст).

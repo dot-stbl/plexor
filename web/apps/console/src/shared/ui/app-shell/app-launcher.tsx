@@ -181,7 +181,7 @@ export function AppLauncher({
               <Card className="mb-3 gap-2.5 p-3.5">
                 <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
                   {META.map((hub) => (
-                    <MetaCard key={hub.name} hub={hub} onNavigate={close} />
+                    <MetaCard key={hub.nameKey} hub={hub} onNavigate={close} />
                   ))}
                 </div>
 

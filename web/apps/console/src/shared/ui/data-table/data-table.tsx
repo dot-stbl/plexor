@@ -64,7 +64,41 @@ export interface DataTableProps<TData> {
   };
   onRowClick?: (row: TData) => void;
   getRowId?: (row: TData) => string;
+  /** Column ids to hide — from the column manager (`DataTableColumns`). */
+  hiddenColumns?: ReadonlySet<string>;
+  /** Column ids in display order — from the column manager. Missing ids keep source order at the tail. */
+  columnOrder?: string[];
   className?: string;
+}
+
+/** Column id = explicit `id` or `accessorKey` fallback. */
+function columnId<TData>(col: ColumnDef<TData>): string {
+  return String(col.id ?? (col as { accessorKey?: string }).accessorKey ?? '');
+}
+
+/** Apply column-manager order + visibility to the declared columns. */
+function orderAndFilterColumns<TData>(
+  columns: ColumnDef<TData>[],
+  order?: string[],
+  hidden?: ReadonlySet<string>,
+): ColumnDef<TData>[] {
+  let result = columns;
+  if (order && order.length > 0) {
+    const byId = new Map(columns.map((c) => [columnId(c), c] as const));
+    const ordered: ColumnDef<TData>[] = [];
+    for (const id of order) {
+      const c = byId.get(id);
+      if (c) ordered.push(c);
+    }
+    for (const c of columns) {
+      if (!order.includes(columnId(c))) ordered.push(c);
+    }
+    result = ordered;
+  }
+  if (hidden && hidden.size > 0) {
+    result = result.filter((c) => !hidden.has(columnId(c)));
+  }
+  return result;
 }
 
 export function DataTable<TData>({
@@ -74,10 +108,13 @@ export function DataTable<TData>({
   selection,
   onRowClick,
   getRowId,
+  hiddenColumns,
+  columnOrder,
   className,
 }: DataTableProps<TData>) {
   const idAccessor = getRowId ?? ((row: any) => row.id as string);
   const selectionEnabled = !!selection;
+  const visibleColumns = orderAndFilterColumns(columns, columnOrder, hiddenColumns);
 
   const tableColumns: TanstackColumnDef<TData, unknown>[] = selectionEnabled
     ? ([
@@ -104,9 +141,9 @@ export function DataTable<TData>({
           ),
           meta: { size: 'w-9' } as ColumnMeta,
         },
-        ...(columns as unknown as TanstackColumnDef<TData, unknown>[]),
+        ...(visibleColumns as unknown as TanstackColumnDef<TData, unknown>[]),
       ] as TanstackColumnDef<TData, unknown>[])
-      : (columns as unknown as TanstackColumnDef<TData, unknown>[]);
+      : (visibleColumns as unknown as TanstackColumnDef<TData, unknown>[]);
 
   const table = useReactTable<TData>({
     data,
@@ -198,4 +235,44 @@ export function compactFilters(filters: FilterValues): FilterValues {
     if (v !== '' && v != null) result[k] = v;
   }
   return result;
+}
+
+/**
+ * Client-side filtering for lists with LOCAL data (no server endpoint). Uses
+ * the SAME `meta.filter` column declarations as `DataTableToolbar`, so a list
+ * gets filtering by wiring one helper. Server-backed lists (e.g. VMs via MSW)
+ * skip this and pass `compactFilters(filters)` to the API instead.
+ *
+ * Match: `text` = case-insensitive substring on the cell; `select` = exact.
+ * The field read is the column's `accessorKey` (so `filter.param` should equal
+ * the field name for local lists).
+ */
+export function applyFilters<TData>(
+  rows: TData[],
+  filters: FilterValues,
+  columns: ColumnDef<TData>[],
+): TData[] {
+  const specs = columns
+    .map((c) => {
+      const f = c.meta?.filter;
+      const key = (c as { accessorKey?: string }).accessorKey;
+      if (!f || f.type === 'none' || !key) return null;
+      return { param: f.param, type: f.type, key };
+    })
+    .filter((s): s is { param: string; type: 'text' | 'select'; key: string } => s !== null)
+    .filter((s) => {
+      const v = filters[s.param];
+      return v != null && v !== '';
+    });
+
+  if (specs.length === 0) return rows;
+
+  return rows.filter((row) =>
+    specs.every((s) => {
+      const val = filters[s.param]!;
+      const cell = (row as Record<string, unknown>)[s.key];
+      if (s.type === 'select') return String(cell) === val;
+      return String(cell ?? '').toLowerCase().includes(val.toLowerCase());
+    }),
+  );
 }

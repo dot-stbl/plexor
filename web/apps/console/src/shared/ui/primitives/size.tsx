@@ -119,4 +119,24 @@ export const SizeUtils = {
   gbToBytes: (gb: number) => Math.round(gb * 1_000_000_000),
   /** Convert GiB (binary) to bytes — the self-hosted convention. */
   gibToBytes: (gib: number) => Math.round(gib * 1024 ** 3),
+  /**
+   * Format bytes as a human string (same binary auto-pick as `<Size>`), for
+   * non-JSX contexts like toast messages or `aria-label`s. In JSX prefer `<Size>`.
+   */
+  format: (bytes: number, decimals = 1): string => {
+    if (bytes === 0) return '0 B';
+    const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'] as const;
+    let value = bytes;
+    let unit: string = 'B';
+    for (const candidate of units) {
+      if (value < 1024 || candidate === 'PiB') {
+        unit = candidate;
+        break;
+      }
+      value = value / 1024;
+      unit = candidate;
+    }
+    const whole = Math.abs(value - Math.round(value)) < 1e-9;
+    return `${value.toFixed(whole ? 0 : decimals)} ${unit}`;
+  },
 } as const;

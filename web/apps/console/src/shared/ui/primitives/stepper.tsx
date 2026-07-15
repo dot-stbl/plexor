@@ -81,7 +81,11 @@ export function Stepper({
               commit();
             }
           }}
-          className={cn('h-7 w-24 text-center tabular-nums', suffix && 'pr-9')}
+          className={cn(
+            // Hide the browser's native number spinners — we have our own −/+ buttons.
+            'h-7 w-24 text-center tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
+            suffix && 'pr-9',
+          )}
         />
         {suffix && (
           <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs text-muted-foreground">

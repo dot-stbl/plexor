@@ -1,7 +1,6 @@
 import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import {
   AccountTree,
-  Add,
   Archive,
   Balance,
   BarChart,
@@ -25,7 +24,16 @@ import {
 } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 /** Registered product routes the shell navigates between. */
-export type AppRoute = '/' | '/vms' | '/networks' | '/audit' | '/clusters';
+export type AppRoute =
+  | '/'
+  | '/vms'
+  | '/vms/new'
+  | '/lxc'
+  | '/k8s'
+  | '/images'
+  | '/networks'
+  | '/audit'
+  | '/clusters';
 
 export type NavPage = {
   /** i18n key for the title (resolved at render time with t()). */
@@ -63,11 +71,11 @@ export const SECTIONS: Section[] = [
     icon: DeployedCode,
     pages: [
       { title: 'nav.vmsTitle', description: 'nav.vmsDesc', icon: DeployedCode, to: '/vms' },
+      { title: 'nav.lxcTitle', description: 'nav.lxcDesc', icon: Package, to: '/lxc' },
+      { title: 'nav.k8sTitle', description: 'nav.k8sDesc', icon: Hexagon, to: '/k8s' },
       { title: 'nav.clustersTitle', description: 'nav.clustersDesc', icon: Stacks, to: '/clusters' },
-      { title: 'nav.createVmTitle', description: 'nav.createVmDesc', icon: Add },
-      { title: 'nav.imagesTitle', description: 'nav.imagesDesc', icon: Image },
+      { title: 'nav.imagesTitle', description: 'nav.imagesDesc', icon: Image, to: '/images' },
       { title: 'nav.snapshotsTitle', description: 'nav.snapshotsDesc', icon: Camera },
-      { title: 'nav.k8sTitle', description: 'nav.k8sDesc', icon: Hexagon },
     ],
   },
   {

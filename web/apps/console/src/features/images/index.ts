@@ -1,3 +1,3 @@
 export * from './image-types';
 export { listImages } from './image-data';
-export { imageColumns } from './image-columns';
+export { getImageColumns } from './image-columns';

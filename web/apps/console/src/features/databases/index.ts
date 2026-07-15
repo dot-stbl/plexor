@@ -30,6 +30,6 @@ export {
 
 export { RuntimeBadge, RUNTIME_ICON } from './runtime-badge';
 export { RuntimePicker } from './runtime-picker';
-export { dbColumns } from './database-columns';
+export { getDbColumns } from './database-columns';
 export { ManagedServiceEmpty } from './managed-service-empty';
 export { ManagedServicePage } from './managed-service-page';

@@ -4,7 +4,6 @@ import { Add, Stacks } from '@nine-thirty-five/material-symbols-react/rounded/70
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
-import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { ClusterCard, useListClusters, countNodes } from '@/features/clusters';
 
 export const Route = createFileRoute('/clusters/')({
@@ -30,13 +29,11 @@ function ClustersPage() {
       title={t('clusters.list.title')}
       width="full"
       data-od-id="clusters-list"
-      description={
-        <>
-          <MonoNum>{totals.clusters}</MonoNum> <span className="text-muted-foreground">кластер(ов) ·</span>{' '}
-          <MonoNum>{totals.ready}</MonoNum>/<MonoNum>{totals.nodes}</MonoNum>{' '}
-          <span className="text-muted-foreground">нод(ов) ready</span>
-        </>
-      }
+      description={t('clusters.list.summary', {
+        clusters: totals.clusters,
+        ready: totals.ready,
+        total: totals.nodes,
+      })}
       actions={
         <Button nativeButton={false} render={<Link to="/clusters" />}>
           <Add />

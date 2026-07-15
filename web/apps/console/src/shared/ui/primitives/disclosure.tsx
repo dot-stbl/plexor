@@ -1,38 +1,71 @@
 import { useState, type ReactNode } from 'react';
 import { KeyboardArrowRight } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/primitives/collapsible';
 import { cn } from '@/lib/utils';
 
 /**
- * Disclosure — лёгкий self-toggle раскрывающийся блок (эталон YC/Proxmox
- * «Advanced»). НЕ `Accordion`: контент рендерится условно, поэтому контейнер
- * динамического размера — нет фиксированной высоты панели и хвостового
- * отступа в свёрнутом виде. Дети обычно `FieldRow` (внутри — `divide-y`).
+ * Disclosure — раскрывающийся блок «Advanced» поверх shadcn `Collapsible`
+ * (Base UI). НЕ сырой div/button и НЕ `Accordion` (тот держит фикс-высоту).
  *
- * Используем для «продвинутых» knob'ов форм: базовые поля видны всегда, глубина
- * (self-hosted) — по клику. См. rule про формирование параметров.
+ * `variant`:
+ *  - `inline` (default): текст-триггер с каретом слева, контент под ним —
+ *    для «продвинутых» полей прямо в теле карточки-секции.
+ *  - `card`: разворачиваемая карточка — бордер + кликабельная шапка (лейбл
+ *    слева, карет справа), контент внутри рамки.
  */
 export interface DisclosureProps {
   /** Текст-триггер (напр. «Advanced · CPU type, NUMA»). */
   summary: ReactNode;
   children: ReactNode;
   defaultOpen?: boolean;
+  variant?: 'inline' | 'card';
   className?: string;
 }
 
-export function Disclosure({ summary, children, defaultOpen = false, className }: DisclosureProps) {
+export function Disclosure({
+  summary,
+  children,
+  defaultOpen = false,
+  variant = 'inline',
+  className,
+}: DisclosureProps) {
   const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className={cn('py-2', className)}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="flex items-center gap-1 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:text-foreground"
+  const caret = (
+    <KeyboardArrowRight className={cn('size-3.5 shrink-0 transition-transform', open && 'rotate-90')} />
+  );
+
+  if (variant === 'card') {
+    return (
+      <Collapsible
+        open={open}
+        onOpenChange={setOpen}
+        className={cn('overflow-hidden rounded-md border border-border', className)}
       >
-        <KeyboardArrowRight className={`size-3.5 transition-transform ${open ? 'rotate-90' : ''}`} />
+        <CollapsibleTrigger
+          className={cn(
+            'flex w-full items-center justify-between gap-2 px-3 py-2 text-xs font-medium text-muted-foreground outline-none transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:text-foreground',
+            open && 'text-foreground',
+          )}
+        >
+          <span>{summary}</span>
+          {caret}
+        </CollapsibleTrigger>
+        <CollapsibleContent className="flex flex-col gap-2 border-t border-border px-3 py-3">
+          {children}
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  }
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className={className}>
+      <CollapsibleTrigger className="flex items-center gap-1 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:text-foreground">
+        {caret}
         {summary}
-      </button>
-      {open && <div className="mt-2 divide-y divide-border border-t border-border">{children}</div>}
-    </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-2 flex flex-col gap-2 border-t border-border pt-2">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

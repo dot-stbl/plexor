@@ -24,13 +24,6 @@ export const Route = createFileRoute('/clusters/$id')({
   component: ClusterDetailPage,
 });
 
-const SELF_HELP_LINKS = [
-  { href: 'https://plexor.dev/docs/install', label: 'Установка Plexor', icon: MenuBook },
-  { href: 'https://plexor.dev/docs/iso', label: 'Скачать ISO', icon: Terminal },
-  { href: 'https://plexor.dev/docs/upgrade', label: 'Обновление', icon: VerifiedUser },
-  { href: 'https://plexor.dev/docs/troubleshooting', label: 'Troubleshooting', icon: Support },
-];
-
 function ClusterDetailPage() {
   const { t } = useTranslation();
   const { id } = Route.useParams();
@@ -41,17 +34,17 @@ function ClusterDetailPage() {
   if (!cluster) {
     return (
       <PageTemplate
-        title="Кластер не найден"
+        title={t('clusters.detail.notFound')}
         width="6xl"
         actions={
           <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />}>
             <ArrowBack />
-            Назад к кластерам
+            {t('clusters.detail.backToClusters')}
           </Button>
         }
       >
         <p className="py-12 text-center text-sm text-muted-foreground">
-          Кластер с id <span className="font-mono">{id}</span> не существует или удалён.
+          {t('clusters.detail.notFoundDescription', { id })}
         </p>
       </PageTemplate>
     );
@@ -61,6 +54,13 @@ function ClusterDetailPage() {
   const tokens = useListTokens(cluster.id).tokens;
   const counts = countNodes(nodes);
   const activeTokens = tokens.filter((t) => t.status === 'active').length;
+
+  const selfHelpLinks = [
+    { href: 'https://plexor.dev/docs/install', label: t('clusters.detail.docLinks.install'), icon: MenuBook },
+    { href: 'https://plexor.dev/docs/iso', label: t('clusters.detail.docLinks.iso'), icon: Terminal },
+    { href: 'https://plexor.dev/docs/upgrade', label: t('clusters.detail.docLinks.upgrade'), icon: VerifiedUser },
+    { href: 'https://plexor.dev/docs/troubleshooting', label: t('clusters.detail.docLinks.troubleshooting'), icon: Support },
+  ];
 
   return (
     <div data-od-id="cluster-detail">
@@ -74,8 +74,8 @@ function ClusterDetailPage() {
             </span>{' '}
             <span className="text-muted-foreground">·</span>{' '}
             <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum>{' '}
-            <span className="text-muted-foreground">нод(ов) ready ·</span>{' '}
-            <MonoNum>{activeTokens}</MonoNum> <span className="text-muted-foreground">активных токенов ·</span>{' '}
+            <span className="text-muted-foreground">{t('clusters.detail.nodesReady')} ·</span>{' '}
+            <MonoNum>{activeTokens}</MonoNum> <span className="text-muted-foreground">{t('clusters.detail.activeTokens')} ·</span>{' '}
             <MonoNum muted>{formatUptime(cluster.uptimeSeconds)}</MonoNum>{' '}
             <span className="text-muted-foreground">uptime</span>
           </>
@@ -101,7 +101,7 @@ function ClusterDetailPage() {
               <div className="space-y-0.5">
                 <CardTitle className="text-sm">{t('clusters.detail.installProviders')}</CardTitle>
                 <CardDescription>
-                  Выбраны при <code className="rounded bg-muted px-1 font-mono text-[10px]">plx init</code>{' '}
+                  {t('clusters.detail.providersChosenAt')} <code className="rounded bg-muted px-1 font-mono text-[10px]">plx init</code>{' '}
                   · endpoint{' '}
                   <MonoNum muted>{cluster.endpoint}</MonoNum>
                 </CardDescription>
@@ -120,12 +120,12 @@ function ClusterDetailPage() {
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
             <TabsTrigger value="nodes">
-              <Stacks className="size-3.5" /> Ноды <span className="ml-1 text-muted-foreground">({counts.total})</span>
+              <Stacks className="size-3.5" /> {t('clusters.detail.nodes')} <span className="ml-1 text-muted-foreground">({counts.total})</span>
             </TabsTrigger>
             <TabsTrigger value="tokens">
-              <Key className="size-3.5" /> Join-токены <span className="ml-1 text-muted-foreground">({tokens.length})</span>
+              <Key className="size-3.5" /> {t('clusters.detail.joinTokens')} <span className="ml-1 text-muted-foreground">({tokens.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="docs">Документация</TabsTrigger>
+            <TabsTrigger value="docs">{t('clusters.detail.docs')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="nodes" className="space-y-3">
@@ -133,7 +133,7 @@ function ClusterDetailPage() {
               <CardHeader className="gap-0.5 border-b border-border p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div className="space-y-0.5">
-                    <CardTitle className="text-sm">Plexor.NodeAgent инстансы</CardTitle>
+                    <CardTitle className="text-sm">{t('clusters.detail.nodeAgentInstances')}</CardTitle>
                     <CardDescription>
                       {t('clusters.detail.nodesDescription')}
                     </CardDescription>
@@ -165,14 +165,14 @@ function ClusterDetailPage() {
               <CardHeader className="gap-0.5 border-b border-border p-4">
                 <div className="flex items-center justify-between gap-2">
                   <div className="space-y-0.5">
-                    <CardTitle className="text-sm">Join-токены</CardTitle>
+                    <CardTitle className="text-sm">{t('clusters.detail.joinTokens')}</CardTitle>
                     <CardDescription>
-                      Генерируются здесь, копируются на нод, используются один раз.
+                      {t('clusters.detail.tokensDescription')}
                     </CardDescription>
                   </div>
                   <Button size="sm" onClick={() => setAddOpen(true)}>
                     <Add />
-                    Создать токен
+                    {t('clusters.detail.createToken')}
                   </Button>
                 </div>
               </CardHeader>
@@ -195,13 +195,13 @@ function ClusterDetailPage() {
           <TabsContent value="docs" className="space-y-3">
             <Card className="gap-0 p-0">
               <CardHeader className="gap-0.5 border-b border-border p-4">
-                <CardTitle className="text-sm">Самостоятельная установка</CardTitle>
+                <CardTitle className="text-sm">{t('clusters.detail.selfHelp')}</CardTitle>
                 <CardDescription>
-                  Plexor self-hosted — вы ставите control-plane и ноды на своём железе.
+                  {t('clusters.detail.selfHelpDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 gap-1.5 p-4 md:grid-cols-2">
-                {SELF_HELP_LINKS.map((link) => (
+                {selfHelpLinks.map((link) => (
                   <a
                     key={link.href}
                     href={link.href}
@@ -220,7 +220,7 @@ function ClusterDetailPage() {
             </Card>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Schedule className="size-3" />
-              Токены истекают — после подключения нод остаётся в списке Nodes.
+              {t('clusters.detail.tokensExpireNote')}
             </div>
           </TabsContent>
         </Tabs>

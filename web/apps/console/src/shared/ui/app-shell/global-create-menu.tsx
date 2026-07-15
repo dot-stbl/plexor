@@ -86,7 +86,7 @@ export function GlobalCreateMenu() {
       />
       <DropdownMenuContent align="end" className="w-60">
         {GROUPS.map((group, gi) => (
-          <DropdownMenuGroup key={group.label}>
+          <DropdownMenuGroup key={group.labelKey}>
             {gi > 0 && <DropdownMenuSeparator />}
             <DropdownMenuLabel>{t(group.labelKey)}</DropdownMenuLabel>
             {group.items.map((item) => {

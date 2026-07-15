@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/primitives/button';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Close } from '@nine-thirty-five/material-symbols-react/rounded/700';
@@ -52,11 +53,13 @@ export function BulkActionToolbar({
   count,
   onClear,
   actions,
-  entityLabel = 'selected',
+  entityLabel,
   className,
   bottomClass = 'bottom-4',
   ...props
 }: BulkActionToolbarProps) {
+  const { t } = useTranslation();
+  const label = entityLabel ?? t('common.selected');
   if (count === 0) return null;
 
   return (
@@ -64,7 +67,7 @@ export function BulkActionToolbar({
       data-slot="bulk-action-toolbar"
       data-count={count}
       role="region"
-      aria-label={`${count} ${entityLabel}`}
+      aria-label={`${count} ${label}`}
       className={cn(
         'fixed left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg border border-border bg-card px-4 py-1.5 shadow-lg',
         'animate-in slide-in-from-bottom-4 fade-in duration-200',
@@ -75,7 +78,7 @@ export function BulkActionToolbar({
     >
       <span className="text-sm font-medium">
         <MonoNum>{count}</MonoNum>{' '}
-        <span className="text-muted-foreground">{entityLabel}</span>
+        <span className="text-muted-foreground">{label}</span>
       </span>
       <span className="self-stretch w-px bg-border" aria-hidden />
       <div className="flex items-center gap-1.5">

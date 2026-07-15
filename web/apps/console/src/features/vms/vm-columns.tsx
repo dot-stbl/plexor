@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import type { Vm, VmStatus } from '@/shared/api';
 import type { ColumnDef } from '@/shared/ui/data-table';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
@@ -22,97 +23,100 @@ const STATUS_FILTER_OPTIONS: { value: VmStatus; label: string }[] = [
  * The screen maps `FilterValues` → `ListVmsQueryParams` 1:1; column param
  * keys (`status`, `zone`, `q`) match the kubb-generated query-params type.
  */
-export const vmColumns: ColumnDef<Vm>[] = [
-  {
-    id: 'name',
-    header: 'Имя',
-    accessorKey: 'name',
-    cell: ({ row }) => <span className="font-medium text-foreground">{row.original.name}</span>,
-    meta: {
-      filter: { type: 'text', param: 'q', placeholder: 'Поиск по имени, IP или ID' },
+export function getVmColumns(t: TFunction): ColumnDef<Vm>[] {
+  return [
+    {
+      id: 'name',
+      header: t('table.name'),
+      accessorKey: 'name',
+      cell: ({ row }) => <span className="font-medium text-foreground">{row.original.name}</span>,
+      meta: {
+        filter: { type: 'text', param: 'q', placeholder: t('table.filter.searchName') },
+      },
     },
-  },
-  {
-    id: 'id',
-    header: 'ID',
-    accessorKey: 'id',
-    cell: ({ row }) => (
-      <CopyableText value={row.original.id} copyLabel="Скопировать ID">
-        {row.original.id}
-      </CopyableText>
-    ),
-    meta: { size: 'w-[160px]' },
-  },
-  {
-    id: 'status',
-    header: 'Статус',
-    accessorKey: 'status',
-    cell: ({ row }) => (
-      <StatusPill variant={mapVmStatusToVariant(row.original.status)} size="sm">
-        {row.original.status}
-      </StatusPill>
-    ),
-    meta: {
-      size: 'w-[110px]',
-      filter: { type: 'select', param: 'status', options: STATUS_FILTER_OPTIONS, placeholder: 'Все статусы' },
+    {
+      id: 'id',
+      header: t('table.id'),
+      accessorKey: 'id',
+      cell: ({ row }) => (
+        <CopyableText value={row.original.id} copyLabel={t('table.copy.id')}>
+          {row.original.id}
+        </CopyableText>
+      ),
+      meta: { size: 'w-[160px]' },
     },
-  },
-  {
-    id: 'internalIp',
-    header: 'IP',
-    accessorKey: 'internalIp',
-    cell: ({ row }) => (
-      <CopyableText value={row.original.internalIp} copyLabel="Скопировать IP">
-        {row.original.internalIp}
-      </CopyableText>
-    ),
-    meta: { size: 'w-[140px]' },
-  },
-  {
-    id: 'zone',
-    header: 'Зона',
-    accessorKey: 'zone',
-    cell: ({ row }) => (
-      <CopyableText value={row.original.zone} copyLabel="Скопировать зону">
-        {row.original.zone}
-      </CopyableText>
-    ),
-    meta: {
-      size: 'w-[110px]',
-      filter: { type: 'text', param: 'zone', placeholder: 'eu-central-1' },
+    {
+      id: 'status',
+      header: t('table.status'),
+      accessorKey: 'status',
+      cell: ({ row }) => (
+        <StatusPill variant={mapVmStatusToVariant(row.original.status)} size="sm">
+          {row.original.status}
+        </StatusPill>
+      ),
+      meta: {
+        size: 'w-[110px]',
+        filter: { type: 'select', param: 'status', options: STATUS_FILTER_OPTIONS, placeholder: t('table.filter.status') },
+      },
     },
-  },
-  {
-    id: 'flavor',
-    header: 'Флейвор',
-    accessorFn: (row) => `${row.vcpu} vCPU · ${row.ramGb} GB`,
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">
-        <MonoNum>{String(getValue()).split(' ')[0]}</MonoNum> vCPU ·{' '}
-        <MonoNum>{String(getValue()).split(' ')[2]}</MonoNum> GB
-      </span>
-    ),
-    meta: { size: 'w-[130px]' },
-  },
-  {
-    id: 'diskGb',
-    header: 'Диск',
-    accessorKey: 'diskGb',
-    cell: ({ getValue }) => (
-      <>
-        <MonoNum muted>{getValue<number>()}</MonoNum>
-        <span className="ml-0.5 text-muted-foreground">GB</span>
-      </>
-    ),
-    meta: { size: 'w-[70px]', align: 'right' },
-  },
-  {
-    id: 'actions',
-    header: '',
-    accessorKey: 'id',
-    enableSorting: false,
-    enableColumnFilter: false,
-    cell: ({ row }) => <VmRowActions vm={row.original} />,
-    meta: { size: 'w-9' },
-  },
-];
+    {
+      id: 'internalIp',
+      header: t('table.ip'),
+      accessorKey: 'internalIp',
+      cell: ({ row }) => (
+        <CopyableText value={row.original.internalIp} copyLabel={t('table.copy.ip')}>
+          {row.original.internalIp}
+        </CopyableText>
+      ),
+      meta: { size: 'w-[140px]' },
+    },
+    {
+      id: 'zone',
+      header: t('table.zone'),
+      accessorKey: 'zone',
+      cell: ({ row }) => (
+        <CopyableText value={row.original.zone} copyLabel={t('table.copy.zone')}>
+          {row.original.zone}
+        </CopyableText>
+      ),
+      meta: {
+        size: 'w-[110px]',
+        // `eu-central-1` — technical example zone, kept literal (not localized).
+        filter: { type: 'text', param: 'zone', placeholder: 'eu-central-1' },
+      },
+    },
+    {
+      id: 'flavor',
+      header: t('table.flavor'),
+      accessorFn: (row) => `${row.vcpu} vCPU · ${row.ramGb} GB`,
+      cell: ({ getValue }) => (
+        <span className="text-muted-foreground">
+          <MonoNum>{String(getValue()).split(' ')[0]}</MonoNum> vCPU ·{' '}
+          <MonoNum>{String(getValue()).split(' ')[2]}</MonoNum> GB
+        </span>
+      ),
+      meta: { size: 'w-[130px]' },
+    },
+    {
+      id: 'diskGb',
+      header: t('table.disk'),
+      accessorKey: 'diskGb',
+      cell: ({ getValue }) => (
+        <>
+          <MonoNum muted>{getValue<number>()}</MonoNum>
+          <span className="ml-0.5 text-muted-foreground">GB</span>
+        </>
+      ),
+      meta: { size: 'w-[70px]', align: 'right' },
+    },
+    {
+      id: 'actions',
+      header: '',
+      accessorKey: 'id',
+      enableSorting: false,
+      enableColumnFilter: false,
+      cell: ({ row }) => <VmRowActions vm={row.original} />,
+      meta: { size: 'w-9' },
+    },
+  ];
+}

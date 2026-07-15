@@ -1,10 +1,12 @@
+import { useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useLocalStorage } from '@uidotdev/usehooks';
+import { useTranslation } from 'react-i18next';
 import { Add } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { DataTable, DataTableColumns, type DataTableColumnsState } from '@/shared/ui/data-table';
-import { dbColumns } from './database-columns';
+import { getDbColumns } from './database-columns';
 import { useEngine, useListDbClusters } from './use-databases';
 import { ManagedServiceEmpty } from './managed-service-empty';
 
@@ -15,9 +17,11 @@ import { ManagedServiceEmpty } from './managed-service-empty';
  * через `PageTemplate` (крошки — в верхнем баре из staticData).
  */
 export function ManagedServicePage({ engineId }: { engineId: string }) {
+  const { t } = useTranslation();
   const engine = useEngine(engineId);
   const { clusters } = useListDbClusters();
   const rows = clusters.filter((c) => c.engineId === engineId);
+  const columns = useMemo(() => getDbColumns(t), [t]);
   const [colState, setColState] = useLocalStorage<DataTableColumnsState>(
     `plexor-cols-managed-${engineId}`,
     { hidden: [], order: [] },
@@ -49,10 +53,10 @@ export function ManagedServicePage({ engineId }: { engineId: string }) {
       {rows.length > 0 ? (
         <div className="space-y-2">
           <div className="flex justify-end">
-            <DataTableColumns columns={dbColumns} value={colState} onChange={setColState} />
+            <DataTableColumns columns={columns} value={colState} onChange={setColState} />
           </div>
           <DataTable
-            columns={dbColumns}
+            columns={columns}
             data={rows}
             density="compact"
             hiddenColumns={new Set(colState.hidden)}

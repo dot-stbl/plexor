@@ -1,46 +1,54 @@
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { FilterAltOff } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Input } from '@/shared/ui/primitives/input';
+import { Button } from '@/shared/ui/primitives/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/primitives/select';
 import { cn } from '@/lib/utils';
 import type { ColumnDef, FilterValues } from './data-table';
+import { DataTableColumns, type DataTableColumnsState } from './data-table-columns';
 
 export interface DataTableToolbarProps<TData = unknown> {
   columns: ColumnDef<TData>[];
   filters: FilterValues;
   onFiltersChange: (next: FilterValues) => void;
-  /** Optional leading slot (e.g. "X selected" badge, total count). */
+  /**
+   * When provided, the column-manager gear renders on the right of the bar —
+   * so filters + column settings live in ONE toolbar. Omit to hide the gear.
+   */
+  columnsState?: DataTableColumnsState;
+  onColumnsChange?: (next: DataTableColumnsState) => void;
+  /** Optional leading slot (e.g. a selection badge). */
   leading?: ReactNode;
-  /** Optional trailing slot (e.g. "Reset filters", "Density"). */
+  /** Optional trailing slot (rendered after the gear). */
   trailing?: ReactNode;
-  /** Override the default card wrapper. */
   className?: string;
 }
 
 /**
- * Filter bar rendered ABOVE the table. Iterates `columns` and emits one
- * control per column that declares `meta.filter.type` of `text` or
- * `select`. Driven by the same column declarations as the table, so
- * adding/removing a filter is one edit in `vmColumns.tsx`.
- *
- * Compact layout — no per-control labels, placeholder + sr-only for
- * a11y. Screen-consoles pattern.
+ * Filter + column-settings bar rendered ABOVE the table. Filters are DERIVED
+ * from the column declarations (`meta.filter` of type `text` | `select`), so a
+ * list gets filtering by declaring it once on its columns. Server-backed lists
+ * feed `onFiltersChange` → `compactFilters` → API; local lists feed
+ * `applyFilters(rows, filters, columns)`. Pass `columnsState`/`onColumnsChange`
+ * to fold the column-manager gear into the same bar.
  */
 export function DataTableToolbar<TData = unknown>({
   columns,
   filters,
   onFiltersChange,
+  columnsState,
+  onColumnsChange,
   leading,
   trailing,
   className,
 }: DataTableToolbarProps<TData>) {
-  // Inline narrowing — keeps TS happy without a separate alias type.
+  const { t } = useTranslation();
+
   const filterCols: Array<{
     id: string;
     param: string;
-    filter: Exclude<
-      NonNullable<ColumnDef<TData>['meta']>['filter'],
-      { type: 'none' } | undefined
-    >;
+    filter: Exclude<NonNullable<ColumnDef<TData>['meta']>['filter'], { type: 'none' } | undefined>;
   }> = [];
   for (const col of columns) {
     const f = col.meta?.filter;
@@ -57,41 +65,41 @@ export function DataTableToolbar<TData = unknown>({
   };
 
   const hasFilters = Object.values(filters).some((v) => v !== '' && v != null);
+  const showColumns = !!columnsState && !!onColumnsChange;
 
+  const reset = () => {
+    const cleared: FilterValues = {};
+    for (const { param } of filterCols) cleared[param] = '';
+    onFiltersChange(cleared);
+  };
+
+  // No card wrapper — a bare bar. Filters (+ reset) on the LEFT, column
+  // settings pinned to the RIGHT (space-between).
   return (
-    <div
-      data-od-id="data-table-toolbar"
-      className={cn(
-        'flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2',
-        className,
-      )}
-    >
-      {leading}
-      {filterCols.map(({ id, param, filter }) => {
-        const value = filters[param] ?? '';
-        return (
+    <div data-od-id="data-table-toolbar" className={cn('flex items-center justify-between gap-2', className)}>
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        {leading}
+        {filterCols.map(({ id, param, filter }) => (
           <FilterControl
             key={id}
             filter={filter}
-            value={value}
+            value={filters[param] ?? ''}
             onChange={(next) => update(param, next)}
           />
-        );
-      })}
-      {hasFilters && (
-        <button
-          type="button"
-          onClick={() => {
-            const cleared: FilterValues = {};
-            for (const { param } of filterCols) cleared[param] = '';
-            onFiltersChange(cleared);
-          }}
-          className="ml-auto text-xs text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Сбросить
-        </button>
-      )}
-      {trailing}
+        ))}
+        {hasFilters && (
+          <Button variant="ghost" size="icon-sm" aria-label={t('common.resetFilters')} onClick={reset}>
+            <FilterAltOff className="size-3.5" />
+          </Button>
+        )}
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        {trailing}
+        {showColumns && (
+          <DataTableColumns columns={columns} value={columnsState} onChange={onColumnsChange} />
+        )}
+      </div>
     </div>
   );
 }
@@ -108,19 +116,21 @@ interface FilterControlProps {
 }
 
 function FilterControl({ filter, value, onChange }: FilterControlProps) {
+  const { t } = useTranslation();
   if (filter.type === 'select') {
+    const allLabel = filter.placeholder ?? t('common.all');
     return (
       <div className="min-w-[140px]">
         <Select
-          items={[{ value: '', label: filter.placeholder ?? 'Все' }, ...filter.options]}
+          items={[{ value: '', label: allLabel }, ...filter.options]}
           value={value}
           onValueChange={(v) => onChange(v ?? '')}
         >
           <SelectTrigger size="sm" className="w-full text-xs">
-            <SelectValue placeholder={filter.placeholder ?? 'Все'} />
+            <SelectValue placeholder={allLabel} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{filter.placeholder ?? 'Все'}</SelectItem>
+            <SelectItem value="">{allLabel}</SelectItem>
             {filter.options.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {opt.label}

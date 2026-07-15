@@ -31,7 +31,7 @@ export function PageTemplate({
   description,
   actions,
   children,
-  width = '6xl',
+  width = 'full',
   ...props
 }: PageTemplateProps) {
   const max = WIDTH[width];

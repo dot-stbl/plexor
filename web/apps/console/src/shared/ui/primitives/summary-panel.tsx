@@ -1,28 +1,31 @@
 import type { ReactNode } from 'react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { cn } from '@/lib/utils';
 
 /**
- * SummaryPanel — липкая панель-сводка справа в create-флоу (эталон YC: панель
- * «₽/месяц» → у нас «что развернётся»: движок/ресурсы/размещение/binding).
- * Sticky под верхним баром; на узком экране падает под форму.
+ * SummaryPanel — липкая панель-сводка справа в create-флоу (эталон YC: «₽/месяц»
+ * → у нас «что развернётся»). Построена на shadcn `Card` (не сырые div'ы):
+ * заголовок — `CardHeader`, строки — `CardContent`, бейджи/флаги — `CardFooter`
+ * (передаются через `footer`). На узком экране падает под форму.
  */
 export interface SummaryPanelProps {
   title?: string;
   children: ReactNode;
+  /** Нижняя секция (напр. флаги-бейджи) — рендерится в `CardFooter`. */
   footer?: ReactNode;
   className?: string;
 }
 
 export function SummaryPanel({ title = 'Summary', children, footer, className }: SummaryPanelProps) {
   return (
-    <aside data-od-id="summary-panel" className={cn('lg:sticky lg:top-16', className)}>
-      <div className="rounded-lg border border-border bg-card">
-        <div className="border-b border-border px-4 py-2.5">
-          <h2 className="text-sm font-medium text-foreground">{title}</h2>
-        </div>
-        <div className="px-4 py-3">{children}</div>
-        {footer && <div className="border-t border-border px-4 py-3">{footer}</div>}
-      </div>
+    <aside data-od-id="summary-panel" className={cn('lg:sticky lg:top-16 lg:self-start', className)}>
+      <Card size="sm">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-sm">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>{children}</CardContent>
+        {footer && <CardFooter className="border-t border-border">{footer}</CardFooter>}
+      </Card>
     </aside>
   );
 }

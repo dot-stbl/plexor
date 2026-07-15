@@ -25,7 +25,7 @@ export function FieldRow({ label, htmlFor, required, help, description, children
     <div
       role="group"
       className={cn(
-        'grid grid-cols-1 gap-1.5 py-2 sm:grid-cols-[minmax(140px,200px)_1fr] sm:items-start sm:gap-4',
+        'grid grid-cols-1 gap-1.5 sm:grid-cols-[minmax(140px,200px)_1fr] sm:items-start sm:gap-4',
         className,
       )}
     >

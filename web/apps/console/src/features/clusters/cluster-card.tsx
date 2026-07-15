@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { ArrowForward, ProgressActivity, Stacks, Warning } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
@@ -32,6 +33,7 @@ const MAX_VISIBLE_PROVIDERS = 4;
  * for node + token management.
  */
 export function ClusterCard({ cluster }: ClusterCardProps) {
+  const { t } = useTranslation();
   const counts = countNodes(cluster.nodes);
   const offlineRatio = counts.total > 0 ? counts.offline / counts.total : 0;
   const health: 'healthy' | 'degraded' | 'down' =
@@ -60,12 +62,12 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
             <Badge variant="outline">v{cluster.hostVersion}</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum> нод(ов) ready ·{' '}
+            <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum> {t('clusters.card.nodesReady')} ·{' '}
             uptime <MonoNum muted>{formatUptime(cluster.uptimeSeconds)}</MonoNum>
           </p>
         </div>
         <Button size="sm" render={<Link to="/clusters/$id" params={{ id: cluster.id }} />}>
-          Управлять
+          {t('clusters.card.manage')}
           <ArrowForward className="size-4" />
         </Button>
       </div>
@@ -73,7 +75,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
       <div className="grid grid-cols-2 gap-2">
         <MetricCell
           icon={<Stacks className="size-3.5" />}
-          label="Ноды"
+          label={t('clusters.card.nodes')}
           value={
             <span>
               <MonoNum>{counts.ready}</MonoNum>

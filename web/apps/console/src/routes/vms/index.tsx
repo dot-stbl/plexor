@@ -5,8 +5,9 @@ import { Add } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { useListVms } from '@/shared/api';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
-import { DataTable, DataTableToolbar, emptyFilters, compactFilters, type FilterValues } from '@/shared/ui/data-table';
-import { VmBulkToolbar, VmEmptyState, VmErrorBanner, VmNoResultsState, VmSkeleton, vmColumns } from '@/features/vms';
+import { useLocalStorage } from '@uidotdev/usehooks';
+import { DataTable, DataTableToolbar, emptyFilters, compactFilters, type FilterValues, type DataTableColumnsState } from '@/shared/ui/data-table';
+import { VmBulkToolbar, VmEmptyState, VmErrorBanner, VmNoResultsState, VmSkeleton, getVmColumns } from '@/features/vms';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,12 +25,16 @@ export const Route = createFileRoute('/vms/')({
   component: VmsPage,
 });
 
-const FILTER_DEFAULT: FilterValues = emptyFilters(vmColumns);
-
 function VmsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [filters, setFilters] = useState<FilterValues>(FILTER_DEFAULT);
+  const columns = useMemo(() => getVmColumns(t), [t]);
+  const filterDefault = useMemo(() => emptyFilters(columns), [columns]);
+  const [filters, setFilters] = useState<FilterValues>(filterDefault);
+  const [colState, setColState] = useLocalStorage<DataTableColumnsState>('plexor-cols-vms', {
+    hidden: [],
+    order: [],
+  });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -64,20 +69,21 @@ function VmsPage() {
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
   const handleRowClick = useCallback((vm: { id: string; name: string }) => {
-    toast(`Открыть ${vm.name}`, { description: `id=${vm.id}` });
-  }, []);
+    toast(t('table.openRow', { name: vm.name }), { description: `id=${vm.id}` });
+  }, [t]);
 
   const confirmDelete = useCallback(() => {
     setDeleteOpen(false);
-    toast(`Удалено: ${selectedIds.size}`);
+    toast(`${t('common.delete')} · ${selectedIds.size}`);
     clearSelection();
-  }, [selectedIds.size, clearSelection]);
+  }, [t, selectedIds.size, clearSelection]);
 
-  const resetFilters = useCallback(() => setFilters(FILTER_DEFAULT), []);
+  const resetFilters = useCallback(() => setFilters(filterDefault), [filterDefault]);
 
   return (
-    <div data-od-id="vms-list">
+    <>
       <PageTemplate
+        data-od-id="vms-list"
         title={t('vms.list.title')}
         width="full"
         description={
@@ -104,16 +110,20 @@ function VmsPage() {
         ) : isEmptyFleet ? (
           <VmEmptyState />
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <DataTableToolbar
-              columns={vmColumns}
+              columns={columns}
               filters={filters}
               onFiltersChange={setFilters}
+              columnsState={colState}
+              onColumnsChange={setColState}
             />
             <DataTable
-              columns={vmColumns}
+              columns={columns}
               data={allItems}
               density="compact"
+              hiddenColumns={new Set(colState.hidden)}
+              columnOrder={colState.order}
               selection={{
                 selectedIds,
                 onToggle: toggle,
@@ -132,15 +142,15 @@ function VmsPage() {
         count={selectedIds.size}
         onClear={clearSelection}
         onStart={() => {
-          toast(`Запустить: ${selectedIds.size}`);
+          toast(`${t('common.start')} · ${selectedIds.size}`);
           clearSelection();
         }}
         onStop={() => {
-          toast(`Остановить: ${selectedIds.size}`);
+          toast(`${t('common.stop')} · ${selectedIds.size}`);
           clearSelection();
         }}
         onReboot={() => {
-          toast(`Перезагрузить: ${selectedIds.size}`);
+          toast(`${t('common.reboot')} · ${selectedIds.size}`);
           clearSelection();
         }}
         onDelete={() => setDeleteOpen(true)}
@@ -162,6 +172,6 @@ function VmsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }
