@@ -46,23 +46,35 @@ public sealed record ListRolesQuery(Guid OrgId);
 
 /// <summary>Public projection of <see cref="Domain.Entities.Role" />.
 /// Built-in flag is exposed so admin UIs can warn before changes.</summary>
-/// <param name="Id">UUID v7 role id.</param>
-/// <param name="OrgId">Tenant scope.</param>
-/// <param name="Name">Role name.</param>
-/// <param name="Description">Optional description.</param>
-/// <param name="Permissions">Permission strings.</param>
-/// <param name="BuiltIn">True when seeded by Migrator; immutable.</param>
-/// <param name="CreatedAt">Creation time (UTC).</param>
-/// <param name="UpdatedAt">Last modification time (UTC).</param>
-public sealed record RoleSummary(
-    Guid Id,
-    Guid OrgId,
-    string Name,
-    string? Description,
-    IReadOnlyCollection<string> Permissions,
-    bool BuiltIn,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+/// <summary>Public projection of <see cref="Domain.Entities.Role" />.
+/// <c>sealed partial class</c> with init-only properties for
+/// Mapperly source-generation compatibility.</summary>
+public sealed partial class RoleSummary
+{
+    /// <summary>Role id.</summary>
+    public Guid Id { get; init; }
+
+    /// <summary>Tenant scope.</summary>
+    public Guid OrgId { get; init; }
+
+    /// <summary>Role name.</summary>
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>Optional description.</summary>
+    public string? Description { get; init; }
+
+    /// <summary>Permission strings.</summary>
+    public IReadOnlyCollection<string> Permissions { get; init; } = [];
+
+    /// <summary>True when seeded by Migrator; immutable.</summary>
+    public bool BuiltIn { get; init; }
+
+    /// <summary>Creation time (UTC).</summary>
+    public DateTimeOffset CreatedAt { get; init; }
+
+    /// <summary>Last modification time (UTC).</summary>
+    public DateTimeOffset UpdatedAt { get; init; }
+}
 
 /// <summary>Result of CreateRoleCommand.</summary>
 /// <param name="RoleId">UUID v7 of the newly created role.</param>

@@ -44,25 +44,38 @@ public sealed record ListApiKeysQuery(Guid OwnerId);
 
 /// <summary>Public projection of <see cref="Domain.Entities.ApiKey" />.
 /// Never includes the secret hash.</summary>
-/// <param name="Id">Key id (becomes <c>kid_xxx</c> prefix when used).</param>
-/// <param name="OwnerId">Owning user.</param>
-/// <param name="OrgId">Tenant scope.</param>
-/// <param name="Name">Human-readable label.</param>
-/// <param name="Permissions">Granted permission strings.</param>
-/// <param name="ExpiresAtUtc">Optional expiry.</param>
-/// <param name="LastUsedAt">Last successful auth time.</param>
-/// <param name="RevokedAt">When the key was revoked (null = active).</param>
-/// <param name="CreatedAt">Creation time.</param>
-public sealed record ApiKeySummary(
-    Guid Id,
-    Guid OwnerId,
-    Guid OrgId,
-    string Name,
-    IReadOnlyCollection<string> Permissions,
-    DateTimeOffset? ExpiresAtUtc,
-    DateTimeOffset? LastUsedAt,
-    DateTimeOffset? RevokedAt,
-    DateTimeOffset CreatedAt);
+/// <summary>Public projection of <see cref="Domain.Entities.ApiKey" />.
+/// <c>sealed partial class</c> with init-only properties for
+/// Mapperly source-generation compatibility.</summary>
+public sealed partial class ApiKeySummary
+{
+    /// <summary>Key id.</summary>
+    public Guid Id { get; init; }
+
+    /// <summary>Owner user.</summary>
+    public Guid OwnerId { get; init; }
+
+    /// <summary>Tenant scope.</summary>
+    public Guid OrgId { get; init; }
+
+    /// <summary>Human-readable label.</summary>
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>Granted permission strings.</summary>
+    public IReadOnlyCollection<string> Permissions { get; init; } = [];
+
+    /// <summary>Optional expiry.</summary>
+    public DateTimeOffset? ExpiresAtUtc { get; init; }
+
+    /// <summary>Last successful auth time.</summary>
+    public DateTimeOffset? LastUsedAt { get; init; }
+
+    /// <summary>When the key was revoked (null = active).</summary>
+    public DateTimeOffset? RevokedAt { get; init; }
+
+    /// <summary>Creation time.</summary>
+    public DateTimeOffset CreatedAt { get; init; }
+}
 
 /// <summary>
 ///     Register a new SSH key for a user. The public key is stored
@@ -90,22 +103,32 @@ public sealed record ListSshKeysQuery(Guid OwnerId);
 
 /// <summary>Public projection of <see cref="Domain.Entities.SshKey" />.
 /// Public-key fingerprint (SHA-256) is exposed for UI display; the
-/// raw key material is never returned.</summary>
-/// <param name="Id">Key id.</param>
-/// <param name="OwnerId">Owner user.</param>
-/// <param name="OrgId">Tenant scope.</param>
-/// <param name="Name">Human-readable label.</param>
-/// <param name="Fingerprint">SHA-256 fingerprint of the public key
-/// (base64, no padding, no colons — OpenSSH host-key style).</param>
-/// <param name="LastUsedAt">Last successful VM access time.</param>
-/// <param name="RevokedAt">When the key was revoked (null = active).</param>
-/// <param name="CreatedAt">Creation time.</param>
-public sealed record SshKeySummary(
-    Guid Id,
-    Guid OwnerId,
-    Guid OrgId,
-    string Name,
-    string Fingerprint,
-    DateTimeOffset? LastUsedAt,
-    DateTimeOffset? RevokedAt,
-    DateTimeOffset CreatedAt);
+/// raw key material is never returned.
+/// <c>sealed partial class</c> with init-only properties.</summary>
+public sealed partial class SshKeySummary
+{
+    /// <summary>Key id.</summary>
+    public Guid Id { get; init; }
+
+    /// <summary>Owner user.</summary>
+    public Guid OwnerId { get; init; }
+
+    /// <summary>Tenant scope.</summary>
+    public Guid OrgId { get; init; }
+
+    /// <summary>Human-readable label.</summary>
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>SHA-256 fingerprint of the public key (base64, no padding,
+    /// no colons — OpenSSH host-key style).</summary>
+    public string Fingerprint { get; init; } = string.Empty;
+
+    /// <summary>Last successful VM access time.</summary>
+    public DateTimeOffset? LastUsedAt { get; init; }
+
+    /// <summary>When the key was revoked (null = active).</summary>
+    public DateTimeOffset? RevokedAt { get; init; }
+
+    /// <summary>Creation time.</summary>
+    public DateTimeOffset CreatedAt { get; init; }
+}

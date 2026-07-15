@@ -29,21 +29,32 @@ public sealed record DeleteRoleBindingCommand(Guid BindingId);
 public sealed record ListRoleBindingsQuery(Guid UserId);
 
 /// <summary>Public projection of <see cref="Domain.Entities.RoleBinding" />.</summary>
-/// <param name="Id">UUID v7 binding id.</param>
-/// <param name="OrgId">Tenant scope.</param>
-/// <param name="UserId">Bound user.</param>
-/// <param name="RoleId">Bound role.</param>
-/// <param name="TeamId">Optional team scope (null = org-wide).</param>
-/// <param name="FolderId">Optional folder scope (null = org-wide).</param>
-/// <param name="CreatedAt">Binding creation time (UTC).</param>
-public sealed record RoleBindingSummary(
-    Guid Id,
-    Guid OrgId,
-    Guid UserId,
-    Guid RoleId,
-    Guid? TeamId,
-    Guid? FolderId,
-    DateTimeOffset CreatedAt);
+/// <summary>Public projection of <see cref="Domain.Entities.RoleBinding" />.
+/// <c>sealed partial class</c> with init-only properties for
+/// Mapperly source-generation compatibility.</summary>
+public sealed partial class RoleBindingSummary
+{
+    /// <summary>UUID v7 binding id.</summary>
+    public Guid Id { get; init; }
+
+    /// <summary>Tenant scope.</summary>
+    public Guid OrgId { get; init; }
+
+    /// <summary>Bound user.</summary>
+    public Guid UserId { get; init; }
+
+    /// <summary>Bound role.</summary>
+    public Guid RoleId { get; init; }
+
+    /// <summary>Optional team scope (null = org-wide).</summary>
+    public Guid? TeamId { get; init; }
+
+    /// <summary>Optional folder scope (null = org-wide).</summary>
+    public Guid? FolderId { get; init; }
+
+    /// <summary>Binding creation time (UTC).</summary>
+    public DateTimeOffset CreatedAt { get; init; }
+}
 
 /// <summary>Result of CreateRoleBindingCommand.</summary>
 /// <param name="BindingId">UUID v7 of the newly created binding.</param>

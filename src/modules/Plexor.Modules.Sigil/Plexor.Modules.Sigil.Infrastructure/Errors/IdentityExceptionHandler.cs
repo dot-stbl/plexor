@@ -39,8 +39,6 @@ public sealed class IdentityExceptionHandler(ILogger<IdentityExceptionHandler> l
         Exception exception,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(httpContext);
-        ArgumentNullException.ThrowIfNull(exception);
 
         if (exception is not IdentityException identityEx)
         {

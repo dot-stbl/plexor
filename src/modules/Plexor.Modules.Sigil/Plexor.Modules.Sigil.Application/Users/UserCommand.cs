@@ -62,23 +62,35 @@ public sealed record ListUsersQuery(
 
 /// <summary>Public projection of <see cref="Domain.Entities.User" />
 /// returned by GET endpoints. Never includes password hash.</summary>
-/// <param name="Id">UUID v7 user id.</param>
-/// <param name="OrgId">Tenant scope.</param>
-/// <param name="Email">Email address.</param>
-/// <param name="DisplayName">Human-readable name.</param>
-/// <param name="Status"><c>"active"</c> or <c>"suspended"</c>.</param>
-/// <param name="CreatedAt">Account creation time (UTC).</param>
-/// <param name="UpdatedAt">Last modification time (UTC).</param>
-/// <param name="LastLoginAt">Last successful login (UTC), null if never.</param>
-public sealed record UserSummary(
-    Guid Id,
-    Guid OrgId,
-    string Email,
-    string DisplayName,
-    string Status,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt,
-    DateTimeOffset? LastLoginAt);
+/// <summary>Public projection of <see cref="Domain.Entities.User" />.
+/// <c>sealed partial class</c> with init-only properties for
+/// Mapperly source-generation compatibility.</summary>
+public sealed partial class UserSummary
+{
+    /// <summary>UUID v7 user id.</summary>
+    public Guid Id { get; init; }
+
+    /// <summary>Tenant scope.</summary>
+    public Guid OrgId { get; init; }
+
+    /// <summary>Email address.</summary>
+    public string Email { get; init; } = string.Empty;
+
+    /// <summary>Human-readable name shown in audit + UI.</summary>
+    public string DisplayName { get; init; } = string.Empty;
+
+    /// <summary>User status.</summary>
+    public string Status { get; init; } = string.Empty;
+
+    /// <summary>Account creation time (UTC).</summary>
+    public DateTimeOffset CreatedAt { get; init; }
+
+    /// <summary>Last modification time (UTC).</summary>
+    public DateTimeOffset UpdatedAt { get; init; }
+
+    /// <summary>Last successful login (UTC), null if never.</summary>
+    public DateTimeOffset? LastLoginAt { get; init; }
+}
 
 /// <summary>Paged response shape for ListUsersQuery.</summary>
 /// <param name="Items">Page items.</param>
