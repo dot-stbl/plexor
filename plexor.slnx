@@ -113,6 +113,7 @@
         <Project Path="tests/unit/Plexor.Shared.Composition.Unit/Plexor.Shared.Composition.Unit.csproj" />
     <Project Path="tests/unit/Plexor.Shared.Authorization.Unit/Plexor.Shared.Authorization.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Core.Providers.Unit/Plexor.Core.Providers.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Shared.Identifiers.Unit/Plexor.Shared.Identifiers.Unit.csproj" />
     </Folder>
 
     <!-- ============ Benchmarks =================================================== -->

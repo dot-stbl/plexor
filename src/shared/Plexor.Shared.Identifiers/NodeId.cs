@@ -17,7 +17,7 @@ namespace Plexor.Shared.Identifiers;
 ///     The string form is <c>node_</c> + UUIDv7 lowercase no-dashes.
 /// </summary>
 /// <param name="Value">Raw UUIDv7 bytes.</param>
-public readonly partial record struct NodeId(Guid Value)
+public readonly partial record struct NodeId(Guid Value) : IParsable<NodeId>
 {
     /// <inheritdoc />
     public override string ToString()
@@ -27,4 +27,33 @@ public readonly partial record struct NodeId(Guid Value)
 
     /// <summary>Canonical literal prefix.</summary>
     public const string Prefix = "node_";
+
+    /// <inheritdoc />
+    /// <remarks>See <see cref="ClusterId.Parse" /> for ASP.NET Core
+    /// model-binder contract.</remarks>
+    public static NodeId Parse(string s, IFormatProvider? provider)
+    {
+        return IdParse.ParseNodeId(s);
+    }
+
+    /// <inheritdoc />
+    public static bool TryParse(string? s, IFormatProvider? provider, out NodeId result)
+    {
+        if (s is null)
+        {
+            result = default;
+            return false;
+        }
+
+        try
+        {
+            result = IdParse.ParseNodeId(s);
+            return true;
+        }
+        catch (FormatException)
+        {
+            result = default;
+            return false;
+        }
+    }
 }

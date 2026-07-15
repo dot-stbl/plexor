@@ -19,7 +19,7 @@ namespace Plexor.Shared.Identifiers;
 ///     The string form is <c>cluster_</c> + UUIDv7 lowercase no-dashes.
 /// </summary>
 /// <param name="Value">Raw UUIDv7 bytes (16 bytes, time-ordered).</param>
-public readonly partial record struct ClusterId(Guid Value)
+public readonly partial record struct ClusterId(Guid Value) : IParsable<ClusterId>
 {
     /// <summary>The canonical string form of this ID.</summary>
     public override string ToString()
@@ -32,4 +32,46 @@ public readonly partial record struct ClusterId(Guid Value)
     ///     parser in <see cref="IdParse" /> to dispatch on type.
     /// </summary>
     public const string Prefix = "cluster_";
+
+    /// <inheritdoc />
+    /// <remarks>
+    ///     Implemented explicitly so ASP.NET Core's model binder (which
+    ///     looks for <c>static T Parse(string, IFormatProvider?)</c>
+    ///     since .NET 7) can map <c>[FromRoute] ClusterId</c> parameters
+    ///     from the wire-format string directly. Throws
+    ///     <see cref="FormatException" /> on missing prefix or
+    ///     malformed body — the binder surfaces this as a 400 with
+    ///     the inner exception message.
+    /// </remarks>
+    public static ClusterId Parse(string s, IFormatProvider? provider)
+    {
+        return IdParse.ParseClusterId(s);
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    ///     Returns false on <c>null</c>, missing prefix, wrong body
+    ///     length, or non-hex characters. Never throws — the binder
+    ///     translates false into a 400 with a deterministic error
+    ///     path.
+    /// </remarks>
+    public static bool TryParse(string? s, IFormatProvider? provider, out ClusterId result)
+    {
+        if (s is null)
+        {
+            result = default;
+            return false;
+        }
+
+        try
+        {
+            result = IdParse.ParseClusterId(s);
+            return true;
+        }
+        catch (FormatException)
+        {
+            result = default;
+            return false;
+        }
+    }
 }

@@ -15,7 +15,7 @@ namespace Plexor.Shared.Identifiers;
 ///     The string form is <c>wl_</c> + UUIDv7 lowercase no-dashes.
 /// </summary>
 /// <param name="Value">Raw UUIDv7 bytes.</param>
-public readonly partial record struct WorkloadId(Guid Value)
+public readonly partial record struct WorkloadId(Guid Value) : IParsable<WorkloadId>
 {
     /// <inheritdoc />
     public override string ToString()
@@ -25,4 +25,33 @@ public readonly partial record struct WorkloadId(Guid Value)
 
     /// <summary>Canonical literal prefix.</summary>
     public const string Prefix = "wl_";
+
+    /// <inheritdoc />
+    /// <remarks>See <see cref="ClusterId.Parse" /> for ASP.NET Core
+    /// model-binder contract.</remarks>
+    public static WorkloadId Parse(string s, IFormatProvider? provider)
+    {
+        return IdParse.ParseWorkloadId(s);
+    }
+
+    /// <inheritdoc />
+    public static bool TryParse(string? s, IFormatProvider? provider, out WorkloadId result)
+    {
+        if (s is null)
+        {
+            result = default;
+            return false;
+        }
+
+        try
+        {
+            result = IdParse.ParseWorkloadId(s);
+            return true;
+        }
+        catch (FormatException)
+        {
+            result = default;
+            return false;
+        }
+    }
 }
