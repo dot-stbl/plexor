@@ -8,9 +8,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/shared/ui/primitives/button"
-import { ArrowLeft, ArrowRight, ArrowDown } from '@phosphor-icons/react'
-
-function Calendar({
+import { ArrowBack, ArrowDownward, ArrowForward } from '@nine-thirty-five/material-symbols-react/rounded/700';function Calendar({
   className,
   classNames,
   showOutsideDays = true,
@@ -145,18 +143,18 @@ function Calendar({
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {
             return (
-              <ArrowLeft strokeWidth={2} className={cn("size-4", className)} {...props}  />
+              <ArrowBack strokeWidth={2} className={cn("size-4", className)} {...props}  />
             )
           }
 
           if (orientation === "right") {
             return (
-              <ArrowRight strokeWidth={2} className={cn("size-4", className)} {...props}  />
+              <ArrowForward strokeWidth={2} className={cn("size-4", className)} {...props}  />
             )
           }
 
           return (
-            <ArrowDown strokeWidth={2} className={cn("size-4", className)} {...props}  />
+            <ArrowDownward strokeWidth={2} className={cn("size-4", className)} {...props}  />
           )
         },
         DayButton: ({ ...props }) => (

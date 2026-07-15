@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { toast } from 'sonner';
-import { Plus, Image } from '@/shared/ui/icon';
+import { Add, Image } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { DataTable, DataTableColumns, type DataTableColumnsState } from '@/shared/ui/data-table';
@@ -28,7 +28,7 @@ function ImagesPage() {
 
   const createCta = (
     <Button size="sm" onClick={() => toast('Creating image — coming soon')}>
-      <Plus />
+      <Add />
       Create image
     </Button>
   );

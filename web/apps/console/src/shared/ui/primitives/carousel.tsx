@@ -7,9 +7,7 @@ import useEmblaCarousel, {
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/shared/ui/primitives/button"
-import { CaretLeft, CaretRight } from '@phosphor-icons/react'
-
-type CarouselApi = UseEmblaCarouselType[1]
+import { KeyboardArrowLeft, KeyboardArrowRight } from '@nine-thirty-five/material-symbols-react/rounded/700';type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
 type CarouselOptions = UseCarouselParameters[0]
 type CarouselPlugin = UseCarouselParameters[1]
@@ -195,7 +193,7 @@ function CarouselPrevious({
       onClick={scrollPrev}
       {...props}
     >
-      <CaretLeft strokeWidth={2}  />
+      <KeyboardArrowLeft strokeWidth={2}  />
       <span className="sr-only">Previous slide</span>
     </Button>
   )
@@ -225,7 +223,7 @@ function CarouselNext({
       onClick={scrollNext}
       {...props}
     >
-      <CaretRight strokeWidth={2}  />
+      <KeyboardArrowRight strokeWidth={2}  />
       <span className="sr-only">Next slide</span>
     </Button>
   )

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, CircleNotch, CheckCircle, Prohibit } from '@phosphor-icons/react';
+import { Block, CheckCircle, Close, ProgressActivity } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { revokeJoinToken } from './use-clusters';
@@ -13,8 +13,8 @@ const STATUS_LABEL: Record<JoinToken['status'], string> = {
 
 const STATUS_ICON: Record<JoinToken['status'], React.ReactNode> = {
   active: <CheckCircle className="size-3" />,
-  expired: <CircleNotch className="size-3" />,
-  revoked: <Prohibit className="size-3" />,
+  expired: <ProgressActivity className="size-3" />,
+  revoked: <Block className="size-3" />,
 };
 
 interface TokenRowProps {
@@ -72,7 +72,7 @@ export function TokenRow({ clusterId, token }: TokenRowProps) {
               setRevoked(true);
             }}
           >
-            <X className="size-4" />
+            <Close className="size-4" />
           </Button>
         )}
       </div>

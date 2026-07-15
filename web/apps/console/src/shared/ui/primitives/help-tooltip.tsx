@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Question } from '@/shared/ui/icon';
+import { Help } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/primitives/tooltip';
 import { cn } from '@/lib/utils';
 
@@ -24,7 +24,7 @@ export function HelpTooltip({ children, className }: { children: ReactNode; clas
             />
           }
         >
-          <Question className="size-3.5" />
+          <Help className="size-3.5" />
         </TooltipTrigger>
         <TooltipContent>{children}</TooltipContent>
       </Tooltip>

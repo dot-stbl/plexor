@@ -1,4 +1,5 @@
-import { Database, Lightning, ChartBar, Plus, type Icon } from '@/shared/ui/icon';
+import { Add, BarChart, Bolt, Database } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import { Link } from '@tanstack/react-router';
 import { Button } from '@/shared/ui/primitives/button';
 import { TechIcon } from '@/shared/ui/primitives/tech-icon';
@@ -7,9 +8,9 @@ import type { DbEngine, DbKind } from './database-types';
 
 const KIND_ICON: Record<DbKind, Icon> = {
   relational: Database,
-  cache: Lightning,
-  queue: Lightning,
-  analytics: ChartBar,
+  cache: Bolt,
+  queue: Bolt,
+  analytics: BarChart,
 };
 
 /**
@@ -47,7 +48,7 @@ export function ManagedServiceEmpty({ engine }: { engine: DbEngine }) {
       ]}
       action={
         <Button nativeButton={false} render={<Link to="/managed/new" search={{ engine: engine.id }} />}>
-          <Plus className="size-3.5" />
+          <Add className="size-3.5" />
           Create {engine.name} cluster
         </Button>
       }

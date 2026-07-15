@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import { Icon as Iconify } from '@iconify/react';
 import { LOGO_DATA } from '@/shared/ui/tech-icon-data';
-import { Database } from '@/shared/ui/icon';
+import { Database } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { cn } from '@/lib/utils';
 
 /**

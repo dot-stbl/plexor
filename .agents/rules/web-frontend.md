@@ -15,6 +15,8 @@ priority: high
 
 ## Architecture
 
+0. **Package manager — `bun`, never `pnpm` или `npm`.** Web monorepo `web/` использует `bun` (см. `web/package.json` scripts: `bun --filter ...`). Не запускай `pnpm install`, `pnpm add`, `pnpm dev` или любые другие `pnpm`-команды в `web/`. Используй `bun install`, `bun add`, `bunx --bun <tool>`, `bun run <script>`. `frontend/` (deprecated, см. `.agents/process/build-verification.md` line 144) использует pnpm — это другой модуль, не путай. Распознавание: `web/` monorepo с TanStack Router — PM = `bun`; `frontend/` — PM = `pnpm`.
+
 1. **shadcn-ui is the single source of components.** No parallel flat-class system. No custom HTML form controls styled via CSS. shadcn primitives are adapted to Plexor DS tokens, not the other way around.
 2. **If shadcn-ui doesn't cover something** (FileUpload, MultiSelect, ColorPicker, custom form), create a new primitive in `src/shared/ui/primitives/` following the shadcn-ui pattern: `*-ui` package as base, `cva` for variants, `cn()` for class merging, `data-slot` for selectors, `forwardRef` if needed.
 3. **Tailwind utilities are the source of truth for typography & display.** No `.eyebrow`, `.kbd`, `.code`, `.pill`, `.chip`, `.mono`, `.num`, `.tnum`, `.uppercase` flat classes. Use Tailwind: `text-[11px] uppercase tracking-[0.06em] text-muted-foreground font-medium` instead.
@@ -31,10 +33,10 @@ priority: high
 
 ## Components
 
-11. **shadcn-ui primitives in `src/shared/ui/primitives/`** — generated via `bunx --bun shadcn@latest add <name>`. After generation, customize for Plexor DS (add variants, change sizes, swap icon imports to `@/shared/ui/icon`).
+11. **shadcn-ui primitives in `src/shared/ui/primitives/`** — generated via `bunx --bun shadcn@latest add <name>`. After generation, customize for Plexor DS (add variants, change sizes, swap icon imports to `@nine-thirty-five/material-symbols-react/rounded/700`).
 12. **Custom primitives same location + same pattern** — `StatusPill`, `MonoNum`, `ThemeToggle`. Use `forwardRef` when wrapping native elements that need ref. Use `cva` for variants. Use `cn()` (from `@/lib/utils`) for className merging.
-13. **UI-иконки: Google Material Symbols _Rounded_ через `@/shared/ui/icon`.** Рендер — `@iconify/react` из инлайн-данных (сгенерированы кодогеном, офлайн, без рантайм-сети). Импортируй компоненты ТОЛЬКО из `@/shared/ui/icon` (`Plus`, `CaretDown`, `Trash`, `MagnifyingGlass`, …), НЕ из вендора напрямую. Rounded — под наш soft-radius. Размер — `className="size-*"`. **Пропа `weight` НЕТ** (Material ≠ Phosphor) — не передавай; акцент активного состояния — фоном контрола. Смена вендора = кодоген + regen (не трогая call-site'ы).
-14. **Один источник UI-иконок — `@/shared/ui/icon`** (файл `icon.tsx` генерируется `scripts/gen-icons.cjs`). Нет `@phosphor-icons/react` (удалён), `unplugin-icons`, `lucide-react`, `react-icons`. Новую иконку: впиши маппинг Phosphor-имя→material-имя в `scripts/gen-icons.cjs`, затем `bun run gen:icons`. Цветные бренд/тех-логотипы — отдельно через `<TechIcon>` (Iconify `logos:`), см. rule 63.
+13. **UI-иконки: Google Material Symbols _Rounded_ (weight 700) через `@nine-thirty-five/material-symbols-react/rounded/700`.** Tree-shakeable: каждый импорт шипит только нужную иконку (path). Импортируй компоненты напрямую из subpath (`Add`, `KeyboardArrowDown`, `Delete`, `Search`, …), НЕ из вендорного корня и НЕ из локального `@/shared/ui/icon` (такого файла больше нет). Rounded 700 = chunky default под Plexor DS soft-radius. Размер — `className="size-*"` (default size `1em` в либе, но мы почти всегда передаём явный `size-*`). **Weight prop не передавай** — стиль зашит в import path (700 = default; для rare thin-вариантов импортируй из другого subpath: `…/rounded/400`, `…/rounded/filled`). Акцент активного состояния — фоном контрола, не сменой weight в месте использования. **Filled** — опциональный для selected-состояний (`@nine-thirty-five/material-symbols-react/rounded/filled`), не для emphasis. **Manifest для агентов** (если ищешь иконку по natural language): `node_modules/@nine-thirty-five/material-symbols-react/dist/manifest.json` — у каждой иконки `tags` (синонимы).
+14. **Один источник UI-иконок — `@nine-thirty-five/material-symbols-react` (subpath per style/weight).** Нет локального `@/shared/ui/icon`, нет `@phosphor-icons/react`, нет `@iconify/react` для UI-иконок, нет `unplugin-icons`, `lucide-react`, `react-icons`. Новая иконка: найди Material-имя в `manifest.json` (или [fonts.google.com/icons](https://fonts.google.com/icons?icon.set=Material+Symbols)), импортируй из `@nine-thirty-five/material-symbols-react/rounded/700`. **Без алиасов** (никакого Phosphor-нейминга): компонент в коде = Material-имя (`Add`, `Close`, `KeyboardArrowDown`, `DockToLeft`). Локальный `as`-ренейм разрешён только для разрешения коллизии имён (например `import { DockToLeft as SidebarIcon }` когда рядом локальная `Sidebar` UI-shell компонента). Цветные бренд/тех-логотипы — отдельно через `<TechIcon>` (Iconify `logos:` инлайн в `src/shared/ui/tech-icon-data.ts`, регенерируется `bun run gen:tech-icons`), см. rule 63.
 15. **Button variants** (custom-adapted for Plexor DS):
     - `default` → Plexor DS primary (bg=accent monochrome dark)
     - `outline` → surface bg + border
@@ -97,7 +99,7 @@ UI has **5 levels of emphasis**. Each level has a specific role; using the wrong
 ### Rules
 
 - **Max ONE `default` button per view** — the primary action. All other actions use `outline`, `ghost`, or `destructive`.
-- **Icon-only buttons use `size="icon"` / `size="icon-sm"`** — never `<Button>⚙</Button>` with text-glyph. Always SVG-иконка из `@/shared/ui/icon`: `<Button size="icon" aria-label="settings"><Gear /></Button>`.
+- **Icon-only buttons use `size="icon"` / `size="icon-sm"`** — never `<Button>⚙</Button>` with text-glyph. Always SVG-иконка из `@nine-thirty-five/material-symbols-react/rounded/700`: `<Button size="icon" aria-label="settings"><Settings /></Button>`.
 - **Icon + text in a button** — when the icon helps recognition: `<Button><Pause /> Suspend</Button>`. Icon goes FIRST, then text. Never text + icon in this order (looks weird in RTL or when text is wrapped).
 - **SVG-иконки auto-size** via shadcn's `[&_svg:not([class*='size-'])]:size-4` selector as defense-in-depth, but **always pass explicit `className="size-X"`** on icons. Default `size-4` (16px). Use `size-3.5` (14px) inside size=sm button, `size-3` (12px) inside icon-sm, `size-3.5` inside default. Relying on parent selector alone is fragile.
 - **Inline row actions** (table rows) — use `Button size="icon-sm" variant="ghost"` per action. Up to 3-4 per row; if more, use shadcn `DropdownMenu` triggered by `size="icon"` with `<DotsThree />`.
@@ -110,7 +112,7 @@ Flex containers with text + icon + button often drift vertically. Common causes 
 
 ```tsx
 // ❌ Wrong — emoji icons have inconsistent baseline (warn: text drifts)
-// ✅ Fix — SVG icons from @/shared/ui/icon, no className size (auto-sized by Button)
+// ✅ Fix — SVG icons from @nine-thirty-five/material-symbols-react/rounded/700, no className size (auto-sized by Button)
 <Button size="icon" aria-label="settings"><Gear /></Button>
 
 // ❌ Wrong — MonoNum digit baseline drifts from surrounding text
@@ -133,7 +135,7 @@ Flex containers with text + icon + button often drift vertically. Common causes 
 1. Add `items-center` to the parent (vertical centering)
 2. Use `self-stretch` on fixed-height dividers
 3. Use `inline-block align-middle` on text-only inline elements that don't behave like text (MonoNum, code)
-4. Never use emoji as UI icons — always SVG icons from `@/shared/ui/icon`
+4. Never use emoji as UI icons — always SVG icons from `@nine-thirty-five/material-symbols-react/rounded/700`
 
 ## Select / Combobox / Popover — overlay pitfalls
 
@@ -211,11 +213,11 @@ When item is highlighted (hover/focus), background → `bg-accent` (dark). Check
 </Select.Item>
 ```
 
-**5. Иконки — из `@/shared/ui/icon`, не из вендора**
+**5. Иконки — из `@nine-thirty-five/material-symbols-react/rounded/700`, не из вендора**
 
 ```ts
 // ✅ Works — Material Symbols Rounded под Phosphor-совместимыми именами:
-import { Check, CaretDown } from '@/shared/ui/icon';
+import { Check, KeyboardArrowDown } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 // ❌ Пакет удалён:
 import { Check, CaretDown } from '@phosphor-icons/react';
@@ -296,7 +298,7 @@ Required for screen readers to announce purpose.
 43. **Visual variants via `cva`, not prop sprawl.** A `<Button variant="outline" size="sm">` beats `<Button isOutline isSmall>`. See `src/shared/ui/primitives/button.tsx` for the canonical pattern.
 44. **`render` prop for polymorphic triggers.** shadcn primitives that wrap `<button>` (DropdownMenuTrigger, DialogTrigger, SidebarTrigger) take `render={<Link to="..." />}`. Use this for any non-button trigger — don't reach for `asChild` (it's radix-legacy; base-ui uses `render`).
 45. **Custom primitive goes in `src/shared/ui/primitives/`** when **all three** are true: (a) used by 2+ features, (b) carries its own semantics (not just styling), (c) passes the shadcn rules (one file, no horizontal padding hacks, no `!important`). If only one feature needs it → keep in that feature folder.
-46. **Icon-only controls need `aria-label`.** `<Button size="icon-sm" aria-label="Действия"><DotsThree /></Button>` — never bare icon. Иконки импортируются из `@/shared/ui/icon` (`DotsThree` и т.п.).
+46. **Icon-only controls need `aria-label`.** `<Button size="icon-sm" aria-label="Действия"><MoreHoriz /></Button>` — never bare icon. Иконки импортируются из `@nine-thirty-five/material-symbols-react/rounded/700` (`MoreHoriz` и т.п.).
 
 ## State management
 
@@ -348,7 +350,7 @@ Required for screen readers to announce purpose.
     (`warn`) прямо в форме, где настройка имеет последствия. Только семантика, не
     украшение.
 63. **Тех/сервис-логотипы — ЦВЕТНЫЕ через `<TechIcon slug=…>`** (Iconify `logos:`,
-    данные инлайн в `tech-icon-data.ts` через кодоген `gen:icons`, рендер `@iconify/react`).
+    данные инлайн в `tech-icon-data.ts` через кодоген `gen:tech-icons`, рендер `@iconify/react`).
     Осознанный карв-аут: UI-чром строго
     монохром, но ЛОГОТИПЫ продуктов — в бренд-цвете (узнаваемость: launcher, каталог,
     empty, sidebar managed). Нет цветного лого (`clickhouse`/`garnet`/`minio`/`ceph`) →

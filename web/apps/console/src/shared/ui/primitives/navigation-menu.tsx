@@ -2,9 +2,7 @@ import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/naviga
 import { cva } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
-import { CaretDown } from '@phosphor-icons/react'
-
-function NavigationMenu({
+import { KeyboardArrowDown } from '@nine-thirty-five/material-symbols-react/rounded/700';function NavigationMenu({
   align = "start",
   className,
   children,
@@ -71,7 +69,7 @@ function NavigationMenuTrigger({
       {...props}
     >
       {children}{" "}
-      <CaretDown className="relative top-px ml-1 size-3 transition duration-300 group-data-popup-open/navigation-menu-trigger:rotate-180 group-data-open/navigation-menu-trigger:rotate-180" aria-hidden="true"  />
+      <KeyboardArrowDown className="relative top-px ml-1 size-3 transition duration-300 group-data-popup-open/navigation-menu-trigger:rotate-180 group-data-open/navigation-menu-trigger:rotate-180" aria-hidden="true"  />
     </NavigationMenuPrimitive.Trigger>
   )
 }

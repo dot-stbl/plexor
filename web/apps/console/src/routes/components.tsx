@@ -1,6 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Gear, Trash, ArrowClockwise, Pause, Pencil, Copy, Clipboard, Check, Plus } from '@phosphor-icons/react';
+import {
+  Add,
+  Check,
+  ContentCopy,
+  ContentPaste,
+  Delete,
+  Edit,
+  Pause,
+  Refresh,
+  Settings
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 import {
   Area,
   AreaChart,
@@ -269,7 +279,7 @@ function BulkActionToolbarDemo() {
 
   const actions: BulkActionAction[] = [
     { label: 'Suspend', onClick: () => {}, variant: 'outline', icon: <Pause className="size-4" /> },
-    { label: 'Restart', onClick: () => {}, variant: 'outline', icon: <ArrowClockwise className="size-4" /> },
+    { label: 'Restart', onClick: () => {}, variant: 'outline', icon: <Refresh className="size-4" /> },
   ];
 
   return (
@@ -302,7 +312,7 @@ function BulkActionToolbarDemo() {
           actions={[
             ...actions,
             // Destructive: icon-only red button (clear visual signal)
-            { label: '', onClick: () => {}, variant: 'destructive', icon: <Trash className="size-4" /> },
+            { label: '', onClick: () => {}, variant: 'destructive', icon: <Delete className="size-4" /> },
           ]}
           entityLabel="vms selected"
           bottomClass="bottom-3"
@@ -624,7 +634,7 @@ function Component({ id }: { id: string }) {
               <Button>default</Button>
               <Button size="lg">lg</Button>
               <Button size="icon" aria-label="settings">
-                <Gear />
+                <Settings />
               </Button>
             </div>
           </div>
@@ -702,22 +712,22 @@ function Component({ id }: { id: string }) {
             />
             <ContextMenuContent>
               <ContextMenuItem>
-                <Pencil />
+                <Edit />
                 Edit
               </ContextMenuItem>
               <ContextMenuItem>
-                <Copy />
-                Copy ID
+                <ContentCopy />
+                ContentCopy ID
                 <ContextMenuShortcut>⌘C</ContextMenuShortcut>
               </ContextMenuItem>
               <ContextMenuItem>
-                <Clipboard />
+                <ContentPaste />
                 Inspect
                 <ContextMenuShortcut>⌘I</ContextMenuShortcut>
               </ContextMenuItem>
               <ContextMenuSeparator />
               <ContextMenuItem variant="destructive">
-                <Trash />
+                <Delete />
                 Delete
                 <ContextMenuShortcut>⌫</ContextMenuShortcut>
               </ContextMenuItem>
@@ -957,7 +967,7 @@ function Component({ id }: { id: string }) {
                   verified
                 </Badge>
                 <Badge variant="secondary">
-                  <Plus className="size-3" />
+                  <Add className="size-3" />
                   new
                 </Badge>
                 <Badge variant="outline">+12</Badge>

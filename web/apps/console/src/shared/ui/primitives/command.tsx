@@ -13,9 +13,7 @@ import {
   InputGroup,
   InputGroupAddon,
 } from "@/shared/ui/primitives/input-group"
-import { MagnifyingGlass, Check } from '@phosphor-icons/react'
-
-function Command({
+import { Check, Search } from '@nine-thirty-five/material-symbols-react/rounded/700';function Command({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive>) {
@@ -82,7 +80,7 @@ function CommandInput({
           {...props}
         />
         <InputGroupAddon>
-          <MagnifyingGlass strokeWidth={2} className="size-3.5 shrink-0 opacity-50"  />
+          <Search strokeWidth={2} className="size-3.5 shrink-0 opacity-50"  />
         </InputGroupAddon>
       </InputGroup>
     </div>

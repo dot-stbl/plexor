@@ -22,7 +22,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/shared/ui/primitives/tooltip"
-import { Sidebar as SidebarIcon } from '@phosphor-icons/react'
+import { DockToLeft } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_WIDTH = "16rem"
@@ -273,7 +273,7 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <SidebarIcon strokeWidth={2}  />
+      <DockToLeft strokeWidth={2}  />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

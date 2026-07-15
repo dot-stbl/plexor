@@ -1,13 +1,13 @@
-import type { Icon } from '@/shared/ui/icon';
-import { Desktop, Package, Cube, Hexagon } from '@/shared/ui/icon';
+import type { Icon } from '@nine-thirty-five/material-symbols-react';
+import { DeployedCode, DesktopWindows, Hexagon, Package } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { cn } from '@/shared/lib/utils';
 import type { Runtime } from './database-types';
 import { RUNTIME_META } from './database-types';
 
 export const RUNTIME_ICON: Record<Runtime, Icon> = {
-  vm: Desktop,
+  vm: DesktopWindows,
   lxc: Package,
-  docker: Cube,
+  docker: DeployedCode,
   k8s: Hexagon,
 };
 

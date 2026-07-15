@@ -1,6 +1,15 @@
 import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { Plus, CaretDown, Image, Camera, Key, Lan, HardDrive, type Icon } from '@/shared/ui/icon';
+import {
+  Add,
+  Camera,
+  HardDrive,
+  Image,
+  Key,
+  KeyboardArrowDown,
+  Lan
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
+import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import { Button } from '@/shared/ui/primitives/button';
 import {
   DropdownMenu,
@@ -67,9 +76,9 @@ export function GlobalCreateMenu() {
       <DropdownMenuTrigger
         render={
           <Button size="sm" data-od-id="global-create">
-            <Plus />
+            <Add />
             Create
-            <CaretDown className="opacity-70" />
+            <KeyboardArrowDown className="opacity-70" />
           </Button>
         }
       />

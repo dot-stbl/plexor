@@ -11,9 +11,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/shared/ui/primitives/input-group"
-import { CaretDown, X, Check } from '@phosphor-icons/react'
-
-const Combobox = ComboboxPrimitive.Root
+import { Check, Close, KeyboardArrowDown } from '@nine-thirty-five/material-symbols-react/rounded/700';const Combobox = ComboboxPrimitive.Root
 
 function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
   return <ComboboxPrimitive.Value data-slot="combobox-value" {...props} />
@@ -31,7 +29,7 @@ function ComboboxTrigger({
       {...props}
     >
       {children}
-      <CaretDown strokeWidth={2} className="pointer-events-none size-3.5 text-muted-foreground"  />
+      <KeyboardArrowDown strokeWidth={2} className="pointer-events-none size-3.5 text-muted-foreground"  />
     </ComboboxPrimitive.Trigger>
   )
 }
@@ -44,7 +42,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
       className={cn(className)}
       {...props}
     >
-      <X strokeWidth={2} className="pointer-events-none"  />
+      <Close strokeWidth={2} className="pointer-events-none"  />
     </ComboboxPrimitive.Clear>
   )
 }
@@ -253,7 +251,7 @@ function ComboboxChip({
           className="-ml-1 opacity-50 hover:opacity-100"
           data-slot="combobox-chip-remove"
         >
-          <X strokeWidth={2} className="pointer-events-none"  />
+          <Close strokeWidth={2} className="pointer-events-none"  />
         </ComboboxPrimitive.ChipRemove>
       )}
     </ComboboxPrimitive.Chip>

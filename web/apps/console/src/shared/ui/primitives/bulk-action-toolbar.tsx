@@ -1,6 +1,6 @@
 import { Button } from '@/shared/ui/primitives/button';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
-import { X } from '@phosphor-icons/react';
+import { Close } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { cn } from '@/shared/lib/utils';
 
 import type { ComponentProps, ReactNode } from 'react';
@@ -101,7 +101,7 @@ export function BulkActionToolbar({
         onClick={onClear}
         aria-label="Clear selection"
       >
-        <X className="size-3.5" />
+        <Close className="size-3.5" />
       </Button>
     </div>
   );

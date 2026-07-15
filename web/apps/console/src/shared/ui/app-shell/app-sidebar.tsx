@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
-import { SquaresFour, GearSix, SignOut } from '@phosphor-icons/react';
+import { GridView, Logout, Settings } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import {
   Sidebar,
   SidebarContent,
@@ -27,7 +27,7 @@ import {
 } from '@/shared/ui/primitives/dropdown-menu';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { toast } from 'sonner';
-import type { Icon } from '@phosphor-icons/react';
+import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import {
   SECTIONS,
   isActiveRoute,
@@ -92,7 +92,7 @@ export function AppSidebar() {
           <SidebarMenu>
             <SidebarMenuItem className="group/menu-item relative">
               <SidebarMenuButton onClick={() => setLauncherOpen(true)} className="font-medium">
-                <SquaresFour weight="bold" />
+                <GridView />
                 <span>Приложения</span>
               </SidebarMenuButton>
               <span aria-hidden="true" className={railPill}>
@@ -116,7 +116,7 @@ export function AppSidebar() {
                     return (
                       <SidebarMenuItem key={item.title} className="group/menu-item relative">
                         <SidebarMenuButton isActive={active} render={<Link to={item.to} />}>
-                          <ItemIcon weight={active ? 'fill' : 'bold'} />
+                          <ItemIcon />
                           <span>{item.title}</span>
                         </SidebarMenuButton>
                         <span aria-hidden="true" className={railPill}>
@@ -181,11 +181,11 @@ export function AppSidebar() {
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-                <GearSix className="size-4" />
+                <Settings className="size-4" />
                 Настройки
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => toast('Вы вышли из аккаунта')}>
-                <SignOut className="size-4" />
+                <Logout className="size-4" />
                 Выйти
               </DropdownMenuItem>
             </DropdownMenuContent>

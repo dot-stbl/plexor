@@ -2,9 +2,13 @@
 
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { CheckCircle, Info, Warning, XCircle, CircleNotch } from '@phosphor-icons/react'
-
-const Toaster = ({ ...props }: ToasterProps) => {
+import {
+  Cancel,
+  CheckCircle,
+  Info,
+  ProgressActivity,
+  Warning
+} from '@nine-thirty-five/material-symbols-react/rounded/700';const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
 
   return (
@@ -22,10 +26,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
           <Warning strokeWidth={2} className="size-4"  />
         ),
         error: (
-          <XCircle strokeWidth={2} className="size-4"  />
+          <Cancel strokeWidth={2} className="size-4"  />
         ),
         loading: (
-          <CircleNotch strokeWidth={2} className="size-4 animate-spin"  />
+          <ProgressActivity strokeWidth={2} className="size-4 animate-spin"  />
         ),
       }}
       style={

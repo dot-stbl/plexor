@@ -1,4 +1,11 @@
-import { Cube, Cpu, Memory, HardDrives, CircleNotch, XCircle } from '@/shared/ui/icon';
+import {
+  Cancel,
+  DeployedCode,
+  DeveloperBoard,
+  HardDisk,
+  Memory,
+  ProgressActivity
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Size, SizeUtils } from '@/shared/ui/primitives/size';
@@ -25,9 +32,9 @@ const ROLE_LABEL: Record<PlexorNode['role'], string> = {
 
 const STATUS_ICON: Record<PlexorNode['status'], React.ReactNode> = {
   ready: null,
-  pending: <CircleNotch className="size-3 animate-spin" />,
-  draining: <CircleNotch className="size-3 animate-spin" />,
-  offline: <XCircle className="size-3" />,
+  pending: <ProgressActivity className="size-3 animate-spin" />,
+  draining: <ProgressActivity className="size-3 animate-spin" />,
+  offline: <Cancel className="size-3" />,
 };
 
 interface NodeRowProps {
@@ -38,7 +45,7 @@ export function NodeRow({ node }: NodeRowProps) {
   return (
     <div className="flex items-center justify-between gap-3 p-3">
       <div className="flex min-w-0 items-center gap-3">
-        <Cube className="size-4 shrink-0 text-muted-foreground" />
+        <DeployedCode className="size-4 shrink-0 text-muted-foreground" />
         <div className="min-w-0 space-y-0.5">
           <MonoNum className="text-sm">{node.hostname}</MonoNum>
           <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-[0.06em]">
@@ -53,7 +60,7 @@ export function NodeRow({ node }: NodeRowProps) {
       <div className="flex shrink-0 items-center gap-3 text-xs">
         <span className="hidden items-center gap-2 text-muted-foreground md:flex">
           <span className="inline-flex items-center gap-0.5">
-            <Cpu className="size-3" />
+            <DeveloperBoard className="size-3" />
             <MonoNum>{node.spec.vcpu}</MonoNum>
             <span className="ml-0.5 text-[10px] text-muted-foreground">vCPU</span>
           </span>
@@ -62,7 +69,7 @@ export function NodeRow({ node }: NodeRowProps) {
             <Size bytes={SizeUtils.gibToBytes(node.spec.ramGb)} />
           </span>
           <span className="inline-flex items-center gap-0.5">
-            <HardDrives className="size-3" />
+            <HardDisk className="size-3" />
             <Size bytes={SizeUtils.gibToBytes(node.spec.diskGb)} />
           </span>
           <span className="inline-flex items-center gap-0.5">

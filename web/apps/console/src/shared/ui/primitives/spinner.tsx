@@ -1,9 +1,7 @@
 import { cn } from "@/lib/utils"
-import { CircleNotch } from '@phosphor-icons/react'
-
-function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
+import { ProgressActivity } from '@nine-thirty-five/material-symbols-react/rounded/700';function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
   return (
-    <CircleNotch strokeWidth={2} data-slot="spinner" role="status" aria-label="Loading" className={cn("size-4 animate-spin", className)} {...props}  />
+    <ProgressActivity strokeWidth={2} data-slot="spinner" role="status" aria-label="Loading" className={cn("size-4 animate-spin", className)} {...props}  />
   )
 }
 

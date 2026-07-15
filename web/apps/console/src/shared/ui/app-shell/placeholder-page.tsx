@@ -1,4 +1,4 @@
-import type { Icon } from '@phosphor-icons/react';
+import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import type { ReactNode } from 'react';
 import { PageHeader } from './page-header';
 

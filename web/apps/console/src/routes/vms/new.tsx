@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Plus, Cube, Stack, BookOpen } from '@phosphor-icons/react';
+import {
+  Add,
+  ArrowBack,
+  DeployedCode,
+  MenuBook,
+  Stacks
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { Input } from '@/shared/ui/primitives/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/primitives/select';
@@ -93,7 +99,7 @@ function CreateVmPage() {
         description="VM-specific настройки. Нод и кластер выбираются ниже."
         actions={
           <Button variant="ghost" nativeButton={false} render={<Link to="/vms" />}>
-            <ArrowLeft />
+            <ArrowBack />
             Назад
           </Button>
         }
@@ -105,7 +111,7 @@ function CreateVmPage() {
           <Empty data-od-id="vms-new-no-cluster">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <Cube />
+                <DeployedCode />
               </EmptyMedia>
               <EmptyTitle>Plexor control plane не зарегистрирован</EmptyTitle>
               <EmptyDescription>
@@ -115,7 +121,7 @@ function CreateVmPage() {
             </EmptyHeader>
             <EmptyContent>
               <Button render={<a href="https://plexor.dev/docs/install" target="_blank" rel="noreferrer" />}>
-                <BookOpen />
+                <MenuBook />
                 Документация по установке
               </Button>
             </EmptyContent>
@@ -129,7 +135,7 @@ function CreateVmPage() {
           <Empty data-od-id="vms-new-no-ready-nodes">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <Stack />
+                <Stacks />
               </EmptyMedia>
               <EmptyTitle>Нет ready-нодов</EmptyTitle>
               <EmptyDescription>
@@ -139,7 +145,7 @@ function CreateVmPage() {
             </EmptyHeader>
             <EmptyContent>
               <Button nativeButton={false} render={<Link to="/clusters/$id" params={{ id: clusters[0]!.id }} />}>
-                <ArrowLeft />
+                <ArrowBack />
                 Перейти к кластеру
               </Button>
             </EmptyContent>
@@ -311,7 +317,7 @@ function CreateVmPage() {
             onClick={() => navigate({ to: '/vms' })}
             disabled={!nodeId || !name || !image || !network || !sshKey}
           >
-            <Plus />
+            <Add />
             Создать ВМ
           </Button>
         </div>

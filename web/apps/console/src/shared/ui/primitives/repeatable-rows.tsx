@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Plus, X } from '@/shared/ui/icon';
+import { Add, Close } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { cn } from '@/lib/utils';
 
@@ -38,12 +38,12 @@ export function RepeatableRows<T>({
             aria-label="Remove row"
             onClick={() => onChange(rows.filter((_, i) => i !== index))}
           >
-            <X className="size-3.5" />
+            <Close className="size-3.5" />
           </Button>
         </div>
       ))}
       <Button type="button" variant="outline" size="sm" onClick={() => onChange([...rows, newRow()])}>
-        <Plus className="size-3.5" />
+        <Add className="size-3.5" />
         {addLabel}
       </Button>
     </div>

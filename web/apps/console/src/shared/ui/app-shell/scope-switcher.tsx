@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
-import type { Icon } from '@phosphor-icons/react';
+import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import { toast } from 'sonner';
 import {
-  Buildings,
-  UsersThree,
+  Add,
+  Apartment,
+  ContentCopy,
+  Delete,
+  Edit,
   Folder,
   FolderOpen,
-  CaretDown,
-  CaretRight,
-  DotsThree,
-  MagnifyingGlass,
-  Plus,
-  PencilSimple,
-  Trash,
-  ArrowSquareOut,
-  Copy,
-} from '@phosphor-icons/react';
+  Groups,
+  KeyboardArrowDown,
+  KeyboardArrowRight,
+  MoreHoriz,
+  OpenInNew,
+  Search
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { Input } from '@/shared/ui/primitives/input';
 import { Label } from '@/shared/ui/primitives/label';
@@ -117,7 +117,7 @@ function RowActions({ actions }: { actions: RowAction[] }) {
           />
         }
       >
-        <DotsThree className="size-4" weight="bold" />
+        <MoreHoriz className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         {actions.map((action) => {
@@ -169,14 +169,14 @@ function ScopeRow({
       >
         {expandable ? (
           open ? (
-            <CaretDown className="size-3 shrink-0 text-muted-foreground" />
+            <KeyboardArrowDown className="size-3 shrink-0 text-muted-foreground" />
           ) : (
-            <CaretRight className="size-3 shrink-0 text-muted-foreground" />
+            <KeyboardArrowRight className="size-3 shrink-0 text-muted-foreground" />
           )
         ) : (
           <span className="size-3 shrink-0" />
         )}
-        <RowIcon className="size-4 shrink-0 text-muted-foreground" weight={active ? 'fill' : 'regular'} />
+        <RowIcon className="size-4 shrink-0 text-muted-foreground" />
         <span className={cn('truncate', active && 'font-medium text-foreground')}>{name}</span>
       </button>
       <RowActions actions={actions} />
@@ -372,18 +372,18 @@ export function ScopeSwitcher() {
           render={<Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2 font-normal" />}
           data-od-id="scope-switcher"
         >
-          <UsersThree className="size-4 text-muted-foreground" />
+          <Groups className="size-4 text-muted-foreground" />
           <span className="max-w-36 truncate">{currentTeam?.name ?? '—'}</span>
           <span className="text-muted-foreground/50">/</span>
           <Folder className="size-4 text-muted-foreground" />
           <span className="max-w-36 truncate">{currentFolder?.name ?? '—'}</span>
-          <CaretDown className="size-3 text-muted-foreground" />
+          <KeyboardArrowDown className="size-3 text-muted-foreground" />
         </PopoverTrigger>
 
         <PopoverContent align="start" className="w-80 p-0">
           <div className="flex items-center gap-2 border-b border-border p-2">
             <div className="relative flex-1">
-              <MagnifyingGlass className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={filter}
                 onChange={(event) => setFilter(event.target.value)}
@@ -398,7 +398,7 @@ export function ScopeSwitcher() {
               className="size-8 shrink-0"
               onClick={() => launchDialog(() => setCreateTarget({ kind: 'org' }))}
             >
-              <Plus className="size-4" />
+              <Add className="size-4" />
             </Button>
           </div>
 
@@ -412,7 +412,7 @@ export function ScopeSwitcher() {
                 <div key={org.id}>
                   <ScopeRow
                     depth={0}
-                    icon={Buildings}
+                    icon={Apartment}
                     name={org.name}
                     expandable
                     open={isOpen(org.id)}
@@ -420,21 +420,21 @@ export function ScopeSwitcher() {
                     actions={[
                       {
                         label: 'Создать команду',
-                        icon: Plus,
+                        icon: Add,
                         onSelect: () => launchDialog(() => setCreateTarget({ kind: 'team', parentId: org.id })),
                       },
                       {
                         label: 'Переименовать',
-                        icon: PencilSimple,
+                        icon: Edit,
                         onSelect: () => launchDialog(() => setRenameTarget({ id: org.id, name: org.name })),
                       },
                       {
                         label: 'Удалить',
-                        icon: Trash,
+                        icon: Delete,
                         destructive: true,
                         onSelect: () => launchDialog(() => setDeleteTarget({ id: org.id, name: org.name })),
                       },
-                      { label: 'Копировать ID', icon: Copy, onSelect: () => handleCopy(org.id) },
+                      { label: 'Копировать ID', icon: ContentCopy, onSelect: () => handleCopy(org.id) },
                     ]}
                   />
 
@@ -443,7 +443,7 @@ export function ScopeSwitcher() {
                       <div key={team.id}>
                         <ScopeRow
                           depth={1}
-                          icon={UsersThree}
+                          icon={Groups}
                           name={team.name}
                           expandable
                           open={isOpen(team.id)}
@@ -451,24 +451,24 @@ export function ScopeSwitcher() {
                           actions={[
                             {
                               label: 'Создать папку',
-                              icon: Plus,
+                              icon: Add,
                               onSelect: () =>
                                 launchDialog(() => setCreateTarget({ kind: 'folder', parentId: team.id })),
                             },
                             {
                               label: 'Переименовать',
-                              icon: PencilSimple,
+                              icon: Edit,
                               onSelect: () =>
                                 launchDialog(() => setRenameTarget({ id: team.id, name: team.name })),
                             },
                             {
                               label: 'Удалить',
-                              icon: Trash,
+                              icon: Delete,
                               destructive: true,
                               onSelect: () =>
                                 launchDialog(() => setDeleteTarget({ id: team.id, name: team.name })),
                             },
-                            { label: 'Копировать ID', icon: Copy, onSelect: () => handleCopy(team.id) },
+                            { label: 'Копировать ID', icon: ContentCopy, onSelect: () => handleCopy(team.id) },
                           ]}
                         />
 
@@ -484,23 +484,23 @@ export function ScopeSwitcher() {
                               actions={[
                                 {
                                   label: 'Открыть',
-                                  icon: ArrowSquareOut,
+                                  icon: OpenInNew,
                                   onSelect: () => selectFolder(team, folder),
                                 },
                                 {
                                   label: 'Переименовать',
-                                  icon: PencilSimple,
+                                  icon: Edit,
                                   onSelect: () =>
                                     launchDialog(() => setRenameTarget({ id: folder.id, name: folder.name })),
                                 },
                                 {
                                   label: 'Удалить',
-                                  icon: Trash,
+                                  icon: Delete,
                                   destructive: true,
                                   onSelect: () =>
                                     launchDialog(() => setDeleteTarget({ id: folder.id, name: folder.name })),
                                 },
-                                { label: 'Копировать ID', icon: Copy, onSelect: () => handleCopy(folder.id) },
+                                { label: 'Копировать ID', icon: ContentCopy, onSelect: () => handleCopy(folder.id) },
                               ]}
                             />
                           ))}

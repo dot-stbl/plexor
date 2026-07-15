@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { DownloadSimple, Key, Terminal, X } from '@phosphor-icons/react';
+import { Close, Download, Key, Terminal } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import {
   Dialog,
   DialogContent,
@@ -168,7 +168,7 @@ export function AddNodeDialog({ open, onOpenChange, clusterId }: AddNodeDialogPr
                       void navigator.clipboard.writeText(issued.token);
                     }}
                   >
-                    <DownloadSimple className="size-4" />
+                    <Download className="size-4" />
                   </Button>
                 </div>
                 <FieldDescription>
@@ -220,7 +220,7 @@ export function AddNodeDialog({ open, onOpenChange, clusterId }: AddNodeDialogPr
                 Копировать команду
               </Button>
               <Button onClick={() => close(false)}>
-                <X />
+                <Close />
                 Готово
               </Button>
             </DialogFooter>

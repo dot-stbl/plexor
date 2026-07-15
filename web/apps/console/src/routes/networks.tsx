@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { TreeStructure, Plus } from '@phosphor-icons/react';
+import { AccountTree, Add } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { PlaceholderPage } from '@/shared/ui/app-shell';
 import { Button } from '@/shared/ui/primitives/button';
 
@@ -13,10 +13,10 @@ function NetworksPage() {
       breadcrumb={['Ресурсы', 'Сеть']}
       title="Сети и VPC"
       description="VPC, подсети и security groups проекта."
-      icon={TreeStructure}
+      icon={AccountTree}
       actions={
         <Button size="sm">
-          <Plus className="size-4" />
+          <Add className="size-4" />
           Создать сеть
         </Button>
       }

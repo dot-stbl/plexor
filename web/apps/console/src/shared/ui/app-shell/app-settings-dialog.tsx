@@ -9,7 +9,7 @@ import { ModeToggle } from '@/shared/ui/primitives/theme-toggle';
 import { PreferencesDialog } from '@/shared/ui/primitives/preferences-dialog';
 import { Button } from '@/shared/ui/primitives/button';
 import { useState } from 'react';
-import { SlidersHorizontal } from '@/shared/ui/icon';
+import { Tune } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 /**
  * Settings modal — opened from the sidebar's user menu.
@@ -56,7 +56,7 @@ export function AppSettingsDialog({
                   </div>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setPrefsOpen(true)}>
-                  <SlidersHorizontal className="size-3.5" />
+                  <Tune className="size-3.5" />
                   Настроить
                 </Button>
               </div>

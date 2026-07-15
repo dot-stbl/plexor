@@ -4,7 +4,7 @@ import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Size } from '@/shared/ui/primitives/size';
 import { Badge } from '@/shared/ui/primitives/badge';
 import { TechIcon } from '@/shared/ui/primitives/tech-icon';
-import { Image } from '@/shared/ui/icon';
+import { Image } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import type { ImageStatus, OsImage } from './image-types';
 import { mapImageStatusToVariant } from './image-types';
 

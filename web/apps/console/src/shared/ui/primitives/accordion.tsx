@@ -1,9 +1,7 @@
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion"
 
 import { cn } from "@/lib/utils"
-import { CaretDown, CaretUp } from '@phosphor-icons/react'
-
-function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
+import { KeyboardArrowDown, KeyboardArrowUp } from '@nine-thirty-five/material-symbols-react/rounded/700';function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
   return (
     <AccordionPrimitive.Root
       data-slot="accordion"
@@ -42,8 +40,8 @@ function AccordionTrigger({
         {...props}
       >
         {children}
-        <CaretDown data-slot="accordion-trigger-icon" className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"  />
-        <CaretUp data-slot="accordion-trigger-icon" className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline"  />
+        <KeyboardArrowDown data-slot="accordion-trigger-icon" className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"  />
+        <KeyboardArrowUp data-slot="accordion-trigger-icon" className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline"  />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   )

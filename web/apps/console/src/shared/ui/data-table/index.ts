@@ -12,3 +12,5 @@ export type {
 } from './data-table';
 
 export { DataTableToolbar } from './data-table-toolbar';
+export { DataTableColumns } from './data-table-columns';
+export type { DataTableColumnsState } from './data-table-columns';

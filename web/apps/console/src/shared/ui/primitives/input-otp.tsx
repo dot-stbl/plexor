@@ -2,9 +2,7 @@ import * as React from "react"
 import { OTPInput, OTPInputContext } from "input-otp"
 
 import { cn } from "@/lib/utils"
-import { Minus } from '@phosphor-icons/react'
-
-function InputOTP({
+import { Remove } from '@nine-thirty-five/material-symbols-react/rounded/700';function InputOTP({
   className,
   containerClassName,
   ...props
@@ -76,7 +74,7 @@ function InputOTPSeparator({ ...props }: React.ComponentProps<"div">) {
       role="separator"
       {...props}
     >
-      <Minus strokeWidth={2}  />
+      <Remove strokeWidth={2}  />
     </div>
   )
 }

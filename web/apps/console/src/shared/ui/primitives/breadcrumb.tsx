@@ -3,9 +3,7 @@ import { mergeProps } from "@base-ui/react/merge-props"
 import { useRender } from "@base-ui/react/use-render"
 
 import { cn } from "@/lib/utils"
-import { CaretRight, DotsThreeVertical } from '@phosphor-icons/react'
-
-function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
+import { KeyboardArrowRight, MoreVert } from '@nine-thirty-five/material-symbols-react/rounded/700';function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav
       aria-label="breadcrumb"
@@ -86,7 +84,7 @@ function BreadcrumbSeparator({
       {...props}
     >
       {children ?? (
-        <CaretRight strokeWidth={2}  />
+        <KeyboardArrowRight strokeWidth={2}  />
       )}
     </li>
   )
@@ -107,7 +105,7 @@ function BreadcrumbEllipsis({
       )}
       {...props}
     >
-      <DotsThreeVertical strokeWidth={2}  />
+      <MoreVert strokeWidth={2}  />
       <span className="sr-only">More</span>
     </span>
   )

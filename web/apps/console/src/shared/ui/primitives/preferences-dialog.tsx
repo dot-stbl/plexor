@@ -9,7 +9,7 @@ import {
 } from '@/shared/ui/primitives/dialog';
 import { Button } from '@/shared/ui/primitives/button';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/shared/ui/primitives/field';
-import { ArrowClockwise, Moon, Sun } from '@/shared/ui/icon';
+import { DarkMode, LightMode, Refresh } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { cn } from '@/lib/utils';
 import { usePreferences, type Accent, type FontSize, type Theme } from '@/shared/lib/preferences-provider';
 
@@ -32,10 +32,10 @@ const FONT_SIZES: Array<{ value: FontSize; label: string }> = [
   { value: 'large',  label: 'Большой' },
 ];
 
-const THEMES: Array<{ value: Theme; label: string; Icon: typeof Sun }> = [
-  { value: 'light',  label: 'Светлая',  Icon: Sun },
-  { value: 'dark',   label: 'Тёмная',   Icon: Moon },
-  { value: 'system', label: 'Системная', Icon: Sun }, // Material Symbols — no half-circle; Sun icon re-used
+const THEMES: Array<{ value: Theme; label: string; Icon: typeof LightMode }> = [
+  { value: 'light',  label: 'Светлая',  Icon: LightMode },
+  { value: 'dark',   label: 'Тёмная',   Icon: DarkMode },
+  { value: 'system', label: 'Системная', Icon: LightMode }, // Material Symbols — no half-circle; LightMode icon re-used
 ];
 
 /**
@@ -168,7 +168,7 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
               setPreviewTick((t) => t + 1);
             }}
           >
-            <ArrowClockwise className="size-3.5" />
+            <Refresh className="size-3.5" />
             Сбросить
           </Button>
           <Button onClick={() => onOpenChange(false)}>Готово</Button>

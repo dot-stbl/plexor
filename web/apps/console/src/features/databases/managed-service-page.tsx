@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { Plus } from '@/shared/ui/icon';
+import { Add } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { DataTable, DataTableColumns, type DataTableColumnsState } from '@/shared/ui/data-table';
@@ -40,7 +40,7 @@ export function ManagedServicePage({ engineId }: { engineId: string }) {
       actions={
         rows.length > 0 ? (
           <Button nativeButton={false} render={<Link to="/managed/new" search={{ engine: engine.id }} />}>
-            <Plus className="size-3.5" />
+            <Add className="size-3.5" />
             Create cluster
           </Button>
         ) : null

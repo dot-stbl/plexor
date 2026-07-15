@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowLeft, Plus, Key, Stack, ShieldCheck, Clock, Terminal, BookOpen, Lifebuoy } from '@phosphor-icons/react';
+import {
+  Add,
+  ArrowBack,
+  Key,
+  MenuBook,
+  Schedule,
+  Stacks,
+  Support,
+  Terminal,
+  VerifiedUser
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { Badge } from '@/shared/ui/primitives/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
@@ -14,10 +24,10 @@ export const Route = createFileRoute('/clusters/$id')({
 });
 
 const SELF_HELP_LINKS = [
-  { href: 'https://plexor.dev/docs/install', label: 'Установка Plexor', icon: BookOpen },
+  { href: 'https://plexor.dev/docs/install', label: 'Установка Plexor', icon: MenuBook },
   { href: 'https://plexor.dev/docs/iso', label: 'Скачать ISO', icon: Terminal },
-  { href: 'https://plexor.dev/docs/upgrade', label: 'Обновление', icon: ShieldCheck },
-  { href: 'https://plexor.dev/docs/troubleshooting', label: 'Troubleshooting', icon: Lifebuoy },
+  { href: 'https://plexor.dev/docs/upgrade', label: 'Обновление', icon: VerifiedUser },
+  { href: 'https://plexor.dev/docs/troubleshooting', label: 'Troubleshooting', icon: Support },
 ];
 
 function ClusterDetailPage() {
@@ -31,7 +41,7 @@ function ClusterDetailPage() {
       <main className="mx-auto w-full max-w-6xl px-6 py-12 text-center">
         <p className="text-sm text-muted-foreground">Кластер не найден.</p>
         <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />} className="mt-3">
-          <ArrowLeft />
+          <ArrowBack />
           Назад к кластерам
         </Button>
       </main>
@@ -63,11 +73,11 @@ function ClusterDetailPage() {
         actions={
           <>
             <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />}>
-              <ArrowLeft />
+              <ArrowBack />
               Назад
             </Button>
             <Button onClick={() => setAddOpen(true)}>
-              <Plus />
+              <Add />
               Добавить нод
             </Button>
           </>
@@ -102,7 +112,7 @@ function ClusterDetailPage() {
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
             <TabsTrigger value="nodes">
-              <Stack className="size-3.5" /> Ноды <span className="ml-1 text-muted-foreground">({counts.total})</span>
+              <Stacks className="size-3.5" /> Ноды <span className="ml-1 text-muted-foreground">({counts.total})</span>
             </TabsTrigger>
             <TabsTrigger value="tokens">
               <Key className="size-3.5" /> Join-токены <span className="ml-1 text-muted-foreground">({tokens.length})</span>
@@ -121,7 +131,7 @@ function ClusterDetailPage() {
                     </CardDescription>
                   </div>
                   <Button size="sm" onClick={() => setAddOpen(true)}>
-                    <Plus />
+                    <Add />
                     Добавить нод
                   </Button>
                 </div>
@@ -153,7 +163,7 @@ function ClusterDetailPage() {
                     </CardDescription>
                   </div>
                   <Button size="sm" onClick={() => setAddOpen(true)}>
-                    <Plus />
+                    <Add />
                     Создать токен
                   </Button>
                 </div>
@@ -201,7 +211,7 @@ function ClusterDetailPage() {
               </CardContent>
             </Card>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock className="size-3" />
+              <Schedule className="size-3" />
               Токены истекают — после подключения нод остаётся в списке Nodes.
             </div>
           </TabsContent>

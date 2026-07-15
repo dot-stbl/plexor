@@ -5,7 +5,7 @@ import { Size } from '@/shared/ui/primitives/size';
 import { Badge } from '@/shared/ui/primitives/badge';
 import { CopyableText } from '@/shared/ui/primitives/copyable-text';
 import { TechIcon } from '@/shared/ui/primitives/tech-icon';
-import { Cube } from '@/shared/ui/icon';
+import { DeployedCode } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import type { LxcContainer } from './lxc-types';
 import { mapLxcStatusToVariant } from './lxc-types';
 
@@ -23,7 +23,7 @@ export const lxcColumns: ColumnDef<LxcContainer>[] = [
       const family = row.original.template.split('-')[0];
       return (
         <span className="flex items-center gap-2">
-          <TechIcon slug={family} fallback={Cube} className="size-4 shrink-0" />
+          <TechIcon slug={family} fallback={DeployedCode} className="size-4 shrink-0" />
           <span className="truncate font-medium text-foreground">{row.original.name}</span>
         </span>
       );

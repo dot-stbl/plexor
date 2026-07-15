@@ -7,7 +7,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/primitives/dropdown-menu';
-import { DotsThree, Play, Stop, ArrowsClockwise, Terminal, Trash } from '@phosphor-icons/react';
+import {
+  Delete,
+  MoreHoriz,
+  PlayArrow,
+  Stop,
+  Sync,
+  Terminal
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { toast } from 'sonner';
 
 interface VmRowActionsProps {
@@ -35,11 +42,11 @@ export function VmRowActions({ vm }: VmRowActionsProps) {
           />
         }
       >
-        <DotsThree weight="bold" className="size-4" />
+        <MoreHoriz className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem disabled={!stopped} onClick={() => toast(`Запустить: ${vm.name}`)}>
-          <Play />
+          <PlayArrow />
           Запустить
         </DropdownMenuItem>
         <DropdownMenuItem disabled={!running} onClick={() => toast(`Остановить: ${vm.name}`)}>
@@ -50,7 +57,7 @@ export function VmRowActions({ vm }: VmRowActionsProps) {
           disabled={!running}
           onClick={() => toast(`Перезагрузить: ${vm.name}`)}
         >
-          <ArrowsClockwise />
+          <Sync />
           Перезагрузить
         </DropdownMenuItem>
         <DropdownMenuItem disabled>
@@ -62,7 +69,7 @@ export function VmRowActions({ vm }: VmRowActionsProps) {
           variant="destructive"
           onClick={() => toast(`Удалить: ${vm.name}`)}
         >
-          <Trash />
+          <Delete />
           Удалить
         </DropdownMenuItem>
       </DropdownMenuContent>

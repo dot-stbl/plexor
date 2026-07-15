@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
-import { House } from '@phosphor-icons/react';
+import { Home } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -41,7 +41,7 @@ export function AppHeader() {
               data-od-id="breadcrumb-home"
               className="flex items-center rounded-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
             >
-              <House className="size-3.5" weight={pathname === '/' ? 'fill' : 'bold'} />
+              <Home className="size-3.5" />
             </Link>
           </BreadcrumbItem>
           {crumbs.map((crumb, index) => (

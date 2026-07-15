@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Plus, Stack } from '@phosphor-icons/react';
+import { Add, Stacks } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageHeader } from '@/shared/ui/app-shell';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
@@ -35,7 +35,7 @@ function ClustersPage() {
         }
         actions={
           <Button nativeButton={false} render={<Link to="/clusters" />}>
-            <Plus />
+            <Add />
             Документация
           </Button>
         }
@@ -63,7 +63,7 @@ function EmptyClusters() {
       className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card/50 p-12 text-center"
     >
       <span className="flex size-10 items-center justify-center rounded-md bg-muted text-muted-foreground">
-        <Stack className="size-5" />
+        <Stacks className="size-5" />
       </span>
       <div className="space-y-0.5">
         <h3 className="text-sm font-medium">Нет зарегистрированных кластеров</h3>
@@ -74,7 +74,7 @@ function EmptyClusters() {
         </p>
       </div>
       <Button size="sm" nativeButton={false} render={<Link to="/clusters" />}>
-        <Plus />
+        <Add />
         Документация по установке
       </Button>
     </div>

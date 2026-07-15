@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Plus } from '@phosphor-icons/react';
+import { Add } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { useListVms } from '@/shared/api';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageHeader } from '@/shared/ui/app-shell';
@@ -89,7 +89,7 @@ function VmsPage() {
         }
         actions={
           <Button onClick={() => navigate({ to: '/vms/new' })} size="sm">
-            <Plus />
+            <Add />
             Создать ВМ
           </Button>
         }

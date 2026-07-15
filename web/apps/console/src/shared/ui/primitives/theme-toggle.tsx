@@ -6,13 +6,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/ui/primitives/dropdown-menu';
-import { Check, Moon, Sun } from '@/shared/ui/icon';
+import { Check, DarkMode, LightMode } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { cn } from '@/lib/utils';
 
 const ICONS = {
-  light: Sun,
-  dark: Moon,
-  system: Sun, // Sun re-used for system (filled) — no half-circle icon available
+  light: LightMode,
+  dark: DarkMode,
+  system: LightMode, // LightMode re-used for system (filled) — no half-circle icon available
 } as const;
 
 const LABELS = {

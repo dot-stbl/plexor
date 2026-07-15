@@ -2,9 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/shared/ui/primitives/button"
-import { CaretLeft, CaretRight, DotsThreeVertical } from '@phosphor-icons/react'
-
-function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
+import { KeyboardArrowLeft, KeyboardArrowRight, MoreVert } from '@nine-thirty-five/material-symbols-react/rounded/700';function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav
       role="navigation"
@@ -74,7 +72,7 @@ function PaginationPrevious({
       className={cn("pl-2!", className)}
       {...props}
     >
-      <CaretLeft strokeWidth={2} data-icon="inline-start"  />
+      <KeyboardArrowLeft strokeWidth={2} data-icon="inline-start"  />
       <span className="hidden sm:block">{text}</span>
     </PaginationLink>
   )
@@ -93,7 +91,7 @@ function PaginationNext({
       {...props}
     >
       <span className="hidden sm:block">{text}</span>
-      <CaretRight strokeWidth={2} data-icon="inline-end"  />
+      <KeyboardArrowRight strokeWidth={2} data-icon="inline-end"  />
     </PaginationLink>
   )
 }
@@ -112,7 +110,7 @@ function PaginationEllipsis({
       )}
       {...props}
     >
-      <DotsThreeVertical strokeWidth={2}  />
+      <MoreVert strokeWidth={2}  />
       <span className="sr-only">More pages</span>
     </span>
   )

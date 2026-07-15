@@ -1,5 +1,5 @@
 import { useState, type ComponentProps } from 'react';
-import { Eye, EyeSlash } from '@/shared/ui/icon';
+import { Visibility, VisibilityOff } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Input } from '@/shared/ui/primitives/input';
 import { Button } from '@/shared/ui/primitives/button';
 import { cn } from '@/lib/utils';
@@ -23,7 +23,7 @@ export function PasswordInput({ className, ...props }: PasswordInputProps) {
         onClick={() => setShow((s) => !s)}
         className="absolute inset-y-0 right-0.5 my-auto size-6 text-muted-foreground"
       >
-        {show ? <EyeSlash className="size-3.5" /> : <Eye className="size-3.5" />}
+        {show ? <VisibilityOff className="size-3.5" /> : <Visibility className="size-3.5" />}
       </Button>
     </div>
   );

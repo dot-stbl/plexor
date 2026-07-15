@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Stack, CircleNotch, Warning } from '@phosphor-icons/react';
+import { ArrowForward, ProgressActivity, Stacks, Warning } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { Badge } from '@/shared/ui/primitives/badge';
@@ -66,13 +66,13 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         </div>
         <Button size="sm" render={<Link to="/clusters/$id" params={{ id: cluster.id }} />}>
           Управлять
-          <ArrowRight className="size-4" />
+          <ArrowForward className="size-4" />
         </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         <MetricCell
-          icon={<Stack className="size-3.5" />}
+          icon={<Stacks className="size-3.5" />}
           label="Ноды"
           value={
             <span>
@@ -83,7 +83,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
           }
         />
         <MetricCell
-          icon={counts.pending > 0 ? <CircleNotch className="size-3.5 animate-spin" /> : <Warning className="size-3.5" />}
+          icon={counts.pending > 0 ? <ProgressActivity className="size-3.5 animate-spin" /> : <Warning className="size-3.5" />}
           label="Pending"
           value={counts.pending}
           highlight={counts.pending > 0}

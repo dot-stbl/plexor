@@ -1,7 +1,13 @@
 import { useMemo, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { ArrowLeft, Plus, Cube, Stack, BookOpen } from '@/shared/ui/icon';
+import {
+  Add,
+  ArrowBack,
+  DeployedCode,
+  MenuBook,
+  Stacks
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { Input } from '@/shared/ui/primitives/input';
 import { Switch } from '@/shared/ui/primitives/switch';
@@ -164,7 +170,7 @@ function CreateK8sPage() {
       description="Managed K3s on the Plexor fleet — control plane, node pools, networking and storage are all yours to set."
       actions={
         <Button variant="ghost" nativeButton={false} render={<Link to="/" />}>
-          <ArrowLeft />
+          <ArrowBack />
           Back
         </Button>
       }
@@ -175,7 +181,7 @@ function CreateK8sPage() {
           <Empty data-od-id="k8s-new-no-cluster">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <Cube />
+                <DeployedCode />
               </EmptyMedia>
               <EmptyTitle>Plexor control plane is not registered</EmptyTitle>
               <EmptyDescription>
@@ -185,7 +191,7 @@ function CreateK8sPage() {
             </EmptyHeader>
             <EmptyContent>
               <Button render={<a href="https://plexor.dev/docs/install" target="_blank" rel="noreferrer" />}>
-                <BookOpen />
+                <MenuBook />
                 Installation docs
               </Button>
             </EmptyContent>
@@ -199,7 +205,7 @@ function CreateK8sPage() {
           <Empty data-od-id="k8s-new-no-ready-nodes">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <Stack />
+                <Stacks />
               </EmptyMedia>
               <EmptyTitle>No ready nodes</EmptyTitle>
               <EmptyDescription>
@@ -209,7 +215,7 @@ function CreateK8sPage() {
             </EmptyHeader>
             <EmptyContent>
               <Button nativeButton={false} render={<Link to="/clusters/$id" params={{ id: clusters[0]!.id }} />}>
-                <ArrowLeft />
+                <ArrowBack />
                 Go to cluster
               </Button>
             </EmptyContent>
@@ -410,7 +416,7 @@ function CreateK8sPage() {
                 Cancel
               </Button>
               <Button onClick={handleCreate} disabled={!canCreate}>
-                <Plus />
+                <Add />
                 Create cluster
               </Button>
             </div>

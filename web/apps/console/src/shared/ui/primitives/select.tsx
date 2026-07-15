@@ -3,7 +3,7 @@
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 
 import { cn } from "@/lib/utils";
-import { CaretDown, Check } from "@phosphor-icons/react";
+import { Check, KeyboardArrowDown } from "@nine-thirty-five/material-symbols-react/rounded/700";
 
 /**
  * Select — Plexor DS wrapper around Base UI Select.
@@ -60,7 +60,7 @@ function SelectTrigger({
       {children}
       <SelectPrimitive.Icon
         render={
-          <CaretDown className="pointer-events-none size-3.5 shrink-0 text-muted-foreground" />
+          <KeyboardArrowDown className="pointer-events-none size-3.5 shrink-0 text-muted-foreground" />
         }
       />
     </SelectPrimitive.Trigger>
@@ -135,7 +135,6 @@ function SelectItem({
       </SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator className="ml-auto flex shrink-0 items-center justify-center">
         <Check
-          weight="bold"
           className="size-3.5 text-foreground group-data-highlighted/select-item:text-accent-foreground"
         />
       </SelectPrimitive.ItemIndicator>

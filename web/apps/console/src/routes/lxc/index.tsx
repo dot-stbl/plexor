@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { Plus, Cube } from '@/shared/ui/icon';
+import { Add, DeployedCode } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { DataTable, DataTableColumns, type DataTableColumnsState } from '@/shared/ui/data-table';
@@ -37,7 +37,7 @@ function LxcPage() {
       actions={
         rows.length > 0 ? (
           <Button size="sm" nativeButton={false} render={<Link to="/lxc/new" />}>
-            <Plus />
+            <Add />
             Create container
           </Button>
         ) : undefined
@@ -58,7 +58,7 @@ function LxcPage() {
         </div>
       ) : (
         <EmptyState
-          icon={Cube}
+          icon={DeployedCode}
           title="No containers yet"
           description="LXC containers are lightweight system containers sharing the host kernel — fast to boot, dense on the node."
           docsLabel="Learn more:"
@@ -68,7 +68,7 @@ function LxcPage() {
           ]}
           action={
             <Button nativeButton={false} render={<Link to="/lxc/new" />}>
-              <Plus className="size-3.5" />
+              <Add className="size-3.5" />
               Create container
             </Button>
           }

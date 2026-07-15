@@ -18,9 +18,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/shared/ui/primitives/dropdown-menu"
-import { Check } from '@phosphor-icons/react'
-
-function Menubar({ className, ...props }: MenubarPrimitive.Props) {
+import { Check } from '@nine-thirty-five/material-symbols-react/rounded/700';function Menubar({ className, ...props }: MenubarPrimitive.Props) {
   return (
     <MenubarPrimitive
       data-slot="menubar"

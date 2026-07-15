@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, FloppyDisk } from '@/shared/ui/icon';
+import { ArrowBack, Save } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { toast } from 'sonner';
 import { Button } from '@/shared/ui/primitives/button';
 import { Input } from '@/shared/ui/primitives/input';
@@ -117,7 +117,7 @@ function CreateClusterPage() {
       description="The engine is decoupled from the runtime — choose where to bring it up."
       actions={
         <Button variant="ghost" nativeButton={false} render={<Link to={backRoute} />}>
-          <ArrowLeft />
+          <ArrowBack />
           Back
         </Button>
       }
@@ -326,7 +326,7 @@ function CreateClusterPage() {
               Cancel
             </Button>
             <Button onClick={handleCreate} disabled={!canCreate}>
-              <FloppyDisk />
+              <Save />
               Create cluster
             </Button>
           </div>

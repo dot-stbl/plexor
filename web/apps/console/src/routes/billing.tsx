@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Receipt, DownloadSimple } from '@phosphor-icons/react';
+import { Download, Receipt } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { PlaceholderPage } from '@/shared/ui/app-shell';
 import { Button } from '@/shared/ui/primitives/button';
 
@@ -16,7 +16,7 @@ function BillingPage() {
       icon={Receipt}
       actions={
         <Button variant="outline" size="sm">
-          <DownloadSimple className="size-4" />
+          <Download className="size-4" />
           Экспорт
         </Button>
       }

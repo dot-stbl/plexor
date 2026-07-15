@@ -1,7 +1,14 @@
 import { Link } from '@tanstack/react-router';
 import { Dialog } from '@base-ui/react/dialog';
-import type { Icon } from '@phosphor-icons/react';
-import { X, CaretRight, SquaresFour, BookOpen, GearSix, SlidersHorizontal } from '@phosphor-icons/react';
+import type { Icon } from '@nine-thirty-five/material-symbols-react';
+import {
+  Close,
+  GridView,
+  KeyboardArrowRight,
+  MenuBook,
+  Settings,
+  Tune
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 import {
   Card,
   CardDescription,
@@ -19,10 +26,10 @@ type MetaHub = { name: string; caption: string; icon: Icon; to?: AppRoute; soon?
 
 /** Row 1 — cross-cutting entry hubs (4). */
 const META: MetaHub[] = [
-  { name: 'Обзор проекта', caption: 'Сводка и действия', icon: SquaresFour, to: '/' },
-  { name: 'Документация', caption: 'API (Scalar) и гайды', icon: BookOpen, soon: true },
-  { name: 'Администрирование', caption: 'Ноды, провайдеры', icon: GearSix, soon: true },
-  { name: 'Настройки', caption: 'Профиль, ключи, тема', icon: SlidersHorizontal, soon: true },
+  { name: 'Обзор проекта', caption: 'Сводка и действия', icon: GridView, to: '/' },
+  { name: 'Документация', caption: 'API (Scalar) и гайды', icon: MenuBook, soon: true },
+  { name: 'Администрирование', caption: 'Ноды, провайдеры', icon: Settings, soon: true },
+  { name: 'Настройки', caption: 'Профиль, ключи, тема', icon: Tune, soon: true },
 ];
 
 /** Row 2 — at-a-glance summary (3). No backend yet → honest empty state. */
@@ -190,7 +197,7 @@ export function AppLauncher({
                 <Link to="/" onClick={close} className={linkRing}>
                   <div className={cn('flex items-center gap-4 px-4 py-3.5', tile, 'hover:bg-muted')}>
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-background text-foreground">
-                      <SquaresFour className="size-5" />
+                      <GridView className="size-5" />
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium">Обзор проекта</div>
@@ -198,7 +205,7 @@ export function AppLauncher({
                         Сводка ресурсов, метрики и быстрые действия — проект prod-cluster
                       </p>
                     </div>
-                    <CaretRight className="size-4 shrink-0 text-muted-foreground" />
+                    <KeyboardArrowRight className="size-4 shrink-0 text-muted-foreground" />
                   </div>
                 </Link>
               </Card>
@@ -212,7 +219,7 @@ export function AppLauncher({
             </div>
           </ScrollArea>
 
-          {/* Right-edge breathing room — just enough space for the X so it
+          {/* Right-edge breathing room — just enough space for the Close so it
               sits visually separated from the cards without looking like
               a separate panel or side header. */}
           <div
@@ -229,7 +236,7 @@ export function AppLauncher({
                 />
               }
             >
-              <X className="size-4" />
+              <Close className="size-4" />
             </Dialog.Close>
           </div>
         </div>

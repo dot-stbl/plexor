@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/primitives/popover';
 import { Button } from '@/shared/ui/primitives/button';
 import { Checkbox } from '@/shared/ui/primitives/checkbox';
-import { SlidersHorizontal, DotsSixVertical } from '@/shared/ui/icon';
+import { DragIndicator, Tune } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from './data-table';
 
@@ -63,7 +63,7 @@ export function DataTableColumns<TData>({ columns, value, onChange }: DataTableC
       <PopoverTrigger
         render={
           <Button variant="outline" size="icon-sm" aria-label="Configure columns">
-            <SlidersHorizontal className="size-3.5" />
+            <Tune className="size-3.5" />
           </Button>
         }
       />
@@ -92,7 +92,7 @@ export function DataTableColumns<TData>({ columns, value, onChange }: DataTableC
                   dragId === id && 'opacity-50',
                 )}
               >
-                <DotsSixVertical className={cn('size-3.5 shrink-0 text-muted-foreground', locked && 'opacity-30')} />
+                <DragIndicator className={cn('size-3.5 shrink-0 text-muted-foreground', locked && 'opacity-30')} />
                 <Checkbox
                   checked={visible}
                   disabled={locked}

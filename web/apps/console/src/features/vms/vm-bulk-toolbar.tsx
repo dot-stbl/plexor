@@ -1,5 +1,5 @@
 import { BulkActionToolbar, type BulkActionAction } from '@/shared/ui/primitives/bulk-action-toolbar';
-import { Play, Stop, ArrowsClockwise, Trash } from '@phosphor-icons/react';
+import { Delete, PlayArrow, Stop, Sync } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 interface VmBulkToolbarProps {
   count: number;
@@ -24,12 +24,12 @@ export function VmBulkToolbar({
   onDelete,
 }: VmBulkToolbarProps) {
   const actions: BulkActionAction[] = [
-    { label: 'Запустить', icon: <Play />, onClick: onStart },
+    { label: 'Запустить', icon: <PlayArrow />, onClick: onStart },
     { label: 'Остановить', icon: <Stop />, onClick: onStop },
-    { label: 'Перезагрузить', icon: <ArrowsClockwise />, onClick: onReboot },
+    { label: 'Перезагрузить', icon: <Sync />, onClick: onReboot },
     {
       label: 'Удалить',
-      icon: <Trash />,
+      icon: <Delete />,
       variant: 'destructive',
       onClick: onDelete,
     },

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Minus, Plus } from '@/shared/ui/icon';
+import { Add, Remove } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { Input } from '@/shared/ui/primitives/input';
 import { cn } from '@/lib/utils';
@@ -62,7 +62,7 @@ export function Stepper({
         disabled={current <= min}
         onClick={() => bump(-step)}
       >
-        <Minus className="size-3.5" />
+        <Remove className="size-3.5" />
       </Button>
       <div className="relative">
         <Input
@@ -97,7 +97,7 @@ export function Stepper({
         disabled={current >= max}
         onClick={() => bump(step)}
       >
-        <Plus className="size-3.5" />
+        <Add className="size-3.5" />
       </Button>
     </div>
   );

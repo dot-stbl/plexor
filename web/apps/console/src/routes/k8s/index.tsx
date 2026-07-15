@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useLocalStorage } from '@uidotdev/usehooks';
-import { Plus, Hexagon } from '@/shared/ui/icon';
+import { Add, Hexagon } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { DataTable, DataTableColumns, type DataTableColumnsState } from '@/shared/ui/data-table';
@@ -36,7 +36,7 @@ function K8sPage() {
       actions={
         rows.length > 0 ? (
           <Button size="sm" nativeButton={false} render={<Link to="/k8s/new" />}>
-            <Plus />
+            <Add />
             Create cluster
           </Button>
         ) : undefined
@@ -67,7 +67,7 @@ function K8sPage() {
           ]}
           action={
             <Button nativeButton={false} render={<Link to="/k8s/new" />}>
-              <Plus className="size-3.5" />
+              <Add className="size-3.5" />
               Create cluster
             </Button>
           }

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { CaretRight } from '@/shared/ui/icon';
+import { KeyboardArrowRight } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { cn } from '@/lib/utils';
 
 /**
@@ -29,7 +29,7 @@ export function Disclosure({ summary, children, defaultOpen = false, className }
         aria-expanded={open}
         className="flex items-center gap-1 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:text-foreground"
       >
-        <CaretRight className={`size-3.5 transition-transform ${open ? 'rotate-90' : ''}`} />
+        <KeyboardArrowRight className={`size-3.5 transition-transform ${open ? 'rotate-90' : ''}`} />
         {summary}
       </button>
       {open && <div className="mt-2 divide-y divide-border border-t border-border">{children}</div>}

@@ -2,7 +2,7 @@ import { Skeleton } from '@/shared/ui/primitives/skeleton';
 import { Alert, AlertTitle, AlertDescription, AlertAction } from '@/shared/ui/primitives/alert';
 import { Button } from '@/shared/ui/primitives/button';
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/shared/ui/primitives/empty';
-import { ArrowClockwise, Cube, MagnifyingGlass } from '@phosphor-icons/react';
+import { DeployedCode, Refresh, Search } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 /** Loading skeleton — 5 placeholder rows shaped like the VM table. */
 export function VmSkeleton() {
@@ -31,7 +31,7 @@ export function VmErrorBanner({ error, onRetry }: VmErrorBannerProps) {
       </div>
       <AlertAction>
         <Button variant="outline" size="sm" onClick={onRetry}>
-          <ArrowClockwise />
+          <Refresh />
           Повторить
         </Button>
       </AlertAction>
@@ -49,7 +49,7 @@ export function VmEmptyState({ onCreate }: VmEmptyStateProps) {
     <Empty data-od-id="vms-empty">
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <Cube />
+          <DeployedCode />
         </EmptyMedia>
         <EmptyTitle>Виртуальных машин пока нет</EmptyTitle>
         <EmptyDescription>
@@ -75,7 +75,7 @@ export function VmNoResultsState({ onReset }: VmNoResultsStateProps) {
     <Empty data-od-id="vms-no-results">
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <MagnifyingGlass />
+          <Search />
         </EmptyMedia>
         <EmptyTitle>Ничего не найдено</EmptyTitle>
         <EmptyDescription>

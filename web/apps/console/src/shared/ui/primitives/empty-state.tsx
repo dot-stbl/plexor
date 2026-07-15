@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import type { Icon } from '@/shared/ui/icon';
+import type { Icon } from '@nine-thirty-five/material-symbols-react';
 
 /**
  * EmptyState — YC-подобный онбординг для пустого раздела/таблицы: иллюстрация

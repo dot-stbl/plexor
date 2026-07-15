@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { Check, Copy } from '@phosphor-icons/react';
+import { Check, ContentCopy } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -15,7 +15,7 @@ interface CopyableTextProps {
 }
 
 /**
- * Inline copy-to-clipboard. Renders a value with a small Copy button
+ * Inline copy-to-clipboard. Renders a value with a small ContentCopy button
  * that puts the raw string on the clipboard and toasts confirmation.
  *
  * Used inside table cells (ID, IP, hostname) and anywhere a value is
@@ -52,9 +52,9 @@ export function CopyableText({ value, children, copyLabel, className }: Copyable
         className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground opacity-0 transition-all hover:bg-muted hover:text-foreground group-hover/copy:opacity-100 focus-visible:opacity-100"
       >
         {copied ? (
-          <Check weight="bold" className="size-3 text-ok" />
+          <Check className="size-3 text-ok" />
         ) : (
-          <Copy className="size-3" />
+          <ContentCopy className="size-3" />
         )}
       </button>
     </span>

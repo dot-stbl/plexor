@@ -10,9 +10,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/shared/ui/primitives/button"
-import { CaretDoubleDown } from '@phosphor-icons/react'
-
-function MessageScrollerProvider(
+import { KeyboardDoubleArrowDown } from '@nine-thirty-five/material-symbols-react/rounded/700';function MessageScrollerProvider(
   props: React.ComponentProps<typeof MessageScrollerPrimitive.Provider>
 ) {
   return <MessageScrollerPrimitive.Provider {...props} />
@@ -107,7 +105,7 @@ function MessageScrollerButton({
     >
       {children ?? (
         <>
-          <CaretDoubleDown strokeWidth={2}  />
+          <KeyboardDoubleArrowDown strokeWidth={2}  />
           <span className="sr-only">
             {direction === "end" ? "Scroll to end" : "Scroll to start"}
           </span>
