@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Add, Stacks } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
-import { PageHeader } from '@/shared/ui/app-shell';
+import { PageTemplate } from '@/shared/ui/app-shell';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { ClusterCard, useListClusters, countNodes } from '@/features/clusters';
 
@@ -23,36 +23,34 @@ function ClustersPage() {
   );
 
   return (
-    <main data-od-id="clusters-list">
-      <PageHeader
-        title="Кластеры Plexor"
-        description={
-          <>
-            <MonoNum>{totals.clusters}</MonoNum> <span className="text-muted-foreground">кластер(ов) ·</span>{' '}
-            <MonoNum>{totals.ready}</MonoNum>/<MonoNum>{totals.nodes}</MonoNum>{' '}
-            <span className="text-muted-foreground">нод(ов) ready</span>
-          </>
-        }
-        actions={
-          <Button nativeButton={false} render={<Link to="/clusters" />}>
-            <Add />
-            Документация
-          </Button>
-        }
-      />
-
-      <div className="mx-auto w-full max-w-6xl px-6 py-6 lg:px-8">
-        {clusters.length === 0 ? (
-          <EmptyClusters />
-        ) : (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {clusters.map((cluster) => (
-              <ClusterCard key={cluster.id} cluster={cluster} />
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
+    <PageTemplate
+      title="Кластеры Plexor"
+      width="full"
+      data-od-id="clusters-list"
+      description={
+        <>
+          <MonoNum>{totals.clusters}</MonoNum> <span className="text-muted-foreground">кластер(ов) ·</span>{' '}
+          <MonoNum>{totals.ready}</MonoNum>/<MonoNum>{totals.nodes}</MonoNum>{' '}
+          <span className="text-muted-foreground">нод(ов) ready</span>
+        </>
+      }
+      actions={
+        <Button size="sm" nativeButton={false} render={<Link to="/clusters" />}>
+          <Add />
+          Документация
+        </Button>
+      }
+    >
+      {clusters.length === 0 ? (
+        <EmptyClusters />
+      ) : (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {clusters.map((cluster) => (
+            <ClusterCard key={cluster.id} cluster={cluster} />
+          ))}
+        </div>
+      )}
+    </PageTemplate>
   );
 }
 

@@ -10,7 +10,6 @@ export const Route = createFileRoute('/audit')({
 function AuditPage() {
   return (
     <PlaceholderPage
-      breadcrumb={['Управление', 'Безопасность']}
       title="Журнал аудита"
       description="История действий пользователей и системы в проекте."
       icon={History}

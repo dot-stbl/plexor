@@ -14,21 +14,16 @@ import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Progress } from '@/shared/ui/primitives/progress';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { Badge } from '@/shared/ui/primitives/badge';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from '@/shared/ui/primitives/breadcrumb';
+
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/shared/ui/primitives/field';
-import { PageHeader } from '@/shared/ui/app-shell';
+import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/shared/ui/primitives/empty';
 import { useListClusters } from '@/features/clusters';
 import type { NodeStatus } from '@/features/clusters';
 
 export const Route = createFileRoute('/vms/new')({
+  staticData: { crumb: 'New VM' },
   component: CreateVmPage,
 });
 
@@ -81,29 +76,18 @@ function CreateVmPage() {
   const estVmUsage = { cpu: 2, ramGb: 4, diskGb: 40 };
 
   return (
-    <main data-od-id="vms-new">
-      <Breadcrumb className="mx-auto w-full max-w-3xl px-6 pt-6 lg:px-8">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link to="/vms" />}>Виртуальные машины</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link to="/vms/new" />}>Новая ВМ</BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      <PageHeader
-        title="Создать виртуальную машину"
-        description="VM-specific настройки. Нод и кластер выбираются ниже."
-        actions={
-          <Button variant="ghost" nativeButton={false} render={<Link to="/vms" />}>
-            <ArrowBack />
-            Назад
-          </Button>
-        }
-      />
+    <PageTemplate
+      data-od-id="vms-new"
+      title="Создать виртуальную машину"
+      width="full"
+      description="VM-specific настройки. Нод и кластер выбираются ниже."
+      actions={
+        <Button variant="ghost" nativeButton={false} render={<Link to="/vms" />} size="sm">
+          <ArrowBack />
+          Назад
+        </Button>
+      }
+    >
 
       {/* Empty state: 0 clusters → user hasn't installed Plexor yet. */}
       {clusters.length === 0 && (
@@ -323,7 +307,7 @@ function CreateVmPage() {
         </div>
       </div>
       )}
-    </main>
+    </PageTemplate>
   );
 }
 

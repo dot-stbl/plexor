@@ -10,7 +10,6 @@ export const Route = createFileRoute('/billing')({
 function BillingPage() {
   return (
     <PlaceholderPage
-      breadcrumb={['Управление', 'Финансы']}
       title="Расходы"
       description="Биллинг и потребление ресурсов по проекту."
       icon={Receipt}

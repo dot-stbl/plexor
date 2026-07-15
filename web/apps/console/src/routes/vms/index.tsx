@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Add } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { useListVms } from '@/shared/api';
 import { Button } from '@/shared/ui/primitives/button';
-import { PageHeader } from '@/shared/ui/app-shell';
+import { PageTemplate } from '@/shared/ui/app-shell';
 import { DataTable, DataTableToolbar, emptyFilters, compactFilters, type FilterValues } from '@/shared/ui/data-table';
 import { VmBulkToolbar, VmEmptyState, VmErrorBanner, VmNoResultsState, VmSkeleton, vmColumns } from '@/features/vms';
 import {
@@ -74,9 +74,10 @@ function VmsPage() {
   const resetFilters = useCallback(() => setFilters(FILTER_DEFAULT), []);
 
   return (
-    <main data-od-id="vms-list">
-      <PageHeader
+    <div data-od-id="vms-list">
+      <PageTemplate
         title="Виртуальные машины"
+        width="full"
         description={
           isPending ? (
             'Загрузка…'
@@ -93,9 +94,7 @@ function VmsPage() {
             Создать ВМ
           </Button>
         }
-      />
-
-      <div className="mx-auto w-full max-w-6xl space-y-3 px-6 py-6 lg:px-8">
+      >
         {isPending ? (
           <VmSkeleton />
         ) : isError ? (
@@ -125,7 +124,7 @@ function VmsPage() {
             )}
           </div>
         )}
-      </div>
+      </PageTemplate>
 
       <VmBulkToolbar
         count={selectedIds.size}
@@ -161,6 +160,6 @@ function VmsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </main>
+    </div>
   );
 }

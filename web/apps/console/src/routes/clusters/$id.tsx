@@ -14,7 +14,7 @@ import {
 import { Button } from '@/shared/ui/primitives/button';
 import { Badge } from '@/shared/ui/primitives/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
-import { PageHeader } from '@/shared/ui/app-shell';
+import { PageTemplate } from '@/shared/ui/app-shell';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/primitives/tabs';
 import { AddNodeDialog, NodeRow, TokenRow, useGetCluster, useListNodes, useListTokens, countNodes, formatUptime } from '@/features/clusters';
@@ -38,13 +38,20 @@ function ClusterDetailPage() {
 
   if (!cluster) {
     return (
-      <main className="mx-auto w-full max-w-6xl px-6 py-12 text-center">
-        <p className="text-sm text-muted-foreground">Кластер не найден.</p>
-        <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />} className="mt-3">
-          <ArrowBack />
-          Назад к кластерам
-        </Button>
-      </main>
+      <PageTemplate
+        title="Кластер не найден"
+        width="6xl"
+        actions={
+          <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />} size="sm">
+            <ArrowBack />
+            Назад к кластерам
+          </Button>
+        }
+      >
+        <p className="py-12 text-center text-sm text-muted-foreground">
+          Кластер с id <span className="font-mono">{id}</span> не существует или удалён.
+        </p>
+      </PageTemplate>
     );
   }
 
@@ -54,9 +61,10 @@ function ClusterDetailPage() {
   const activeTokens = tokens.filter((t) => t.status === 'active').length;
 
   return (
-    <main data-od-id="cluster-detail">
-      <PageHeader
+    <div data-od-id="cluster-detail">
+      <PageTemplate
         title={cluster.name}
+        width="full"
         description={
           <>
             <span className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] uppercase">
@@ -72,19 +80,17 @@ function ClusterDetailPage() {
         }
         actions={
           <>
-            <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />}>
+            <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />} size="sm">
               <ArrowBack />
               Назад
             </Button>
-            <Button onClick={() => setAddOpen(true)}>
+            <Button onClick={() => setAddOpen(true)} size="sm">
               <Add />
               Добавить нод
             </Button>
           </>
         }
-      />
-
-      <div className="mx-auto w-full max-w-6xl space-y-3 px-6 py-6 lg:px-8">
+      >
         {/* Top info card — install providers + self-help links.
             Self-hosted = these are the primary discovery surface. */}
         <Card className="gap-0 p-0">
@@ -216,9 +222,9 @@ function ClusterDetailPage() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </PageTemplate>
 
       <AddNodeDialog open={addOpen} onOpenChange={setAddOpen} clusterId={cluster.id} />
-    </main>
+    </div>
   );
 }

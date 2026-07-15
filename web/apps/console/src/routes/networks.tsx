@@ -10,7 +10,6 @@ export const Route = createFileRoute('/networks')({
 function NetworksPage() {
   return (
     <PlaceholderPage
-      breadcrumb={['Ресурсы', 'Сеть']}
       title="Сети и VPC"
       description="VPC, подсети и security groups проекта."
       icon={AccountTree}

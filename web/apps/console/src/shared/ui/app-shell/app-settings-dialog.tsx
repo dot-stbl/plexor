@@ -5,7 +5,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/primitives/dialog';
-import { ModeToggle } from '@/shared/ui/primitives/theme-toggle';
 import { PreferencesDialog } from '@/shared/ui/primitives/preferences-dialog';
 import { Button } from '@/shared/ui/primitives/button';
 import { useState } from 'react';
@@ -13,8 +12,8 @@ import { Tune } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 /**
  * Settings modal — opened from the sidebar's user menu.
- * Houses a "Тема" row with a quick theme switch, and a button that
- * opens the full PreferencesDialog (accent + font + reset).
+ * Thin launcher: the full visual settings (theme + accent + fontSize) live
+ * in PreferencesDialog, opened from here. No duplicate theme row.
  */
 export function AppSettingsDialog({
   open,
@@ -41,18 +40,9 @@ export function AppSettingsDialog({
               </h3>
               <div className="flex items-center justify-between rounded-lg border border-border p-3">
                 <div className="min-w-0">
-                  <div className="text-xs font-medium">Тема</div>
+                  <div className="text-xs font-medium">Визуальные настройки</div>
                   <div className="text-[11px] text-muted-foreground">
-                    Светлая, тёмная или системная
-                  </div>
-                </div>
-                <ModeToggle />
-              </div>
-              <div className="flex items-center justify-between rounded-lg border border-border p-3">
-                <div className="min-w-0">
-                  <div className="text-xs font-medium">Акцент и размер текста</div>
-                  <div className="text-[11px] text-muted-foreground">
-                    Цвет ссылок, кнопок, масштаб всей UI
+                    Тема, акцентный цвет, размер текста
                   </div>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setPrefsOpen(true)}>
