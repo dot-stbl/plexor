@@ -33,7 +33,6 @@ public class Specification<T, TResult>(Expression<Func<T, TResult>>? projection)
 {
     private readonly List<Expression<Func<T, bool>>> whereClauses = [];
     private Func<IQueryable<T>, IOrderedQueryable<T>>? orderByClause;
-    private Expression<Func<T, TResult>>? projection = projection;
     private bool asNoTracking;
     private int? skip;
     private int? take;
@@ -44,11 +43,7 @@ public class Specification<T, TResult>(Expression<Func<T, TResult>>? projection)
     ///     construction (mutations through the field bypass the
     ///     immutable contract).
     /// </summary>
-    protected Expression<Func<T, TResult>>? Projection
-    {
-        get => projection;
-        init => projection = value;
-    }
+    protected Expression<Func<T, TResult>>? Projection { get; init; } = projection;
 
     /// <inheritdoc />
     IQueryable<T> ISpecification<T>.Apply(IQueryable<T> query)
@@ -60,7 +55,7 @@ public class Specification<T, TResult>(Expression<Func<T, TResult>>? projection)
     public IQueryable<TResult> Apply(IQueryable<T> query)
     {
         var composed = ComposeEntityQuery(query);
-        return projection is null ? composed.Cast<TResult>() : composed.Select(projection);
+        return Projection is null ? composed.Cast<TResult>() : composed.Select(Projection);
     }
 
     /// <summary>
