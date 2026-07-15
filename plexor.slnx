@@ -57,6 +57,12 @@
         <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Infrastructure/Plexor.Modules.Sigil.Infrastructure.csproj" />
         <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Api/Plexor.Modules.Sigil.Api.csproj" />
     </Folder>
+    <Folder Name="/src/modules/Plexor.Modules.Clusters/">
+        <Project Path="src/modules/Plexor.Modules.Clusters/Plexor.Modules.Clusters.Api/Plexor.Modules.Clusters.Api.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Clusters/Plexor.Modules.Clusters.Application/Plexor.Modules.Clusters.Application.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Clusters/Plexor.Modules.Clusters.Domain/Plexor.Modules.Clusters.Domain.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Clusters/Plexor.Modules.Clusters.Infrastructure/Plexor.Modules.Clusters.Infrastructure.csproj" />
+    </Folder>
     <Folder Name="/src/modules/Plexor.Modules.Realm/">
         <Project Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Domain/Plexor.Modules.Realm.Domain.csproj" />
         <Project Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Application/Plexor.Modules.Realm.Application.csproj" />
@@ -93,6 +99,7 @@
     <Folder Name="/tests/unit/">
         <Project Path="tests/unit/Plexor.ArchitectureTests/Plexor.ArchitectureTests.csproj" />
         <Project Path="tests/unit/Plexor.Host.UnitTests/Plexor.Host.UnitTests.csproj" />
+        <Project Path="tests/unit/Plexor.Modules.Clusters.Unit/Plexor.Modules.Clusters.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Realm.Unit/Plexor.Modules.Realm.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Sigil.Unit/Plexor.Modules.Sigil.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Filtering.Unit/Plexor.Shared.Filtering.Unit.csproj" />
