@@ -99,7 +99,17 @@
     "documentationCaption": "API (Scalar) and guides",
     "administration": "Administration",
     "administrationCaption": "Nodes, providers",
-    "settingsCaption": "Profile, keys, theme"
+    "settingsCaption": "Profile, keys, theme",
+    "userMenu": {
+      "settings": "Settings",
+      "signOut": "Sign out",
+      "signedOut": "You have been signed out"
+    },
+    "user": {
+      "name": "Alexey Sergeev",
+      "email": "a.sergeev@hybrid.ai",
+      "initials": "AS"
+    }
   },
   "createMenu": {
     "create": "Create",

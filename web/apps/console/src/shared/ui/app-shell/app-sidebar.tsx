@@ -163,32 +163,32 @@ export function AppSidebar() {
               }
             >
               <Avatar className="size-7">
-                <AvatarFallback className="text-[10px]">АС</AvatarFallback>
+                <AvatarFallback className="text-[10px]">{t('shell.user.initials')}</AvatarFallback>
               </Avatar>
               <span className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
-                <span className="block truncate text-xs font-medium">Алексей Сергеев</span>
+                <span className="block truncate text-xs font-medium">{t('shell.user.name')}</span>
                 <span className="block truncate font-mono text-[10px] text-muted-foreground">
-                  a.sergeev@hybrid.ai
+                  {t('shell.user.email')}
                 </span>
               </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" className="w-56">
               <DropdownMenuGroup>
                 <DropdownMenuLabel className="flex flex-col gap-0.5">
-                  <span className="text-sm">Алексей Сергеев</span>
+                  <span className="text-sm">{t('shell.user.name')}</span>
                   <span className="font-mono text-[11px] font-normal text-muted-foreground">
-                    a.sergeev@hybrid.ai
+                    {t('shell.user.email')}
                   </span>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
                 <Settings className="size-4" />
-                Настройки
+                {t('shell.userMenu.settings')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast('Вы вышли из аккаунта')}>
+              <DropdownMenuItem onClick={() => toast(t('shell.userMenu.signedOut'))}>
                 <Logout className="size-4" />
-                Выйти
+                {t('shell.userMenu.signOut')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

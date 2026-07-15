@@ -159,34 +159,6 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
             </div>
             <FieldDescription>{t('preferences.fontSizeDescription')}</FieldDescription>
           </Field>
-
-          {/* Language */}
-          <Field>
-            <FieldLabel>{t('preferences.language')}</FieldLabel>
-            <FieldDescription>{t('preferences.languageDescription')}</FieldDescription>
-            <div role="radiogroup" className="grid grid-cols-2 gap-2">
-              {[{ value: 'en' as const, label: 'English' }, { value: 'ru' as const, label: 'Русский' }].map((l) => {
-                const isActive = preferences.language === l.value;
-                return (
-                  <button
-                    key={l.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={isActive}
-                    onClick={() => update('language', l.value)}
-                    className={cn(
-                      'rounded-md border bg-background p-2.5 text-sm transition-colors hover:border-foreground/30',
-                      isActive
-                        ? 'border-foreground/60 ring-1 ring-foreground/40 font-medium'
-                        : 'border-border',
-                    )}
-                  >
-                    {l.label}
-                  </button>
-                );
-              })}
-            </div>
-          </Field>
         </FieldGroup>
 
         <DialogFooter>

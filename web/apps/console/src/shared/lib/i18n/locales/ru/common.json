@@ -99,7 +99,17 @@
     "documentationCaption": "API (Scalar) и гайды",
     "administration": "Администрирование",
     "administrationCaption": "Ноды, провайдеры",
-    "settingsCaption": "Профиль, ключи, тема"
+    "settingsCaption": "Профиль, ключи, тема",
+    "userMenu": {
+      "settings": "Настройки",
+      "signOut": "Выйти",
+      "signedOut": "Вы вышли из аккаунта"
+    },
+    "user": {
+      "name": "Алексей Сергеев",
+      "email": "a.sergeev@hybrid.ai",
+      "initials": "АС"
+    }
   },
   "createMenu": {
     "create": "Создать",
