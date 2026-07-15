@@ -24,6 +24,7 @@ using Plexor.Host.Controllers;
 using Plexor.Host.Installers;
 using Plexor.Host.NodeRegistry;
 using Plexor.Host.OpenApi;
+using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Api;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
@@ -104,6 +105,11 @@ builder.Services.AddFiltering();
 builder.Services.AddSigilApplicationCore(builder.Configuration);
 builder.Services.AddSigilInfrastructureCore(builder.Configuration);
 builder.Services.AddPlexorSigilApi();
+
+// Clusters module — control-plane fleet (Cluster + Node aggregates +
+// NodeAgent join/heartbeat endpoints). Phase 5.
+builder.Services.AddClustersInfrastructureCore(builder.Configuration);
+builder.Services.AddExceptionHandler<Plexor.Modules.Clusters.Infrastructure.Errors.ClustersExceptionHandler>();
 
 // Strip our own IHostedService implementations when the host is being
 // launched by the build-time OpenAPI document generator. Without this,
