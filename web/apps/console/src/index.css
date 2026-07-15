@@ -228,7 +228,6 @@
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
-    scrollbar-gutter: stable;
   }
   *::-webkit-scrollbar {
     width: 10px;
@@ -249,19 +248,6 @@
   }
   *::-webkit-scrollbar-corner {
     background: transparent;
-  }
-  /* Select/Combobox popups: auto gutter (only reserve space when a scrollbar is shown).
-     Must include the popup element ITSELF, not just its descendants: the global
-     `* { scrollbar-gutter: stable }` above reserves a right gutter on the overflow:hidden
-     popup, and the descendant combinator (` *`) skipped the popup element — leaving a
-     phantom strip on the right where content can't reach the edge. */
-  [data-slot="select-content"],
-  [data-slot="select-content"] *,
-  [data-slot="combobox-content"],
-  [data-slot="combobox-content"] *,
-  [data-slot="context-menu-content"],
-  [data-slot="context-menu-content"] * {
-    scrollbar-gutter: auto;
   }
   html {
     scroll-behavior: smooth;

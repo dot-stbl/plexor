@@ -1,0 +1,126 @@
+{
+  "common": {
+    "create": "Create",
+    "cancel": "Cancel",
+    "back": "Back",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "copy": "Copy",
+    "close": "Close",
+    "loading": "Loading…",
+    "soon": "soon",
+    "settings": "Settings",
+    "configure": "Configure"
+  },
+  "nav": {
+    "overview": "Overview",
+    "vms": "Virtual machines",
+    "clusters": "Plexor clusters",
+    "networks": "Networks",
+    "images": "Images",
+    "audit": "Audit log",
+    "billing": "Billing",
+    "k8s": "Kubernetes",
+    "lxc": "Containers",
+    "databases": "Data platform"
+  },
+  "vms": {
+    "list": {
+      "title": "Virtual machines",
+      "create": "Create VM",
+      "empty": {
+        "title": "No virtual machines yet",
+        "description": "Create your first VM — Plexor brings it up on the chosen runtime.",
+        "noResults": "Nothing found",
+        "noResultsDescription": "Try adjusting the filters or reset them.",
+        "reset": "Reset filters"
+      }
+    },
+    "new": {
+      "title": "Create virtual machine",
+      "description": "VM-specific settings. Node and cluster are selected below.",
+      "node": "Node",
+      "nodeDescription": "Only {{badge}} nodes accept new VMs. Pending/draining/offline are filtered out.",
+      "params": "VM parameters",
+      "paramsDescription": "Name, image, network and SSH key.",
+      "name": "Name",
+      "namePlaceholder": "e.g. web-prod-02",
+      "nameDescription": "Used as hostname. Lowercase letters, digits and hyphens.",
+      "image": "OS image",
+      "imagePlaceholder": "Select an image",
+      "imageDescription": "Base disk image.",
+      "network": "Network",
+      "sshKey": "SSH key",
+      "sshKeyPlaceholder": "Select a key",
+      "noReadyNodes": "No ready nodes",
+      "noCluster": {
+        "title": "Plexor control plane is not registered",
+        "description": "To create VMs, you first need to install Plexor on a server. The installation sets up the control plane and registers it in the UI."
+      },
+      "noReady": {
+        "title": "No ready nodes",
+        "description": "Connect Plexor.NodeAgent to the cluster via a join token. After a heartbeat (≤ 2 min) the node appears here and you can create VMs."
+      },
+      "summary": "What will be deployed"
+    }
+  },
+  "k8s": {
+    "new": {
+      "title": "Create Kubernetes cluster",
+      "description": "Managed K3s on the Plexor fleet — control plane, node pools, networking and storage are all yours to set.",
+      "basics": "Cluster basics",
+      "controlPlane": "Control plane",
+      "nodePools": "Node pools",
+      "networking": "Networking",
+      "storage": "Storage",
+      "addons": "Add-ons",
+      "options": "Options",
+      "summary": "What will be deployed",
+      "noCluster": {
+        "title": "Plexor control plane is not registered",
+        "description": "To create a Kubernetes cluster, you first need to install Plexor on a server. The installation sets up the control plane and registers it in the UI."
+      },
+      "noReady": {
+        "title": "No ready nodes",
+        "description": "Connect Plexor.NodeAgent to the cluster with a join token. After a heartbeat (≤ 2 min) the node appears here and you can host a Kubernetes cluster on it."
+      }
+    }
+  },
+  "clusters": {
+    "list": {
+      "title": "Plexor clusters",
+      "empty": {
+        "title": "No registered clusters",
+        "description": "Install Plexor on your server via {{code}} or an ISO image, then register the control plane here."
+      }
+    },
+    "detail": {
+      "notFound": "Cluster not found",
+      "notFoundDescription": "Cluster with id {{id}} does not exist or was deleted."
+    }
+  },
+  "preferences": {
+    "title": "Visual settings",
+    "description": "Theme, accent color and text size. Saved in this browser.",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "accent": "Accent color",
+    "fontSize": "Text size",
+    "fontSizeSmall": "Small",
+    "fontSizeMedium": "Medium",
+    "fontSizeLarge": "Large",
+    "language": "Language",
+    "languageDescription": "Interface language. Changes apply immediately.",
+    "reset": "Reset to defaults",
+    "settings": {
+      "title": "Settings",
+      "description": "Appearance and account parameters",
+      "appearance": "Appearance",
+      "visualSettings": "Visual settings",
+      "visualSettingsDescription": "Theme, accent color, text size"
+    }
+  }
+}

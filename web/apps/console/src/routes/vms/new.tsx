@@ -18,6 +18,7 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/shared/ui/pri
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
+import { SummaryPanel, SummaryRow } from '@/shared/ui/primitives/summary-panel';
 import { useListClusters } from '@/features/clusters';
 import type { NodeStatus } from '@/features/clusters';
 
@@ -116,7 +117,8 @@ function CreateVmPage() {
       )}
 
       {clusters.length > 0 && readyNodes.length > 0 && (
-      <div className="mx-auto w-full max-w-3xl space-y-3 px-6 py-6 lg:px-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-3">
         {/* Node context — which Plexor.NodeAgent hosts the VM. */}
         <Card data-od-id="vm-node-context" className="gap-0 p-0">
           <CardHeader className="gap-0.5 border-b border-border p-4">
@@ -271,18 +273,39 @@ function CreateVmPage() {
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between">
-          <Button variant="outline" nativeButton={false} render={<Link to="/vms" />}>
-            Отмена
-          </Button>
-          <Button
-            onClick={() => navigate({ to: '/vms' })}
-            disabled={!nodeId || !name || !image || !network || !sshKey}
-          >
-            <Add />
-            Создать ВМ
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button variant="outline" nativeButton={false} render={<Link to="/vms" />}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => navigate({ to: '/vms' })}
+              disabled={!nodeId || !name || !image || !network || !sshKey}
+            >
+              <Add />
+              Create VM
+            </Button>
+          </div>
         </div>
+
+        {/* ─── Sticky summary ──────────────────────────────────────── */}
+        <SummaryPanel title="What will be deployed">
+          <div>
+            <SummaryRow label="Name">{name.trim() || '—'}</SummaryRow>
+            <SummaryRow label="Node">
+              {selectedNode ? <MonoNum>{selectedNode.hostname}</MonoNum> : '—'}
+            </SummaryRow>
+            <SummaryRow label="Image">{image || '—'}</SummaryRow>
+            <SummaryRow label="Network">{network || '—'}</SummaryRow>
+            <SummaryRow label="SSH key">{sshKey || '—'}</SummaryRow>
+          </div>
+          {selectedNode && (
+            <div className="mt-2 flex flex-wrap gap-1.5 border-t border-border pt-2">
+              <Badge variant="outline">{estVmUsage.cpu} vCPU</Badge>
+              <Badge variant="outline">{estVmUsage.ramGb} GB RAM</Badge>
+              <Badge variant="outline">{estVmUsage.diskGb} GB disk</Badge>
+            </div>
+          )}
+        </SummaryPanel>
       </div>
       )}
     </PageTemplate>

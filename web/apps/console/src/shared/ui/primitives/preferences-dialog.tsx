@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/shared/lib/i18n';
 import {
   Dialog,
   DialogContent,
@@ -50,6 +52,7 @@ const THEMES: Array<{ value: Theme; label: string; Icon: typeof LightMode }> = [
  */
 export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps) {
   const { preferences, update, reset } = usePreferences();
+  const { t } = useTranslation();
   // Force a re-render of swatch previews when document.documentElement
   // style changes (i.e. when the accent var updates). Cheap re-render.
   const [, setPreviewTick] = useState(0);
@@ -156,6 +159,34 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
               })}
             </div>
             <FieldDescription>Масштабирует всю UI пропорционально.</FieldDescription>
+          </Field>
+
+          {/* Language */}
+          <Field>
+            <FieldLabel>{t('preferences.language')}</FieldLabel>
+            <FieldDescription>{t('preferences.languageDescription')}</FieldDescription>
+            <div role="radiogroup" className="grid grid-cols-2 gap-2">
+              {[{ value: 'en', label: 'English' }, { value: 'ru', label: 'Русский' }].map((l) => {
+                const isActive = i18n.language === l.value;
+                return (
+                  <button
+                    key={l.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={isActive}
+                    onClick={() => i18n.changeLanguage(l.value)}
+                    className={cn(
+                      'rounded-md border bg-background p-2.5 text-sm transition-colors hover:border-foreground/30',
+                      isActive
+                        ? 'border-foreground/60 ring-1 ring-foreground/40 font-medium'
+                        : 'border-border',
+                    )}
+                  >
+                    {l.label}
+                  </button>
+                );
+              })}
+            </div>
           </Field>
         </FieldGroup>
 

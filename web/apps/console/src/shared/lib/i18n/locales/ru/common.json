@@ -1,0 +1,126 @@
+{
+  "common": {
+    "create": "Создать",
+    "cancel": "Отмена",
+    "back": "Назад",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Изменить",
+    "copy": "Копировать",
+    "close": "Закрыть",
+    "loading": "Загрузка…",
+    "soon": "скоро",
+    "settings": "Настройки",
+    "configure": "Настроить"
+  },
+  "nav": {
+    "overview": "Обзор",
+    "vms": "Виртуальные машины",
+    "clusters": "Кластеры Plexor",
+    "networks": "Сети",
+    "images": "Образы",
+    "audit": "Журнал аудита",
+    "billing": "Расходы",
+    "k8s": "Kubernetes",
+    "lxc": "Контейнеры",
+    "databases": "Платформа данных"
+  },
+  "vms": {
+    "list": {
+      "title": "Виртуальные машины",
+      "create": "Создать ВМ",
+      "empty": {
+        "title": "Виртуальных машин пока нет",
+        "description": "Создайте первую ВМ, чтобы начать. Доступны Ubuntu, Debian, Alpine и свои образы.",
+        "noResults": "Ничего не найдено",
+        "noResultsDescription": "Попробуйте изменить фильтры или сбросить их.",
+        "reset": "Сбросить фильтры"
+      }
+    },
+    "new": {
+      "title": "Создать виртуальную машину",
+      "description": "Настройки ВМ. Нод и кластер выбираются ниже.",
+      "node": "Нод",
+      "nodeDescription": "Только {{badge}} ноды принимают новые ВМ. Pending/draining/offline — фильтруются.",
+      "params": "Параметры ВМ",
+      "paramsDescription": "Имя, образ, сеть и SSH-ключ.",
+      "name": "Имя",
+      "namePlaceholder": "например, web-prod-02",
+      "nameDescription": "Используется как hostname. Строчные латинские буквы, цифры и дефис.",
+      "image": "Образ ОС",
+      "imagePlaceholder": "Выберите образ",
+      "imageDescription": "Базовый образ диска.",
+      "network": "Сеть",
+      "sshKey": "SSH-ключ",
+      "sshKeyPlaceholder": "Выберите ключ",
+      "noReadyNodes": "Нет ready нодов",
+      "noCluster": {
+        "title": "Plexor control plane не зарегистрирован",
+        "description": "Чтобы создавать ВМ, нужно сначала установить Plexor на сервере. Установка ставит control plane и регистрирует его в UI."
+      },
+      "noReady": {
+        "title": "Нет ready-нодов",
+        "description": "Подключите Plexor.NodeAgent к кластеру через join-токен. После heartbeat (≤ 2 мин) нод появится здесь и можно будет создавать ВМ."
+      },
+      "summary": "Что будет создано"
+    }
+  },
+  "k8s": {
+    "new": {
+      "title": "Создать кластер Kubernetes",
+      "description": "Managed K3s на вашем Plexor fleet — control plane, node pools, сеть и storage настраиваете вы.",
+      "basics": "Основное",
+      "controlPlane": "Control plane",
+      "nodePools": "Node pools",
+      "networking": "Сеть",
+      "storage": "Хранилище",
+      "addons": "Дополнения",
+      "options": "Параметры",
+      "summary": "Что будет развёрнуто",
+      "noCluster": {
+        "title": "Plexor control plane не зарегистрирован",
+        "description": "Чтобы создать кластер Kubernetes, нужно сначала установить Plexor на сервере. Установка ставит control plane и регистрирует его в UI."
+      },
+      "noReady": {
+        "title": "Нет ready-нодов",
+        "description": "Подключите Plexor.NodeAgent к кластеру через join-токен. После heartbeat (≤ 2 мин) нод появится здесь и можно будет разместить кластер Kubernetes."
+      }
+    }
+  },
+  "clusters": {
+    "list": {
+      "title": "Кластеры Plexor",
+      "empty": {
+        "title": "Нет зарегистрированных кластеров",
+        "description": "Установите Plexor на своём сервере через {{code}} или ISO-образ, затем зарегистрируйте control-plane здесь."
+      }
+    },
+    "detail": {
+      "notFound": "Кластер не найден",
+      "notFoundDescription": "Кластер с id {{id}} не существует или удалён."
+    }
+  },
+  "preferences": {
+    "title": "Визуальные настройки",
+    "description": "Тема, акцентный цвет и размер текста. Сохраняются в этом браузере.",
+    "theme": "Тема",
+    "themeLight": "Светлая",
+    "themeDark": "Тёмная",
+    "themeSystem": "Системная",
+    "accent": "Акцентный цвет",
+    "fontSize": "Размер текста",
+    "fontSizeSmall": "Маленький",
+    "fontSizeMedium": "Обычный",
+    "fontSizeLarge": "Большой",
+    "language": "Язык",
+    "languageDescription": "Язык интерфейса. Изменения применяются сразу.",
+    "reset": "Сбросить настройки",
+    "settings": {
+      "title": "Настройки",
+      "description": "Оформление и параметры аккаунта",
+      "appearance": "Оформление",
+      "visualSettings": "Визуальные настройки",
+      "visualSettingsDescription": "Тема, акцентный цвет, размер текста"
+    }
+  }
+}
