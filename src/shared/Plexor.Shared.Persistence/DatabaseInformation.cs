@@ -131,5 +131,16 @@ public static class DatabaseInformation
 
         /// <summary>Identity module — JWT signing keypairs (RS256).</summary>
         public const string SigningKeys = "signing_keys";
+
+        /// <summary>Clusters module — one row per control-plane cluster
+        /// (a Plexor.Host instance + its joined NodeAgent nodes).</summary>
+        public const string Clusters = "clusters";
+
+        /// <summary>Clusters module — one row per joined NodeAgent node.</summary>
+        public const string Nodes = "nodes";
+
+        /// <summary>Clusters module — one-time join tokens issued by the
+        /// control plane and redeemed by NodeAgent on first connect.</summary>
+        public const string JoinTokens = "join_tokens";
     }
 }
