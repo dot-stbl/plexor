@@ -240,3 +240,51 @@ DbContext fixture (`PostgresFixture`). Future Sigil API tests will
 need either (a) the option-1 fix landed, or (b) a `ConfigureTestServices`
 override that re-wires the affected services into a manually-managed
 scope (verbose; not recommended).
+
+---
+
+## Cert TTL = 10 years, no rotation (decision 2026-07-15)
+
+**Status**: locked decision for plan-mvp-secure-deploy Phase B.
+
+**Decision**: Node client cert TTL matches the CA lifetime
+(10 years). Cert stays valid until the node leaves the cluster;
+revocation is by serial in `forge.revoked_certs`.
+
+**Rationale**:
+- Self-hosted = stable node population. No churn like
+  cloud-provider auto-scaling.
+- Rotating certs require `CertRotationWorker` + atomic cert
+  swap on disk + heartbeat `next_rotate_at` signal + revoked-
+  certs table + serial bookkeeping. Adds ~0.5 day of cert
+  rotation infrastructure for an MVP that won't exercise it.
+- Matches the kubeadm posture: kube-apiserver's serving cert
+  is long-lived and rotated manually. Only kubelet's client cert
+  is auto-rotated, and Kubernetes ships an in-process rotator
+  for that one specific case. We have no analogue of kubelet
+  here — nodes are operator-managed VMs, not auto-scaled
+  agents.
+- Compliance regimes (PCI-DSS, SOC2) that **require** cert
+  rotation are out of scope for v0.1. When the first compliance
+  requirement materialises, the rotation infra ships in a
+  self-contained `CertRotationWorker` that slots in behind
+  `ICertificateAuthority` — handlers are unaffected.
+
+**What in scope instead**:
+- `forge.revoked_certs (serial, revoked_at, revoked_by, reason)`
+  table + cascade-revoke on cluster / node delete.
+- `MtlsAuthMiddleware` checks the revoked-serial set on every
+  request; small in-memory cache (5s TTL) memoises the lookup.
+- No CRL / OCSP infrastructure — at <50 nodes per cluster the
+  in-DB lookup is sufficient.
+
+**Migration plan when needed**:
+1. Add `CertRotationWorker` IHostedService that scans for
+   certs nearing expiry and signs new ones via
+   `ICertificateAuthority.IssueClientCert`.
+2. Add `POST /node-agent/rotate-cert` endpoint that mTLS-
+   authenticates the old cert and returns the new one.
+3. Heartbeat response carries `next_rotate_at` field; agent
+   writes new cert to .tmp + renames into place atomically.
+4. Domain events (`CertRotated`, `CertRevoked`) for audit.
+
