@@ -100,10 +100,26 @@ public sealed class X509Authority
         AddLeafExtensions(request, kind, subjectAltNames);
 
         var now = DateTimeOffset.UtcNow;
+        var leafNotAfter = now.Add(validity);
+        // If the caller asked for a leaf that outlasts the CA
+        // (e.g. asking for 10y on a CA that has 9y left),
+        // CertificateRequest.Create throws. Cap the leaf at the
+        // CA's notAfter so the regeneration path stays valid even
+        // when the CA was issued earlier in this process.
+        // X509Certificate2.NotAfter has Kind=Local on most platforms
+        // (the field round-trips through Windows file-time); convert
+        // to UTC via ToUniversalTime to make the comparison safe.
+        var caNotAfter = new DateTimeOffset(
+            caCert.NotAfter.ToUniversalTime(), TimeSpan.Zero);
+        if (leafNotAfter > caNotAfter)
+        {
+            leafNotAfter = caNotAfter.AddSeconds(-60);
+        }
+
         var cert = request.Create(
             caCert,    // issuerCert: .NET extracts subject + public key + private key
             new DateTimeOffset(now.UtcDateTime, TimeSpan.Zero),
-            new DateTimeOffset(now.Add(validity).UtcDateTime, TimeSpan.Zero),
+            new DateTimeOffset(leafNotAfter.UtcDateTime, TimeSpan.Zero),
             NewSerial());
 
         return cert.CopyWithPrivateKey(leafRsa);

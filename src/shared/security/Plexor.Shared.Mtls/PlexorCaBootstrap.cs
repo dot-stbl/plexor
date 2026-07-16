@@ -86,7 +86,7 @@ public static class PlexorCaBootstrap
             CertPath = PlexorPaths.ResolveAgainstDevRoot(src.CertPath),
             KeyPath = PlexorPaths.ResolveAgainstDevRoot(src.KeyPath),
             HostCertPath = PlexorPaths.ResolveAgainstDevRoot(src.HostCertPath),
-            HostCertPassword = src.HostCertPassword,
+            HostKeyPath = PlexorPaths.ResolveAgainstDevRoot(src.HostKeyPath),
             CaLifetime = src.CaLifetime,
         };
     }
@@ -147,21 +147,20 @@ public static class PlexorCaBootstrap
         ILogger logger,
         IReadOnlyCollection<string> subjectAltNames)
     {
-        if (File.Exists(options.HostCertPath))
+        // PEM format: cert (BEGIN CERTIFICATE block) + private key
+        // (BEGIN PRIVATE KEY block) as two sibling files. This is
+        // the format every .NET SDK version can load via
+        // X509CertificateLoader.LoadCertificate + RSA.ImportFromPem,
+        // which is what the Host composition root does after we exit
+        // this helper. PFX/PKCS#12 was a dead-end on SDK 10.0.110
+        // (X509CertificateLoader.LoadPfxFromFile isn't in this SDK).
+        if (File.Exists(options.HostCertPath) && File.Exists(options.HostKeyPath))
         {
             logger.LogInformation(
-                "Host server cert already on disk at {PfxPath} — reusing.",
+                "Host server cert + key already on disk at {Path} — reusing.",
                 options.HostCertPath);
 
             return;
-        }
-
-        if (string.IsNullOrEmpty(options.HostCertPassword))
-        {
-            throw new InvalidOperationException(
-                $"CertAuthority:HostCertPassword is required to issue the host server " +
-                $"cert at {options.HostCertPath}. Set it in appsettings.json (dev) or " +
-                $"the CertAuthority__HostCertPassword env var (prod).");
         }
 
         EnsureDirectoryExists(options.HostCertPath);
@@ -173,15 +172,31 @@ public static class PlexorCaBootstrap
             X509Authority.LeafKind.Server,
             subjectAltNames);
 
-        var pfx = X509Authority.SaveAsPfx(hostCert, options.HostCertPassword);
-        File.WriteAllBytes(options.HostCertPath, pfx);
+        // Write the cert + private key as two sibling PEM files.
+        // X509Authority.ToPem / PrivateKeyToPem emit BEGIN/END
+        // blocks that RSA.ImportFromPem + X509CertificateLoader
+        // .LoadCertificate can read back on any .NET version.
+        var certPem = X509Authority.ToPem(hostCert);
+        var keyPem = X509Authority.PrivateKeyToPem(hostCert);
+        File.WriteAllText(options.HostCertPath, certPem);
+        File.WriteAllText(options.HostKeyPath, keyPem);
+
+        if (!OperatingSystem.IsWindows())
+        {
+            File.SetUnixFileMode(
+                options.HostCertPath,
+                UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            File.SetUnixFileMode(
+                options.HostKeyPath,
+                UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        }
 
         // Dispose the cert after writing — the file is the source
-        // of truth; Kestrel reads it on demand.
+        // of truth; the Host composition root reads it on demand.
         hostCert.Dispose();
 
         logger.LogInformation(
-            "Issued Plexor host server cert at {PfxPath} (SANs: {Sans}).",
+            "Issued Plexor host server cert at {Path} (SANs: {Sans}).",
             options.HostCertPath,
             string.Join(", ", subjectAltNames));
     }

@@ -19,6 +19,7 @@
 // ============================================================================
 
 using System.IO;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
@@ -173,22 +174,20 @@ builder.Logging.AddPlexorConsole();
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(48001);
-
     options.ListenAnyIP(48002, listenOptions =>
     {
         listenOptions.UseHttps(httpsOptions =>
         {
             httpsOptions.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
-            // boundary: X509CertificateLoader.LoadPfxFromFile (the
-            // .NET 10 API for loading password-protected PFX) is
-            // not present in the 10.0.110 SDK on this build. The
-            // byte[]+password ctor is the path until the SDK is
-            // upgraded; SYSLIB0057 covers that constructor.
-#pragma warning disable SYSLIB0057
-            httpsOptions.ServerCertificate = new X509Certificate2(
-                File.ReadAllBytes(caOptions.HostCertPath),
-                caOptions.HostCertPassword);
-#pragma warning restore SYSLIB0057
+            // Load cert + key as PEM — the format PlexorCaBootstrap
+            // writes. PEM is supported by every .NET SDK version via
+            // X509CertificateLoader.LoadCertificate + RSA.ImportFromPem,
+            // no deprecated-constructor warnings.
+            var cert = X509CertificateLoader.LoadCertificate(
+                File.ReadAllBytes(caOptions.HostCertPath));
+            using var rsa = RSA.Create();
+            rsa.ImportFromPem(File.ReadAllText(caOptions.HostKeyPath));
+            httpsOptions.ServerCertificate = cert.CopyWithPrivateKey(rsa);
         });
     });
 });
