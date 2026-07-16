@@ -55,11 +55,20 @@ public static class ClustersInfrastructureInstaller
         services.AddScoped<ICommandHandler<NodeHeartbeatCommand, NodeHeartbeatResult>, NodeHeartbeatCommandHandler>();
         services.AddScoped<ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>, ListNodesQueryHandler>();
 
+        // Workload handlers — see WorkloadCommandHandlers.cs +
+        // WorkloadReadHandlers.cs. Create / Delete / List / Get split
+        // across two files following the Cluster pattern.
+        services.AddScoped<ICommandHandler<CreateWorkloadCommand, WorkloadSummary>, CreateWorkloadCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteWorkloadCommand, Unit>, DeleteWorkloadCommandHandler>();
+        services.AddScoped<ICommandHandler<ListWorkloadsQuery, PageResult<WorkloadSummary>>, ListWorkloadsQueryHandler>();
+        services.AddScoped<ICommandHandler<GetWorkloadQuery, WorkloadSummary>, GetWorkloadQueryHandler>();
+
         // Read repositories — base class from Shared.Persistence; per-module
         // subclass wires the typed DbSet. Scoped lifetime matches DbContext.
         services.AddScoped<Repository<Cluster>, ClusterRepository>();
         services.AddScoped<Repository<Node>, NodeRepository>();
         services.AddScoped<Repository<JoinToken>, JoinTokenRepository>();
+        services.AddScoped<Repository<Workload>, WorkloadRepository>();
 
         // Mapperly source-generated DTO mapper. Singleton — generated
         // methods are stateless and the generator is allocation-free.
@@ -67,11 +76,14 @@ public static class ClustersInfrastructureInstaller
         // concrete Mapperly-generated class so tests can swap in
         // NSubstitute mocks.
         services.AddSingleton<IClusterMapper, ClusterMapper>();
+        services.AddSingleton<IWorkloadMapper, WorkloadMapper>();
 
         // Per-entity filter fields — repository reflection-builds the
         // schema once and caches. Singleton = built once, immutable.
         services.AddSingleton(
             static sp => FilterableFieldRegistry.For<Cluster>());
+        services.AddSingleton(
+            static sp => FilterableFieldRegistry.For<Workload>());
 
         return services;
     }

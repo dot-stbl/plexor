@@ -37,6 +37,12 @@ public static class ClustersExceptions
 
     /// <summary>Status transition not allowed (e.g. Offline → Pending).</summary>
     public const string IllegalStatusTransition = "clusters.status.illegal_transition";
+
+    /// <summary>Workload id did not match any row in the parent cluster.</summary>
+    public const string WorkloadNotFound = "clusters.workload.not_found";
+
+    /// <summary>Workload name missing, kind unknown, or spec malformed.</summary>
+    public const string InvalidWorkloadSpec = "clusters.workload.invalid_spec";
 }
 
 /// <summary>
