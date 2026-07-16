@@ -40,6 +40,7 @@
         <Project Path="src/shared/kernel/Plexor.Shared.Contracts/Plexor.Shared.Contracts.csproj" />
         <Project Path="src/shared/kernel/Plexor.Shared.NodeApi/Plexor.Shared.NodeApi.csproj" />
         <Project Path="src/shared/kernel/Plexor.Shared.Workloads/Plexor.Shared.Workloads.csproj" />
+        <Project Path="src/shared/kernel/Plexor.Shared.Compute/Plexor.Shared.Compute.csproj" />
     </Folder>
     <Folder Name="/src/shared/persistence/">
         <Project Path="src/shared/persistence/Plexor.Shared.Persistence/Plexor.Shared.Persistence.csproj" />
@@ -120,6 +121,7 @@
         <Project Path="tests/unit/Plexor.Shared.Composition.Unit/Plexor.Shared.Composition.Unit.csproj" />
     <Project Path="tests/unit/Plexor.Shared.Authorization.Unit/Plexor.Shared.Authorization.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Identifiers.Unit/Plexor.Shared.Identifiers.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.NodeAgent.Unit/Plexor.NodeAgent.Unit.csproj" />
     </Folder>
 
     <!-- ============ Benchmarks =================================================== -->

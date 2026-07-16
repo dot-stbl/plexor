@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <!--
+      Plexor.Shared.Compute — runtime abstractions for the compute
+      stack on a Plexor.NodeAgent. Three layered interfaces (top to
+      bottom):
+
+        IVolumeBackend  —  Storage backends (local dir, Ceph RBD,
+      |                    NFS, S3). Produces VolumeHandle (a path,
+      |                    URI, or RBD name) that VM providers put
+      |                    into <source> of their domain XML.
+      |
+      IImageRegistry  —  Catalog of available base images
+      |                    ("ubuntu-22.04", "plexor-fw-1.0"). The
+      |                    registry caches the image on local disk
+      |                    and exposes the cached path to volume
+      |                    backends that clone from it.
+      |
+      INetworkBackend —  Network topology backends (Linux bridge,
+                           OVS, OVN logical switch). Produces an
+                           opaque interface handle the VM
+                           provider references in its <interface>
+                           section.
+
+      Each interface is implemented by a per-backend class living
+      in Plexor.NodeAgent/Providers/{Storage,Image,Network}/. The
+      IWorkloadProvider (KVM/LXC/QEMU/Container/K8sPod) depends
+      on the abstractions, not on any specific backend - it asks
+      DI for the right IVolumeBackend for this node and uses
+      whatever handle comes back. Capabilities (NodeCapabilityProbe)
+      gate which backends are registered per node.
+
+      This library is interfaces-only. No reference implementations,
+      no I/O - it never references libvirt / ceph / OVS. New
+      compute infrastructure lands in Plexor.NodeAgent
+      (Providers/{Image,Storage,Network}/).
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
+</Project>
