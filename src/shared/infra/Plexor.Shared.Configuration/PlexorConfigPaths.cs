@@ -1,84 +1,64 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// PlexorConfigPaths — XDG-style user-level config dir for Plexor.
+// PlexorConfigPaths — user-level config location for Plexor.
+//
+// We use the `.plexor/` dot-directory convention (same as
+// `~/.aws/`, `~/.kube/`, `~/.docker/`, `~/.npm/`). Why dot-dir
+// instead of the XDG-recommended `~/.config/plexor/`?
+//
+//   1. One path level (`~/.plexor/` vs `~/.config/plexor/`).
+//   2. Identical path on every OS — no Windows / Mac / Linux
+//      branching in the docs or in operator scripts.
+//   3. Matches the pattern operators already use for CLI tools
+//      (aws/kubectl/docker/npm/cargo/terraform/vault).
+//   4. Backs up trivially with a `~/.*` glob in rsync/tar.
 //
 // Layered config lookup (in priority order, last wins):
 //   1. appsettings.json (in-tree, dev default)
-//   2. PLX_CONFIG_FILE env override (absolute path to any TOML/JSON)
-//   3. PlexorConfigPaths.DefaultConfigRoot() / config.toml (user-level)
-//   4. /etc/plexor/config.toml (system-level, Linux only)
-//   5. PLX_* environment variables (runtime override)
-//
-// Cross-OS conventions:
-//   Windows — %APPDATA%\plexor\config.toml       (Roaming)
-//   Linux   — $XDG_CONFIG_HOME/plexor/config.toml or
-//             ~/.config/plexor/config.toml
-//   macOS   — ~/Library/Application Support/plexor/config.toml
+//   2. <UserProfile>/.plexor/config.toml — user-level overrides
+//      (or PLX_CONFIG_FILE if the operator points elsewhere)
+//   3. PLX_* environment variables (runtime override)
 // ============================================================================
 
 namespace Plexor.Shared.Configuration;
 
 /// <summary>
 ///     Resolves the OS-conventional user-level config directory
-///     for Plexor. Production overrides come from
-///     <c>PLX_CONFIG_FILE</c> env var; tests and dev environments
-///     that don't want to touch user state can point
-///     <c>PLX_CONFIG_FILE</c> at a temp path instead.
+///     for Plexor. Single convention — <c>~/.plexor/</c> on every
+///     OS, resolved through <see cref="Environment.SpecialFolder.UserProfile" />.
 /// </summary>
 public static class PlexorConfigPaths
 {
     /// <summary>
-    ///     Default user-level config directory (no file name).
-    ///     Caller appends <c>config.toml</c>. Same tri-OS split as
-    ///     the data-root helper in Plexor.Shared.Mtls, but uses
-    /// the *config* convention (XDG_CONFIG_HOME on Linux,
-    /// ~/Library/Preferences on macOS, Roaming AppData on
-    /// Windows) instead of the data convention.
+    ///     Folder name inside the user profile. Dot-prefixed so
+    ///     a `ls ~` doesn't surface it; same convention as
+    ///     <c>.ssh</c>, <c>.kube</c>, <c>.aws</c>, <c>.docker</c>.
+    /// </summary>
+    public const string FolderName = ".plexor";
+
+    /// <summary>
+    ///     Default user-level config directory — the user
+    ///     profile joined with <c>.plexor</c>. Creates the
+    ///     directory on first access so callers don't have to
+    ///     worry about it. Returns the absolute path.
     /// </summary>
     public static string DefaultConfigRoot()
     {
-        if (OperatingSystem.IsWindows())
-        {
-            var roaming = Environment.GetFolderPath(
-                Environment.SpecialFolder.ApplicationData);
-            Directory.CreateDirectory(roaming);
-            return Path.Combine(roaming, "plexor");
-        }
-
-        if (OperatingSystem.IsMacOS() || OperatingSystem.IsMacCatalyst())
-        {
-            var profile = Environment.GetFolderPath(
-                Environment.SpecialFolder.UserProfile);
-            var support = Path.Combine(profile, "Library", "Application Support");
-            Directory.CreateDirectory(support);
-            return Path.Combine(support, "plexor");
-        }
-
-        // Linux (and unknown OS that doesn't match Win/Mac).
-        // XDG_CONFIG_HOME wins; ~/.config is the fallback.
-        // See specifications.freedesktop.org/basedir-spec.
-        var xdg = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-        if (!string.IsNullOrEmpty(xdg))
-        {
-            Directory.CreateDirectory(xdg);
-            return Path.Combine(xdg, "plexor");
-        }
-
-        var home = Environment.GetFolderPath(
+        var profile = Environment.GetFolderPath(
             Environment.SpecialFolder.UserProfile);
-        var config = Path.Combine(home, ".config");
-        Directory.CreateDirectory(config);
-        return Path.Combine(config, "plexor");
+        var root = Path.Combine(profile, FolderName);
+        Directory.CreateDirectory(root);
+        return root;
     }
 
     /// <summary>
     ///     Default user-level config file path:
-    ///     <c>&lt;DefaultConfigRoot&gt;/config.toml</c>. Returns
-    ///     null if the user has set <c>PLX_CONFIG_FILE</c> — in
-    ///     that case the caller should use the env override path
-    ///     verbatim.
+    ///     <c>&lt;UserProfile&gt;/.plexor/config.toml</c>. Returns
+    ///     the override path verbatim if <c>PLX_CONFIG_FILE</c>
+    ///     is set — that's how tests and CI point at a temp file
+    ///     instead of touching the user's real config.
     /// </summary>
-    public static string? DefaultConfigFile()
+    public static string DefaultConfigFile()
     {
         var overridePath = Environment.GetEnvironmentVariable("PLX_CONFIG_FILE");
         if (!string.IsNullOrEmpty(overridePath))
