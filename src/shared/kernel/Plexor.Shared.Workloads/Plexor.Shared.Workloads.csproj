@@ -21,4 +21,8 @@
     <ProjectReference Include="..\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
 </Project>

@@ -60,6 +60,19 @@ public static class FilterValueConverter
             }
         }
 
+        // Fallback: single-string-constructor on the target type. This is the
+        // contract for custom value types without an explicit Register —
+        // e.g. `record MyCustomType(string Value)` synthesises a primary
+        // constructor that takes the raw string verbatim. Without this
+        // fallback the DSL can't deserialize custom types until the caller
+        // explicitly opts in via Register<T>.
+        var stringCtor = underlying.GetConstructor([typeof(string)]);
+
+        if (stringCtor is not null)
+        {
+            return stringCtor.Invoke([text]);
+        }
+
         // Fallback: IConvertible.
         try
         {

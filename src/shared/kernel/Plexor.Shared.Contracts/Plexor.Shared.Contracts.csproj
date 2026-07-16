@@ -17,4 +17,8 @@
     <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
 </Project>

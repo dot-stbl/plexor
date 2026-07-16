@@ -117,33 +117,33 @@ public static class FilterOperatorRegistry
                 IsOrdered,
                 static (field, value, _) => Expression.LessThanOrEqual(field, Constant(value, field.Type))),
 
-            // Case-sensitive string ops.
+            // Case-insensitive string ops.
             Scalar(FilterOperator.Contains,
                 "~",
                 IsString,
-                static (field, value, _) => StringCall(field, value, nameof(string.Contains))),
+                static (field, value, _) => IStringCall(field, value, nameof(string.Contains))),
             Scalar(FilterOperator.StartsWith,
                 "^=",
                 IsString,
-                static (field, value, _) => StringCall(field, value, nameof(string.StartsWith))),
+                static (field, value, _) => IStringCall(field, value, nameof(string.StartsWith))),
             Scalar(FilterOperator.EndsWith,
                 "$=",
                 IsString,
-                static (field, value, _) => StringCall(field, value, nameof(string.EndsWith))),
+                static (field, value, _) => IStringCall(field, value, nameof(string.EndsWith))),
 
-            // Case-insensitive string ops (PG-style symbols).
+            // Case-sensitive string ops (PG-style symbols).
             Scalar(FilterOperator.IContains,
                 "~*",
                 IsString,
-                static (field, value, _) => IStringCall(field, value, nameof(string.Contains))),
+                static (field, value, _) => StringCall(field, value, nameof(string.Contains))),
             Scalar(FilterOperator.IStartsWith,
                 "^=*",
                 IsString,
-                static (field, value, _) => IStringCall(field, value, nameof(string.StartsWith))),
+                static (field, value, _) => StringCall(field, value, nameof(string.StartsWith))),
             Scalar(FilterOperator.IEndsWith,
                 "$=*",
                 IsString,
-                static (field, value, _) => IStringCall(field, value, nameof(string.EndsWith))),
+                static (field, value, _) => StringCall(field, value, nameof(string.EndsWith))),
 
             // Membership / non-membership.
             List(FilterOperator.In,
@@ -235,6 +235,7 @@ public static class FilterOperatorRegistry
     {
         return type.IsEnum
                || type == typeof(Guid)
+               || type == typeof(string)
                || IsNumericTypeCode(Type.GetTypeCode(type));
     }
 

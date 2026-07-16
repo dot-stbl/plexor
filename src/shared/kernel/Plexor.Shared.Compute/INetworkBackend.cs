@@ -36,11 +36,11 @@ public interface INetworkBackend
     /// <param name="cancellationToken"></param>
     /// <returns>
     ///     Opaque handle. For LinuxBridgeBackend this is the
-///     bridge name (e.g. <c>"br-prod-vpc"</c>); for OvsBridgeBackend
-///     the OVS bridge name; for OvnBackend an OVN logical switch
-///     port UUID. The VM provider does not interpret the handle
-///     — it only stores it on the workload and passes it back
-///     on detach.
+    ///     bridge name (e.g. <c>"br-prod-vpc"</c>); for OvsBridgeBackend
+    ///     the OVS bridge name; for OvnBackend an OVN logical switch
+    ///     port UUID. The VM provider does not interpret the handle
+    ///     — it only stores it on the workload and passes it back
+    ///     on detach.
     /// </returns>
     public Task<NetworkInterfaceHandle> AttachAsync(NetworkSpec networkSpec, CancellationToken cancellationToken);
 

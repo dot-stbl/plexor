@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
 </Project>

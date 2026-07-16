@@ -66,18 +66,10 @@ public interface IImageRegistry
 ///     with the registry's <see cref="IImageRegistry.AvailableImages" />
 ///     list so the user picks from the valid set.
 /// </summary>
-public sealed class UnknownImageException : Exception
+/// <param name="ImageRef">Image ref that wasn't found.</param>
+public sealed class UnknownImageException(string ImageRef)
+    : Exception($"Image '{ImageRef}' is not in any registered image registry.")
 {
-    /// <summary>
-    ///     Image ref that wasn't found.
-    /// </summary>
-    public string ImageRef { get; }
-
-    /// <summary>Constructs a not-found error.</summary>
-    /// <param name="imageRef"></param>
-    public UnknownImageException(string imageRef)
-        : base($"Image '{imageRef}' is not in any registered image registry.")
-    {
-        ImageRef = imageRef;
-    }
+    /// <summary>Image ref that wasn't found.</summary>
+    public string ImageRef { get; } = ImageRef;
 }

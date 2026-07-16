@@ -94,11 +94,9 @@ public static class FilterFunctions
         }
         else if (text[0] == '+')
         {
-            // Reject explicit '+' even though int.TryParse would accept it: the
-            // documented grammar is '[-]N[unit]', positive offsets are bare.
-            throw new FilterParseException(
-                $"Invalid duration '{text}' (use bare positive, e.g. '7d', not '+7d')",
-                position);
+            // '+N[unit]' is accepted as an explicit-positive duration; 'N[unit]'
+            // (no sign) is the bare form. Both parse to the same positive offset.
+            numberStart = 1;
         }
         else if (!char.IsDigit(text[0]))
         {

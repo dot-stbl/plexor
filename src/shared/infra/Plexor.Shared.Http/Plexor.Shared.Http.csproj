@@ -22,6 +22,7 @@
     <PackageReference Include="Polly" Version="8.6.5"/>
     <PackageReference Include="Refit" Version="12.1.0"/>
     <PackageReference Include="Refit.HttpClientFactory" Version="12.1.0"/>
+    <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
 </Project>

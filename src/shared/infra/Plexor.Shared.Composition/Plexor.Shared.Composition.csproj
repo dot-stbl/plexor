@@ -29,6 +29,7 @@
     <PackageReference Include="protobuf-net" Version="3.2.56"/>
     <PackageReference Include="Scrutor" Version="7.0.0"/>
     <PackageReference Include="StackExchange.Redis" Version="2.7.27"/>
+    <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
 </Project>

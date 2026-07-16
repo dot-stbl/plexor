@@ -21,15 +21,8 @@ public sealed class PlexorEnvironmentVariablesProviderTests
     ///     would have to set real process env vars (race-prone
     ///     in parallel xUnit runs).
     /// </summary>
-    private sealed class TestableEnvProvider : PlexorEnvironmentVariablesProvider
+    private sealed class TestableEnvProvider(System.Collections.IDictionary entries) : PlexorEnvironmentVariablesProvider
     {
-        private readonly System.Collections.IDictionary entries;
-
-        public TestableEnvProvider(System.Collections.IDictionary entries)
-        {
-            this.entries = entries;
-        }
-
         protected override System.Collections.IDictionary ReadEnvironmentVariables()
         {
             return entries;

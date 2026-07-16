@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="UUIDNext" Version="2.0.1" />
+    <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
 </Project>

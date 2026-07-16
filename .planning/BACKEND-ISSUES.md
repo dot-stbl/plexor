@@ -288,3 +288,31 @@ revocation is by serial in `forge.revoked_certs`.
    writes new cert to .tmp + renames into place atomically.
 4. Domain events (`CertRotated`, `CertRevoked`) for audit.
 
+
+## 2026-07-16 — FilterValueConverter enum description mapping
+
+**Symptom**: `FilterValueConverterTests.Convert_Enum` fails — the test
+expects `"Active"` to convert to `DayOfWeek.Monday`. Current code calls
+`Enum.Parse(underlying, text, true)` which rejects "Active" because
+DayOfWeek has no member by that name.
+
+**Root cause**: test contract assumes a string→enum mapping that wraps
+C# enum names with human-readable descriptions (e.g. "Active"="Monday"
+because Monday is the "active start day"). The mapping is not defined
+anywhere — there's no Description attribute on the enum members.
+
+**Decision deferred**: implementing enum-aliases requires a registry
+mapping (per-enum type) or an attribute scan. Both add a non-trivial
+dependency for a single test. Mark as feature-creep — note in planning
+when a real enum-DSL contract lands.
+
+**Workaround**: tests that exercise real enums use C# member names
+directly ("Monday", "Tuesday", etc.). The "Active" test is a stand-in
+for the future human-readable strings feature.
+
+**Migration plan when needed**:
+1. Add `DescriptionAttribute` lookup on enum members (name→description
+   pair) — works without a registry.
+2. Or add `converters` dictionary for enum types with custom mappings.
+3. Add `[Description("Active")]` to DayOfWeek.Monday, or register
+   `DayOfWeek` in FilterValueConverter at startup.
