@@ -22,6 +22,27 @@ using Plexor.Shared.Identifiers;
 
 namespace Plexor.Modules.Clusters.Api.Controllers;
 
+// Route names — referenced by [HttpGet(..., Name = ...)] and
+// CreatedAtAction(...). CreatedAtAction looks up the action by its
+// routing name (the value of `Name =`), NOT by the C# method name;
+// `nameof(GetAsync)` would fail with 'Cannot resolve action'. The
+// file-scope static class keeps the string in one place per file so
+// refactors are safe and the compiler verifies both call sites match.
+file static class WorkloadRouteNames
+{
+    /// <summary>POST /clusters/{clusterId}/workloads — provision a workload.</summary>
+    public const string Create = "workloads-create";
+
+    /// <summary>GET /clusters/{clusterId}/workloads — list paged.</summary>
+    public const string List = "workloads-list";
+
+    /// <summary>GET /clusters/{clusterId}/workloads/{workloadId} — fetch one.</summary>
+    public const string Get = "workloads-get";
+
+    /// <summary>DELETE /clusters/{clusterId}/workloads/{workloadId} — soft-delete.</summary>
+    public const string Delete = "workloads-delete";
+}
+
 /// <summary>
 ///     Workload management endpoints. Mounted at
 ///     <c>/api/v1/compute/clusters/{clusterId}/workloads</c> —
@@ -55,7 +76,7 @@ public sealed class WorkloadsController(
     /// <param name="clusterId">Parent cluster.</param>
     /// <param name="request">Operator-supplied spec.</param>
     /// <param name="cancellationToken"></param>
-    [HttpPost(Name = "workloads-create")]
+    [HttpPost(Name = WorkloadRouteNames.Create)]
     [EndpointSummary("Provision a new workload in the cluster")]
     [RequirePermission(ClusterPermissions.Update)]
     [ProducesResponseType<WorkloadSummary>(StatusCodes.Status201Created)]
@@ -68,7 +89,7 @@ public sealed class WorkloadsController(
             new CreateWorkloadCommand(clusterId, request.Name, request.Kind, request.SpecJson),
             cancellationToken);
         return CreatedAtAction(
-            nameof(GetAsync),
+            WorkloadRouteNames.Get,
             new { clusterId, workloadId = summary.Id },
             summary);
     }
@@ -82,7 +103,7 @@ public sealed class WorkloadsController(
     /// <param name="clusterId">Parent cluster.</param>
     /// <param name="query">URL envelope.</param>
     /// <param name="cancellationToken"></param>
-    [HttpGet(Name = "workloads-list")]
+    [HttpGet(Name = WorkloadRouteNames.List)]
     [EndpointSummary("List workloads in the cluster")]
     [RequirePermission(ClusterPermissions.Read)]
     [ProducesResponseType<PageResult<WorkloadSummary>>(StatusCodes.Status200OK)]
@@ -103,7 +124,7 @@ public sealed class WorkloadsController(
     /// <param name="clusterId">Parent cluster.</param>
     /// <param name="workloadId">Target workload.</param>
     /// <param name="cancellationToken"></param>
-    [HttpGet("{workloadId}", Name = "workloads-get")]
+    [HttpGet("{workloadId}", Name = WorkloadRouteNames.Get)]
     [EndpointSummary("Fetch one workload")]
     [RequirePermission(ClusterPermissions.Read)]
     [ProducesResponseType<WorkloadSummary>(StatusCodes.Status200OK)]
@@ -125,7 +146,7 @@ public sealed class WorkloadsController(
     /// <param name="clusterId">Parent cluster.</param>
     /// <param name="workloadId">Target workload.</param>
     /// <param name="cancellationToken"></param>
-    [HttpDelete("{workloadId}", Name = "workloads-delete")]
+    [HttpDelete("{workloadId}", Name = WorkloadRouteNames.Delete)]
     [EndpointSummary("Soft-delete a workload")]
     [RequirePermission(ClusterPermissions.Update)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
