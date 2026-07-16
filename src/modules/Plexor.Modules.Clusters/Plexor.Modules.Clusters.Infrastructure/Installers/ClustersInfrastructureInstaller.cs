@@ -6,12 +6,11 @@
 // AddClustersApplicationCore.
 // ============================================================================
 //
-// NOTE: ClusterDbContext itself is registered centrally by
-// AddPlexorModuleDbContexts (see Host Program.cs + Migrator Program.cs).
-// That helper reflects every PlexorDbContext subclass in
-// Plexor.Modules.* assemblies and calls AddModuleDbContext<TContext>
-// with the shared Postgres connection string. Re-registering here
-// would double-register and cause scope/conflict errors.
+// NOTE: ClusterDbContext itself is registered centrally by the
+// composition root (Host Program.cs + Migrator Program.cs) via
+// an explicit AddModuleDbContext<ClusterDbContext>(connectionString)
+// call. Re-registering here would double-register and cause
+// scope/conflict errors.
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +35,7 @@ public static class ClustersInfrastructureInstaller
     ///     Register every cluster + node command handler. The
     ///     <see cref="Persistence.ClusterDbContext" /> itself is
     ///     registered centrally by
-    ///     <c>AddPlexorModuleDbContexts</c> — do not re-register here.
+    ///     <c>AddModuleDbContext&lt;T&gt;</c> — do not re-register here.
     /// </summary>
     /// <param name="services">The DI container.</param>
     /// <param name="configuration">App configuration (unused in v0.1;

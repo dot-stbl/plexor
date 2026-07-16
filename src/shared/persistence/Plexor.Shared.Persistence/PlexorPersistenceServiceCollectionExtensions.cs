@@ -5,24 +5,19 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Plexor.Shared.Persistence;
 
 /// <summary>
-///     DI extension that registers one or more <see cref="PlexorDbContext" />
-///     subclasses with the snake_case naming convention, PostgreSQL
+///     DI extension that registers a <see cref="PlexorDbContext" />
+///     subclass with the snake_case naming convention, PostgreSQL
 ///     provider, and a standard set of EF Core interceptors.
 /// </summary>
 /// <remarks>
-///     <para><b>One extension, two overloads.</b>
-///     <list type="bullet">
-///       <item><see cref="AddModuleDbContext{TContext}" /> — register one
-///         specific context. Use in module installers when only that
-///         module's context is needed.</item>
-///       <item><see cref="AddPlexorModuleDbContexts(IServiceCollection, string)" />
-///         — scan every <c>Plexor.Modules.*.Infrastructure</c> assembly for
-///         <see cref="PlexorDbContext" /> subclasses and register all of
-///         them against the same connection string. Use in the host
-///         composition root when all modules share a single Postgres
-///         instance (the common case — schema-per-module is the
-///         isolation primitive, not database-per-module).</item>
-///     </list></para>
+///     <para><b>Composition-root registration.</b>
+///     Each host entry-point (Plexor.Host, Plexor.Migrator) registers
+///     every <see cref="PlexorDbContext" /> subclass explicitly via
+///     <see cref="AddModuleDbContext{TContext}" />. Explicit over
+///     reflection: the compiler enforces that new contexts land in
+///     every composition root that needs them — no silent miss.
+///     The FK-dependent order (Realm → Identity → Clusters → Mtls)
+///     must be preserved.</para>
 ///     <para><b>Why a single connection string across modules.</b>
 ///     Plexor runs a single PostgreSQL cluster with one database per
 ///     install. Modules are isolated by <em>schema</em> (sigil / realm /
@@ -71,49 +66,6 @@ public static class PlexorPersistenceServiceCollectionExtensions
 
         return services;
     }
-
-    /// <summary>
-    ///     Scans every loaded assembly whose name starts with
-    ///     <c>Plexor.Modules.</c> for non-abstract sealed
-    ///     <see cref="PlexorDbContext" /> subclasses and registers each one
-    ///     with the shared <paramref name="connectionString" />. Single
-    ///     Postgres cluster, schema-per-module isolation — one string
-    ///     covers all modules.
-    /// </summary>
-    /// <param name="services">DI service collection.</param>
-    /// <param name="connectionString">PostgreSQL connection string. The
-    ///     same string is used for every discovered context — no per-module
-    ///     config keys.</param>
-    /// <returns>Number of contexts registered (diagnostic).</returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    public static int AddPlexorModuleDbContexts(
-        this IServiceCollection services,
-        string connectionString)
-    {
-        var contexts = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(static a => a.GetName().Name?.StartsWith("Plexor.Modules.", StringComparison.Ordinal) ?? false)
-            .SelectMany(static a => a.GetExportedTypes())
-            .Where(static t => t.IsClass
-                            && !t.IsAbstract
-                            && t.IsSealed
-                            && typeof(PlexorDbContext).IsAssignableFrom(t))
-            .ToList();
-
-        // Dispatch each closed DbContext to AddModuleDbContext<TContext>.
-        // Single-pass reflection — one MethodInfo per closed generic form.
-        // Equivalent to calling AddModuleDbContext<RealmDbContext>(connectionString)
-        // + AddModuleDbContext<IdentityDbContext>(connectionString) + ... inline.
-        var addModuleMethod = typeof(PlexorPersistenceServiceCollectionExtensions)
-            .GetMethod(nameof(AddModuleDbContext), BindingFlags.Public | BindingFlags.Static)
-            ?? throw new InvalidOperationException(
-                "AddModuleDbContext<TContext> not found via reflection — method renamed?");
-
-        foreach (var ctx in contexts)
-        {
-            var closedMethod = addModuleMethod.MakeGenericMethod(ctx);
-            closedMethod.Invoke(null, [services, connectionString]);
-        }
-
-        return contexts.Count;
-    }
 }
+
+

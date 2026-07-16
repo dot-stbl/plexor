@@ -29,8 +29,9 @@ internal sealed class MigrationRunner(
     /// <summary>
     ///     Walks every registered <see cref="PlexorDbContext" /> and
     ///     applies its pending migrations. The order of
-    ///     application matches the order of DbContext registration
-    ///     in <c>AddPlexorModuleDbContexts</c>; Phase 5+ will resolve
+    ///     application matches the explicit registration list in
+    ///     Migrator Program.cs (Realm → Identity → Clusters →
+    ///     RevokedCerts — FK-dependency order); Phase 5+ will resolve
     ///     FK dependencies between schemas (Outbox → Tenants →
     ///     Identity → Audit, etc.) and order them explicitly. Failure
     ///     to migrate aborts the process before the host can serve

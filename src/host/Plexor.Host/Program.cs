@@ -22,10 +22,14 @@ using System.Text.Json.Serialization;
 using Plexor.Host.Installers;
 using Plexor.Host.OpenApi;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
+using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Api;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
+using Plexor.Modules.Sigil.Infrastructure.Persistence;
 using Plexor.Shared.Filtering.DI;
+using Plexor.Shared.Mtls.Persistence;
 using Plexor.Shared.Persistence;
 using Plexor.Shared.Telemetry;
 
@@ -76,7 +80,13 @@ builder.Services
 var postgresConnection = builder.Configuration.GetConnectionString("Postgres")
                          ?? throw new InvalidOperationException(
                              "ConnectionStrings:Postgres missing from configuration.");
-var contextCount = builder.Services.AddPlexorModuleDbContexts(postgresConnection);
+
+// Explicit DbContext registration — same set + order as the migrator.
+builder.Services.AddModuleDbContext<RealmDbContext>(postgresConnection);
+builder.Services.AddModuleDbContext<IdentityDbContext>(postgresConnection);
+builder.Services.AddModuleDbContext<ClusterDbContext>(postgresConnection);
+builder.Services.AddModuleDbContext<RevokedCertsDbContext>(postgresConnection);
+var contextCount = 4;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter

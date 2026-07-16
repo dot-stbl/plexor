@@ -3,8 +3,8 @@
 // Plexor.Migrator — CLI for running EF Core migrations and database utilities.
 // ============================================================================
 // Wires:
-//   - AddSigilInfrastructureCore() / AddRealmInfrastructureCore() so each
-//     module's DbContext is registered against the shared Postgres connection.
+//   - AddSigilInfrastructureCore() so each module's DbContext is registered
+//     against the shared Postgres connection.
 //   - MigrationRunner is the IHostedService that applies pending migrations
 //     in FK-dependency order on host startup.
 //
@@ -18,14 +18,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Plexor.Migrator;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
+using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Shared.Mtls.Persistence;
 using Plexor.Shared.Persistence;
-
-// Hint the runtime to load every Plexor.Modules.* assembly now so
-// AddPlexorModuleDbContexts() reflection finds all sealed DbContext
-// subclasses. Without these hints, lazy assembly loading can cause
-// the reflection scan to miss freshly-referenced modules.
-_ = typeof(ClusterDbContext).Assembly;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -40,7 +37,19 @@ var migrationConnection =
     ?? throw new InvalidOperationException(
         "ConnectionStrings:Postgres (or MIGRATOR_CONNECTION env var) is not configured.");
 
-builder.Services.AddPlexorModuleDbContexts(migrationConnection);
+// Explicit DbContext registration. Every PlexorDbContext subclass
+// owns its own table set + migrations; the migrator applies them
+// in the order declared below. Adding a new DbContext requires
+// adding a call here — the compiler will not silently miss it.
+//
+// FK-dependency order: Realm (organizations referenced by sigil.users)
+// → Identity (users referenced by clusters.nodes) → Clusters
+// (FKs to sigil.users + realm.organizations) → Mtls RevokedCerts
+// (no FKs, kept last; shares forge schema with Clusters).
+builder.Services.AddModuleDbContext<RealmDbContext>(migrationConnection);
+builder.Services.AddModuleDbContext<IdentityDbContext>(migrationConnection);
+builder.Services.AddModuleDbContext<ClusterDbContext>(migrationConnection);
+builder.Services.AddModuleDbContext<RevokedCertsDbContext>(migrationConnection);
 
 builder.Services.AddSigilInfrastructureCore(builder.Configuration);
 

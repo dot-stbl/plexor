@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Infrastructure\Plexor.Modules.Sigil.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Clusters\Plexor.Modules.Clusters.Infrastructure\Plexor.Modules.Clusters.Infrastructure.csproj"/>
+    <ProjectReference Include="..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
