@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../src/shared/Plexor.Shared.Kernel/Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="../../../src/shared/kernel/Plexor.Shared.Kernel/Plexor.Shared.Kernel.csproj"/>
   </ItemGroup>
 
 </Project>

@@ -9,10 +9,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj" />
-    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
-    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
-    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
-    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\..\..\shared\infra\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
+    <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\Plexor.Modules.Realm.Domain\Plexor.Modules.Realm.Domain.csproj" />
   </ItemGroup>
 

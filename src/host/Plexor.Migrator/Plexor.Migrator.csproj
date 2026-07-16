@@ -18,9 +18,9 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj"/>
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj"/>
+    <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Infrastructure\Plexor.Modules.Sigil.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Clusters\Plexor.Modules.Clusters.Infrastructure\Plexor.Modules.Clusters.Infrastructure.csproj"/>

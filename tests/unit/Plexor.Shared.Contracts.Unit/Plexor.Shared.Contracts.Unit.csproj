@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../src/shared/Plexor.Shared.Contracts/Plexor.Shared.Contracts.csproj"/>
+    <ProjectReference Include="../../../src/shared/kernel/Plexor.Shared.Contracts/Plexor.Shared.Contracts.csproj"/>
   </ItemGroup>
 
 </Project>

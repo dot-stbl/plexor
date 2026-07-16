@@ -9,9 +9,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Plexor.Modules.Clusters.Domain\Plexor.Modules.Clusters.Domain.csproj" />
-    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
-    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
-    <ProjectReference Include="..\..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

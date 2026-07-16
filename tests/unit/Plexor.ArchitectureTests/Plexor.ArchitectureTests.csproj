@@ -33,11 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
-    <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
+    <ProjectReference Include="..\..\..\src\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\..\..\src\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
     <ProjectReference Include="..\..\..\src\host\Plexor.Host\Plexor.Host.csproj"/>
     <ProjectReference Include="..\..\..\src\installer\Plexor.Installer.Cli\Plexor.Installer.Cli.csproj"/>
-    <ProjectReference Include="..\..\..\src\providers\Plexor.Core.Providers\Plexor.Core.Providers.csproj"/>
     <!-- All modules: -->
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Application\Plexor.Modules.Sigil.Application.csproj"/>

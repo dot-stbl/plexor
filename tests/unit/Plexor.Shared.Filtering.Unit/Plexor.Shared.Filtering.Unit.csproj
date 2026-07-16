@@ -11,7 +11,7 @@
   <ItemGroup>
     <!-- The library under test -->
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
-    <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Filtering\Plexor.Shared.Filtering.csproj" />
+    <ProjectReference Include="..\..\..\src\shared\persistence\Plexor.Shared.Filtering\Plexor.Shared.Filtering.csproj" />
 
     <!-- EF Core InMemory for ApplyFilter / ApplySort tests in Persistence/ -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9" />

@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
-    <ProjectReference Include="..\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
+    <ProjectReference Include="..\..\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\..\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
     <ProjectReference Include="..\Plexor.Shared.Filtering\Plexor.Shared.Filtering.csproj"/>
   </ItemGroup>
 

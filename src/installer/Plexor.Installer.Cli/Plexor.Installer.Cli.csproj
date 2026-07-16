@@ -27,9 +27,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Console\Plexor.Shared.Console.csproj"/>
+    <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Console\Plexor.Shared.Console.csproj"/>
     <ProjectReference Include="..\..\providers\Plexor.Core.Providers\Plexor.Core.Providers.csproj"/>
     <ProjectReference Include="..\Plexor.Installer.Engine\Plexor.Installer.Engine.csproj"/>
   </ItemGroup>

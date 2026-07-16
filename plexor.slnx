@@ -31,22 +31,30 @@
         <Project Path="src/build/Plexor.Build.Tools/Plexor.Build.Tools.csproj" />
     </Folder>
 
-    <!-- ============ Shared libraries (kernel + cross-cutting) ============== -->
-    <Folder Name="/src/shared/">
-        <Project Path="src/shared/Plexor.Shared.Kernel/Plexor.Shared.Kernel.csproj" />
-        <Project Path="src/shared/Plexor.Shared.Contracts/Plexor.Shared.Contracts.csproj" />
-        <Project Path="src/shared/Plexor.Shared.Persistence/Plexor.Shared.Persistence.csproj" />
-        <Project Path="src/shared/Plexor.Shared.Telemetry/Plexor.Shared.Telemetry.csproj" />
-        <Project Path="src/shared/Plexor.Shared.Http/Plexor.Shared.Http.csproj" />
-        <Project Path="src/shared/Plexor.Shared.Filtering/Plexor.Shared.Filtering.csproj" />
-        <Project Path="src/shared/Plexor.Shared.Composition/Plexor.Shared.Composition.csproj" />
-        <Project Path="src/shared/Plexor.Shared.Console/Plexor.Shared.Console.csproj" />
-        <Project Path="src/shared/Plexor.Shared.NodeApi/Plexor.Shared.NodeApi.csproj" />
-        <Project Path="src/shared/Plexor.Shared.Workloads/Plexor.Shared.Workloads.csproj" />
-        <Project Path="src/shared/Plexor.Shared.Mtls/Plexor.Shared.Mtls.csproj" />
-    <Project Path="src/shared/Plexor.Shared.Authorization/Plexor.Shared.Authorization.csproj" />
-    <Project Path="src/shared/Plexor.Shared.Identifiers/Plexor.Shared.Identifiers.csproj" />
-
+    <!-- ============ Shared libraries (grouped by concern) ================ -->
+    <!-- Four sub-groups: kernel (contracts/abstractions), persistence       -->
+    <!-- (EF + filter DSL), security (auth/crypto/IDs), infra (http/telemetry -->
+    <!-- /DI/console/composition).                                            -->
+    <Folder Name="/src/shared/kernel/">
+        <Project Path="src/shared/kernel/Plexor.Shared.Kernel/Plexor.Shared.Kernel.csproj" />
+        <Project Path="src/shared/kernel/Plexor.Shared.Contracts/Plexor.Shared.Contracts.csproj" />
+        <Project Path="src/shared/kernel/Plexor.Shared.NodeApi/Plexor.Shared.NodeApi.csproj" />
+        <Project Path="src/shared/kernel/Plexor.Shared.Workloads/Plexor.Shared.Workloads.csproj" />
+    </Folder>
+    <Folder Name="/src/shared/persistence/">
+        <Project Path="src/shared/persistence/Plexor.Shared.Persistence/Plexor.Shared.Persistence.csproj" />
+        <Project Path="src/shared/persistence/Plexor.Shared.Filtering/Plexor.Shared.Filtering.csproj" />
+    </Folder>
+    <Folder Name="/src/shared/security/">
+        <Project Path="src/shared/security/Plexor.Shared.Authorization/Plexor.Shared.Authorization.csproj" />
+        <Project Path="src/shared/security/Plexor.Shared.Mtls/Plexor.Shared.Mtls.csproj" />
+        <Project Path="src/shared/security/Plexor.Shared.Identifiers/Plexor.Shared.Identifiers.csproj" />
+    </Folder>
+    <Folder Name="/src/shared/infra/">
+        <Project Path="src/shared/infra/Plexor.Shared.Http/Plexor.Shared.Http.csproj" />
+        <Project Path="src/shared/infra/Plexor.Shared.Telemetry/Plexor.Shared.Telemetry.csproj" />
+        <Project Path="src/shared/infra/Plexor.Shared.Composition/Plexor.Shared.Composition.csproj" />
+        <Project Path="src/shared/infra/Plexor.Shared.Console/Plexor.Shared.Console.csproj" />
     </Folder>
 
     <!-- ============ Modules (Domain / Application / Infrastructure) ========== -->

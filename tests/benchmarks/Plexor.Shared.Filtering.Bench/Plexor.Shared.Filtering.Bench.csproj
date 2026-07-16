@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Filtering\Plexor.Shared.Filtering.csproj" />
+    <ProjectReference Include="..\..\..\src\shared\persistence\Plexor.Shared.Filtering\Plexor.Shared.Filtering.csproj" />
   </ItemGroup>
 
   <ItemGroup>

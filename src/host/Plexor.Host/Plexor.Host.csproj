@@ -16,14 +16,14 @@
 
   <ItemGroup>
     <!-- ============ Composition + shared ============ -->
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Http\Plexor.Shared.Http.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj" />
-    <ProjectReference Include="..\..\shared\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj" />
+    <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Http\Plexor.Shared.Http.csproj" />
+    <ProjectReference Include="..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
+    <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj" />
+    <ProjectReference Include="..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj" />
 
     <!-- ============ Modules (all wired) ============ -->
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Application\Plexor.Modules.Sigil.Application.csproj" />

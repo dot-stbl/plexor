@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\shared\Plexor.Shared.Authorization\Plexor.Shared.Authorization.csproj" />
+    <ProjectReference Include="..\..\..\src\shared\security\Plexor.Shared.Authorization\Plexor.Shared.Authorization.csproj" />
   </ItemGroup>
 
 </Project>

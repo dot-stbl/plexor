@@ -26,7 +26,7 @@
   <ItemGroup>
     <PackageReference Include="Spectre.Console" Version="0.49.*"/>
     <PackageReference Include="Spectre.Console.Cli" Version="0.49.*"/>
-    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\..\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
   </ItemGroup>
 
 </Project>

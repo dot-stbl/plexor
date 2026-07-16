@@ -12,10 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
-    <ProjectReference Include="..\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
+    <ProjectReference Include="..\..\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\..\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
     <ProjectReference Include="..\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj"/>
-    <ProjectReference Include="..\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj"/>
+    <ProjectReference Include="..\..\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj"/>
     <ProjectReference Include="..\Plexor.Shared.Http\Plexor.Shared.Http.csproj"/>
   </ItemGroup>
 
