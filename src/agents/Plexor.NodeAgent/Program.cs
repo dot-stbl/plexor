@@ -28,6 +28,25 @@ using Refit;
 
 var builder = Host.CreateApplicationBuilder(args);
 
+// ----------------------------------------------------------------------------
+// mTLS options — the cert triple the join flow writes to disk
+// (under <c>~/.plexor/agent/</c>) is loaded by the SocketsHttpHandler
+// below. Enrolled flag flips true on successful join, so the
+// pre-join HTTP call to /join still uses a plain HttpClient
+// (the host endpoint is anonymous) and only after enrollment do
+// we substitute the mTLS handler.
+// ----------------------------------------------------------------------------
+var certDirectoryOverride = builder.Configuration["NodeAgent:Mtls:CertDirectory"];
+var nodeOptions = new NodeAgentOptions
+{
+    CertDirectory = !string.IsNullOrEmpty(certDirectoryOverride)
+        ? certDirectoryOverride
+        : System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".plexor", "agent"),
+};
+builder.Services.AddSingleton(nodeOptions);
+
 // HTTP transport to Plexor.Host. The Refit-typed client is
 // registered first; the HttpCommandTransport is the concrete
 // ICommandTransport that calls into it. The resilience handler
@@ -40,6 +59,12 @@ var builder = Host.CreateApplicationBuilder(args);
 // The transport's relative paths ('nodes/join', 'nodes/{id}/
 // heartbeat', etc.) don't include the segment, so the BaseAddress
 // has to.
+//
+// Primary handler: SocketsHttpHandler with mTLS client cert +
+// host-cert validation against the Plexor CA. Only installed
+// once the agent has completed the join flow — pre-join calls
+// (the /join itself) use a plain handler because the host
+// endpoint is anonymous.
 builder.Services
         .AddRefitClient<INodeApi>(NodeApiSettingsFactory.Create())
         .ConfigureHttpClient(client =>
@@ -52,6 +77,10 @@ builder.Services
 
             client.BaseAddress = new Uri(apiBase);
         })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+            nodeOptions.Enrolled
+                ? (HttpMessageHandler)MtlsHttpHandlerFactory.Build(nodeOptions)
+                : new SocketsHttpHandler())
         .AddStandardResilienceHandler();
 
 builder.Services.AddSingleton<ICommandTransport, HttpCommandTransport>();

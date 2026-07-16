@@ -32,6 +32,7 @@
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj"/>
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Http\Plexor.Shared.Http.csproj"/>
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj"/>
+    <ProjectReference Include="..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj" />
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Workloads\Plexor.Shared.Workloads.csproj"/>
     <ProjectReference Include="..\..\providers\Plexor.Core.Providers\Plexor.Core.Providers.csproj"/>
   </ItemGroup>

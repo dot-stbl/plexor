@@ -27,6 +27,7 @@
 using Plexor.NodeAgent.Abstractions;
 using Plexor.NodeAgent.Composition;
 using Plexor.Shared.NodeApi;
+using ICommandTransport = Plexor.NodeAgent.Abstractions.ICommandTransport;
 
 namespace Plexor.NodeAgent;
 
@@ -48,7 +49,8 @@ internal sealed class NodeAgentWorker(
     ICommandTransport transport,
     CommandDispatcher dispatcher,
     ILogger<NodeAgentWorker> logger,
-    NodeAgentWorker.NodeConfig config) : BackgroundService
+    NodeAgentWorker.NodeConfig config,
+    NodeAgentOptions nodeOptions) : BackgroundService
 {
     private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
@@ -145,6 +147,16 @@ internal sealed class NodeAgentWorker(
             "Joined as node {NodeId} (control plane {ControlPlaneUrl})",
             response.NodeId,
             response.ControlPlaneUrl);
+
+        // Persist the mTLS cert triple the host just handed us.
+        // The SocketsHttpHandlerFactory reads from disk on the
+        // NEXT request — the /join itself used a plain handler
+        // (the host endpoint is anonymous). From the next call
+        // onwards every request presents this cert.
+        MtlsCertWriter.Persist(nodeOptions, response);
+        logger.LogInformation(
+            "Enrolled — client cert + key written to {Dir}",
+            nodeOptions.CertDirectory);
     }
 
     private async Task HeartbeatLoopAsync(CancellationToken stoppingToken)
