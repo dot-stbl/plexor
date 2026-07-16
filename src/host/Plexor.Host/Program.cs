@@ -18,8 +18,13 @@
 // `<Main>$` returning Task, which violates VSTHRD200 (Async suffix rule).
 // ============================================================================
 
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
+using Microsoft.Extensions.Logging.Abstractions;
 using Plexor.Host.Installers;
+using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
@@ -29,11 +34,31 @@ using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 using Plexor.Shared.Filtering.DI;
+using Plexor.Shared.Mtls;
 using Plexor.Shared.Mtls.Persistence;
 using Plexor.Shared.Persistence;
 using Plexor.Shared.Telemetry;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ----------------------------------------------------------------------------
+// mTLS bootstrap. CA root + host server cert are file-based and
+// must exist BEFORE ConfigureKestrel captures the PFX path. We do this
+// synchronously here, idempotently — first boot generates; subsequent
+// boots reuse the same files. Logger is a simple console one — the
+// Plexor-formatted logger isn't wired yet at this point in the
+// composition root, and bootstrap only emits 1-2 lines.
+// ----------------------------------------------------------------------------
+var caOptions = builder.Configuration
+    .GetSection(CertAuthorityOptions.SectionName)
+    .Get<CertAuthorityOptions>()
+    ?? new CertAuthorityOptions();
+PlexorCaBootstrap.EnsureCertificates(
+    caOptions,
+    NullLogger.Instance);
+
+builder.Services.AddPlexorCertAuthority(builder.Configuration);
+builder.Services.AddHostedService<PlexorCaStartup>();
 
 // OpenAPI — Microsoft.AspNetCore.OpenApi source-gen document provider.
 // ProblemDetailsResponsesTransformer injects the standard RFC 7807
@@ -125,6 +150,36 @@ builder.Services.RemoveHostedServicesForOpenApiGeneration();
 // frozen once the host is built.
 builder.Logging.AddPlexorConsole();
 
+// ----------------------------------------------------------------------------
+// Kestrel — dual endpoint. :48001 is browser-facing HTTP (JWT bearer
+// from the Sigil stack). :48002 is NodeAgent-facing mTLS — every
+// incoming request must present a client cert signed by the Plexor
+// CA. The MtlsAuthMiddleware (registered below, after routing)
+// validates the chain, checks revocation, and parses CN into NodeId.
+// ----------------------------------------------------------------------------
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(48001);
+
+    options.ListenAnyIP(48002, listenOptions =>
+    {
+        listenOptions.UseHttps(httpsOptions =>
+        {
+            httpsOptions.ClientCertificateMode = ClientCertificateMode.RequireCertificate;
+            // boundary: X509CertificateLoader.LoadPfxFromFile (the
+            // .NET 10 API for loading password-protected PFX) is
+            // not present in the 10.0.110 SDK on this build. The
+            // byte[]+password ctor is the path until the SDK is
+            // upgraded; SYSLIB0057 covers that constructor.
+#pragma warning disable SYSLIB0057
+            httpsOptions.ServerCertificate = new X509Certificate2(
+                File.ReadAllBytes(caOptions.HostCertPath),
+                caOptions.HostCertPassword);
+#pragma warning restore SYSLIB0057
+        });
+    });
+});
+
 var app = builder.Build();
 
 app.Logger.LogInformation(
@@ -140,6 +195,11 @@ app.MapGet("/", static () => Results.Ok(new { name = "Plexor Host", version = "0
 // Both rely on the IProblemDetailsService registered by AddProblemDetails().
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+
+// mTLS auth middleware — runs before controllers. Allows requests
+// through if their path is browser-facing; rejects (401) if the
+// NodeAgent-facing path lacks a valid Plexor-CA-signed client cert.
+app.UseMiddleware<MtlsAuthMiddleware>();
 
 app.MapControllers();
 

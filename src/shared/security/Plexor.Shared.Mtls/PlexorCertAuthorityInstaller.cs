@@ -33,7 +33,14 @@ public static class PlexorCertAuthorityInstaller
         services.Configure<CertAuthorityOptions>(
             configuration.GetSection(CertAuthorityOptions.SectionName));
 
-        services.AddSingleton<PlexorCaFileStore>();
+        // PlexorCaFileStore takes CertAuthorityOptions directly (not
+        // IOptions<T>) so the ctor stays parameter-light. Resolve
+        // through IOptions at registration time — the same pattern
+        // every other options-bound service in the codebase uses.
+        services.AddSingleton<PlexorCaFileStore>(static sp =>
+            new PlexorCaFileStore(
+                sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<CertAuthorityOptions>>().Value));
+
         services.AddSingleton<PlexorCaRoot>();
         services.AddSingleton<RevokedCertCache>();
         services.AddSingleton<ICertificateAuthority, PlexorCertificateIssuer>();
