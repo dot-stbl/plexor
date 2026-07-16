@@ -1,0 +1,68 @@
+# ============================================================================
+# Plexor .dockerignore — what to skip when building container images.
+# Copy goes through git ls-files when available, otherwise the full
+# source tree is sent. Without this file `podman compose build` /
+# `docker build` copies node_modules (~650MB), tests/, .git/, .agents/
+# docs into the build context, slowing the migrator + host images
+# from ~30s to ~5min.
+# ============================================================================
+
+# Version control — never needed inside a container image
+.git
+.gitattributes
+.gitignore
+
+# IDE / editor state
+.idea
+.vscode
+*.user
+*.suo
+
+# Build output — every project has its own obj/ + bin/
+**/obj/
+**/bin/
+**/out/
+
+# Frontend monorepo — Node-only; never needed inside .NET images.
+# Excluded aggressively because node_modules alone is ~650MB and
+# adds 4-5 minutes to every build context copy.
+web/
+artifacts/
+
+# Test projects — they're loaded transitively by Host.csproj /
+# Migrator.csproj at compile time but never ship in runtime
+# images. Keeping them out of the build context keeps `dotnet
+# restore` and the Docker COPY tiny.
+tests/
+
+# Local-only secrets — developer-scoped, never committed
+# (.gitignore already excludes the files; we still list here so
+# Docker skips the dir-entirely for safety).
+dev-certs/
+
+# Local dev config / docs — useful for humans, never inside the
+# binary.
+.agents/
+.claude/
+.planning/
+AGENTS.md
+CLAUDE.md
+README.md
+.editorconfig
+Directory.Build.props
+Directory.Packages.props
+
+# Generated artifacts that may live alongside source — terraform /
+# compose yamls are in deploy/, that's intentional.
+*.tfstate
+*.tfstate.backup
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+
+# Logs / coverage
+*.log
+*.coverage
+*.coveragexml
+TestResults/
