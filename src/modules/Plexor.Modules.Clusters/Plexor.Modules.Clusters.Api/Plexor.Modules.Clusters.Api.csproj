@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Authorization\Plexor.Shared.Authorization.csproj" />
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
     <ProjectReference Include="..\Plexor.Modules.Clusters.Infrastructure\Plexor.Modules.Clusters.Infrastructure.csproj" />
+    <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
 </Project>

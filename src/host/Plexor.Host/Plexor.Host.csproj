@@ -50,6 +50,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.5.0" />
+    <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
 </Project>

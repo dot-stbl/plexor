@@ -31,6 +31,10 @@
     <NoWarn>$(NoWarn);CS5001;CS1591</NoWarn>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
   <Import Project="Plexor.Build.Tools.targets"/>
 
 </Project>

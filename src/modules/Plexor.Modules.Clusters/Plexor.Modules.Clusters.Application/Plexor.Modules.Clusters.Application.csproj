@@ -14,4 +14,8 @@
     <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
 </Project>

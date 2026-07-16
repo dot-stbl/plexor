@@ -23,4 +23,8 @@
     <ProjectReference Include="..\Plexor.Installer.Engine\Plexor.Installer.Engine.csproj"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
 </Project>

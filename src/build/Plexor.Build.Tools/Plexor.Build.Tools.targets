@@ -42,7 +42,14 @@
           BeforeTargets="Build"
           Condition="'$(DisableFormatOnBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'">
     <PropertyGroup>
-      <_FormatExcludes>--exclude &quot;**/Migrations/**.cs&quot; --exclude &quot;**/*ModelSnapshot.cs&quot; --exclude &quot;**/*.Designer.cs&quot; --exclude-diagnostics RCS1141 RCS1140 MA0136 RCS1021</_FormatExcludes>
+      <!--
+        Exclude paths: EF migrations + ModelSnapshot + Designer files
+        (hand-edits get clobbered on next `dotnet ef migrations add`),
+        plus all build-output directories (obj/, bin/, Generated/)
+        and source-generator outputs (**/*.g.cs) — these are tool-
+        produced, not project source.
+      -->
+      <_FormatExcludes>--exclude &quot;**/Migrations/**.cs&quot; --exclude &quot;**/*ModelSnapshot.cs&quot; --exclude &quot;**/*.Designer.cs&quot; --exclude &quot;**/obj/**.cs&quot; --exclude &quot;**/bin/**.cs&quot; --exclude &quot;**/Generated/**.cs&quot; --exclude &quot;**/*.g.cs&quot; --exclude-diagnostics RCS1141 RCS1140 MA0136 RCS1021</_FormatExcludes>
       <_FormatSolution>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../../plexor.slnx'))</_FormatSolution>
     </PropertyGroup>
 

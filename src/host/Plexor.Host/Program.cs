@@ -18,7 +18,6 @@
 // `<Main>$` returning Task, which violates VSTHRD200 (Async suffix rule).
 // ============================================================================
 
-using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
@@ -34,11 +33,11 @@ using Plexor.Modules.Sigil.Api;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Shared.Configuration;
 using Plexor.Shared.Filtering.DI;
 using Plexor.Shared.Mtls;
 using Plexor.Shared.Mtls.Persistence;
 using Plexor.Shared.Persistence;
-using Plexor.Shared.Configuration;
 using Plexor.Shared.Telemetry;
 
 var builder = WebApplication.CreateBuilder(args);

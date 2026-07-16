@@ -56,10 +56,10 @@ file static class WorkloadRouteNames
 /// <param name="listHandler">Paged list (GET).</param>
 /// <param name="getHandler">Single workload (GET by id).</param>
 /// <param name="deleteHandler">Soft-delete (DELETE).</param>
+[Authorize]
 [ApiController]
 [Route($"{ApiRoutes.Base}/compute/clusters/{{clusterId}}/workloads")]
-[Tags(["compute", "workloads"])]
-[Authorize]
+[Tags("compute", "workloads")]
 public sealed class WorkloadsController(
     ICommandHandler<CreateWorkloadCommand, WorkloadSummary> createHandler,
     ICommandHandler<ListWorkloadsQuery, PageResult<WorkloadSummary>> listHandler,

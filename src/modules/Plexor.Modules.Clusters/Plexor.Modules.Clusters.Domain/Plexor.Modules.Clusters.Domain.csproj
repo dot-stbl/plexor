@@ -11,4 +11,7 @@
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Identifiers\Plexor.Shared.Identifiers.csproj" />
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Workloads\Plexor.Shared.Workloads.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
 </Project>
