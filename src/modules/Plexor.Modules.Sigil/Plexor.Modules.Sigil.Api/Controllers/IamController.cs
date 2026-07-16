@@ -15,6 +15,33 @@ using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Modules.Sigil.Api.Controllers;
 
+// Route names — referenced by [HttpGet/Post/Patch/Delete(..., Name = ...)]
+// and CreatedAtAction(...). CreatedAtAction looks up the action by its
+// routing name (the value of `Name =`), NOT by the C# method name;
+// `nameof(GetAsync)` fails at runtime with 'Cannot resolve action'. The
+// file-scope static class keeps the string in one place per file so
+// refactors are safe and the compiler verifies both call sites match.
+file static class IamRouteNames
+{
+    /// <summary>POST /iam/users — create a user.</summary>
+    public const string UsersCreate = "iam-users-create";
+
+    /// <summary>GET /iam/users/{userId} — fetch one user.</summary>
+    public const string UsersGet = "iam-users-get";
+
+    /// <summary>GET /iam/users — list users.</summary>
+    public const string UsersList = "iam-users-list";
+
+    /// <summary>PATCH /iam/users/{userId} — update a user.</summary>
+    public const string UsersUpdate = "iam-users-update";
+
+    /// <summary>DELETE /iam/users/{userId} — disable a user.</summary>
+    public const string UsersDisable = "iam-users-disable";
+
+    /// <summary>POST /iam/users/{userId}/password — change password.</summary>
+    public const string UsersChangePassword = "iam-users-change-password";
+}
+
 /// <summary>
 ///     IAM endpoints for the Sigil module. Mounted at
 ///     <c>/api/v1/iam/users/*</c> via <see cref="ApiRoutes.Base" />.
@@ -45,7 +72,7 @@ public sealed class IamController(
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [HttpPost(Name = "iam-users-create")]
+    [HttpPost(Name = IamRouteNames.UsersCreate)]
     [EndpointSummary("Create a new user")]
     [RequirePermission("iam.users.create")]
     public async Task<ActionResult<CreateUserResult>> CreateAsync(
@@ -62,7 +89,7 @@ public sealed class IamController(
             cancellationToken);
 
         return CreatedAtAction(
-            nameof(GetAsync),
+            IamRouteNames.UsersGet,
             new { userId = result.UserId },
             result);
     }
@@ -72,7 +99,7 @@ public sealed class IamController(
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpGet("{userId:guid}", Name = "iam-users-get")]
+    [HttpGet("{userId:guid}", Name = IamRouteNames.UsersGet)]
     [EndpointSummary("Fetch a user by id")]
     [RequirePermission("iam.users.read")]
     public async Task<ActionResult<UserSummary>> GetAsync(
@@ -94,7 +121,7 @@ public sealed class IamController(
     /// <param name="page"></param>
     /// <param name="pageSize"></param>
     /// <param name="cancellationToken"></param>
-    [HttpGet(Name = "iam-users-list")]
+    [HttpGet(Name = IamRouteNames.UsersList)]
     [EndpointSummary("List users in the caller's organization")]
     [RequirePermission("iam.users.read")]
     public async Task<ActionResult<UserPage>> ListAsync(
@@ -116,7 +143,7 @@ public sealed class IamController(
     /// <param name="userId"></param>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [HttpPatch("{userId:guid}", Name = "iam-users-update")]
+    [HttpPatch("{userId:guid}", Name = IamRouteNames.UsersUpdate)]
     [EndpointSummary("Update a user's display name and/or status")]
     [RequirePermission("iam.users.update")]
     public async Task<ActionResult<UserSummary>> UpdateAsync(
@@ -138,7 +165,7 @@ public sealed class IamController(
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpDelete("{userId:guid}", Name = "iam-users-disable")]
+    [HttpDelete("{userId:guid}", Name = IamRouteNames.UsersDisable)]
     [EndpointSummary("Disable a user (soft-delete + revoke refresh tokens)")]
     [RequirePermission("iam.users.delete")]
     public async Task<ActionResult<UserSummary>> DisableAsync(
@@ -160,7 +187,7 @@ public sealed class IamController(
     ///     revoked so a stolen password change can't leave sessions
     ///     alive.
     /// </summary>
-    [HttpPost("{userId:guid}/password", Name = "iam-users-change-password")]
+    [HttpPost("{userId:guid}/password", Name = IamRouteNames.UsersChangePassword)]
     [EndpointSummary("Change a user's password (current → new) and revoke active sessions")]
     [RequirePermission("iam.users.change-own-password")]
     public async Task<ActionResult<ChangePasswordResult>> ChangePasswordAsync(

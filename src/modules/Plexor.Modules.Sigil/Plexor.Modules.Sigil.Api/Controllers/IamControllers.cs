@@ -15,6 +15,60 @@ using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Modules.Sigil.Api.Controllers;
 
+// Route names — referenced by [HttpGet/Post/Patch/Delete(..., Name = ...)]
+// and CreatedAtAction(...). CreatedAtAction looks up the action by its
+// routing name (the value of `Name =`), NOT by the C# method name;
+// `nameof(GetAsync)` fails at runtime with 'Cannot resolve action'. The
+// file-scope static class keeps the string in one place per file so
+// refactors are safe and the compiler verifies both call sites match.
+file static class IamRolesRouteNames
+{
+    /// <summary>POST /iam/roles — create a custom role.</summary>
+    public const string RolesCreate = "iam-roles-create";
+
+    /// <summary>GET /iam/roles/{roleId} — fetch one role.</summary>
+    public const string RolesGet = "iam-roles-get";
+
+    /// <summary>GET /iam/roles — list roles.</summary>
+    public const string RolesList = "iam-roles-list";
+
+    /// <summary>PATCH /iam/roles/{roleId} — update a role.</summary>
+    public const string RolesUpdate = "iam-roles-update";
+
+    /// <summary>DELETE /iam/roles/{roleId} — delete a role.</summary>
+    public const string RolesDelete = "iam-roles-delete";
+
+    /// <summary>POST /iam/role-bindings — create a binding.</summary>
+    public const string RoleBindingsCreate = "iam-role-bindings-create";
+
+    /// <summary>GET /iam/role-bindings — list bindings.</summary>
+    public const string RoleBindingsList = "iam-role-bindings-list";
+
+    /// <summary>DELETE /iam/role-bindings/{bindingId} — remove a binding.</summary>
+    public const string RoleBindingsDelete = "iam-role-bindings-delete";
+}
+
+file static class IamCredentialsRouteNames
+{
+    /// <summary>POST /iam/users/{userId}/api-keys — issue an API key.</summary>
+    public const string ApiKeysIssue = "iam-api-keys-issue";
+
+    /// <summary>GET /iam/users/{userId}/api-keys — list API keys.</summary>
+    public const string ApiKeysList = "iam-api-keys-list";
+
+    /// <summary>DELETE /iam/users/{userId}/api-keys/{keyId} — revoke an API key.</summary>
+    public const string ApiKeysRevoke = "iam-api-keys-revoke";
+
+    /// <summary>POST /iam/users/{userId}/ssh-keys — add an SSH public key.</summary>
+    public const string SshKeysAdd = "iam-ssh-keys-add";
+
+    /// <summary>GET /iam/users/{userId}/ssh-keys — list SSH keys.</summary>
+    public const string SshKeysList = "iam-ssh-keys-list";
+
+    /// <summary>DELETE /iam/users/{userId}/ssh-keys/{keyId} — revoke an SSH key.</summary>
+    public const string SshKeysRevoke = "iam-ssh-keys-revoke";
+}
+
 /// <summary>
 ///     Role CRUD endpoints. Mounted at <c>/api/v1/iam/roles/*</c>.
 ///     All endpoints require their respective permission claim.
@@ -40,7 +94,7 @@ public sealed class IamRolesController(
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [HttpPost(Name = "iam-roles-create")]
+    [HttpPost(Name = IamRolesRouteNames.RolesCreate)]
     [EndpointSummary("Create a custom role")]
     [RequirePermission("iam.roles.create")]
     public async Task<ActionResult<CreateRoleResult>> CreateAsync(
@@ -57,7 +111,7 @@ public sealed class IamRolesController(
             cancellationToken);
 
         return CreatedAtAction(
-            nameof(GetAsync),
+            IamRolesRouteNames.RolesGet,
             new { roleId = result.RoleId },
             result);
     }
@@ -67,7 +121,7 @@ public sealed class IamRolesController(
     /// </summary>
     /// <param name="roleId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpGet("{roleId:guid}", Name = "iam-roles-get")]
+    [HttpGet("{roleId:guid}", Name = IamRolesRouteNames.RolesGet)]
     [EndpointSummary("Fetch a role by id")]
     [RequirePermission("iam.roles.read")]
     public async Task<ActionResult<RoleSummary>> GetAsync(
@@ -82,7 +136,7 @@ public sealed class IamRolesController(
     /// </summary>
     /// <param name="orgId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpGet(Name = "iam-roles-list")]
+    [HttpGet(Name = IamRolesRouteNames.RolesList)]
     [EndpointSummary("List roles in an organization")]
     [RequirePermission("iam.roles.read")]
     public async Task<ActionResult<IReadOnlyCollection<RoleSummary>>> ListAsync(
@@ -100,7 +154,7 @@ public sealed class IamRolesController(
     /// <param name="roleId"></param>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [HttpPatch("{roleId:guid}", Name = "iam-roles-update")]
+    [HttpPatch("{roleId:guid}", Name = IamRolesRouteNames.RolesUpdate)]
     [EndpointSummary("Update a custom role")]
     [RequirePermission("iam.roles.update")]
     public async Task<ActionResult<RoleSummary>> UpdateAsync(
@@ -120,7 +174,7 @@ public sealed class IamRolesController(
     /// </summary>
     /// <param name="roleId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpDelete("{roleId:guid}", Name = "iam-roles-delete")]
+    [HttpDelete("{roleId:guid}", Name = IamRolesRouteNames.RolesDelete)]
     [EndpointSummary("Delete a custom role")]
     [RequirePermission("iam.roles.delete")]
     public async Task<ActionResult<DeleteRoleResult>> DeleteAsync(
@@ -169,7 +223,7 @@ public sealed class IamBindingsController(
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [HttpPost(Name = "iam-role-bindings-create")]
+    [HttpPost(Name = IamRolesRouteNames.RoleBindingsCreate)]
     [EndpointSummary("Bind a user to a role")]
     [RequirePermission("iam.role-bindings.create")]
     public async Task<ActionResult<CreateRoleBindingResult>> CreateAsync(
@@ -192,7 +246,7 @@ public sealed class IamBindingsController(
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpGet(Name = "iam-role-bindings-list")]
+    [HttpGet(Name = IamRolesRouteNames.RoleBindingsList)]
     [EndpointSummary("List role bindings for a user")]
     [RequirePermission("iam.role-bindings.read")]
     public async Task<ActionResult<IReadOnlyCollection<RoleBindingSummary>>> ListAsync(
@@ -208,7 +262,7 @@ public sealed class IamBindingsController(
     /// </summary>
     /// <param name="bindingId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpDelete("{bindingId:guid}", Name = "iam-role-bindings-delete")]
+    [HttpDelete("{bindingId:guid}", Name = IamRolesRouteNames.RoleBindingsDelete)]
     [EndpointSummary("Remove a role binding")]
     [RequirePermission("iam.role-bindings.delete")]
     public async Task<ActionResult<DeleteRoleBindingResult>> DeleteAsync(
@@ -226,29 +280,6 @@ public sealed class IamBindingsController(
 /// <param name="UserId"></param>
 /// <param name="RoleId"></param>
 public sealed record CreateRoleBindingRequest(Guid OrgId, Guid UserId, Guid RoleId);
-
-/// <summary>
-///     Credential endpoints — API keys + SSH keys. Mounted at
-///     <c>/api/v1/iam/users/{userId}/{api-keys|ssh-keys}/*</c>.
-///     </summary>
-[ApiController]
-[Authorize]
-public abstract class IamCredentialsControllerBase : ControllerBase
-{
-    /// <summary>
-    ///     Helper: 201 Created pointing at the new key's GET endpoint.
-    /// </summary>
-    /// <param name="routeName"></param>
-    /// <param name="routeValues"></param>
-    /// <param name="body"></param>
-    protected ActionResult CreatedAtKey(string routeName, object routeValues, object body)
-    {
-        return CreatedAtAction(
-            actionName: "GetAsync",
-            routeValues: routeValues,
-            value: body);
-    }
-}
 
 /// <summary>API key CRUD for a user.</summary>
 /// <param name="issueHandler"></param>
@@ -269,7 +300,7 @@ public sealed class IamApiKeysController(
     /// <param name="userId"></param>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [HttpPost(Name = "iam-api-keys-issue")]
+    [HttpPost(Name = IamCredentialsRouteNames.ApiKeysIssue)]
     [EndpointSummary("Issue a new API key")]
     [RequirePermission("iam.api-keys.create")]
     public async Task<ActionResult<IssueApiKeyResult>> IssueAsync(
@@ -294,7 +325,7 @@ public sealed class IamApiKeysController(
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpGet(Name = "iam-api-keys-list")]
+    [HttpGet(Name = IamCredentialsRouteNames.ApiKeysList)]
     [EndpointSummary("List API keys for a user")]
     [RequirePermission("iam.api-keys.read")]
     public async Task<ActionResult<IReadOnlyCollection<ApiKeySummary>>> ListAsync(
@@ -311,7 +342,7 @@ public sealed class IamApiKeysController(
     /// <param name="userId"></param>
     /// <param name="keyId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpDelete("{keyId:guid}", Name = "iam-api-keys-revoke")]
+    [HttpDelete("{keyId:guid}", Name = IamCredentialsRouteNames.ApiKeysRevoke)]
     [EndpointSummary("Revoke an API key")]
     [RequirePermission("iam.api-keys.delete")]
     public async Task<ActionResult<RevokeApiKeyResult>> RevokeAsync(
@@ -353,7 +384,7 @@ public sealed class IamSshKeysController(
     /// <param name="userId"></param>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [HttpPost(Name = "iam-ssh-keys-add")]
+    [HttpPost(Name = IamCredentialsRouteNames.SshKeysAdd)]
     [EndpointSummary("Register a new SSH public key")]
     [RequirePermission("iam.ssh-keys.create")]
     public async Task<ActionResult<SshKeySummary>> AddAsync(
@@ -373,7 +404,7 @@ public sealed class IamSshKeysController(
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpGet(Name = "iam-ssh-keys-list")]
+    [HttpGet(Name = IamCredentialsRouteNames.SshKeysList)]
     [EndpointSummary("List SSH keys for a user")]
     [RequirePermission("iam.ssh-keys.read")]
     public async Task<ActionResult<IReadOnlyCollection<SshKeySummary>>> ListAsync(
@@ -390,7 +421,7 @@ public sealed class IamSshKeysController(
     /// <param name="userId"></param>
     /// <param name="keyId"></param>
     /// <param name="cancellationToken"></param>
-    [HttpDelete("{keyId:guid}", Name = "iam-ssh-keys-revoke")]
+    [HttpDelete("{keyId:guid}", Name = IamCredentialsRouteNames.SshKeysRevoke)]
     [EndpointSummary("Revoke an SSH key")]
     [RequirePermission("iam.ssh-keys.delete")]
     public async Task<ActionResult<RevokeSshKeyResult>> RevokeAsync(
