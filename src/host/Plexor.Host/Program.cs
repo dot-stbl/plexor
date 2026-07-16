@@ -19,10 +19,7 @@
 // ============================================================================
 
 using System.Text.Json.Serialization;
-using Plexor.Host.Abstractions;
-using Plexor.Host.Controllers;
 using Plexor.Host.Installers;
-using Plexor.Host.NodeRegistry;
 using Plexor.Host.OpenApi;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Api;
@@ -63,13 +60,7 @@ builder.Services
             options.JsonSerializerOptions.Converters.Add(
                 new JsonStringEnumConverter());
         })
-        .AddApplicationPart(typeof(NodeController).Assembly)
         .AddApplicationPart(typeof(Plexor.Modules.Sigil.Api.Controllers.AuthController).Assembly);
-
-// NodeAgent control loop. Singleton state — restarting Plexor.Host
-// forgets every node and its pending commands. v0.2+ moves to
-// Postgres + a durable queue (NATS or Postgres LISTEN/NOTIFY).
-builder.Services.AddSingleton<INodeRegistry, InMemoryNodeRegistry>();
 
 // Persistence — schema-per-module DbContexts. Connection string
 // Persistence — single Postgres connection string, schema-per-module.
