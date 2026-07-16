@@ -15,6 +15,7 @@
 // ============================================================================
 
 using System.Collections.Concurrent;
+using Plexor.Shared.Compute;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
 
@@ -37,12 +38,34 @@ public sealed class WorkloadIdMap
     ///     responsibility).
     /// </summary>
     /// <param name="localId"></param>
-    /// <param name="domainName"></param>
+    /// <param name="domainName">Libvirt domain name (DNS-safe).</param>
     /// <param name="kind"></param>
+    /// <param name="volumeHandle">
+    ///     Storage handle issued by the volume backend at
+    ///     create-time. Passed back to
+    ///     <see cref="IVolumeBackend.DeleteAsync" /> on
+    ///     workload delete.
+    /// </param>
+    /// <param name="networkHandle">
+    ///     Network handle issued by the network backend at
+    ///     create-time. Passed back to
+    ///     <see cref="INetworkBackend.DetachAsync" /> on
+    ///     workload delete.
+    /// </param>
     /// <exception cref="InvalidOperationException"></exception>
-    public void Register(Guid localId, string domainName, WorkloadKind kind)
+    public void Register(
+        Guid localId,
+        string domainName,
+        WorkloadKind kind,
+        VolumeHandle volumeHandle,
+        NetworkInterfaceHandle networkHandle)
     {
-        var entry = new WorkloadIdMapEntry(domainName, kind, WorkloadState.Provisioning);
+        var entry = new WorkloadIdMapEntry(
+            domainName,
+            kind,
+            WorkloadState.Provisioning,
+            volumeHandle,
+            networkHandle);
 
         if (!entries.TryAdd(localId, entry))
         {
@@ -118,7 +141,17 @@ public sealed class WorkloadIdMap
 /// <param name="DomainName"></param>
 /// <param name="Kind"></param>
 /// <param name="State"></param>
+/// <param name="VolumeHandle">
+///     Storage handle issued by the volume backend at create-
+///     time. Passed back to the backend on workload delete.
+/// </param>
+/// <param name="NetworkHandle">
+///     Network handle issued by the network backend at create-
+///     time. Passed back to the backend on workload delete.
+/// </param>
 public sealed record WorkloadIdMapEntry(
     string DomainName,
     WorkloadKind Kind,
-    WorkloadState State);
+    WorkloadState State,
+    VolumeHandle VolumeHandle,
+    NetworkInterfaceHandle NetworkHandle);

@@ -26,6 +26,7 @@ using System.Text;
 using System.Text.Json;
 using System.Xml;
 using Plexor.NodeAgent.Providers.Common;
+using Plexor.Shared.Compute;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
 
@@ -114,7 +115,15 @@ public sealed class LibvirtLxcProvider(ILogger<LibvirtLxcProvider> logger) : IWo
             }
         }
 
-        workloads.Register(id, spec.Name, Kind);
+        workloads.Register(
+            id,
+            spec.Name,
+            Kind,
+            // Tier 3.5 — LXC provider will adopt IVolumeBackend +
+            // INetworkBackend; for now placeholder handles are
+            // recorded so the entry is valid.
+            new VolumeHandle("legacy", spec.Name),
+            new NetworkInterfaceHandle("legacy", "default"));
         return new LocalWorkload(
             id,
             spec.Name,

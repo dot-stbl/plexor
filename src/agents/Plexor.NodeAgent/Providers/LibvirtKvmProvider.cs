@@ -1,25 +1,32 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// LibvirtKvmProvider — IWorkloadProvider impl for KVM virtual
-// machines via libvirt. v0.1 shells out to the `virsh` CLI (via
-// LibvirtRunner); the future v0.2+ impl swaps in LibvirtClient.
+// LibvirtKvmProvider — IWorkloadProvider for KVM virtual machines
+// via libvirt. v0.1 shells out to the `virsh` CLI (via
+// LibvirtRunner); the future v0.2+ impl swaps in LibvirtClient
+// for richer async + no shell-quoting footguns.
+//
+// Compute stack wiring:
+//   - Volume:  asks IVolumeBackend for a VolumeHandle, then
+//     references the handle's Reference in <source>.
+//   - Network: asks INetworkBackend for a NetworkInterfaceHandle,
+//     references it in <interface>.
+//   - Image:   resolved transitively through IVolumeBackend
+//     (LocalDirStorage calls IImageRegistry.EnsureLocalAsync
+//     to clone from a base image).
 //
 // Each Plexor workload maps to a single libvirt domain whose
 // name is the WorkloadSpec.Name. The provider's local id is
 // generated at create-time and tracked in WorkloadIdMap so
 // the agent's start/stop/delete calls resolve to the right
 // domain.
-//
-// v0.1: minimal domain XML — one qcow2 disk, one bridge
-// network, no balloon device. v0.2+ parses the rest of
-// WorkloadSpec.Config.
-// ============================================================================
+// ==========================================================================
 
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Xml;
 using Plexor.NodeAgent.Providers.Common;
+using Plexor.Shared.Compute;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
 
@@ -29,12 +36,20 @@ namespace Plexor.NodeAgent.Providers;
 ///     <see cref="IWorkloadProvider" /> for KVM VMs via libvirt. v0.1
 ///     uses the <c>virsh</c> CLI; future v0.2+ uses LibvirtClient.
 /// </summary>
+/// <param name="volumes">
+///     Storage backend — provides the disk image the domain
+///     boots from. Multiple backends may be registered; this
+///     provider uses the first one (v0.1 single-backend).
+/// </param>
+/// <param name="networks">
+///     Network topology backend — provides the bridge the
+///     domain's NIC attaches to.
+/// </param>
 /// <param name="logger"></param>
-/// <remarks>
-///     Build a provider that talks to the local
-///     libvirt system instance via KVM.
-/// </remarks>
-public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWorkloadProvider
+public sealed class LibvirtKvmProvider(
+    IVolumeBackend volumes,
+    INetworkBackend networks,
+    ILogger<LibvirtKvmProvider> logger) : IWorkloadProvider
 {
     /// <summary>
     ///     The libvirt URI for KVM/QEMU on the local
@@ -52,8 +67,29 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
     /// <inheritdoc />
     public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(spec);
+
+        var config = TryDeserializeConfig(spec.Config, out var c)
+                ? c
+                : new LibvirtKvmConfig();
+
         var id = Guid.NewGuid();
-        var xml = BuildDomainXml(spec, id);
+
+        // Storage + network through the abstractions. Backend
+        // choice happens in DI — v0.1 has exactly one of each.
+        var volumeSpec = new VolumeSpec(
+            Name: spec.Name,
+            SizeBytes: config.RamBytes * 4,
+            BaseImageRef: config.BaseImageRef,
+            Format: VolumeFormat.Qcow2);
+        var volumeHandle = await volumes.CreateAsync(volumeSpec, cancellationToken);
+
+        var networkSpec = new NetworkSpec(
+            Name: config.NetworkName,
+            Kind: NetworkKind.LinuxBridge);
+        var networkHandle = await networks.AttachAsync(networkSpec, cancellationToken);
+
+        var xml = BuildDomainXml(spec, id, volumeHandle.Reference, networkHandle.Reference);
         var xmlPath = $"/tmp/plexor-{id}.xml";
 
         try
@@ -67,18 +103,33 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
         }
         catch
         {
-            // Best-effort cleanup: undefine anything that got
-            // partially created so we don't leave orphan domains.
+            // Best-effort cleanup: tear down the volume + network
+            // we just allocated. We don't try to undefine the
+            // (possibly partially-defined) domain — virsh undefine
+            // on a domain that's already gone is harmless and
+            // skipping it avoids a second race.
             try
             {
-                await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {spec.Name}", CancellationToken.None);
+                await volumes.DeleteAsync(volumeHandle, CancellationToken.None);
             }
-            catch (Exception cleanup)
+            catch (Exception cleanupEx)
             {
                 logger.LogWarning(
-                    cleanup,
-                    "Best-effort cleanup of {Domain} after failed create failed",
-                    spec.Name);
+                    cleanupEx,
+                    "Best-effort cleanup of volume {Volume} after failed create failed",
+                    volumeHandle.Reference);
+            }
+
+            try
+            {
+                await networks.DetachAsync(networkHandle, CancellationToken.None);
+            }
+            catch (Exception cleanupEx)
+            {
+                logger.LogWarning(
+                    cleanupEx,
+                    "Best-effort cleanup of network {Network} after failed create failed",
+                    networkHandle.Reference);
             }
 
             throw;
@@ -98,7 +149,7 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
             }
         }
 
-        workloads.Register(id, spec.Name, Kind);
+        workloads.Register(id, spec.Name, Kind, volumeHandle, networkHandle);
         return new LocalWorkload(
             id,
             spec.Name,
@@ -133,10 +184,18 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
     public async Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
+
         // undefines the domain (frees its config but does NOT
         // destroy the underlying disk image). The agent's caller
         // is responsible for any disk cleanup.
         await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", cancellationToken);
+
+        // Free the volume + network we allocated at create-time.
+        // Both backends are idempotent — missing handle is a
+        // successful no-op (matches the "delete is eventual"
+        // semantics the control plane expects).
+        await volumes.DeleteAsync(entry.VolumeHandle, cancellationToken);
+        await networks.DetachAsync(entry.NetworkHandle, cancellationToken);
 
         if (!workloads.Remove(id))
         {
@@ -188,11 +247,21 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
     /// </summary>
     /// <param name="spec"></param>
     /// <param name="id"></param>
-    private static string BuildDomainXml(WorkloadSpec spec, Guid id)
+    /// <param name="volumePath">
+    ///     Absolute path on the host filesystem — comes from
+    ///     <see cref="VolumeHandle.Reference" /> for LocalDirStorage.
+    /// </param>
+    /// <param name="networkBridge">
+    ///     Bridge name — comes from
+    ///     <see cref="NetworkInterfaceHandle.Reference" /> for
+    ///     LinuxBridgeBackend.
+    /// </param>
+    private static string BuildDomainXml(
+        WorkloadSpec spec,
+        Guid id,
+        string volumePath,
+        string networkBridge)
     {
-        // The spec is opaque to us; we read what we know and
-        // ignore the rest for v0.1. Real impl deserializes
-        // spec.Config into a typed record.
         var config = TryDeserializeConfig(spec.Config, out var c)
                 ? c
                 : new LibvirtKvmConfig();
@@ -221,9 +290,23 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
 
             writer.WriteStartElement("os");
             writer.WriteElementString("type", "hvm");
+            writer.WriteElementString("boot", "dev", "hd");
             writer.WriteEndElement(); // os
 
+            writer.WriteStartElement("features");
+            writer.WriteElementString("acpi", "");
+            writer.WriteElementString("apic", "");
+            writer.WriteEndElement(); // features
+
+            writer.WriteStartElement("clock");
+            writer.WriteAttributeString("offset", "utc");
+            writer.WriteEndElement(); // clock
+
             writer.WriteStartElement("devices");
+            writer.WriteStartElement("emulator");
+            writer.WriteString("/dev/kvm");
+            writer.WriteEndElement(); // emulator
+
             writer.WriteStartElement("disk");
             writer.WriteAttributeString("type", "file");
             writer.WriteAttributeString("device", "disk");
@@ -232,7 +315,7 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
             writer.WriteAttributeString("type", "qcow2");
             writer.WriteEndElement(); // driver
             writer.WriteStartElement("source");
-            writer.WriteAttributeString("file", $"/var/lib/libvirt/images/{spec.Name}.qcow2");
+            writer.WriteAttributeString("file", volumePath);
             writer.WriteEndElement(); // source
             writer.WriteStartElement("target");
             writer.WriteAttributeString("dev", "vda");
@@ -241,11 +324,27 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
             writer.WriteEndElement(); // disk
 
             writer.WriteStartElement("interface");
-            writer.WriteAttributeString("type", "network");
+            writer.WriteAttributeString("type", "bridge");
             writer.WriteStartElement("source");
-            writer.WriteAttributeString("network", config.NetworkName);
+            writer.WriteAttributeString("bridge", networkBridge);
             writer.WriteEndElement(); // source
             writer.WriteEndElement(); // interface
+
+            writer.WriteStartElement("serial");
+            writer.WriteAttributeString("type", "pty");
+            writer.WriteStartElement("target");
+            writer.WriteAttributeString("type", "isa-serial");
+            writer.WriteAttributeString("port", "0");
+            writer.WriteEndElement(); // target
+            writer.WriteEndElement(); // serial
+
+            writer.WriteStartElement("console");
+            writer.WriteAttributeString("type", "pty");
+            writer.WriteStartElement("target");
+            writer.WriteAttributeString("type", "serial");
+            writer.WriteAttributeString("port", "0");
+            writer.WriteEndElement(); // target
+            writer.WriteEndElement(); // console
 
             writer.WriteEndElement(); // devices
             writer.WriteEndElement(); // domain
@@ -276,11 +375,13 @@ public sealed class LibvirtKvmProvider(ILogger<LibvirtKvmProvider> logger) : IWo
     ///     control plane doesn't supply a value, so the agent stays
     ///     functional even with empty Config.
     /// </summary>
-    /// <param name="RamBytes"></param>
-    /// <param name="CpuCores"></param>
-    /// <param name="NetworkName"></param>
+    /// <param name="RamBytes">RAM allocation in bytes.</param>
+    /// <param name="CpuCores">Number of vCPUs.</param>
+    /// <param name="NetworkName">Logical network name (matches libvirt network name).</param>
+    /// <param name="BaseImageRef">Operator-facing image ref resolved via <see cref="IImageRegistry" />.</param>
     private sealed record LibvirtKvmConfig(
         long RamBytes = 1L * 1024 * 1024 * 1024,
         int CpuCores = 2,
-        string NetworkName = "default");
+        string NetworkName = "default",
+        string? BaseImageRef = null);
 }

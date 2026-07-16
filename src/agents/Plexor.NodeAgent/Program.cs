@@ -22,6 +22,9 @@ using Plexor.NodeAgent.Composition;
 using Plexor.NodeAgent.Executors;
 using Plexor.NodeAgent.Infrastructure;
 using Plexor.NodeAgent.Providers;
+using Plexor.NodeAgent.Providers.Image;
+using Plexor.NodeAgent.Providers.Network;
+using Plexor.NodeAgent.Providers.Storage;
 using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Workloads;
 using Refit;
@@ -85,12 +88,27 @@ builder.Services
 
 builder.Services.AddSingleton<ICommandTransport, HttpCommandTransport>();
 
+// Compute backends — one per storage / image / network
+// technology. v0.1 ships LocalDirStorage + LocalDirImageRegistry
+// + LinuxBridgeBackend. Multi-node deployments register
+// additional backends alongside (e.g. CephRbdStorage) — the
+// workload provider picks the right one via DI.
+builder.Services
+        .AddLocalDirImageRegistry(builder.Configuration)
+        .AddLocalDirStorage(builder.Configuration)
+        .AddLinuxBridgeNetwork();
+
 // Workload providers. v0.1: KVM, LXC, and QEMU-software-emulation
 // via libvirt (three technologies, three different WorkloadKinds).
 // The InMemoryWorkloadRegistry ctor takes an
 // IEnumerable<IWorkloadProvider> — DI auto-injects every
 // registered provider here. Add more providers as the project
 // grows (k3s, podman).
+//
+// KVM provider consumes the compute backends above (volume +
+// network). LXC and QEMU are still on the legacy hardcoded
+// path; Tier 3.5 migrates them to IVolumeBackend /
+// INetworkBackend the same way.
 builder.Services.AddSingleton<LibvirtKvmProvider>();
 builder.Services.AddSingleton<LibvirtLxcProvider>();
 builder.Services.AddSingleton<LibvirtQemuProvider>();

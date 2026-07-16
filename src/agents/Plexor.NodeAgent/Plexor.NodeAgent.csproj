@@ -23,6 +23,7 @@
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.7.0"/>
     <PackageReference Include="Refit" Version="12.1.0"/>
     <PackageReference Include="Refit.HttpClientFactory" Version="12.1.0"/>
+    <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +35,7 @@
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj"/>
     <ProjectReference Include="..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj" />
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Workloads\Plexor.Shared.Workloads.csproj"/>
+    <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Compute\Plexor.Shared.Compute.csproj"/>
     <ProjectReference Include="..\..\providers\Plexor.Core.Providers\Plexor.Core.Providers.csproj"/>
   </ItemGroup>
 
