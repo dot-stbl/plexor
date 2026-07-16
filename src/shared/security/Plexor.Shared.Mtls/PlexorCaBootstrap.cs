@@ -55,13 +55,40 @@ public static class PlexorCaBootstrap
         ILogger logger,
         IReadOnlyCollection<string>? hostSubjectAltNames = null)
     {
-        var ca = EnsureRootCertificate(options, logger);
+        var resolved = ResolvePaths(options);
+        var ca = EnsureRootCertificate(resolved, logger);
 
         EnsureHostServerCertificate(
             ca,
-            options,
+            resolved,
             logger,
             hostSubjectAltNames ?? ["localhost", "127.0.0.1"]);
+    }
+
+    /// <summary>
+    ///     Promotes any relative paths in the options to absolute
+    ///     ones joined with <see cref="PlexorPaths.DevRoot" />.
+    ///     Absolute paths pass through unchanged so production
+    ///     overrides via env var or appsettings.Production.json
+    ///     keep working.
+    /// </summary>
+    private static CertAuthorityOptions ResolvePaths(CertAuthorityOptions src)
+    {
+        if (Path.IsPathRooted(src.CertPath) &&
+            Path.IsPathRooted(src.KeyPath) &&
+            Path.IsPathRooted(src.HostCertPath))
+        {
+            return src;
+        }
+
+        return new CertAuthorityOptions
+        {
+            CertPath = PlexorPaths.ResolveAgainstDevRoot(src.CertPath),
+            KeyPath = PlexorPaths.ResolveAgainstDevRoot(src.KeyPath),
+            HostCertPath = PlexorPaths.ResolveAgainstDevRoot(src.HostCertPath),
+            HostCertPassword = src.HostCertPassword,
+            CaLifetime = src.CaLifetime,
+        };
     }
 
     private static X509Certificate2 EnsureRootCertificate(

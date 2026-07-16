@@ -22,31 +22,38 @@ public sealed class CertAuthorityOptions
     public const string SectionName = "CertAuthority";
 
     /// <summary>
-    ///     Absolute path to the CA root certificate (PEM). Defaults to
-    ///     <c>/var/lib/plexor/ca.crt</c> on Linux; on dev machines the
-    ///     operator can point at a sibling directory (e.g.
-    ///     <c>~/.local/share/plexor/ca.crt</c>).
+    ///     Path to the CA root certificate (PEM). Default is a
+    ///     relative path under <c>dev-certs/</c> at the repository
+    ///     root — PlexorCaBootstrap.ResolvePaths rewrites this to
+    ///     an absolute path at first-boot. On production deploys
+    ///     the operator supplies an absolute path via env var
+    ///     (CertAuthority__CertPath) or
+    ///     appsettings.Production.json — PlexorCaBootstrap detects
+    ///     the change and skips the rewrite.
     /// </summary>
-    public string CertPath { get; init; } = "/var/lib/plexor/ca.crt";
+    public string CertPath { get; init; } = "dev-certs/ca.crt";
 
     /// <summary>
-    ///     Absolute path to the CA root private key (PEM). The file
-    ///     is created with mode 0600; the host process account must
-    ///     be the only reader.
+    ///     Path to the CA root private key (PEM). The file is
+    ///     created with mode 0600 on Unix; the host process
+    ///     account must be the only reader.
     /// </summary>
-    public string KeyPath { get; init; } = "/var/lib/plexor/ca.key";
+    public string KeyPath { get; init; } = "dev-certs/ca.key";
 
     /// <summary>
-    ///     Lifetime of the CA root cert (and therefore every leaf cert
-    ///     issued under it — see plan §AD-2). MVP uses 10 years.
+    ///     Lifetime of the CA root cert (and therefore every leaf
+    ///     cert issued under it — see plan §AD-2). MVP uses 10
+    ///     years.
     /// </summary>
     public TimeSpan CaLifetime { get; init; } = TimeSpan.FromDays(3650);
 
     /// <summary>
     ///     Path to the host's server certificate (PKCS#12 / PFX).
-    ///     Created on first startup if absent.
+    ///     Default lives next to the CA in <c>dev-certs/</c>;
+    ///     production overrides with the convention from the
+    ///     plan (e.g. <c>/var/lib/plexor/host.pfx</c>).
     /// </summary>
-    public string HostCertPath { get; init; } = "/var/lib/plexor/host.pfx";
+    public string HostCertPath { get; init; } = "dev-certs/host.pfx";
 
     /// <summary>
     ///     Password protecting the PKCS#12 server cert bundle. Read

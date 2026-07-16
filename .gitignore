@@ -351,3 +351,12 @@ FodyWeavers.xsd
 *.sln.iml
 TestResults/
 lex_word_list.txt
+
+
+# Local mTLS development artifacts — CA + host/node certs. Each developer
+# generates their own on first host start (PlexorCaBootstrap); nothing
+# is committed except the directory itself + the README that explains
+# what's expected to live there.
+dev-certs/*
+!dev-certs/.gitkeep
+!dev-certs/README.md
