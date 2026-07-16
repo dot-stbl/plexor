@@ -15,8 +15,8 @@ using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Pagination;
-using Plexor.Shared.Filtering.Query;
 using Plexor.Shared.Contracts.Routes;
+using Plexor.Shared.Filtering.Query;
 using Plexor.Shared.Identifiers;
 
 namespace Plexor.Modules.Clusters.Api.Controllers;
