@@ -231,4 +231,26 @@ public sealed class X509Authority
         return new X500DistinguishedName(
             $"CN={cn}, O={organization}, C={country}");
     }
+
+    /// <summary>
+    ///     Extract the CN (Common Name) component from an X.500
+    ///     distinguished name string (<c>X509Certificate2.Subject</c>).
+    ///     Returns an empty string if no CN is present. The Plexor
+    ///     NodeAgent cert carries its <c>NodeId</c> as the CN
+    ///     (<c>node_&lt;26-char-prefixed-ulid&gt;</c>); callers parse it
+    ///     via <c>IdParse.ParseNodeId</c>.
+    /// </summary>
+    public static string ExtractCommonName(string subject)
+    {
+        foreach (var part in subject.Split(','))
+        {
+            var trimmed = part.Trim();
+            if (trimmed.StartsWith("CN=", StringComparison.Ordinal))
+            {
+                return trimmed[3..];
+            }
+        }
+
+        return string.Empty;
+    }
 }

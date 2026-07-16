@@ -68,7 +68,7 @@ public sealed class MtlsAuthMiddleware(
             return;
         }
 
-        var cn = ExtractCn(cert.Subject);
+        var cn = X509Authority.ExtractCommonName(cert.Subject);
         NodeId nodeId;
         try
         {
@@ -120,18 +120,5 @@ public sealed class MtlsAuthMiddleware(
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         context.Response.Headers["WWW-Authenticate"] = "mTLS";
         await context.Response.WriteAsync(reason, cancellationToken);
-    }
-
-    private static string ExtractCn(string subject)
-    {
-        foreach (var part in subject.Split(','))
-        {
-            var trimmed = part.Trim();
-            if (trimmed.StartsWith("CN=", StringComparison.Ordinal))
-            {
-                return trimmed[3..];
-            }
-        }
-        return string.Empty;
     }
 }
