@@ -14,7 +14,7 @@
     <!--   /src/host/           — control plane (Plexor.Host) + Migrator            -->
     <!--   /src/agents/         — per-node worker runtime (Plexor.NodeAgent)          -->
     <!--   /src/installer/      — NativeAOT CLI installer                          -->
-    <!--   /src/providers/      — pluggable provider plugins                       -->
+    <!--   /src/agents/       — NodeAgent (compute-node deployable)           -->
     <!--   /tests/              — unit / integration / architecture / benchmarks   -->
     <!--   /deploy/             — helm / terraform / ansible / docker / iso        -->
     <!--   /contracts/          — OpenAPI specs and integration contracts          -->
@@ -90,13 +90,6 @@
         <Project Path="src/installer/Plexor.Installer.Os/Plexor.Installer.Os.csproj" />
     </Folder>
 
-    <!-- ============ Provider plugins ======================================= -->
-    <!-- Same nested pattern as Modules: outer folder for grouping, inner   -->
-    <!-- <Folder Name="...Substrate/"> contains the six substrate plugins.  -->
-    <Folder Name="/src/providers/">
-        <Project Path="src/providers/Plexor.Core.Providers/Plexor.Core.Providers.csproj" />
-    </Folder>
-
     <!-- ============ Tests =================================================== -->
     <Folder Name="/tests/" />
     <Folder Name="/tests/unit/">
@@ -113,7 +106,6 @@
         <Project Path="tests/unit/Plexor.Shared.Http.Unit/Plexor.Shared.Http.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Composition.Unit/Plexor.Shared.Composition.Unit.csproj" />
     <Project Path="tests/unit/Plexor.Shared.Authorization.Unit/Plexor.Shared.Authorization.Unit.csproj" />
-        <Project Path="tests/unit/Plexor.Core.Providers.Unit/Plexor.Core.Providers.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Identifiers.Unit/Plexor.Shared.Identifiers.Unit.csproj" />
     </Folder>
 
