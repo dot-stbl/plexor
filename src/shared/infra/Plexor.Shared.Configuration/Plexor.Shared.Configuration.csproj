@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <!--
+    Plexor.Shared.Configuration — Plexor's own configuration stack.
+
+    Built on top of Microsoft.Extensions.Configuration primitives but
+    replaces the .NET defaults (Section__Key env-var format, JSON
+    appsettings.*) with operator-friendly conventions:
+
+      1. PLX_SECTION_KEY env vars (flat single-underscore format).
+         Maps to the same IConfiguration key tree that
+         Options binding reads from.
+      2. TOML config file at the OS-conventional user dir
+         (~/.config/plexor/config.toml on Linux, ~/Library/Application
+         Support/plexor/config.toml on macOS, %APPDATA%\plexor\config.toml
+         on Windows). Loaded when the file exists.
+      3. The existing appsettings.json / appsettings.{Environment}.json
+         stay as the dev default (in-tree).
+
+    Layers merge in standard IConfiguration order: JSON defaults are
+    loaded first, then TOML overrides them, then env vars override
+    both. Higher layers win on key collision.
+  -->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.9" />
+    <PackageReference Include="Tomlyn" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Plexor.Shared.Configuration.Unit" />
+  </ItemGroup>
+
+</Project>

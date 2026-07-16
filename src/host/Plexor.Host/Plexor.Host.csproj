@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Configuration\Plexor.Shared.Configuration.csproj" />
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Http\Plexor.Shared.Http.csproj" />
     <ProjectReference Include="..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj" />

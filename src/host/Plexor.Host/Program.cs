@@ -37,9 +37,22 @@ using Plexor.Shared.Filtering.DI;
 using Plexor.Shared.Mtls;
 using Plexor.Shared.Mtls.Persistence;
 using Plexor.Shared.Persistence;
+using Plexor.Shared.Configuration;
 using Plexor.Shared.Telemetry;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ----------------------------------------------------------------------------
+// Plexor config stack — layered on top of the default JSON sources
+// WebApplication.CreateBuilder wired up (appsettings.json +
+// appsettings.{Environment}.json). Adds:
+//   1. TOML at PlexorConfigPaths.DefaultConfigFile() (the OS-conventional
+//      user-level config file). Missing file → no-op.
+//   2. PLX_* environment variables — highest priority.
+// PLX_CONFIG_FILE overrides the user-level path entirely; useful for
+// tests and CI.
+// ----------------------------------------------------------------------------
+builder.Configuration.AddPlexorConfiguration();
 
 // ----------------------------------------------------------------------------
 // mTLS bootstrap. CA root + host server cert are file-based and

@@ -112,6 +112,8 @@
     <PackageVersion Include="Spectre.Console.Cli" Version="0.49.*" />
     <!-- YamlDotNet — parse plexor.yaml cluster spec. -->
     <PackageVersion Include="YamlDotNet" Version="16.*" />
+    <!-- Tomlyn — TOML parser for user-level config.toml files. -->
+    <PackageVersion Include="Tomlyn" Version="2.1.0" />
     <!-- System.CommandLine — AOT-friendly CLI parsing for `plx`. -->
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.*" />
     <!-- UUIDNext — RFC 9562 UUIDv7 generator (Plexor entity IDs). -->

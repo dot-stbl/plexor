@@ -22,9 +22,17 @@ using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 using Plexor.Shared.Mtls.Persistence;
+using Plexor.Shared.Configuration;
 using Plexor.Shared.Persistence;
 
 var builder = Host.CreateApplicationBuilder(args);
+
+// ----------------------------------------------------------------------------
+// Plexor config stack — TOML + PLX_* env vars on top of the default
+// JSON sources the Host builder wired up. See Plexor.Shared.Configuration
+// for layering + priority order.
+// ----------------------------------------------------------------------------
+builder.Configuration.AddPlexorConfiguration();
 
 // Connection string resolution: prefer the explicit MIGRATOR_CONNECTION
 // env var (used by tooling + dev workflows); fall back to the

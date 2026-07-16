@@ -52,6 +52,7 @@
     </Folder>
     <Folder Name="/src/shared/infra/">
         <Project Path="src/shared/infra/Plexor.Shared.Http/Plexor.Shared.Http.csproj" />
+        <Project Path="src/shared/infra/Plexor.Shared.Configuration/Plexor.Shared.Configuration.csproj" />
         <Project Path="src/shared/infra/Plexor.Shared.Telemetry/Plexor.Shared.Telemetry.csproj" />
         <Project Path="src/shared/infra/Plexor.Shared.Composition/Plexor.Shared.Composition.csproj" />
         <Project Path="src/shared/infra/Plexor.Shared.Console/Plexor.Shared.Console.csproj" />
@@ -113,6 +114,7 @@
         <Project Path="tests/unit/Plexor.Shared.Telemetry.Unit/Plexor.Shared.Telemetry.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Http.Unit/Plexor.Shared.Http.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Mtls.Unit/Plexor.Shared.Mtls.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Shared.Configuration.Unit/Plexor.Shared.Configuration.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Composition.Unit/Plexor.Shared.Composition.Unit.csproj" />
     <Project Path="tests/unit/Plexor.Shared.Authorization.Unit/Plexor.Shared.Authorization.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Identifiers.Unit/Plexor.Shared.Identifiers.Unit.csproj" />
