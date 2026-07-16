@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
+using Plexor.Modules.Clusters.Infrastructure.Persistence.Configurations;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Persistence;
 
@@ -32,6 +33,8 @@ public sealed class ClusterDbContext(DbContextOptions<ClusterDbContext> options)
     public DbSet<Node> Nodes => Set<Node>();
     /// <summary>JoinTokens (forge.join_tokens) — one-time credentials for first node attach.</summary>
     public DbSet<JoinToken> JoinTokens => Set<JoinToken>();
+    /// <summary>Workloads (forge.workloads) — control-plane view of every deployed workload.</summary>
+    public DbSet<Workload> Workloads => Set<Workload>();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -39,7 +42,8 @@ public sealed class ClusterDbContext(DbContextOptions<ClusterDbContext> options)
         modelBuilder.HasDefaultSchema(DatabaseInformation.Schemes.Clusters)
             .ApplyConfiguration(new ClusterConfiguration())
             .ApplyConfiguration(new NodeConfiguration())
-            .ApplyConfiguration(new JoinTokenConfiguration());
+            .ApplyConfiguration(new JoinTokenConfiguration())
+            .ApplyConfiguration(new WorkloadConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

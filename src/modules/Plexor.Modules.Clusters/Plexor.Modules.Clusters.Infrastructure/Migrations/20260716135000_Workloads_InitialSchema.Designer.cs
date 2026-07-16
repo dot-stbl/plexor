@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace Plexor.Modules.Clusters.Infrastructure.Migrations.Clusters
+namespace Plexor.Modules.Clusters.Infrastructure.Migrations
 {
     [DbContext(typeof(ClusterDbContext))]
-    partial class ClusterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716135000_Workloads_InitialSchema")]
+    partial class Workloads_InitialSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

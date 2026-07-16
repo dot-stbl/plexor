@@ -9,5 +9,6 @@
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Filtering\Plexor.Shared.Filtering.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Identifiers\Plexor.Shared.Identifiers.csproj" />
+    <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Workloads\Plexor.Shared.Workloads.csproj" />
   </ItemGroup>
 </Project>

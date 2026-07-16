@@ -142,5 +142,14 @@ public static class DatabaseInformation
         /// <summary>Clusters module — one-time join tokens issued by the
         /// control plane and redeemed by NodeAgent on first connect.</summary>
         public const string JoinTokens = "join_tokens";
+
+        /// <summary>
+        ///     Clusters module — control-plane view of every workload
+        ///     the operator deployed. forge schema, snake_case
+        ///     <c>workloads</c> table. Per-runtime state (libvirt
+        ///     UUID, k3s pod name) lives on the NodeAgent and is
+        ///     reported back through <c>local_id</c> + state.
+        /// </summary>
+        public const string Workloads = "workloads";
     }
 }
