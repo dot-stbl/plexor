@@ -89,18 +89,42 @@ public sealed partial class NodeSummary
 ///     Result of a successful <see cref="NodeJoinCommand" />. The
 ///     NodeAgent persists these and uses them for every subsequent
 ///     <c>/heartbeat</c> + <c>/commands/poll</c> call.
+///
+///     The mTLS triple (<see cref="NodeCertificatePem" /> /
+///     <see cref="NodePrivateKeyPem" /> / <see cref="CaCertificatePem" />)
+///     is issued by the host on every successful join — the
+///     NodeAgent writes the cert + key to disk and uses them as
+///     the client cert on every subsequent HTTPS call. The CA
+///     certificate is included so the NodeAgent can verify the
+///     host's server cert (mutual trust at the TLS layer).
 /// </summary>
 /// <param name="NodeId">Newly-minted node id.</param>
 /// <param name="ClusterId">Cluster the node joined.</param>
 /// <param name="NodeToken">Node-bearer token (proves this node's identity).</param>
 /// <param name="ControlPlaneUrl">Post-join rendezvous point (mTLS + WireGuard).</param>
 /// <param name="WireguardConfig">Base64-encoded <c>wg-quick.conf</c> blob.</param>
+/// <param name="NodeCertificatePem">
+///     PEM-encoded client cert (CN=node_&lt;id&gt;,
+///     EKU=ClientAuth, signed by the Plexor CA). NodeAgent
+///     presents this on every mTLS call.
+/// </param>
+/// <param name="NodePrivateKeyPem">
+///     PKCS#8 PEM-encoded private key for the client cert.
+///     NodeAgent persists with mode 0600.
+/// </param>
+/// <param name="CaCertificatePem">
+///     PEM-encoded Plexor CA root. NodeAgent pins this when
+///     validating the host's server cert.
+/// </param>
 public sealed record NodeJoinResult(
     NodeId NodeId,
     ClusterId ClusterId,
     string NodeToken,
     string ControlPlaneUrl,
-    string WireguardConfig);
+    string WireguardConfig,
+    string NodeCertificatePem,
+    string NodePrivateKeyPem,
+    string CaCertificatePem);
 
 /// <summary>Ack from a successful heartbeat.</summary>
 /// <param name="NodeId">Echo of the caller's node id.</param>

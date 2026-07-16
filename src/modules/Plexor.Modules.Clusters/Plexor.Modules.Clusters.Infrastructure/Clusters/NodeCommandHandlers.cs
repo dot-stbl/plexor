@@ -13,6 +13,7 @@ using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Shared.Mtls;
 using Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Persistence;
@@ -28,7 +29,8 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 /// <param name="tokenRepo">Read surface for token-by-hash lookup.</param>
 public sealed class NodeJoinCommandHandler(
     ClusterDbContext db,
-    Repository<JoinToken> tokenRepo) : ICommandHandler<NodeJoinCommand, NodeJoinResult>
+    Repository<JoinToken> tokenRepo,
+    ICertificateAuthority caAuthority) : ICommandHandler<NodeJoinCommand, NodeJoinResult>
 {
     /// <inheritdoc />
     public async Task<NodeJoinResult> HandleAsync(
@@ -122,16 +124,39 @@ public sealed class NodeJoinCommandHandler(
         var nodeToken = TokenHasher.NewSecret();
 
         // WireGuard config blob — v0.1 returns an empty placeholder.
+        // WireGuard config blob — v0.1 returns an empty placeholder.
         // Phase 5+ generates a real wg-quick.conf once the mesh automation
         // is wired up (plan-clusters.md "Out of scope").
         var wireguardConfig = string.Empty;
+
+        // mTLS triple: the host signs a fresh client cert for this
+        // node using the Plexor CA, hands the cert + private key
+        // + CA root PEM to the NodeAgent over the join response.
+        // The NodeAgent writes cert+key to disk and pins the CA
+        // root when verifying the host's server cert.
+        //
+        // Cert TTL is the configured CA lifetime (10y MVP, no
+        // rotation) — the leaf lives as long as the CA that
+        // signed it. If we ever introduce rotation the TTL here
+        // would diverge from the CA's.
+        var leafCert = caAuthority.IssueClientCert(
+            X509Authority.BuildDn($"node_{nodeId}"),
+            PlexorCertAuthorityInstaller.DefaultCaLifetime);
+
+        var nodeCertPem = X509Authority.ToPem(leafCert);
+        var nodeKeyPem = X509Authority.PrivateKeyToPem(leafCert);
+        var caCertPem = X509Authority.ToPem(caAuthority.GetRootCertificate());
+        leafCert.Dispose();
 
         return new NodeJoinResult(
             nodeId,
             cluster.Id,
             nodeToken,
             cluster.Endpoint,
-            wireguardConfig);
+            wireguardConfig,
+            nodeCertPem,
+            nodeKeyPem,
+            caCertPem);
     }
 }
 

@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Identifiers\Plexor.Shared.Identifiers.csproj" />
+    <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj" />
   </ItemGroup>
 
   <ItemGroup>
