@@ -11,6 +11,14 @@
 #   # wait ~30s for migrator to finish, then host is up
 #   curl http://localhost:47101/health
 
+# Compose project name. When two Plexor stacks (e.g. plan-clusters and
+# plan-mvp-deploy) coexist in the same Docker host, every project
+# resource (default network, volumes) is suffixed with this name. Without
+# the project name Docker derives it from the working directory — which
+# collides between sibling checkouts. Pick a stable, env-specific suffix
+# (`PLEXOR_STACK` env var) or the default below.
+name: ${PLEXOR_STACK:-plexor}
+
 services:
   postgres:
     image: postgres:16-alpine
