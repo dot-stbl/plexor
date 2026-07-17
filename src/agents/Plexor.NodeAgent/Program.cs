@@ -139,11 +139,14 @@ builder.Services.AddSingleton<LibvirtQemuProvider>();
 // networks, k3s services, etc.).
 builder.Services.AddSingleton<IDockerCliRunner, DockerCliRunner>();
 builder.Services.AddSingleton<IPodmanCliRunner, PodmanCliRunner>();
+builder.Services.AddSingleton<IKubectlCliRunner, KubectlCliRunner>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<DockerComposeWorkloadProvider>();
 builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<DockerComposeWorkloadProvider>());
 builder.Services.AddSingleton<PodmanQuadletWorkloadProvider>();
 builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<PodmanQuadletWorkloadProvider>());
+builder.Services.AddSingleton<K3sWorkloadProvider>();
+builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<K3sWorkloadProvider>());
 
 builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<LibvirtKvmProvider>());
 builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<LibvirtLxcProvider>());
