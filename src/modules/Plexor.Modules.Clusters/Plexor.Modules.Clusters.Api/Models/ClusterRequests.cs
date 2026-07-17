@@ -5,6 +5,7 @@
 // ============================================================================
 
 using Plexor.Modules.Clusters.Domain;
+using Plexor.Shared.NodeApi;
 
 namespace Plexor.Modules.Clusters.Api.Models;
 
@@ -49,7 +50,8 @@ public sealed record NodeJoinRequest(
 /// <param name="Hardware">Fresh hardware snapshot.</param>
 public sealed record NodeHeartbeatRequest(
     string NodeId,
-    NodeHardware Hardware);
+    NodeHardware Hardware,
+    IReadOnlyList<WorkloadReport> Reports);
 
 /// <summary>
 ///     Wire shape for the hardware snapshot in node join / heartbeat

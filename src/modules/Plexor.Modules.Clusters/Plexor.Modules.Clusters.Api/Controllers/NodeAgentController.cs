@@ -15,6 +15,7 @@ using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.NodeApi;
 
 namespace Plexor.Modules.Clusters.Api.Controllers;
 
@@ -81,7 +82,15 @@ public sealed class NodeAgentController(
             request.Hardware.DiskGb,
             request.Hardware.Providers);
         return Ok(await heartbeatHandler.HandleAsync(
-            new NodeHeartbeatCommand(IdParse.ParseNodeId(request.NodeId), clusterId, hardware),
+            new NodeHeartbeatCommand(
+                IdParse.ParseNodeId(request.NodeId),
+                clusterId,
+                hardware,
+                // Wire shape defaulted to empty when the agent
+                // didn't supply one (older NodeAgents, pre-Tier-4).
+                // New agents always populate — see
+                // HeartbeatRequest.Reports in Plexor.Shared.NodeApi.
+                request.Reports ?? Array.Empty<WorkloadReport>()),
             cancellationToken));
     }
 }

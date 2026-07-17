@@ -16,7 +16,9 @@ using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Mtls;
+using Plexor.Shared.NodeApi;
 using Plexor.Shared.Persistence;
+using Plexor.Shared.Workloads;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 
@@ -210,9 +212,109 @@ public sealed class NodeHeartbeatCommandHandler(
         }
         db.Entry(node).Property(static n => n.Spec).CurrentValue = command.Hardware;
         db.Entry(node).Property(static n => n.UpdatedAt).CurrentValue = now;
+
+        // Phase D Tier 4 — drift detection via heartbeat reports.
+        // Each report is one workload the agent currently knows about.
+        // We match by (cluster, node, name) so the agent doesn't need
+        // to know the control-plane WorkloadId at this layer; Tier 5
+        // actions carry LocalId so the WorkloadIdMap (in the agent)
+        // can resolve start/stop/delete without exposing the
+        // control-plane id to provider code.
+        //
+        // Lookup is one fetch — the cluster-scoped workloads filtered
+        // by (node, name). For v0.1 the agent doesn't yet tag its
+        // workloads with the assigned LocalId on create, so this
+        // match-by-name path is the only reconciliation available.
+        // Tier 5 will extend Workload.CreateAsync to write back the
+        // LocalId, after which the lookup can resolve by name alone
+        // with deterministic semantics.
+        if (command.Reports.Count > 0)
+        {
+            await ReconcileWorkloadReportsAsync(command.Reports, command.ClusterId, command.NodeId, now, cancellationToken);
+        }
+
         await db.SaveChangesAsync(cancellationToken);
 
         return new NodeHeartbeatResult(command.NodeId, clusterStatus, DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>
+    ///     Phase D Tier 4 — walk the agent's per-workload reports and
+    ///     reconcile each one against the durable
+    ///     <c>forge.workloads</c> view by (cluster, assigned node,
+    ///     name). State is updated; a row that doesn't match is
+    ///     drift that the operator should see in the UI — we
+    ///     surface it as <see cref="ClustersExceptions.WorkloadNotFound" />
+    ///     so the operator's audit log captures the anomaly rather
+    ///     than silently ignoring it.
+    /// </summary>
+    /// <param name="reports">Agent's per-workload state snapshots.</param>
+    /// <param name="clusterId">Cluster the agent belongs to.</param>
+    /// <param name="nodeId">Calling node (drives the assigned-node filter).</param>
+    /// <param name="now">Stamped onto <c>LastReportedAt</c> on every reconciled row.</param>
+    /// <param name="cancellationToken"></param>
+    private async Task ReconcileWorkloadReportsAsync(
+        IReadOnlyList<WorkloadReport> reports,
+        ClusterId clusterId,
+        NodeId nodeId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        // Look up all (cluster, node, name) tuples in one round-trip
+        // rather than N queries. Names are unique per cluster so we
+        // don't expect collisions; the index is (cluster_id, name).
+        var names = reports.Select(r => r.Name).ToArray();
+        var matched = await db.Workloads
+            .Where(w => w.ClusterId == clusterId
+                        && w.AssignedNodeId == nodeId
+                        && names.Contains(w.Name))
+            .ToListAsync(cancellationToken);
+
+        var byName = matched.ToDictionary(w => w.Name, StringComparer.Ordinal);
+        foreach (var report in reports)
+        {
+            if (!byName.TryGetValue(report.Name, out var workload))
+            {
+                throw new ClustersException(
+                    ClustersExceptions.WorkloadNotFound,
+                    $"Drift: node {nodeId} reported workload '{report.Name}' "
+                    + $"that has no row in forge.workloads for cluster {clusterId}.");
+            }
+
+            workload.State = MapReportState(report.State);
+            workload.LastReportedAt = now;
+            db.Entry(workload).Property(static w => w.UpdatedAt).CurrentValue = now;
+
+            // v0.1 — Write the LocalId back when the agent first
+            // reports a workload. Future Tier 5 work (action
+            // commands) consumes this column when routing start /
+            // stop / delete to the right runtime instance.
+            if (!string.IsNullOrEmpty(report.LocalId)
+                && string.IsNullOrEmpty(workload.LocalId))
+            {
+                workload.LocalId = report.LocalId;
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Translate the wire-stable <see cref="WorkloadReportState" />
+    ///     (Plexor.Shared.NodeApi) onto the internal
+    ///     <see cref="WorkloadState" /> (Plexor.Shared.Workloads).
+    ///     Pure mapping; no I/O.
+    /// </summary>
+    /// <param name="state"></param>
+    private static WorkloadState MapReportState(WorkloadReportState state)
+    {
+        return state switch
+        {
+            WorkloadReportState.Provisioning => WorkloadState.Provisioning,
+            WorkloadReportState.Running => WorkloadState.Running,
+            WorkloadReportState.Stopped => WorkloadState.Stopped,
+            WorkloadReportState.Failed => WorkloadState.Failed,
+            WorkloadReportState.Unknown => WorkloadState.Unknown,
+            _ => WorkloadState.Unknown,
+        };
     }
 }
 

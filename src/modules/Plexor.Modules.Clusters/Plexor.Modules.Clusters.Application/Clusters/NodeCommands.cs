@@ -7,6 +7,7 @@
 
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.NodeApi;
 
 namespace Plexor.Modules.Clusters.Application.Clusters;
 
@@ -32,15 +33,28 @@ public sealed record NodeJoinCommand(
 ///     <see cref="Domain.Entities.Node.LastHeartbeatAt" /> and flips
 ///     <see cref="Domain.Entities.Node.Status" /> to
 ///     <see cref="NodeStatus.Ready" />. Returns 401 + node-removal
-///     signal if the cluster has been disabled.
+///     signal if the cluster has been disabled. Phase D Tier 4:
+///     <see cref="Reports" /> drives drift detection — the control
+///     plane reconciles each report against its durable
+///     <c>forge.workloads</c> view.
 /// </summary>
 /// <param name="NodeId">Caller's own node id (from the node-bearer token).</param>
 /// <param name="ClusterId">Cluster the node belongs to.</param>
 /// <param name="Hardware">Fresh hardware snapshot (may drift over time).</param>
+/// <param name="Reports">
+///     Per-workload state reports (Phase D Tier 4).
+///     Empty when the node hasn't provisioned any workloads
+///     yet. The handler reconciles each against
+///     <c>forge.workloads</c> by (cluster, node, name) — unmatched
+///     reports throw <c>ClustersException.WorkloadNotFound</c>
+///     (drift detected: a provider is running something we never
+///     provisioned).
+/// </param>
 public sealed record NodeHeartbeatCommand(
     NodeId NodeId,
     ClusterId ClusterId,
-    NodeSpec Hardware);
+    NodeSpec Hardware,
+    IReadOnlyList<WorkloadReport> Reports);
 
 /// <summary>List nodes in one cluster.</summary>
 /// <param name="ClusterId">Target cluster.</param>

@@ -235,9 +235,67 @@ public sealed record JoinResponse(
 // ---------------------------------------------------------------------------
 
 /// <summary>
+///     One workload's current state, as reported by the node in
+///     its most recent <see cref="HeartbeatRequest" />. The control
+///     plane reconciles these reports against its durable
+///     <c>forge.workloads</c> view and updates each
+///     <c>LastReportedAt</c> + <c>State</c> accordingly. Drift
+///     detection (Phase D Tier 4) consumes these to surface
+///     "VM says Running but control-plane says Provisioning" to
+///     the operator.
+/// </summary>
+/// <param name="WorkloadId">
+///     Control-plane workload id (<c>wl_&lt;UUIDv7&gt;</c>).
+///     The agent doesn't generate this; the control plane does,
+///     at workload-create time, and stashes it in the
+///     <c>workload.create</c> payload the agent received. The
+///     agent echoes it back here verbatim.
+/// </param>
+/// <param name="LocalId">
+///     Provider-assigned id (libvirt domain UUID, container id,
+///     k8s pod name, etc.). Stable across start/stop on the
+///     same workload; the control plane uses it for the
+///     <c>Start/Stop/Delete</c> action commands.
+/// </param>
+/// <param name="Name">Human-facing workload name (matches <c>WorkloadSpec.Name</c>).</param>
+/// <param name="State">Current lifecycle state.</param>
+public sealed record WorkloadReport(
+    Guid WorkloadId,
+    string? LocalId,
+    string Name,
+    WorkloadReportState State);
+
+/// <summary>
+///     Lifecycle state reported by the agent. Mirrors
+///     <c>Plexor.Shared.Workloads.WorkloadState</c> but is
+///     wire-stable — the shared contract doesn't follow
+///     internal enum additions.
+/// </summary>
+public enum WorkloadReportState
+{
+    /// <summary>Agent is creating the workload (image pull, etc.).</summary>
+    Provisioning = 0,
+
+    /// <summary>Workload is booted and accepting traffic.</summary>
+    Running = 1,
+
+    /// <summary>Workload is gracefully shut down.</summary>
+    Stopped = 2,
+
+    /// <summary>Last lifecycle operation failed.</summary>
+    Failed = 3,
+
+    /// <summary>Provider can't determine state.</summary>
+    Unknown = 4
+}
+
+/// <summary>
 ///     Periodic liveness signal. The interval is set by the agent (30s
 ///     for v0.1); the control plane flips the node to <c>Offline</c> if
-///     it hasn't seen a heartbeat in 3 intervals.
+///     it hasn't seen a heartbeat in 3 intervals. The
+///     <see cref="Reports" /> list drives Phase D Tier 4 drift
+///     detection — the control plane reconciles each report
+///     against its durable <c>forge.workloads</c> view.
 /// </summary>
 /// <param name="NodeId"></param>
 /// <param name="SentAt">
@@ -245,12 +303,24 @@ public sealed record JoinResponse(
 ///     control plane can spot clock-skew across many nodes).
 /// </param>
 /// <param name="Hardware"></param>
-/// <param name="RunningVmCount"></param>
+/// <param name="RunningVmCount">
+///     Convenience aggregate — the number of
+///     workloads the agent currently has in <c>Running</c>
+///     state. Equal to <c>reports.Count(r =&gt; r.State ==
+///     Running)</c>; included so the control plane's per-node
+///     dashboard can show a number without parsing the full
+///     report list.
+/// </param>
+/// <param name="Reports">
+///     Per-workload state reports. Empty when the node
+///     hasn't provisioned any workloads yet.
+/// </param>
 public sealed record HeartbeatRequest(
     Guid NodeId,
     DateTimeOffset SentAt,
     NodeHardware Hardware,
-    int RunningVmCount);
+    int RunningVmCount,
+    IReadOnlyList<WorkloadReport> Reports);
 
 // ---------------------------------------------------------------------------
 // Command poll + result

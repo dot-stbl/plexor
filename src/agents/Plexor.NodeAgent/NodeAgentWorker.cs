@@ -187,7 +187,18 @@ internal sealed class NodeAgentWorker(
                         current.NodeId,
                         DateTimeOffset.UtcNow,
                         hardware,
-                        0),
+                        0,
+                        // Tier 4 wiring — Reports list drives
+                        // control-plane drift detection. Today the
+                        // agent doesn't yet know the control-plane
+                        // WorkloadId for each LocalWorkload (the
+                        // create command only carries Name +
+                        // Kind); the mapping will land in Tier 5
+                        // when action commands need it too. Empty
+                        // for now means drift detection is a no-op
+                        // — heartbeats still flip nodes to Offline
+                        // after three misses.
+                        Array.Empty<Plexor.Shared.NodeApi.WorkloadReport>()),
                     stoppingToken);
 
                 logger.LogDebug("Heartbeat sent for {NodeId}", current.NodeId);
