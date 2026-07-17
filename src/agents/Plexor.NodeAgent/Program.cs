@@ -24,6 +24,7 @@ using Plexor.NodeAgent.Infrastructure;
 using Plexor.NodeAgent.Providers;
 using Plexor.NodeAgent.Providers.Image;
 using Plexor.NodeAgent.Providers.Network;
+using Plexor.NodeAgent.Providers.Runtime;
 using Plexor.NodeAgent.Providers.Storage;
 using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Workloads;
@@ -127,6 +128,20 @@ builder.Services
 builder.Services.AddSingleton<LibvirtKvmProvider>();
 builder.Services.AddSingleton<LibvirtLxcProvider>();
 builder.Services.AddSingleton<LibvirtQemuProvider>();
+
+// Runtime providers (Tier 3+ of the runtime-providers plan).
+// Each runtime exposes an IWorkloadProvider keyed by its
+// WorkloadKind variant; the InMemoryWorkloadRegistry fans the
+// create/start/stop/delete commands to the matching provider.
+// Runtime providers do NOT consume the compute backends
+// (volume + network) above — they manage their own storage
+// (filesystem manifests) and network topology (compose
+// networks, k3s services, etc.).
+builder.Services.AddSingleton<IDockerCliRunner, DockerCliRunner>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<DockerComposeWorkloadProvider>();
+builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<DockerComposeWorkloadProvider>());
+
 builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<LibvirtKvmProvider>());
 builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<LibvirtLxcProvider>());
 builder.Services.AddSingleton<IWorkloadProvider>(sp => sp.GetRequiredService<LibvirtQemuProvider>());
