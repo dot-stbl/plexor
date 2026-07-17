@@ -99,6 +99,48 @@ public abstract record WorkloadKind
         /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
         public override string Name => "container";
     }
+
+    /// <summary>
+    ///     Single-host multi-container workload deployed via
+    ///     <c>docker compose up -d</c>. Rendered to a
+    ///     <c>docker-compose.yaml</c> file on the target node;
+    ///     the agent invokes the docker CLI.
+    /// </summary>
+    public sealed record DockerCompose : WorkloadKind
+    {
+        /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
+        public override string Name => "docker-compose";
+    }
+
+    /// <summary>
+    ///     Single-host container deployed as a systemd quadlet
+    ///     unit (<filename>.container</filename>) under
+    ///     <c>/etc/containers/systemd/</c>. The agent manages
+    ///     the unit via <c>systemctl daemon-reload</c> +
+    ///     <c>systemctl start &lt;name&gt;</c>. Rootless-friendly
+    ///     alternative to docker-compose; default runtime on
+    ///     RHEL/Alma/Fedora hosts.
+    /// </summary>
+    public sealed record PodmanQuadlet : WorkloadKind
+    {
+        /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
+        public override string Name => "podman-quadlet";
+    }
+
+    /// <summary>
+    ///     Kubernetes workload deployed via <c>kubectl apply -k</c>
+    ///     against an existing k3s cluster on the target node.
+    ///     Rendered to a kustomize directory; the agent invokes
+    ///     <c>kubectl --kubeconfig=/etc/rancher/k3s/k3s.yaml</c>.
+    ///     Provisioning of the k3s cluster itself is out of scope
+    ///     (see <c>plan-k8s</c>); this provider assumes k3s is
+    ///     already installed.
+    /// </summary>
+    public sealed record K3s : WorkloadKind
+    {
+        /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
+        public override string Name => "k3s";
+    }
 }
 
 /// <summary>
