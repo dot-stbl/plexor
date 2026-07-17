@@ -93,10 +93,23 @@ builder.Services.AddSingleton<ICommandTransport, HttpCommandTransport>();
 // + LinuxBridgeBackend. Multi-node deployments register
 // additional backends alongside (e.g. CephRbdStorage) — the
 // workload provider picks the right one via DI.
+//
+// Image registry options (mutually exclusive — call only one;
+// both register the same IImageRegistry singleton, the second
+// call overwrites the first):
+//   - AddLocalDirImageRegistry: operator pre-populates a
+//     directory with base images, registry returns the cached
+//     path on every call. Offline-friendly (default for v0.1).
+//   - AddHttpImageRegistry:      registry downloads from a
+//     configured URL on first request, caches to
+//     /var/lib/plexor/images-cache. Production default once
+//     a signed image registry exists.
 builder.Services
         .AddLocalDirImageRegistry(builder.Configuration)
         .AddLocalDirStorage(builder.Configuration)
         .AddLinuxBridgeNetwork();
+// .AddHttpImageRegistry(builder.Configuration); // uncomment to
+// override LocalDir
 
 // Workload providers. v0.1: KVM, LXC, and QEMU-software-emulation
 // via libvirt (three technologies, three different WorkloadKinds).

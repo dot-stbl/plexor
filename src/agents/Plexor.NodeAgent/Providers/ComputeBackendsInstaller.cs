@@ -76,4 +76,41 @@ public static class ComputeBackendsInstaller
         services.AddSingleton<INetworkBackend, LinuxBridgeBackend>();
         return services;
     }
+
+    /// <summary>
+    ///     Register <see cref="HttpImageRegistry" /> against the
+    ///     configured catalogue (<c>NodeAgent:Images:Http</c>)
+    ///     and a named <see cref="IHttpClientFactory" /> client for
+    ///     image downloads. Default cache directory when unset:
+    ///     <c>/var/lib/plexor/images-cache</c>.
+    /// </summary>
+    /// <remarks>
+    ///     The named HttpClient uses a 10-minute total request
+    ///     timeout — cloud images are 500MB-2GB so a 30-second
+    ///     default is too tight. Redirects are followed; on 4xx /
+    ///     5xx the registry throws <see cref="HttpRequestException" />
+    ///     so the caller (the workload provider) surfaces it as a
+    ///     domain error rather than silently swallowing the
+    ///     failure.
+    /// </remarks>
+    public static IServiceCollection AddHttpImageRegistry(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.Configure<HttpImageRegistryOptions>(configuration.GetSection("NodeAgent:Images:Http"));
+
+        services.AddHttpClient(HttpImageRegistry.HttpClientName, client =>
+        {
+            // 10 minutes — Ubuntu cloud image is ~600MB, on a
+            // slow mirror a 30-second default would time out.
+            client.Timeout = TimeSpan.FromMinutes(10);
+            // We're fetching operator-curated catalogue entries —
+            // follow redirects (CDN storage may redirect to a
+            // region-specific URL).
+            client.DefaultRequestHeaders.Add("User-Agent", "plexor-nodeagent/0.1");
+        });
+
+        services.AddSingleton<IImageRegistry, HttpImageRegistry>();
+        return services;
+    }
 }

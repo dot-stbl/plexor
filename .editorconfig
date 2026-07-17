@@ -106,6 +106,7 @@ dotnet_diagnostic.IDE0010.severity = none # populate switch statement — owner-
 dotnet_diagnostic.CMK0001.severity = warning # AccessFilter missing on public controller action — Phase 18 fail-closed authorization.
 dotnet_diagnostic.IDE1006.severity = none # naming style — owner-disabled: статические readonly массивы типа `helpFlags` (camelCase) конфликтуют с дефолтом PascalCase для публичных. Per-glob Migrations-override уже есть; здесь глобально выключаем чтобы `private static readonly string[]` с lowerCamel не ломал билд.
 dotnet_diagnostic.IDE0290.severity = warning # use primary constructor — codestyle-pref
+dotnet_diagnostic.IDE0305.severity = none # collection initializer can be simplified (e.g. `new[] { a, b }` -> `[ a, b ]`) — owned-disabled: hidden severity noisy on Dictionary / IReadOnlyCollection projections and the explicit form documents intent better than the implicit one. Format-check enforced elsewhere.
 
 #---------------------------------------------------------------------
 # Section 8: File-scoped namespaces — обязательно
