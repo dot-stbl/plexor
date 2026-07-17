@@ -118,10 +118,12 @@ builder.Services
 // registered provider here. Add more providers as the project
 // grows (k3s, podman).
 //
-// KVM provider consumes the compute backends above (volume +
-// network). LXC and QEMU are still on the legacy hardcoded
-// path; Tier 3.5 migrates them to IVolumeBackend /
-// INetworkBackend the same way.
+// All three providers consume the compute backends above
+// (volume + network). KVM uses VolumeFormat.Qcow2 + LinuxBridge;
+// LXC uses VolumeFormat.Directory (bind-mount rootfs) +
+// LinuxBridge; QEMU uses VolumeFormat.Qcow2 + LinuxBridge. The
+// IWorkloadProvider is interface-agnostic — it only knows the
+// format + kind, the backend implementations do the rest.
 builder.Services.AddSingleton<LibvirtKvmProvider>();
 builder.Services.AddSingleton<LibvirtLxcProvider>();
 builder.Services.AddSingleton<LibvirtQemuProvider>();

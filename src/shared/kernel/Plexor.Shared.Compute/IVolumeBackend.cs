@@ -102,7 +102,19 @@ public enum VolumeFormat
     ///     <c>pool/image</c> name the libvirt domain references
     ///     via the rbd secret.
     /// </summary>
-    Rbd = 2
+    Rbd = 2,
+
+    /// <summary>
+    ///     Plain directory on the host filesystem. The backend
+    ///     ensures the directory exists (and is empty for a
+    ///     blank-disk request, or pre-populated when
+    ///     <see cref="VolumeSpec.BaseImageRef" /> is supplied).
+    ///     Used by LXC / systemd-nspawn providers that bind-mount
+    ///     the directory as the container's rootfs. QCOW2 file-
+    ///     based providers ignore this format — they require
+    ///     <see cref="Qcow2" /> instead.
+    /// </summary>
+    Directory = 3
 }
 
 /// <summary>

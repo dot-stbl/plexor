@@ -43,17 +43,11 @@ namespace Plexor.NodeAgent.Providers;
 ///     Build a provider that talks to the local libvirt
 ///     LXC driver.
 /// </remarks>
-public sealed class LibvirtLxcProvider(ILogger<LibvirtLxcProvider> logger) : IWorkloadProvider
+public sealed class LibvirtLxcProvider(
+    IVolumeBackend volumes,
+    INetworkBackend networks,
+    ILogger<LibvirtLxcProvider> logger) : IWorkloadProvider
 {
-    /// <summary>
-    ///     Default rootfs base directory. Each container's
-    ///     rootfs is a subdirectory under here. v0.1: every container
-    ///     starts from an empty directory; v0.2+ supports cloning a
-    ///     base image (Ubuntu 24.04 cloud image, Alpine 3.21, etc.) via
-    ///     <c>spec.Config.template</c>.
-    /// </summary>
-    public const string DefaultRootfsBase = "/var/lib/plx-lxc";
-
     /// <summary>
     ///     The libvirt URI for the local LXC driver. v0.1
     ///     hardcodes this; v0.2+ reads it from configuration.
@@ -69,17 +63,27 @@ public sealed class LibvirtLxcProvider(ILogger<LibvirtLxcProvider> logger) : IWo
     public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken cancellationToken)
     {
         var id = Guid.NewGuid();
-        var rootfs = Path.Combine(DefaultRootfsBase, spec.Name);
-        var xml = BuildContainerXml(spec, id, rootfs);
+
+        // Tier 3.5: LXC consumes the same IVolumeBackend +
+        // INetworkBackend abstractions as KVM. The format is
+        // Directory (a host bind-mount source), not Qcow2 —
+        // LocalDirStorage.CreateDirectory handles that path.
+        var volumeSpec = new VolumeSpec(
+            Name: spec.Name,
+            SizeBytes: 0,
+            BaseImageRef: LibvirtLxcXmlBuilder.ResolveBaseImageRef(spec),
+            Format: VolumeFormat.Directory);
+        var volumeHandle = await volumes.CreateAsync(volumeSpec, cancellationToken);
+
+        var networkSpec = new NetworkSpec(spec.Name, NetworkKind.LinuxBridge);
+        var networkHandle = await networks.AttachAsync(networkSpec, cancellationToken);
+
+        var rootfs = volumeHandle.Reference;
+        var xml = LibvirtLxcXmlBuilder.BuildContainerXml(spec, id, rootfs, networkHandle.Reference);
         var xmlPath = $"/tmp/plexor-{id}.xml";
 
         try
         {
-            // v0.1: empty rootfs. mkdir -p the directory; v0.2+
-            // clones a template image if spec.Config has
-            // 'template' = '<image-name>'.
-            Directory.CreateDirectory(rootfs);
-
             await File.WriteAllTextAsync(xmlPath, xml, cancellationToken);
             await LibvirtRunner.RunAsync(LibvirtUri, $"define {xmlPath}", cancellationToken);
             await LibvirtRunner.RunAsync(LibvirtUri, $"start {spec.Name}", cancellationToken);
@@ -155,26 +159,30 @@ public sealed class LibvirtLxcProvider(ILogger<LibvirtLxcProvider> logger) : IWo
     public async Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
-        // LXC undefines the domain AND we drop the rootfs directory.
-        // The rootfs can be large; v0.1 just rm -rf's it.
-        await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", cancellationToken);
 
-        var rootfs = Path.Combine(DefaultRootfsBase, entry.DomainName);
-
+        // Undefine the domain. Best-effort cleanup: a partially-
+        // failed undefine shouldn't block the volume / network
+        // release (the operator can `virsh undefine` manually
+        // later if needed).
         try
         {
-            if (Directory.Exists(rootfs))
-            {
-                Directory.Delete(rootfs, true);
-            }
+            await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", cancellationToken);
         }
-        catch (Exception cleanup)
+        catch (Exception ex)
         {
             logger.LogWarning(
-                cleanup,
-                "Failed to remove rootfs {Path}; leaving for manual cleanup",
-                rootfs);
+                ex,
+                "LibvirtLxcProvider: virsh undefine {Domain} failed during delete; "
+                + "continuing with volume / network cleanup",
+                entry.DomainName);
         }
+
+        // Tier 3.5: free the volume + network we allocated at
+        // create-time. Both backends are idempotent — missing
+        // handle is a successful no-op (matches the "delete is
+        // eventual" semantics the control plane expects).
+        await volumes.DeleteAsync(entry.VolumeHandle, cancellationToken);
+        await networks.DetachAsync(entry.NetworkHandle, cancellationToken);
 
         if (!workloads.Remove(id))
         {
@@ -215,121 +223,5 @@ public sealed class LibvirtLxcProvider(ILogger<LibvirtLxcProvider> logger) : IWo
             DateTimeOffset.UtcNow,
             startedAt);
     }
-
-    /// <summary>
-    ///     Build the libvirt domain XML for an LXC system
-    ///     container. LXC's XML is fundamentally different from KVM:
-    ///     no <c>type='hvm'</c>, no <c>disk</c>, the <c>os</c> has
-    ///     <c>init</c> instead of a <c>boot dev</c>.
-    /// </summary>
-    /// <param name="spec"></param>
-    /// <param name="id"></param>
-    /// <param name="rootfs"></param>
-    private static string BuildContainerXml(WorkloadSpec spec, Guid id, string rootfs)
-    {
-        var config = TryDeserializeConfig(spec.Config, out var c)
-                ? c
-                : new LibvirtLxcConfig();
-
-        var ramKiB = config.RamBytes / 1024;
-        var vcpu = config.CpuCores;
-
-        var settings = new XmlWriterSettings
-        {
-            Indent = true,
-            OmitXmlDeclaration = true
-        };
-
-        var sb = new StringBuilder();
-
-        using (var writer = XmlWriter.Create(sb, settings))
-        {
-            writer.WriteStartElement("domain");
-            writer.WriteAttributeString("type", "lxc");
-            writer.WriteElementString("name", spec.Name);
-            writer.WriteElementString("uuid", id.ToString());
-            writer.WriteElementString("memory", Convert.ToString(ramKiB, CultureInfo.InvariantCulture));
-            writer.WriteElementString("vcpu", Convert.ToString(vcpu, CultureInfo.InvariantCulture));
-
-            writer.WriteStartElement("os");
-            writer.WriteElementString("type", "exe");
-            writer.WriteElementString("init", config.Init);
-            writer.WriteEndElement(); // os
-
-            writer.WriteStartElement("devices");
-
-            // Filesystem bind-mount: the container's / is the
-            // host's rootfs directory. Real impl would use a
-            // disk-backed rootfs (qcow2, raw) for production.
-            writer.WriteStartElement("filesystem");
-            writer.WriteAttributeString("type", "mount");
-            writer.WriteStartElement("source");
-            writer.WriteAttributeString("dir", rootfs);
-            writer.WriteEndElement(); // source
-            writer.WriteStartElement("target");
-            writer.WriteAttributeString("dir", "/");
-            writer.WriteEndElement(); // target
-            writer.WriteEndElement(); // filesystem
-
-            // Console so the agent's user (or libvirt's tools)
-            // can attach; LXC needs a pty for the init.
-            writer.WriteStartElement("console");
-            writer.WriteAttributeString("type", "pty");
-            writer.WriteEndElement(); // console
-
-            // Network: bridge onto the default libvirt network.
-            writer.WriteStartElement("interface");
-            writer.WriteAttributeString("type", "bridge");
-            writer.WriteStartElement("source");
-            writer.WriteAttributeString("bridge", config.BridgeName);
-            writer.WriteEndElement(); // source
-            writer.WriteEndElement(); // interface
-
-            writer.WriteEndElement(); // devices
-            writer.WriteEndElement(); // domain
-        }
-
-        return sb.ToString();
-    }
-
-    private static bool TryDeserializeConfig(JsonElement config, out LibvirtLxcConfig result)
-    {
-        try
-        {
-            result = config.Deserialize<LibvirtLxcConfig>()
-                     ?? new LibvirtLxcConfig();
-
-            return true;
-        }
-        catch
-        {
-            result = new LibvirtLxcConfig();
-            return false;
-        }
-    }
-
-    /// <summary>
-    ///     Provider-specific config schema (consumed from
-    ///     <see cref="WorkloadSpec.Config" />). v0.1: defaults if the
-    ///     control plane doesn't supply a value, so the agent stays
-    ///     functional even with empty Config.
-    /// </summary>
-    /// <param name="RamBytes"></param>
-    /// <param name="CpuCores"></param>
-    /// <param name="Init">
-    ///     Path to the init binary inside the
-    ///     container. Defaults to <c>/sbin/init</c> for systemd-based
-    ///     images; set to <c>/sbin/runit</c> or <c>/bin/sh</c> for
-    ///     lighter bases (Alpine, etc.).
-    /// </param>
-    /// <param name="BridgeName">
-    ///     Libvirt network bridge to attach
-    ///     the container's veth to. Defaults to <c>virbr0</c> (the
-    ///     libvirt default NAT bridge).
-    /// </param>
-    private sealed record LibvirtLxcConfig(
-        long RamBytes = 1L * 1024 * 1024 * 1024,
-        int CpuCores = 2,
-        string Init = "/sbin/init",
-        string BridgeName = "virbr0");
 }
+

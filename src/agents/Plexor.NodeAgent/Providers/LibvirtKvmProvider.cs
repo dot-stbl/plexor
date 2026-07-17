@@ -5,7 +5,7 @@
 // LibvirtRunner); the future v0.2+ impl swaps in LibvirtClient
 // for richer async + no shell-quoting footguns.
 //
-// Compute stack wiring:
+// Compute stack wiring (Tier 3.5):
 //   - Volume:  asks IVolumeBackend for a VolumeHandle, then
 //     references the handle's Reference in <source>.
 //   - Network: asks INetworkBackend for a NetworkInterfaceHandle,
@@ -67,8 +67,6 @@ public sealed class LibvirtKvmProvider(
     /// <inheritdoc />
     public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(spec);
-
         var config = TryDeserializeConfig(spec.Config, out var c)
                 ? c
                 : new LibvirtKvmConfig();
@@ -184,7 +182,6 @@ public sealed class LibvirtKvmProvider(
     public async Task<LocalWorkload> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         var entry = workloads.GetOrThrow(id);
-
         // undefines the domain (frees its config but does NOT
         // destroy the underlying disk image). The agent's caller
         // is responsible for any disk cleanup.
@@ -223,6 +220,8 @@ public sealed class LibvirtKvmProvider(
     ///     Build a <see cref="LocalWorkload" /> snapshot for
     ///     the given id with the given startedAt timestamp. Helper
     ///     used by start/stop/delete to return a value to the agent.
+    ///     Stays on the provider (not file-static) because it reads
+    ///     from the <see cref="WorkloadIdMap" /> instance state.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="startedAt"></param>
@@ -239,23 +238,16 @@ public sealed class LibvirtKvmProvider(
     }
 
     /// <summary>
-    ///     Build a minimal libvirt domain XML for the given
+    ///     Build a libvirt domain XML for the given
     ///     spec. v0.1: one disk, one network interface, no balloon
     ///     device. Real impl reads additional config from
     ///     <see cref="WorkloadSpec.Config" /> (opaque JSON the
     ///     provider owns).
     /// </summary>
-    /// <param name="spec"></param>
-    /// <param name="id"></param>
-    /// <param name="volumePath">
-    ///     Absolute path on the host filesystem — comes from
-    ///     <see cref="VolumeHandle.Reference" /> for LocalDirStorage.
-    /// </param>
-    /// <param name="networkBridge">
-    ///     Bridge name — comes from
-    ///     <see cref="NetworkInterfaceHandle.Reference" /> for
-    ///     LinuxBridgeBackend.
-    /// </param>
+    /// <param name="spec">Operator-supplied spec (config carries RAM / vCPU / network name / base image ref).</param>
+    /// <param name="id">Agent-assigned local id for the new VM.</param>
+    /// <param name="volumePath">Disk image path on the host filesystem. Comes from <c>VolumeHandle.Reference</c>.</param>
+    /// <param name="networkBridge">Bridge name to attach the VM's NIC to. Comes from <c>NetworkInterfaceHandle.Reference</c>.</param>
     private static string BuildDomainXml(
         WorkloadSpec spec,
         Guid id,
@@ -378,7 +370,7 @@ public sealed class LibvirtKvmProvider(
     /// <param name="RamBytes">RAM allocation in bytes.</param>
     /// <param name="CpuCores">Number of vCPUs.</param>
     /// <param name="NetworkName">Logical network name (matches libvirt network name).</param>
-    /// <param name="BaseImageRef">Operator-facing image ref resolved via <see cref="IImageRegistry" />.</param>
+    /// <param name="BaseImageRef">Operator-facing image ref resolved via <c>IImageRegistry</c>.</param>
     private sealed record LibvirtKvmConfig(
         long RamBytes = 1L * 1024 * 1024 * 1024,
         int CpuCores = 2,
