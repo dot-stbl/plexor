@@ -351,6 +351,14 @@ public sealed record CommandEnvelope(
 ///     detail; the control plane may log it and surface it in the UI.
 /// </summary>
 /// <param name="CommandId"></param>
+/// <param name="LocalId">
+///     Provider-assigned runtime id (libvirt domain UUID, container
+///     id, etc.). Populated by the agent for <c>workload.create</c>
+///     results so the control plane can write it into
+///     <c>forge.workloads.local_id</c>; null for commands that
+///     don't return a runtime handle (start / stop / delete
+///     ack, heartbeat).
+/// </param>
 /// <param name="NodeId"></param>
 /// <param name="Status"></param>
 /// <param name="ErrorMessage"></param>
@@ -360,6 +368,7 @@ public sealed record CommandResult(
     Guid NodeId,
     CommandResultStatus Status,
     string? ErrorMessage,
+    Guid? LocalId,
     DateTimeOffset CompletedAt);
 
 /// <summary>
@@ -375,17 +384,19 @@ public sealed record CreateWorkloadPayload(
 
 /// <summary>
 ///     Payload for <c>workload.start</c>, <c>workload.stop</c>, and
-///     <c>workload.delete</c> commands. The <see cref="WorkloadId" /> is
-///     the local id assigned by the provider at create-time and returned
-///     to the control plane in the command result.
+///     <c>workload.delete</c> commands. The <c>LocalId</c> is the
+///     runtime handle the provider assigned at create-time (libvirt
+///     domain UUID, container id, k3s pod name) — populated from
+///     <c>forge.workloads.local_id</c> which the agent first wrote
+///     via the Tier-4 heartbeat reconciliation. Stable across
+///     start/stop/delete on the same workload. Stored as a
+///     <c>string</c> on the wire because provider-assigned ids are
+///     not always valid Guids (e.g. <c>i-abc123</c> for AWS-style
+///     providers or containername for docker).
 /// </summary>
-/// <param name="WorkloadId">
-///     Local id assigned by the provider when
-///     the workload was created. Stable across start/stop/delete on the
-///     same workload.
-/// </param>
+/// <param name="LocalId">Runtime handle — string shape to match <c>forge.workloads.local_id</c>.</param>
 public sealed record WorkloadActionPayload(
-    Guid WorkloadId);
+    string LocalId);
 
 /// <summary>
 ///     Long-poll request body. Returns immediately if no commands are

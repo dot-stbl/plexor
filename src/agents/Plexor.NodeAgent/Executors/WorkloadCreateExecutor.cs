@@ -60,12 +60,18 @@ public sealed class WorkloadCreateExecutor(
 
             var workload = await provider.CreateAsync(payload.Spec, cancellationToken);
             logger.LogInformation(
-                "Created workload {WorkloadId} ({Kind}) for {Name}",
+                "Created workload {LocalId} ({Kind}) for {Name}",
                 workload.Id,
                 workload.Kind,
                 workload.Name);
 
-            return ExecutorResult.Ok();
+            // Tier 5: hand the LocalId back to the dispatcher so the
+            // control plane can persist it on the workload row
+            // (forge.workloads.local_id) before the next heartbeat
+            // arrives. Without this, the agent only had the value
+            // locally and the control plane had to wait for a
+            // heartbeat cycle to learn the runtime handle.
+            return ExecutorResult.OkWithLocalId(workload.Id);
         }
         catch (Exception ex)
         {

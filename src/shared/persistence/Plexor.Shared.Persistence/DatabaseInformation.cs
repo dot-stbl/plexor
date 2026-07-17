@@ -151,5 +151,15 @@ public static class DatabaseInformation
         ///     reported back through <c>local_id</c> + state.
         /// </summary>
         public const string Workloads = "workloads";
+
+        /// <summary>
+        ///     Clusters module — per-node command queue. The control
+        ///     plane writes entries here when an action endpoint is
+        ///     invoked; the NodeAgent's long-poll reads Pending
+        ///     entries, executes them, and posts back the result
+        ///     (Status flips to Acked / Failed). forge schema,
+        ///     snake_case <c>commands</c> table.
+        /// </summary>
+        public const string Commands = "commands";
     }
 }

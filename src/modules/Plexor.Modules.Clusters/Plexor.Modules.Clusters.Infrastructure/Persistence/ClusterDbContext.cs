@@ -35,6 +35,8 @@ public sealed class ClusterDbContext(DbContextOptions<ClusterDbContext> options)
     public DbSet<JoinToken> JoinTokens => Set<JoinToken>();
     /// <summary>Workloads (forge.workloads) — control-plane view of every deployed workload.</summary>
     public DbSet<Workload> Workloads => Set<Workload>();
+    /// <summary>NodeCommands (forge.commands) — per-node command queue; agent long-polls and posts results back.</summary>
+    public DbSet<NodeCommand> Commands => Set<NodeCommand>();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -43,7 +45,8 @@ public sealed class ClusterDbContext(DbContextOptions<ClusterDbContext> options)
             .ApplyConfiguration(new ClusterConfiguration())
             .ApplyConfiguration(new NodeConfiguration())
             .ApplyConfiguration(new JoinTokenConfiguration())
-            .ApplyConfiguration(new WorkloadConfiguration());
+            .ApplyConfiguration(new WorkloadConfiguration())
+            .ApplyConfiguration(new NodeCommandConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

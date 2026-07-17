@@ -63,6 +63,13 @@ public static class ClustersInfrastructureInstaller
         services.AddScoped<ICommandHandler<ListWorkloadsQuery, PageResult<WorkloadSummary>>, ListWorkloadsQueryHandler>();
         services.AddScoped<ICommandHandler<GetWorkloadQuery, WorkloadSummary>, GetWorkloadQueryHandler>();
 
+        // Tier 5: workload action commands (start / stop / restart).
+        // Handler short-polls the per-node command queue (forge.commands)
+        // for the agent's ack; control plane returns once the row
+        // reaches Acked or Failed. v0.2+ switches to async-fire-and-
+        // forget + heartbeat-driven state.
+        services.AddScoped<ICommandHandler<WorkloadActionCommand, WorkloadActionResult>, WorkloadActionCommandHandler>();
+
         // Read repositories — base class from Shared.Persistence; per-module
         // subclass wires the typed DbSet. Scoped lifetime matches DbContext.
         services.AddScoped<Repository<Cluster>, ClusterRepository>();

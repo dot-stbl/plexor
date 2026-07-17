@@ -78,8 +78,6 @@ public sealed class HttpImageRegistry(
     /// </summary>
     public const string HttpClientName = "plexor.image-registry";
 
-    private readonly IOptions<HttpImageRegistryOptions> options = options;
-
     /// <inheritdoc />
     public IReadOnlyCollection<string> AvailableImages =>
         options.Value.Catalog.Keys.ToArray() as IReadOnlyCollection<string> ?? Array.Empty<string>();
@@ -127,7 +125,7 @@ public sealed class HttpImageRegistry(
 
             response.EnsureSuccessStatusCode();
 
-            await using (var source = await response.Content.ReadAsStreamAsync(cancellationToken))
+            await using var source = await response.Content.ReadAsStreamAsync(cancellationToken);
             await using (var destination = File.Create(partialPath))
             {
                 await source.CopyToAsync(destination, cancellationToken);

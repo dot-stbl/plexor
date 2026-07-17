@@ -124,7 +124,7 @@ public sealed class WorkloadActionExecutor(
         CommandEnvelope envelope,
         CancellationToken cancellationToken)
     {
-        var workload = await provider.StartAsync(payload.WorkloadId, cancellationToken);
+        var workload = await provider.StartAsync(Guid.Parse(payload.LocalId), cancellationToken);
         logger.LogInformation(
             "Started workload {WorkloadId} for command {CommandId}",
             workload.Id,
@@ -139,7 +139,7 @@ public sealed class WorkloadActionExecutor(
         CommandEnvelope envelope,
         CancellationToken cancellationToken)
     {
-        var workload = await provider.StopAsync(payload.WorkloadId, cancellationToken);
+        var workload = await provider.StopAsync(Guid.Parse(payload.LocalId), cancellationToken);
         logger.LogInformation(
             "Stopped workload {WorkloadId} for command {CommandId}",
             workload.Id,
@@ -154,7 +154,7 @@ public sealed class WorkloadActionExecutor(
         CommandEnvelope envelope,
         CancellationToken cancellationToken)
     {
-        var workload = await provider.DeleteAsync(payload.WorkloadId, cancellationToken);
+        var workload = await provider.DeleteAsync(Guid.Parse(payload.LocalId), cancellationToken);
         logger.LogInformation(
             "Deleted workload {WorkloadId} for command {CommandId}",
             workload.Id,

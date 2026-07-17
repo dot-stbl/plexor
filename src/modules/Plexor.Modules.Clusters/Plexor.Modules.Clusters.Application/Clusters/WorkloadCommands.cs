@@ -99,3 +99,47 @@ public sealed partial class WorkloadSummary
 
 // Paged list response uses Plexor.Shared.Contracts.Pagination.PageResult<T>
 // directly — no project-specific wrapper.
+
+// --- action commands (Tier 5) ----------------------------------------------
+
+/// <summary>Workload action verb — what the operator asked the agent to do.</summary>
+public enum WorkloadAction
+{
+    /// <summary>Start a previously provisioned workload (boot the runtime).</summary>
+    Start = 0,
+
+    /// <summary>Gracefully shut down a running workload (resources stay allocated).</summary>
+    Stop = 1,
+
+    /// <summary>Restart = Stop + Start in one round trip. Convenience for the UI.</summary>
+    Restart = 2
+}
+
+/// <summary>
+///     Enqueue a <see cref="WorkloadAction" /> against an
+///     already-provisioned workload. The control plane writes
+///     the matching <c>forge.commands</c> row; the NodeAgent's
+///     long-poll picks it up within seconds, executes via
+///     the agent's ICommandExecutor, and
+///     posts back the result. The handler returns once the
+///     command reaches a terminal state (Acked or Failed).
+/// </summary>
+/// <param name="ClusterId">Parent cluster (scope check).</param>
+/// <param name="WorkloadId">Target workload (must be in this cluster).</param>
+/// <param name="Action">Verb to execute.</param>
+public sealed record WorkloadActionCommand(
+    ClusterId ClusterId,
+    WorkloadId WorkloadId,
+    WorkloadAction Action);
+
+/// <summary>
+///     Result of a successful <see cref="WorkloadActionCommand" />.
+///     Carries the new state the agent reported back plus the
+///     idempotency key the control plane uses to correlate the
+///     long-poll result with the originally-enqueued command.
+/// </summary>
+/// <param name="CommandId">Wire-format command id (UUIDv7). Stable across retries.</param>
+/// <param name="State">Workload state after the action executed (e.g. <see cref="Plexor.Shared.Workloads.WorkloadState.Running" /> after start).</param>
+public sealed record WorkloadActionResult(
+    Guid CommandId,
+    Plexor.Shared.Workloads.WorkloadState State);

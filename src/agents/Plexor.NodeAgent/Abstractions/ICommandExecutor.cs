@@ -60,20 +60,35 @@ public interface ICommandExecutor
 ///     Required when <paramref name="Status" />
 ///     is <see cref="CommandResultStatus.Failed" />; null otherwise.
 /// </param>
+/// <param name="LocalId">
+///     Provider-assigned runtime id for <c>workload.create</c>
+///     commands (libvirt UUID, container id, etc.). Null for
+///     commands that don't return a handle (start / stop / delete).
+///     The dispatcher copies this into <see cref="CommandResult.LocalId" />
+///     so the control plane can persist it on the workload row.
+/// </param>
 public sealed record ExecutorResult(
     CommandResultStatus Status,
-    string? ErrorMessage)
+    string? ErrorMessage,
+    Guid? LocalId = null)
 {
-    /// <summary>Convenience factory for a successful execution.</summary>
+    /// <summary>Convenience factory for a successful execution with no runtime handle (start / stop / delete).</summary>
     public static ExecutorResult Ok()
     {
-        return new ExecutorResult(CommandResultStatus.Succeeded, null);
+        return new ExecutorResult(CommandResultStatus.Succeeded, null, null);
+    }
+
+    /// <summary>Convenience factory for a successful execution that produced a runtime handle (<c>workload.create</c>).</summary>
+    /// <param name="localId">Provider-assigned runtime id for the new workload.</param>
+    public static ExecutorResult OkWithLocalId(Guid localId)
+    {
+        return new ExecutorResult(CommandResultStatus.Succeeded, null, localId);
     }
 
     /// <summary>Convenience factory for a failed execution.</summary>
     /// <param name="errorMessage"></param>
     public static ExecutorResult Fail(string errorMessage)
     {
-        return new ExecutorResult(CommandResultStatus.Failed, errorMessage);
+        return new ExecutorResult(CommandResultStatus.Failed, errorMessage, null);
     }
 }

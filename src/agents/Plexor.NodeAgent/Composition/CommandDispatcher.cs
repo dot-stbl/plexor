@@ -89,6 +89,7 @@ internal sealed class CommandDispatcher
                 envelope.NodeId,
                 result.Status,
                 result.ErrorMessage,
+                result.LocalId,
                 DateTimeOffset.UtcNow);
         }
         catch (Exception ex)
@@ -117,6 +118,7 @@ internal sealed class CommandDispatcher
             envelope.NodeId,
             CommandResultStatus.Failed,
             error,
+            null,
             DateTimeOffset.UtcNow);
     }
 }
