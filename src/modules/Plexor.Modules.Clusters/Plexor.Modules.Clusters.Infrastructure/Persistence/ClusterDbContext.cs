@@ -14,6 +14,7 @@ using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Infrastructure.Persistence.Configurations;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.NodeApi;
 using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Persistence;
@@ -130,6 +131,16 @@ internal sealed class ClusterConfiguration : IEntityTypeConfiguration<Cluster>
         builder.Property(static cluster => cluster.Endpoint)
             .HasColumnName("endpoint")
             .HasMaxLength(256);
+
+        // RuntimeId — closed set of supported runtimes (docker-compose |
+        // podman-quadlet | k3s). Validated at command-handler level;
+        // the column accepts any string but the handler rejects
+        // unknown values before they ever land in the row.
+        builder.Property(static cluster => cluster.RuntimeId)
+            .HasColumnName("runtime_id")
+            .HasMaxLength(64)
+            .HasDefaultValue(ClusterRuntimeIds.Default)
+            .IsRequired();
 
         builder.Property(static cluster => cluster.CreatedAt)
             .HasColumnName("created_at")

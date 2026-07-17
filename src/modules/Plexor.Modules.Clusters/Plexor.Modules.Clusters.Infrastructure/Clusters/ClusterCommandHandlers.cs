@@ -16,6 +16,7 @@ using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.NodeApi;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 
@@ -42,6 +43,14 @@ public sealed class CreateClusterCommandHandler(
                 "Cluster name is required.");
         }
 
+        if (!ClusterRuntimeIds.IsValid(command.RuntimeId))
+        {
+            throw new ClustersException(
+                ClustersExceptions.InvalidRuntimeId,
+                $"Cluster runtime id '{command.RuntimeId}' is not supported. " +
+                $"Expected one of: docker-compose, podman-quadlet, k3s.");
+        }
+
         if (await db.Clusters.AsNoTracking().AnyAsync(
                 cluster => cluster.OrgId == command.OrgId && cluster.Name == command.Name,
                 cancellationToken))
@@ -60,6 +69,7 @@ public sealed class CreateClusterCommandHandler(
             Name = command.Name,
             Region = command.Region,
             Status = ClusterStatus.Pending,
+            RuntimeId = command.RuntimeId,
             JoinTokenExpiresAt = now.AddDays(7),
             CreatedAt = now,
             UpdatedAt = now,

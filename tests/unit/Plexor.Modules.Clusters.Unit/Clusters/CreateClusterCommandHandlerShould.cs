@@ -75,4 +75,64 @@ public sealed class CreateClusterCommandHandlerShould
             () => sut.HandleAsync(new CreateClusterCommand(Guid.NewGuid(), "", "eu-central-1", NodeRole.Control)));
         ex.Code.ShouldBe(ClustersExceptions.ClusterNameTaken);
     }
+
+    [Theory(DisplayName = "Given an unsupported runtime id, when CreateCluster, then throws InvalidRuntimeId")]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("nomad")]
+    [InlineData("swarm")]
+    [InlineData("docker-compose-v2")]
+    public async Task CreateClusterRejectsInvalidRuntimeId(string? runtimeId)
+    {
+        await using var db = await TestDb.CreateAsync();
+        var sut = new CreateClusterCommandHandler(db);
+
+        var ex = await Should.ThrowAsync<ClustersException>(() =>
+            sut.HandleAsync(new CreateClusterCommand(
+                Guid.NewGuid(),
+                $"cluster-{Guid.NewGuid().ToString("N")[..8]}",
+                "eu-central-1",
+                NodeRole.Control,
+                runtimeId ?? string.Empty)));
+        ex.Code.ShouldBe(ClustersExceptions.InvalidRuntimeId);
+    }
+
+    [Theory(DisplayName = "Given a supported runtime id, when CreateCluster, then persists the runtime on the cluster row")]
+    [InlineData(Plexor.Shared.NodeApi.ClusterRuntimeIds.DockerCompose)]
+    [InlineData(Plexor.Shared.NodeApi.ClusterRuntimeIds.PodmanQuadlet)]
+    [InlineData(Plexor.Shared.NodeApi.ClusterRuntimeIds.K3s)]
+    public async Task CreateClusterPersistsSupportedRuntimeId(string runtimeId)
+    {
+        await using var db = await TestDb.CreateAsync();
+        var sut = new CreateClusterCommandHandler(db);
+        var name = $"cluster-{Guid.NewGuid().ToString("N")[..8]}";
+
+        await sut.HandleAsync(new CreateClusterCommand(
+            Guid.NewGuid(),
+            name,
+            "eu-central-1",
+            NodeRole.Control,
+            runtimeId));
+
+        var persisted = await db.Clusters.SingleAsync();
+        persisted.RuntimeId.ShouldBe(runtimeId);
+    }
+
+    [Fact(DisplayName = "Given no runtime id in command, when CreateCluster, then defaults to docker-compose")]
+    public async Task CreateClusterDefaultsRuntimeId()
+    {
+        await using var db = await TestDb.CreateAsync();
+        var sut = new CreateClusterCommandHandler(db);
+        var name = $"cluster-{Guid.NewGuid().ToString("N")[..8]}";
+
+        await sut.HandleAsync(new CreateClusterCommand(
+            Guid.NewGuid(),
+            name,
+            "eu-central-1",
+            NodeRole.Control));
+
+        var persisted = await db.Clusters.SingleAsync();
+        persisted.RuntimeId.ShouldBe(Plexor.Shared.NodeApi.ClusterRuntimeIds.Default);
+        persisted.RuntimeId.ShouldBe(Plexor.Shared.NodeApi.ClusterRuntimeIds.DockerCompose);
+    }
 }

@@ -43,6 +43,9 @@ public static class ClustersExceptions
 
     /// <summary>Workload name missing, kind unknown, or spec malformed.</summary>
     public const string InvalidWorkloadSpec = "clusters.workload.invalid_spec";
+
+    /// <summary>Cluster-level runtime id is null, empty, or not in the closed set.</summary>
+    public const string InvalidRuntimeId = "clusters.cluster.invalid_runtime_id";
 }
 
 /// <summary>

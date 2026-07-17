@@ -11,6 +11,7 @@
 using Plexor.Shared.Filtering.Registry;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Kernel.Common;
+using Plexor.Shared.NodeApi;
 
 namespace Plexor.Modules.Clusters.Domain.Entities;
 
@@ -70,6 +71,15 @@ public sealed class Cluster : IFilterableEntity, ICreatedAt, IUpdatedAt
     /// <summary>Where the host is reachable (used in
     /// `plx node join &lt;endpoint&gt;`).</summary>
     public string Endpoint { get; init; } = string.Empty;
+
+    /// <summary>
+    ///     Cluster-level runtime identifier
+    ///     (<c>docker-compose</c> / <c>podman-quadlet</c> / <c>k3s</c>).
+    ///     Immutable after creation — switching runtime requires
+    ///     recreating the cluster. Defaults to <c>docker-compose</c>
+    ///     (see <see cref="Plexor.Shared.NodeApi.ClusterRuntimeIds.Default" />).
+    /// </summary>
+    public string RuntimeId { get; init; } = ClusterRuntimeIds.Default;
 
     /// <summary>Wall-clock the cluster was created (`plx init`).</summary>
     public DateTimeOffset CreatedAt { get; init; }

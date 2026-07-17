@@ -9,6 +9,7 @@ using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Shared.Filtering.Query;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.NodeApi;
 
 namespace Plexor.Modules.Clusters.Application.Clusters;
 
@@ -23,11 +24,19 @@ namespace Plexor.Modules.Clusters.Application.Clusters;
 /// <param name="Name">Cluster name (unique per org).</param>
 /// <param name="Region">Operator-assigned region label (e.g. <c>eu-central-1</c>).</param>
 /// <param name="InitialNodeRole">Role the first joining node will take.</param>
+/// <param name="RuntimeId">
+///     Cluster-level runtime the cluster will use
+///     (<c>docker-compose</c> / <c>podman-quadlet</c> / <c>k3s</c>).
+///     Defaults to <see cref="Plexor.Shared.NodeApi.ClusterRuntimeIds.DockerCompose" />.
+///     Immutable after creation — switching runtime requires recreating
+///     the cluster.
+/// </param>
 public sealed record CreateClusterCommand(
     Guid OrgId,
     string Name,
     string Region,
-    NodeRole InitialNodeRole);
+    NodeRole InitialNodeRole,
+    string RuntimeId = ClusterRuntimeIds.Default);
 
 /// <summary>
 ///     Rename / change region for an existing cluster. Cannot change
@@ -102,6 +111,14 @@ public sealed partial class ClusterSummary
     /// <summary>Plexor.Host binary version.</summary>
     public string HostVersion { get; init; } = string.Empty;
 
+    /// <summary>
+    ///     Cluster-level runtime identifier
+    ///     (<c>docker-compose</c> / <c>podman-quadlet</c> / <c>k3s</c>).
+    ///     Immutable after creation. The UI uses this to drive the
+    ///     workload-create wizard's runtime hints.
+    /// </summary>
+    public string RuntimeId { get; init; } = ClusterRuntimeIds.Default;
+
     /// <summary>Aggregated node counts by status.</summary>
     public NodeCounts NodeCounts { get; init; } = new();
 
@@ -136,6 +153,13 @@ public sealed partial class ClusterDetail
 
     /// <summary>Host binary version.</summary>
     public string HostVersion { get; init; } = string.Empty;
+
+    /// <summary>
+    ///     Cluster-level runtime identifier
+    ///     (<c>docker-compose</c> / <c>podman-quadlet</c> / <c>k3s</c>).
+    ///     Immutable after creation.
+    /// </summary>
+    public string RuntimeId { get; init; } = ClusterRuntimeIds.Default;
 
     /// <summary>Install providers selected at <c>plx init</c>.</summary>
     public IReadOnlyList<string> InstallProviders { get; init; } = [];
