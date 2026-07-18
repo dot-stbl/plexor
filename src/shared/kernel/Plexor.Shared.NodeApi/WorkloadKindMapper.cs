@@ -58,8 +58,8 @@ public static class WorkloadKindMapper
             "k3s" => new WorkloadKind.K3s(),
             _ => throw new NotSupportedException(
                 $"Unknown workload kind '{name}'. " +
-                $"Supported: vm, lxc, qemu, k8s.pod, container, " +
-                $"docker-compose, podman-quadlet, k3s."),
+                "Supported: vm, lxc, qemu, k8s.pod, container, " +
+                "docker-compose, podman-quadlet, k3s."),
         };
     }
 

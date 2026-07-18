@@ -12,14 +12,17 @@ using System.Security.Cryptography.X509Certificates;
 namespace Plexor.Shared.Mtls;
 
 /// <summary>
+/// <para>
 ///     Contract for the Plexor internal CA. The CA signs:
 ///   - the host's server cert (one-shot at first startup)
 ///   - each NodeAgent's client cert (per join)
-///
+/// </para>
+/// <para>
 /// All certs share the same CN-prefix convention as Plexor entity IDs
 /// (<c>CN=node_&lt;UUIDv7&gt;</c>, <c>CN=plexor-host</c>) so a single
 /// chain verifier (<see cref="VerifyClientCert" />) can dispatch on
 /// CN prefix when needed.
+/// </para>
 /// </summary>
 public interface ICertificateAuthority
 {

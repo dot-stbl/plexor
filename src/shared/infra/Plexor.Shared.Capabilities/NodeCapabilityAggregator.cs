@@ -21,6 +21,8 @@ namespace Plexor.Shared.Capabilities;
 ///     timer; the result goes to <c>node.yaml</c> and to the
 ///     control plane via <c>POST /api/v1/nodes/{id}/capabilities</c>.
 /// </summary>
+/// <param name="probes"></param>
+/// <param name="logger"></param>
 public sealed class NodeCapabilityAggregator(
     IEnumerable<ICapabilityProbe> probes,
     ILogger<NodeCapabilityAggregator> logger)
@@ -32,6 +34,7 @@ public sealed class NodeCapabilityAggregator(
     ///     as "node doesn't have it", which is the right behaviour
     ///     when the probe can't see through (e.g. permissions).
     /// </summary>
+    /// <param name="cancellationToken"></param>
     public async Task<NodeCapabilityReport> AggregateAsync(
         CancellationToken cancellationToken = default)
     {

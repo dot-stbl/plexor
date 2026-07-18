@@ -12,7 +12,6 @@ using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Filtering.Query;
 using Plexor.Shared.Filtering.Registry;
 using Plexor.Shared.Identifiers;
-using Plexor.Shared.Persistence;
 using Plexor.Shared.Workloads;
 using Shouldly;
 using Xunit;
@@ -22,7 +21,7 @@ namespace Plexor.Modules.Clusters.Unit.Workloads;
 public sealed class ListWorkloadsQueryHandlerShould
 {
     [Fact(DisplayName = "Given two clusters with workloads, when ListWorkloads, then returns only matching cluster's workloads")]
-    public async Task ListWorkloadsFiltersByCluster()
+    public async Task ListWorkloadsFiltersByClusterAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster1 = await SeedClusterAsync(db, "cluster-1");
@@ -45,7 +44,7 @@ public sealed class ListWorkloadsQueryHandlerShould
     }
 
     [Fact(DisplayName = "Given empty cluster, when ListWorkloads, then returns empty page")]
-    public async Task ListWorkloadsEmptyClusterReturnsEmptyPage()
+    public async Task ListWorkloadsEmptyClusterReturnsEmptyPageAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);

@@ -31,7 +31,7 @@ namespace Plexor.Modules.Clusters.Unit.Clusters;
 public sealed class NodeHeartbeatCommandHandlerShould
 {
     [Fact(DisplayName = "Given matching report, when HandleAsync, then reconciles State + LocalId + LastReportedAt")]
-    public async Task ReconcilesReports()
+    public async Task ReconcilesReportsAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var (cluster, node) = await SeedClusterAndNodeAsync(db);
@@ -83,7 +83,7 @@ public sealed class NodeHeartbeatCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given empty reports, when HandleAsync, then heartbeat still flips node to Ready")]
-    public async Task NoReportsStillStampsHeartbeat()
+    public async Task NoReportsStillStampsHeartbeatAsync()
     {
         await using var db = await TestDb.CreateAsync();
         // Seed the node in Gone state so we can observe the
@@ -108,7 +108,7 @@ public sealed class NodeHeartbeatCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given report naming a workload the cluster never provisioned, when HandleAsync, then throws WorkloadNotFound (drift)")]
-    public async Task UnknownReportIsDrift()
+    public async Task UnknownReportIsDriftAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var (cluster, node) = await SeedClusterAndNodeAsync(db);

@@ -6,7 +6,6 @@
 // ============================================================================
 
 using Plexor.Modules.Clusters.Domain.Entities;
-using Plexor.Shared.Contracts.Pagination;
 using Plexor.Shared.Filtering.Query;
 using Plexor.Shared.Identifiers;
 
@@ -64,7 +63,7 @@ public sealed record ListWorkloadsQuery(
 /// <summary>Public projection of <see cref="Workload" /> — list-card shape.
 /// <c>sealed partial class</c> with init-only properties so
 /// Mapperly's source generator can emit the mapping body.</summary>
-public sealed partial class WorkloadSummary
+public sealed class WorkloadSummary
 {
     /// <summary>Workload id (wl_&lt;UUIDv7&gt;).</summary>
     public WorkloadId Id { get; init; }

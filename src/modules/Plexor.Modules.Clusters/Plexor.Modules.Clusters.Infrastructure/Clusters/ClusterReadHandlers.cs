@@ -43,20 +43,20 @@ public sealed class GetClusterQueryHandler(
 {
     /// <inheritdoc />
     public async Task<ClusterDetail> HandleAsync(
-        GetClusterQuery query,
+        GetClusterQuery command,
         CancellationToken cancellationToken = default)
     {
         if (await clusterRepo.FirstOrDefaultAsync(
-                new ClusterByIdSpec(query.ClusterId),
+                new ClusterByIdSpec(command.ClusterId),
                 cancellationToken) is not { } cluster)
         {
             throw new ClustersException(
                 ClustersExceptions.ClusterNotFound,
-                $"Cluster '{query.ClusterId}' not found.");
+                $"Cluster '{command.ClusterId}' not found.");
         }
 
         var nodes = await nodeRepo.ListAsync(
-            new NodesByClusterSpec(query.ClusterId),
+            new NodesByClusterSpec(command.ClusterId),
             n => mapper.ToNodeSummary(n),
             cancellationToken);
 
@@ -91,13 +91,13 @@ public sealed class ListClustersQueryHandler(
 {
     /// <inheritdoc />
     public async Task<PageResult<ClusterSummary>> HandleAsync(
-        ListClustersQuery query,
+        ListClustersQuery command,
         CancellationToken cancellationToken = default)
     {
         return await clusterRepo.PageAsync(
-            new ClustersByOrgSpec(query.OrgId),
+            new ClustersByOrgSpec(command.OrgId),
             c => mapper.ToSummary(c),
-            query.Query,
+            command.Query,
             fields,
             cancellationToken);
     }
@@ -115,11 +115,11 @@ public sealed class ListNodesQueryHandler(
 {
     /// <inheritdoc />
     public async Task<IReadOnlyList<NodeSummary>> HandleAsync(
-        ListNodesQuery query,
+        ListNodesQuery command,
         CancellationToken cancellationToken = default)
     {
         return await nodeRepo.ListAsync(
-            new NodesByClusterSpec(query.ClusterId),
+            new NodesByClusterSpec(command.ClusterId),
             n => mapper.ToNodeSummary(n),
             cancellationToken);
     }

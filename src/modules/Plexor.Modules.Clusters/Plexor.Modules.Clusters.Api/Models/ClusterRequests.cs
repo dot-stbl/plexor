@@ -48,6 +48,7 @@ public sealed record NodeJoinRequest(
 /// <see cref="Plexor.Shared.Identifiers.NodeId" /> on the server
 /// side via <see cref="Plexor.Shared.Identifiers.IdParse" />.</param>
 /// <param name="Hardware">Fresh hardware snapshot.</param>
+/// <param name="Reports"></param>
 public sealed record NodeHeartbeatRequest(
     string NodeId,
     NodeHardware Hardware,

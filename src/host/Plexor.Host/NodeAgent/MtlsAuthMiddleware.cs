@@ -25,6 +25,9 @@ namespace Plexor.Host.NodeAgent;
 ///     <c>app.UseMiddleware&lt;MtlsAuthMiddleware&gt;()</c> before
 ///     the controllers route map.
 /// </summary>
+/// <param name="next"></param>
+/// <param name="caAuthority"></param>
+/// <param name="logger"></param>
 public sealed class MtlsAuthMiddleware(
     RequestDelegate next,
     ICertificateAuthority caAuthority,
@@ -46,6 +49,7 @@ public sealed class MtlsAuthMiddleware(
     ///     <c>HttpContext.User</c> to a principal carrying the
     ///     <c>nodeId</c> claim parsed off the cert subject.
     /// </summary>
+    /// <param name="context"></param>
     public async Task InvokeAsync(HttpContext context)
     {
         var path = context.Request.Path.Value ?? string.Empty;
@@ -82,11 +86,10 @@ public sealed class MtlsAuthMiddleware(
         }
 
         var identity = new ClaimsIdentity(
-            new[]
-            {
+            [
                 new Claim("nodeId", nodeId.ToString()),
                 new Claim(ClaimTypes.Role, "node"),
-            },
+            ],
             authenticationType: NodeAgentPolicy);
 
         context.User = new ClaimsPrincipal(identity);

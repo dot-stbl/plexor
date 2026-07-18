@@ -92,6 +92,7 @@ public sealed class CreateUserCommandHandler(
 ///     <see cref="IdentityExceptions.InvalidEmail" />.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="mapper"></param>
 public sealed class UpdateUserCommandHandler(
     IdentityDbContext db,
     ISigilMapper mapper) : ICommandHandler<UpdateUserCommand, UserSummary>
@@ -150,6 +151,7 @@ public sealed class UpdateUserCommandHandler(
 /// </summary>
 /// <param name="db"></param>
 /// <param name="refreshTokens"></param>
+/// <param name="mapper"></param>
 public sealed class DisableUserCommandHandler(
     IdentityDbContext db,
     IRefreshTokenStore refreshTokens,
@@ -204,19 +206,20 @@ public sealed class DisableUserCommandHandler(
 ///     Fetch a single user summary by id.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="mapper"></param>
 public sealed class GetUserQueryHandler(
     IdentityDbContext db,
     ISigilMapper mapper) : ICommandHandler<GetUserQuery, UserSummary>
 {
     /// <inheritdoc />
     public async Task<UserSummary> HandleAsync(
-        GetUserQuery query,
+        GetUserQuery command,
         CancellationToken cancellationToken = default)
     {
 
         var summary = await db.Users
             .AsNoTracking()
-            .Where(u => u.Id == query.UserId)
+            .Where(u => u.Id == command.UserId)
             .Select(u => mapper.ToUserSummary(u))
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -231,6 +234,7 @@ public sealed class GetUserQueryHandler(
 ///     PageSize is bounded to 1..200 to keep query latency bounded.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="mapper"></param>
 public sealed class ListUsersQueryHandler(
     IdentityDbContext db, ISigilMapper mapper) : ICommandHandler<ListUsersQuery, UserPage>
 {
@@ -240,14 +244,14 @@ public sealed class ListUsersQueryHandler(
 
     /// <inheritdoc />
     public async Task<UserPage> HandleAsync(
-        ListUsersQuery query,
+        ListUsersQuery command,
         CancellationToken cancellationToken = default)
     {
 
-        var pageSize = Math.Clamp(query.PageSize, 1, MaxPageSize);
-        var page = Math.Max(1, query.Page);
+        var pageSize = Math.Clamp(command.PageSize, 1, MaxPageSize);
+        var page = Math.Max(1, command.Page);
 
-        var baseQuery = db.Users.AsNoTracking().Where(u => u.OrgId == query.OrgId);
+        var baseQuery = db.Users.AsNoTracking().Where(u => u.OrgId == command.OrgId);
         var total = await baseQuery.CountAsync(cancellationToken);
 
         var items = await baseQuery

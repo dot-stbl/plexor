@@ -50,6 +50,7 @@ internal static class PodmanQuadletRenderer
     ///     service identifier (<c>&lt;name&gt;.service</c>).
     /// </param>
     /// <param name="config">Parsed config (image, ports, env, etc.).</param>
+    /// <exception cref="ArgumentException"></exception>
     public static string Render(string serviceName, PodmanQuadletConfig config)
     {
         if (string.IsNullOrWhiteSpace(serviceName))
@@ -68,24 +69,27 @@ internal static class PodmanQuadletRenderer
         var sb = new StringBuilder();
 
         // [Unit] section.
-        sb.Append("[Unit]\n");
-        sb.Append("Description=Plexor workload ");
-        sb.Append(serviceName);
-        sb.Append('\n');
+        sb.Append("[Unit]\n")
+            .Append("Description=Plexor workload ")
+            .Append(serviceName)
+            .Append('\n')
+            .Append("\n[Container]\n")
+            .Append("Image=")
+            .Append(config.Image)
+            .Append('\n');
+
+
+
 
         // [Container] section.
-        sb.Append("\n[Container]\n");
-        sb.Append("Image=");
-        sb.Append(config.Image);
-        sb.Append('\n');
+
+
+
+
 
         foreach (var port in config.Ports)
         {
-            sb.Append("PublishPort=");
-            sb.Append(port);
-            sb.Append(':');
-            sb.Append(port);
-            sb.Append('\n');
+            sb.Append("PublishPort=").Append(port).Append(':').Append(port).Append('\n');
         }
 
         // Environment sorted by key for byte-stable output across
@@ -93,25 +97,23 @@ internal static class PodmanQuadletRenderer
         foreach (var kv in config.Environment.OrderBy(
                      static kv => kv.Key, StringComparer.Ordinal))
         {
-            sb.Append("Environment=");
-            sb.Append(kv.Key);
-            sb.Append('=');
-            sb.Append(kv.Value);
-            sb.Append('\n');
+            sb.Append("Environment=")
+                .Append(kv.Key)
+                .Append('=')
+                .Append(kv.Value)
+                .Append('\n');
         }
 
         // [Service] section.
-        sb.Append("\n[Service]\n");
-        sb.Append("Restart=");
-        sb.Append(config.Restart);
-        sb.Append('\n');
+        sb.Append("\n[Service]\n")
+            .Append("Restart=").Append(config.Restart).Append('\n');
 
         // [Install] section — only when AutoStart. Production
         // workloads want this; one-shot / dev workloads skip it.
         if (config.AutoStart)
         {
-            sb.Append("\n[Install]\n");
-            sb.Append("WantedBy=multi-user.target\n");
+            sb.Append("\n[Install]\n")
+                .Append("WantedBy=multi-user.target\n");
         }
 
         return sb.ToString();

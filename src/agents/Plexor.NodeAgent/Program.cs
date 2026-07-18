@@ -22,10 +22,7 @@ using Plexor.NodeAgent.Composition;
 using Plexor.NodeAgent.Executors;
 using Plexor.NodeAgent.Infrastructure;
 using Plexor.NodeAgent.Providers;
-using Plexor.NodeAgent.Providers.Image;
-using Plexor.NodeAgent.Providers.Network;
 using Plexor.NodeAgent.Providers.Runtime;
-using Plexor.NodeAgent.Providers.Storage;
 using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Workloads;
 using Refit;
@@ -45,7 +42,7 @@ var nodeOptions = new NodeAgentOptions
 {
     CertDirectory = !string.IsNullOrEmpty(certDirectoryOverride)
         ? certDirectoryOverride
-        : System.IO.Path.Combine(
+        : Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             ".plexor", "agent"),
 };
@@ -83,7 +80,7 @@ builder.Services
         })
         .ConfigurePrimaryHttpMessageHandler(() =>
             nodeOptions.Enrolled
-                ? (HttpMessageHandler)MtlsHttpHandlerFactory.Build(nodeOptions)
+                ? MtlsHttpHandlerFactory.Build(nodeOptions)
                 : new SocketsHttpHandler())
         .AddStandardResilienceHandler();
 

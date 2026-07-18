@@ -44,12 +44,14 @@ public enum FilterValueKind
 public abstract record FilterValue;
 
 /// <summary>A single scalar value (bare literal or quoted string) — raw text from the DSL (quotes stripped).</summary>
+/// <param name="Raw"></param>
 public sealed record ScalarValue(string Raw) : FilterValue;
 
 /// <summary>A list of values for IN/NotIn operators.
 /// Stored as <see cref="System.Collections.Immutable.ImmutableArray{T}" /> so
 /// repeated cache hits don't re-allocate the backing array — the lexer builds
 /// it once on cache miss and the value is preserved verbatim on cache hit.</summary>
+/// <param name="Items"></param>
 public sealed record ListValue(
     System.Collections.Immutable.ImmutableArray<string> Items) : FilterValue
 {
@@ -59,6 +61,7 @@ public sealed record ListValue(
     ///     <c>FilterNodeTests.ListValue_Equality</c> contract expects
     ///     content-based equality.
     /// </summary>
+    /// <param name="other"></param>
     public bool Equals(ListValue? other)
     {
         if (other is null)
@@ -92,6 +95,8 @@ public sealed record NullValue : FilterValue
 
 /// <summary>A function call value (e.g. <c>now(-7d)</c>).
 /// First positional is the function identifier from the DSL; second is the raw argument text.</summary>
+/// <param name="Name"></param>
+/// <param name="Argument"></param>
 public sealed record FunctionValue(string Name, string Argument) : FilterValue;
 
 // ==================== Comparison / logical nodes ====================
@@ -103,6 +108,9 @@ public sealed record FunctionValue(string Name, string Argument) : FilterValue;
 ///     <see cref="NullValue" />. Positional: field name, comparison operator,
 ///     parsed value (pattern-match on the concrete subtype).
 /// </summary>
+/// <param name="Field"></param>
+/// <param name="Operator"></param>
+/// <param name="Value"></param>
 public sealed record ComparisonNode(
     string Field,
     FilterOperator Operator,
@@ -125,6 +133,7 @@ public sealed record ComparisonNode(
 ///     contract). Positional is the ordered child-node list — empty AND is
 ///     valid (no-op).
 /// </summary>
+/// <param name="Children"></param>
 public sealed record AndNode(params FilterNode[] Children) : FilterNode
 {
     /// <summary>
@@ -133,6 +142,7 @@ public sealed record AndNode(params FilterNode[] Children) : FilterNode
     ///     <c>FilterNodeTests.LogicalNode_Equality</c> contract requires
     ///     element-wise.
     /// </summary>
+    /// <param name="other"></param>
     public bool Equals(AndNode? other)
     {
         if (other is null)
@@ -162,9 +172,11 @@ public sealed record AndNode(params FilterNode[] Children) : FilterNode
 ///     the same comparator semantics. Positional is the ordered child-node
 ///     list — empty OR is valid (no-op).
 /// </summary>
+/// <param name="Children"></param>
 public sealed record OrNode(params FilterNode[] Children) : FilterNode
 {
     /// <summary>Element-wise equality on the children array — see <see cref="AndNode" />.</summary>
+    /// <param name="other"></param>
     public bool Equals(OrNode? other)
     {
         if (other is null)

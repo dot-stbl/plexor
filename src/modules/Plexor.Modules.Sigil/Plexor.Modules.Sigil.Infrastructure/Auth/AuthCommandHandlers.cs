@@ -64,8 +64,8 @@ public sealed class LoginCommandHandler(
                 IdentityExceptions.InvalidCredentials,
                 "Email or username not found.");
         await EnsureNotLockedAsync(user, cancellationToken);
-        EnsureActiveAsync(user);
-        EnsurePasswordExistsAsync(user);
+        EnsureActive(user);
+        EnsurePasswordExists(user);
 
         var verification = passwordHasher.VerifyHashedPassword(
             user,
@@ -95,7 +95,7 @@ public sealed class LoginCommandHandler(
                 user.Id,
                 user.OrgId,
                 roles,
-                new[] { PlexorPermissions.UsersChangeOwnPassword },
+                [PlexorPermissions.UsersChangeOwnPassword],
                 IJwtSigningService.PasswordChangeLifetime,
                 cancellationToken);
 
@@ -138,7 +138,7 @@ public sealed class LoginCommandHandler(
             "Either email or username must be supplied.");
     }
 
-    private static void EnsureActiveAsync(User user)
+    private static void EnsureActive(User user)
     {
         if (!string.Equals(user.Status, "active", StringComparison.Ordinal))
         {
@@ -148,7 +148,7 @@ public sealed class LoginCommandHandler(
         }
     }
 
-    private static void EnsurePasswordExistsAsync(User user)
+    private static void EnsurePasswordExists(User user)
     {
         if (user.PasswordHash is null)
         {
@@ -385,7 +385,7 @@ public sealed class MeQueryHandler(
 {
     /// <inheritdoc />
     public Task<MeResult> HandleAsync(
-        MeQuery query,
+        MeQuery command,
         CancellationToken cancellationToken = default)
     {
 

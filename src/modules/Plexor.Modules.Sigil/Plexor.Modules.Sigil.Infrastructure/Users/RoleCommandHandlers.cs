@@ -64,6 +64,7 @@ public sealed class CreateRoleCommandHandler(
 ///     <see cref="IdentityExceptions.InvalidPermission" />.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="mapper"></param>
 public sealed class UpdateRoleCommandHandler(
     IdentityDbContext db, ISigilMapper mapper) : ICommandHandler<UpdateRoleCommand, RoleSummary>
 {
@@ -161,19 +162,20 @@ public sealed class DeleteRoleCommandHandler(
 
 /// <summary>Fetch a single role by id.</summary>
 /// <param name="db"></param>
+/// <param name="mapper"></param>
 public sealed class GetRoleQueryHandler(
     IdentityDbContext db,
     ISigilMapper mapper) : ICommandHandler<GetRoleQuery, RoleSummary>
 {
     /// <inheritdoc />
     public async Task<RoleSummary> HandleAsync(
-        GetRoleQuery query,
+        GetRoleQuery command,
         CancellationToken cancellationToken = default)
     {
 
         var summary = await db.Roles
             .AsNoTracking()
-            .Where(r => r.Id == query.RoleId)
+            .Where(r => r.Id == command.RoleId)
             .Select(r => mapper.ToRoleSummary(r))
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -185,18 +187,19 @@ public sealed class GetRoleQueryHandler(
 
 /// <summary>List roles in an organization.</summary>
 /// <param name="db"></param>
+/// <param name="mapper"></param>
 public sealed class ListRolesQueryHandler(
     IdentityDbContext db,
     ISigilMapper mapper) : ICommandHandler<ListRolesQuery, IReadOnlyCollection<RoleSummary>>
 {
     /// <inheritdoc />
     public Task<IReadOnlyCollection<RoleSummary>> HandleAsync(
-        ListRolesQuery query,
+        ListRolesQuery command,
         CancellationToken cancellationToken = default)
     {
         return db.Roles
             .AsNoTracking()
-            .Where(r => r.OrgId == query.OrgId)
+            .Where(r => r.OrgId == command.OrgId)
             .OrderBy(r => r.BuiltIn ? 0 : 1)
             .ThenBy(r => r.Name)
             .Select(r => mapper.ToRoleSummary(r))

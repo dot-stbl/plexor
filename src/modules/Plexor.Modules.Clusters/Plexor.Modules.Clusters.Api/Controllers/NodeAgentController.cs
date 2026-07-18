@@ -15,7 +15,6 @@ using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Identifiers;
-using Plexor.Shared.NodeApi;
 
 namespace Plexor.Modules.Clusters.Api.Controllers;
 
@@ -90,7 +89,7 @@ public sealed class NodeAgentController(
                 // didn't supply one (older NodeAgents, pre-Tier-4).
                 // New agents always populate — see
                 // HeartbeatRequest.Reports in Plexor.Shared.NodeApi.
-                request.Reports ?? Array.Empty<WorkloadReport>()),
+                request.Reports ?? []),
             cancellationToken));
     }
 }

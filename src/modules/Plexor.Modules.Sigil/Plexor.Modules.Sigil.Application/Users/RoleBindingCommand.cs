@@ -32,7 +32,7 @@ public sealed record ListRoleBindingsQuery(Guid UserId);
 /// <summary>Public projection of <see cref="Domain.Entities.RoleBinding" />.
 /// <c>sealed partial class</c> with init-only properties for
 /// Mapperly source-generation compatibility.</summary>
-public sealed partial class RoleBindingSummary
+public sealed class RoleBindingSummary
 {
     /// <summary>UUID v7 binding id.</summary>
     public Guid Id { get; init; }

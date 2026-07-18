@@ -66,7 +66,7 @@ public sealed record ListNodesQuery(ClusterId ClusterId);
 /// <c>sealed partial class</c> with init-only properties for
 /// Mapperly source-generation compatibility (see
 /// <c>ClusterMappers.ToNodeSummary</c>).</summary>
-public sealed partial class NodeSummary
+public sealed class NodeSummary
 {
     /// <summary>Node id (node_&lt;UUIDv7&gt;).</summary>
     public NodeId Id { get; init; }
@@ -100,10 +100,12 @@ public sealed partial class NodeSummary
 }
 
 /// <summary>
+/// <para>
 ///     Result of a successful <see cref="NodeJoinCommand" />. The
 ///     NodeAgent persists these and uses them for every subsequent
 ///     <c>/heartbeat</c> + <c>/commands/poll</c> call.
-///
+/// </para>
+/// <para>
 ///     The mTLS triple (<see cref="NodeCertificatePem" /> /
 ///     <see cref="NodePrivateKeyPem" /> / <see cref="CaCertificatePem" />)
 ///     is issued by the host on every successful join — the
@@ -111,6 +113,7 @@ public sealed partial class NodeSummary
 ///     the client cert on every subsequent HTTPS call. The CA
 ///     certificate is included so the NodeAgent can verify the
 ///     host's server cert (mutual trust at the TLS layer).
+/// </para>
 /// </summary>
 /// <param name="NodeId">Newly-minted node id.</param>
 /// <param name="ClusterId">Cluster the node joined.</param>

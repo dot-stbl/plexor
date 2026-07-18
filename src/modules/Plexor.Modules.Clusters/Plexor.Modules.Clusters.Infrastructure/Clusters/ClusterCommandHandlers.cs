@@ -48,7 +48,7 @@ public sealed class CreateClusterCommandHandler(
             throw new ClustersException(
                 ClustersExceptions.InvalidRuntimeId,
                 $"Cluster runtime id '{command.RuntimeId}' is not supported. " +
-                $"Expected one of: docker-compose, podman-quadlet, k3s.");
+                "Expected one of: docker-compose, podman-quadlet, k3s.");
         }
 
         if (await db.Clusters.AsNoTracking().AnyAsync(
@@ -108,6 +108,7 @@ public sealed class CreateClusterCommandHandler(
 ///     <see cref="Cluster.OrgId" /> (cross-tenant migration is Phase 2+).
 /// </summary>
 /// <param name="db"></param>
+/// <param name="mapper"></param>
 public sealed class UpdateClusterCommandHandler(
     ClusterDbContext db,
     IClusterMapper mapper) : ICommandHandler<UpdateClusterCommand, ClusterSummary>

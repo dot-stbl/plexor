@@ -54,7 +54,7 @@ public sealed class BearerAuthenticationHandlerShould
     /// <summary>Verifies that an absent Authorization header yields NoResult
     /// and that the signing service is never called.</summary>
     [Fact(DisplayName = "Given no Authorization header, when authenticating, then returns NoResult")]
-    public async Task NoHeaderReturnsNoResult()
+    public async Task NoHeaderReturnsNoResultAsync()
     {
         var signing = Substitute.For<IJwtSigningService>();
         var context = new DefaultHttpContext();
@@ -70,7 +70,7 @@ public sealed class BearerAuthenticationHandlerShould
     /// <summary>Verifies that a non-Bearer Authorization scheme is treated
     /// as no auth (not a failure) so other handlers can pick up Basic etc.</summary>
     [Fact(DisplayName = "Given wrong scheme header, when authenticating, then returns NoResult")]
-    public async Task WrongSchemeReturnsNoResult()
+    public async Task WrongSchemeReturnsNoResultAsync()
     {
         var signing = Substitute.For<IJwtSigningService>();
         var context = new DefaultHttpContext();
@@ -87,7 +87,7 @@ public sealed class BearerAuthenticationHandlerShould
     /// <summary>Verifies that a VerifyResult.Malformed from the signing
     /// service surfaces as AuthenticateResult.Fail with the same reason.</summary>
     [Fact(DisplayName = "Given malformed JWT, when authenticating, then returns Fail")]
-    public async Task MalformedJwtReturnsFail()
+    public async Task MalformedJwtReturnsFailAsync()
     {
         var signing = Substitute.For<IJwtSigningService>();
         signing.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -106,7 +106,7 @@ public sealed class BearerAuthenticationHandlerShould
     /// <summary>Verifies that a VerifyResult.Invalid from the signing
     /// service surfaces as AuthenticateResult.Fail with the same reason.</summary>
     [Fact(DisplayName = "Given invalid JWT, when authenticating, then returns Fail")]
-    public async Task InvalidJwtReturnsFail()
+    public async Task InvalidJwtReturnsFailAsync()
     {
         var signing = Substitute.For<IJwtSigningService>();
         signing.VerifyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -125,7 +125,7 @@ public sealed class BearerAuthenticationHandlerShould
     /// <summary>Verifies that a VerifyResult.Success carries the principal
     /// returned by the signing service and exposes its identity on the result.</summary>
     [Fact(DisplayName = "Given valid JWT, when authenticating, then returns Success with principal identity")]
-    public async Task ValidJwtReturnsSuccess()
+    public async Task ValidJwtReturnsSuccessAsync()
     {
         var identity = new ClaimsIdentity(
             [new Claim(ClaimTypes.Name, "user-123")],
@@ -151,7 +151,7 @@ public sealed class BearerAuthenticationHandlerShould
     /// <summary>Verifies that iat/exp claims from a successful JWT are
     /// surfaced on AuthenticationProperties.IssuedUtc / ExpiresUtc.</summary>
     [Fact(DisplayName = "Given JWT with iat and exp claims, when authenticating, then AuthenticationProperties carries issued and expires instants")]
-    public async Task ValidJwtSurfacesIssuedAndExpiresUtc()
+    public async Task ValidJwtSurfacesIssuedAndExpiresUtcAsync()
     {
         var issuedEpoch = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var expiresEpoch = issuedEpoch + 900; // 15-minute lifetime, matches IJwtSigningService.AccessTokenLifetime
@@ -184,7 +184,7 @@ public sealed class BearerAuthenticationHandlerShould
     /// values does not silently splice them together — the first value
     /// is treated as the only one and any subsequent values are ignored.</summary>
     [Fact(DisplayName = "Given multi-valued Authorization header, when authenticating, then only the first value is considered")]
-    public async Task MultiValuedAuthorizationHeaderUsesFirstValueOnly()
+    public async Task MultiValuedAuthorizationHeaderUsesFirstValueOnlyAsync()
     {
         // Use JWT-shaped tokens (with two dots) so the handler routes
         // through IJwtSigningService; the API key path is exercised
@@ -211,7 +211,7 @@ public sealed class BearerAuthenticationHandlerShould
     /// header (RFC 6750 §3) and 401 status. error_description is
     /// intentionally omitted to avoid information leakage.</summary>
     [Fact(DisplayName = "Given no auth on a protected endpoint, when challenging, then writes WWW-Authenticate header")]
-    public async Task ChallengeWritesRealmHeader()
+    public async Task ChallengeWritesRealmHeaderAsync()
     {
         var signing = Substitute.For<IJwtSigningService>();
         var context = new DefaultHttpContext();

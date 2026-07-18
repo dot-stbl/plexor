@@ -30,7 +30,7 @@ public sealed class DockerComposeWorkloadProviderShould
     private static readonly int[] SinglePort80 = [80];
 
     [Fact(DisplayName = "Given a valid spec, when CreateAsync, then writes manifest and shells docker compose up -d")]
-    public async Task CreateAsyncWritesManifestAndShellsDocker()
+    public async Task CreateAsyncWritesManifestAndShellsDockerAsync()
     {
         var docker = Substitute.For<IDockerCliRunner>();
         docker.RunAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -62,7 +62,7 @@ public sealed class DockerComposeWorkloadProviderShould
 
         // docker was called exactly once with the up -d invocation.
         await docker.Received(1).RunAsync(
-            Arg.Is<string>(args => args.StartsWith("compose -f ", StringComparison.Ordinal) &&
+            Arg.Is<string>(static args => args.StartsWith("compose -f ", StringComparison.Ordinal) &&
                                   args.EndsWith(" up -d", StringComparison.Ordinal)),
             Arg.Any<CancellationToken>());
 
@@ -79,14 +79,14 @@ public sealed class DockerComposeWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given a valid spec, when StartAsync, then shells docker compose start")]
-    public async Task StartAsyncShellsStartCommand()
+    public async Task StartAsyncShellsStartCommandAsync()
     {
         var (sut, docker, list) = await CreateProviderWithWorkloadAsync();
 
         await sut.StartAsync(list[0].Id, CancellationToken.None);
 
         await docker.Received(1).RunAsync(
-            Arg.Is<string>(args => args.EndsWith(" start", StringComparison.Ordinal)),
+            Arg.Is<string>(static args => args.EndsWith(" start", StringComparison.Ordinal)),
             Arg.Any<CancellationToken>());
 
         try { File.Delete("/var/lib/plexor/workloads/web/compose.yaml"); }
@@ -94,7 +94,7 @@ public sealed class DockerComposeWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given a valid spec, when StopAsync, then shells docker compose stop and flips state to Stopped")]
-    public async Task StopAsyncShellsStopAndFlipsState()
+    public async Task StopAsyncShellsStopAndFlipsStateAsync()
     {
         var (sut, docker, list) = await CreateProviderWithWorkloadAsync();
         var firstLocal = list[0];
@@ -103,7 +103,7 @@ public sealed class DockerComposeWorkloadProviderShould
 
         stopped.State.ShouldBe(WorkloadState.Stopped);
         await docker.Received(1).RunAsync(
-            Arg.Is<string>(args => args.EndsWith(" stop", StringComparison.Ordinal)),
+            Arg.Is<string>(static args => args.EndsWith(" stop", StringComparison.Ordinal)),
             Arg.Any<CancellationToken>());
 
         try { File.Delete("/var/lib/plexor/workloads/web/compose.yaml"); }
@@ -111,7 +111,7 @@ public sealed class DockerComposeWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given an unknown localId, when DeleteAsync, then is a no-op (idempotent contract)")]
-    public async Task DeleteAsyncOnUnknownIdIsNoOp()
+    public async Task DeleteAsyncOnUnknownIdIsNoOpAsync()
     {
         var docker = Substitute.For<IDockerCliRunner>();
         var clock = Substitute.For<TimeProvider>();
@@ -121,11 +121,11 @@ public sealed class DockerComposeWorkloadProviderShould
         var tombstone = await sut.DeleteAsync(Guid.NewGuid(), CancellationToken.None);
 
         tombstone.State.ShouldBe(WorkloadState.Stopped);
-        await docker.DidNotReceiveWithAnyArgs().RunAsync(default(string)!, default);
+        await docker.DidNotReceiveWithAnyArgs().RunAsync(default!, default);
     }
 
     [Fact(DisplayName = "Given an invalid JSON config, when CreateAsync, then throws InvalidOperationException")]
-    public async Task CreateAsyncThrowsOnInvalidConfig()
+    public async Task CreateAsyncThrowsOnInvalidConfigAsync()
     {
         var docker = Substitute.For<IDockerCliRunner>();
         var clock = Substitute.For<TimeProvider>();
@@ -142,7 +142,7 @@ public sealed class DockerComposeWorkloadProviderShould
             () => sut.CreateAsync(spec, CancellationToken.None));
         ex.Message.ShouldContain("image");
 
-        await docker.DidNotReceiveWithAnyArgs().RunAsync(default(string)!, default);
+        await docker.DidNotReceiveWithAnyArgs().RunAsync(default!, default);
     }
 
     private static async Task<(

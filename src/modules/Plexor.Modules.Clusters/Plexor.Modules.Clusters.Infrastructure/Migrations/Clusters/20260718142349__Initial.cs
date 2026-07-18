@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -16,8 +15,7 @@ namespace Plexor.Modules.Clusters.Infrastructure.Migrations.Clusters
 
             migrationBuilder.CreateTable(
                 name: "clusters",
-                schema: "forge",
-                columns: table => new
+                columns: static table => new
                 {
                     id = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false),
                     name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
@@ -34,15 +32,12 @@ namespace Plexor.Modules.Clusters.Infrastructure.Migrations.Clusters
                     updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     uptime = table.Column<long>(type: "bigint", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_clusters", x => x.id);
-                });
+                schema: "forge",
+                constraints: static table => table.PrimaryKey("PK_clusters", static x => x.id));
 
             migrationBuilder.CreateTable(
                 name: "commands",
-                schema: "forge",
-                columns: table => new
+                columns: static table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     node_id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
@@ -54,15 +49,12 @@ namespace Plexor.Modules.Clusters.Infrastructure.Migrations.Clusters
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     completed_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_commands", x => x.id);
-                });
+                schema: "forge",
+                constraints: static table => table.PrimaryKey("PK_commands", static x => x.id));
 
             migrationBuilder.CreateTable(
                 name: "workloads",
-                schema: "forge",
-                columns: table => new
+                columns: static table => new
                 {
                     id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     cluster_id = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
@@ -77,15 +69,12 @@ namespace Plexor.Modules.Clusters.Infrastructure.Migrations.Clusters
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_workloads", x => x.id);
-                });
+                schema: "forge",
+                constraints: static table => table.PrimaryKey("PK_workloads", static x => x.id));
 
             migrationBuilder.CreateTable(
                 name: "join_tokens",
-                schema: "forge",
-                columns: table => new
+                columns: static table => new
                 {
                     id = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false),
                     cluster_id = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false),
@@ -100,22 +89,22 @@ namespace Plexor.Modules.Clusters.Infrastructure.Migrations.Clusters
                     expires_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     redeemed_by_node_id = table.Column<string>(type: "varchar(64)", nullable: true)
                 },
-                constraints: table =>
+                schema: "forge",
+                constraints: static table =>
                 {
-                    table.PrimaryKey("PK_join_tokens", x => x.id);
+                    table.PrimaryKey("PK_join_tokens", static x => x.id);
                     table.ForeignKey(
                         name: "FK_join_tokens_clusters_cluster_id",
-                        column: x => x.cluster_id,
-                        principalSchema: "forge",
+                        column: static x => x.cluster_id,
                         principalTable: "clusters",
                         principalColumn: "id",
+                        principalSchema: "forge",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "nodes",
-                schema: "forge",
-                columns: table => new
+                columns: static table => new
                 {
                     id = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false),
                     cluster_id = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false),
@@ -131,81 +120,82 @@ namespace Plexor.Modules.Clusters.Infrastructure.Migrations.Clusters
                     wireguard_public_key = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     vm_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
                 },
-                constraints: table =>
+                schema: "forge",
+                constraints: static table =>
                 {
-                    table.PrimaryKey("PK_nodes", x => x.id);
+                    table.PrimaryKey("PK_nodes", static x => x.id);
                     table.ForeignKey(
                         name: "FK_nodes_clusters_cluster_id",
-                        column: x => x.cluster_id,
-                        principalSchema: "forge",
+                        column: static x => x.cluster_id,
                         principalTable: "clusters",
                         principalColumn: "id",
+                        principalSchema: "forge",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "ix_clusters_org_id_name",
-                schema: "forge",
                 table: "clusters",
-                columns: new[] { "org_id", "name" },
+                columns: ["org_id", "name"],
+                schema: "forge",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_clusters_org_id_status",
-                schema: "forge",
                 table: "clusters",
-                columns: new[] { "org_id", "status" });
+                columns: ["org_id", "status"],
+                schema: "forge");
 
             migrationBuilder.CreateIndex(
                 name: "ix_commands_node_id_status_created_at",
-                schema: "forge",
                 table: "commands",
-                column: "node_id");
+                column: "node_id",
+                schema: "forge");
 
             migrationBuilder.CreateIndex(
                 name: "uk_commands_command_id",
-                schema: "forge",
                 table: "commands",
                 column: "command_id",
+                schema: "forge",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_join_tokens_cluster_id_status",
-                schema: "forge",
                 table: "join_tokens",
-                columns: new[] { "cluster_id", "status" });
+                columns: ["cluster_id", "status"],
+                schema: "forge");
 
             migrationBuilder.CreateIndex(
                 name: "ix_join_tokens_expires_at",
-                schema: "forge",
                 table: "join_tokens",
-                column: "expires_at");
+                column: "expires_at",
+                schema: "forge");
 
             migrationBuilder.CreateIndex(
                 name: "ix_nodes_cluster_id_hostname",
-                schema: "forge",
                 table: "nodes",
-                columns: new[] { "cluster_id", "hostname" },
+                columns: ["cluster_id", "hostname"],
+                schema: "forge",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_nodes_cluster_id_status",
-                schema: "forge",
                 table: "nodes",
-                columns: new[] { "cluster_id", "status" });
+                columns: ["cluster_id", "status"],
+                schema: "forge");
 
             migrationBuilder.CreateIndex(
                 name: "ix_workloads_cluster_id_name",
-                schema: "forge",
                 table: "workloads",
-                columns: new[] { "cluster_id", "name" },
+                columns: ["cluster_id", "name"],
+                schema: "forge",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_workloads_cluster_id_state_name",
-                schema: "forge",
                 table: "workloads",
-                columns: new[] { "cluster_id", "state", "name" });
+                columns: ["cluster_id", "state", "name"],
+                schema: "forge");
         }
 
         /// <inheritdoc />

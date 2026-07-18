@@ -24,12 +24,14 @@ using Plexor.Shared.Identifiers;
 
 namespace Plexor.Modules.Clusters.Api.Controllers;
 
-// Route names — referenced by [HttpGet/Post/Patch/Delete(..., Name = ...)]
-// and CreatedAtAction(...). CreatedAtAction looks up the action by
-// its routing name (the value of Name =), NOT by the C# method name;
-// nameof(GetAsync) would fail with 'Cannot resolve action'. The
-// file-scope static class keeps the string in one place per file so
-// refactors are safe and the compiler verifies both call sites match.
+/// <summary>
+/// Route names — referenced by [HttpGet/Post/Patch/Delete(..., Name = ...)]
+/// and CreatedAtAction(...). CreatedAtAction looks up the action by
+/// its routing name (the value of Name =), NOT by the C# method name;
+/// nameof(GetAsync) would fail with 'Cannot resolve action'. The
+/// file-scope static class keeps the string in one place per file so
+/// refactors are safe and the compiler verifies both call sites match.
+/// </summary>
 file static class WorkloadRouteNames
 {
     /// <summary>POST /clusters/{clusterId}/workloads — provision a workload.</summary>

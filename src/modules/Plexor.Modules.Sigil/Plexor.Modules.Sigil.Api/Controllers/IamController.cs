@@ -15,12 +15,14 @@ using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Modules.Sigil.Api.Controllers;
 
-// Route names — referenced by [HttpGet/Post/Patch/Delete(..., Name = ...)]
-// and CreatedAtAction(...). CreatedAtAction looks up the action by its
-// routing name (the value of `Name =`), NOT by the C# method name;
-// `nameof(GetAsync)` fails at runtime with 'Cannot resolve action'. The
-// file-scope static class keeps the string in one place per file so
-// refactors are safe and the compiler verifies both call sites match.
+/// <summary>
+/// Route names — referenced by [HttpGet/Post/Patch/Delete(..., Name = ...)]
+/// and CreatedAtAction(...). CreatedAtAction looks up the action by its
+/// routing name (the value of `Name =`), NOT by the C# method name;
+/// `nameof(GetAsync)` fails at runtime with 'Cannot resolve action'. The
+/// file-scope static class keeps the string in one place per file so
+/// refactors are safe and the compiler verifies both call sites match.
+/// </summary>
 file static class IamRouteNames
 {
     /// <summary>POST /iam/users — create a user.</summary>
@@ -52,6 +54,7 @@ file static class IamRouteNames
 /// <param name="createHandler"></param>
 /// <param name="updateHandler"></param>
 /// <param name="disableHandler"></param>
+/// <param name="changePasswordHandler"></param>
 /// <param name="getHandler"></param>
 /// <param name="listHandler"></param>
 [ApiController]
@@ -187,6 +190,9 @@ public sealed class IamController(
     ///     revoked so a stolen password change can't leave sessions
     ///     alive.
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
     [HttpPost("{userId:guid}/password", Name = IamRouteNames.UsersChangePassword)]
     [EndpointSummary("Change a user's password (current → new) and revoke active sessions")]
     [RequirePermission("iam.users.change-own-password")]

@@ -70,6 +70,10 @@ public sealed class TokenIssuer(
     /// <see cref="IssueWithOverrideAsync" /> (which passes caller-
     /// supplied permissions during the password-change path).
     /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="orgId"></param>
+    /// <param name="roles"></param>
+    /// <param name="permissionsToBake"></param>
     private static ClaimsPrincipal BuildPrincipal(
         Guid userId,
         Guid orgId,

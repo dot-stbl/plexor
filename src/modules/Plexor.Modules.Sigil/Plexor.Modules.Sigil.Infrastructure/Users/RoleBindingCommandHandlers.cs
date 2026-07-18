@@ -95,17 +95,18 @@ public sealed class DeleteRoleBindingCommandHandler(
 
 /// <summary>List role bindings for a user (all scopes).</summary>
 /// <param name="db"></param>
+/// <param name="mapper"></param>
 public sealed class ListRoleBindingsQueryHandler(
     IdentityDbContext db, ISigilMapper mapper) : ICommandHandler<ListRoleBindingsQuery, IReadOnlyCollection<RoleBindingSummary>>
 {
     /// <inheritdoc />
     public Task<IReadOnlyCollection<RoleBindingSummary>> HandleAsync(
-        ListRoleBindingsQuery query,
+        ListRoleBindingsQuery command,
         CancellationToken cancellationToken = default)
     {
         return db.RoleBindings
             .AsNoTracking()
-            .Where(binding => binding.UserId == query.UserId)
+            .Where(binding => binding.UserId == command.UserId)
             .OrderByDescending(binding => binding.CreatedAt)
             .Select(binding => mapper.ToRoleBindingSummary(binding))
             .ToArrayAsync(cancellationToken)

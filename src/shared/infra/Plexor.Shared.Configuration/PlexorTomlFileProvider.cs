@@ -41,6 +41,7 @@ namespace Plexor.Shared.Configuration;
 ///     — operators without a user-level override get the lower
 ///     layers (JSON defaults, then env vars) and that's fine.
 /// </summary>
+/// <param name="filePath"></param>
 public sealed class PlexorTomlFileProvider(string filePath) : ConfigurationProvider
 {
     /// <summary>

@@ -121,6 +121,7 @@ public sealed record NodeSpec(
     IReadOnlyList<string> Providers)
 {
     /// <summary>Total node count across all join-bound clusters.</summary>
+    /// <param name="nodes">Nodes to aggregate.</param>
     public static NodeCounts Aggregate(IReadOnlyList<Node> nodes)
     {
         var c = new NodeCounts();

@@ -18,6 +18,8 @@ namespace Plexor.Shared.Mtls;
 ///     build + a single dictionary lookup on the revoked-cache; the
 ///     rest is composition.
 /// </summary>
+/// <param name="caRoot"></param>
+/// <param name="revokedCache"></param>
 public sealed class PlexorCertificateIssuer(
     PlexorCaRoot caRoot,
     RevokedCertCache revokedCache) : ICertificateAuthority

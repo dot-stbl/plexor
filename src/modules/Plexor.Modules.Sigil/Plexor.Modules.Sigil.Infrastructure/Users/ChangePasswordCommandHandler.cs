@@ -23,6 +23,9 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 ///     resetting another user's password would land on a different
 ///     handler that <em>doesn't</em> require the current password.
 /// </summary>
+/// <param name="db"></param>
+/// <param name="passwordHasher"></param>
+/// <param name="refreshTokens"></param>
 public sealed class ChangePasswordCommandHandler(
     IdentityDbContext db,
     IPasswordHasher passwordHasher,

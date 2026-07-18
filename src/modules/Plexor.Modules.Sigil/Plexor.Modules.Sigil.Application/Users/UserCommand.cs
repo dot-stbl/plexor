@@ -65,7 +65,7 @@ public sealed record ListUsersQuery(
 /// <summary>Public projection of <see cref="Domain.Entities.User" />.
 /// <c>sealed partial class</c> with init-only properties for
 /// Mapperly source-generation compatibility.</summary>
-public sealed partial class UserSummary
+public sealed class UserSummary
 {
     /// <summary>UUID v7 user id.</summary>
     public Guid Id { get; init; }

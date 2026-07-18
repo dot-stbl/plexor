@@ -22,6 +22,7 @@ namespace Plexor.Shared.Persistence;
 /// </summary>
 /// <typeparam name="T">Entity table row.</typeparam>
 /// <typeparam name="TResult">Projection returned to the caller.</typeparam>
+/// <param name="projection"></param>
 /// <remarks>
 ///     Construct from an optional projection expression. Most
 ///     callers use the <see cref="SpecificationFactory.Default{T, TResult}(Expression{Func{T, TResult}})" /> /
@@ -65,6 +66,7 @@ public class Specification<T, TResult>(Expression<Func<T, TResult>>? projection)
     ///     surfaces — same SQL pipeline, projection is a separate
     ///     step applied after composition.
     /// </summary>
+    /// <param name="query"></param>
     private IQueryable<T> ComposeEntityQuery(IQueryable<T> query)
     {
         var q = query;
@@ -95,6 +97,7 @@ public class Specification<T, TResult>(Expression<Func<T, TResult>>? projection)
     ///     Add a Where clause. Returns a new immutable spec wrapping
     ///     this one — fluent chains never mutate state.
     /// </summary>
+    /// <param name="predicate"></param>
     public Specification<T, TResult> WithWhere(Expression<Func<T, bool>> predicate)
     {
         var copy = (Specification<T, TResult>)MemberwiseClone();
@@ -105,6 +108,8 @@ public class Specification<T, TResult>(Expression<Func<T, TResult>>? projection)
     /// <summary>
     ///     Set OrderBy. Replaces any prior OrderBy.
     /// </summary>
+    /// <typeparam name="TKey">Type of the ordering key.</typeparam>
+    /// <param name="keySelector">Key selector expression.</param>
     public Specification<T, TResult> WithOrderBy<TKey>(Expression<Func<T, TKey>> keySelector)
     {
         var copy = (Specification<T, TResult>)MemberwiseClone();
@@ -115,6 +120,8 @@ public class Specification<T, TResult>(Expression<Func<T, TResult>>? projection)
     /// <summary>
     ///     Set OrderByDescending. Replaces any prior OrderBy.
     /// </summary>
+    /// <typeparam name="TKey">Type of the ordering key.</typeparam>
+    /// <param name="keySelector">Key selector expression.</param>
     public Specification<T, TResult> WithOrderByDescending<TKey>(Expression<Func<T, TKey>> keySelector)
     {
         var copy = (Specification<T, TResult>)MemberwiseClone();
@@ -135,6 +142,8 @@ public class Specification<T, TResult>(Expression<Func<T, TResult>>? projection)
     ///     useful for tests + small list endpoints; for URL-driven
     ///     paging prefer <c>Repository&lt;T&gt;.PageAsync(spec, page, pageSize, ...)</c>.
     /// </summary>
+    /// <param name="page"></param>
+    /// <param name="pageSize"></param>
     public Specification<T, TResult> Paginate(int page, int pageSize)
     {
         var copy = (Specification<T, TResult>)MemberwiseClone();

@@ -31,7 +31,7 @@ public sealed class PodmanQuadletWorkloadProviderShould
     private const string QuadletsDirectory = "/etc/containers/systemd";
 
     [Fact(DisplayName = "Given a valid spec, when CreateAsync, then writes .container + daemon-reload + start")]
-    public async Task CreateAsyncWritesQuadletAndShellsSystemctl()
+    public async Task CreateAsyncWritesQuadletAndShellsSystemctlAsync()
     {
         var systemd = Substitute.For<IPodmanCliRunner>();
         systemd.RunSystemctlAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -85,7 +85,7 @@ public sealed class PodmanQuadletWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given a created workload, when StartAsync, then shells systemctl start")]
-    public async Task StartAsyncShellsStart()
+    public async Task StartAsyncShellsStartAsync()
     {
         var (sut, systemd, list) = await CreateProviderWithWorkloadAsync();
 
@@ -101,7 +101,7 @@ public sealed class PodmanQuadletWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given a created workload, when StopAsync, then shells systemctl stop and flips state to Stopped")]
-    public async Task StopAsyncShellsStopAndFlipsState()
+    public async Task StopAsyncShellsStopAndFlipsStateAsync()
     {
         var (sut, systemd, list) = await CreateProviderWithWorkloadAsync();
 
@@ -116,7 +116,7 @@ public sealed class PodmanQuadletWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given a created workload, when DeleteAsync, then stop + rm + daemon-reload")]
-    public async Task DeleteAsyncStopsAndRemovesQuadlet()
+    public async Task DeleteAsyncStopsAndRemovesQuadletAsync()
     {
         var (sut, systemd, list) = await CreateProviderWithWorkloadAsync();
         var quadletPath = $"{QuadletsDirectory}/web.container";
@@ -135,7 +135,7 @@ public sealed class PodmanQuadletWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given an unknown localId, when DeleteAsync, then is a no-op (idempotent contract)")]
-    public async Task DeleteAsyncOnUnknownIdIsNoOp()
+    public async Task DeleteAsyncOnUnknownIdIsNoOpAsync()
     {
         var systemd = Substitute.For<IPodmanCliRunner>();
         var clock = Substitute.For<TimeProvider>();
@@ -149,7 +149,7 @@ public sealed class PodmanQuadletWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given an invalid JSON config, when CreateAsync, then throws InvalidOperationException")]
-    public async Task CreateAsyncThrowsOnInvalidConfig()
+    public async Task CreateAsyncThrowsOnInvalidConfigAsync()
     {
         var systemd = Substitute.For<IPodmanCliRunner>();
         var clock = Substitute.For<TimeProvider>();

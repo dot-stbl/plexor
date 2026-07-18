@@ -72,6 +72,7 @@ public static class PlexorCaBootstrap
     ///     overrides via env var or appsettings.Production.json
     ///     keep working.
     /// </summary>
+    /// <param name="src"></param>
     private static CertAuthorityOptions ResolvePaths(CertAuthorityOptions src)
     {
         if (Path.IsPathRooted(src.CertPath) &&

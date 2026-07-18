@@ -30,7 +30,7 @@ public sealed record PodmanQuadletConfig
     ///     TCP ports to publish, mapped 1:1 (host:container). Empty
     ///     for workloads that don't expose external ports.
     /// </summary>
-    public IReadOnlyList<int> Ports { get; init; } = Array.Empty<int>();
+    public IReadOnlyList<int> Ports { get; init; } = [];
 
     /// <summary>
     ///     Key-value pairs injected as <c>Environment=</c> entries
@@ -164,7 +164,7 @@ public sealed record PodmanQuadletConfig
             var restartValue = restartProp.GetString() ?? string.Empty;
             if (!RuntimeHelpers.IsValidRestartPolicy(restartValue))
             {
-                error = $"config field 'restart' must be one of: " +
+                error = "config field 'restart' must be one of: " +
                         "no, on-success, on-failure, on-abnormal, on-watchdog, on-abort, always.";
                 return null;
             }

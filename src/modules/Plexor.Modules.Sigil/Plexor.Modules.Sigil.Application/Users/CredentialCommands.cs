@@ -47,7 +47,7 @@ public sealed record ListApiKeysQuery(Guid OwnerId);
 /// <summary>Public projection of <see cref="Domain.Entities.ApiKey" />.
 /// <c>sealed partial class</c> with init-only properties for
 /// Mapperly source-generation compatibility.</summary>
-public sealed partial class ApiKeySummary
+public sealed class ApiKeySummary
 {
     /// <summary>Key id.</summary>
     public Guid Id { get; init; }
@@ -105,7 +105,7 @@ public sealed record ListSshKeysQuery(Guid OwnerId);
 /// Public-key fingerprint (SHA-256) is exposed for UI display; the
 /// raw key material is never returned.
 /// <c>sealed partial class</c> with init-only properties.</summary>
-public sealed partial class SshKeySummary
+public sealed class SshKeySummary
 {
     /// <summary>Key id.</summary>
     public Guid Id { get; init; }

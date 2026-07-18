@@ -25,7 +25,6 @@
 // the rendered string to disk and shells `docker compose up -d`.
 // ============================================================================
 
-using System.Collections.Immutable;
 using System.Text;
 
 namespace Plexor.NodeAgent.Providers.Runtime;
@@ -51,6 +50,7 @@ internal static class DockerComposeRenderer
     /// <param name="config">
     ///     Parsed config (image, ports, environment, volumes).
     /// </param>
+    /// <exception cref="ArgumentException"></exception>
     public static string Render(string serviceName, DockerComposeConfig config)
     {
         if (string.IsNullOrWhiteSpace(serviceName))
@@ -67,24 +67,24 @@ internal static class DockerComposeRenderer
         // unreachable here.
 
         var sb = new StringBuilder();
-        sb.Append("services:\n");
-        sb.Append("  ");
-        sb.Append(serviceName);
-        sb.Append(":\n");
-        sb.Append("    image: ");
-        sb.Append(config.Image);
-        sb.Append('\n');
+        sb.Append("services:\n")
+            .Append("  ")
+            .Append(serviceName)
+            .Append(":\n")
+            .Append("    image: ")
+            .Append(config.Image)
+            .Append('\n');
 
         if (config.Ports.Count > 0)
         {
             sb.Append("    ports:\n");
             foreach (var port in config.Ports)
             {
-                sb.Append("      - \"");
-                sb.Append(port);
-                sb.Append(':');
-                sb.Append(port);
-                sb.Append("\"\n");
+                sb.Append("      - \"")
+                    .Append(port)
+                    .Append(':')
+                    .Append(port)
+                    .Append("\"\n");
             }
         }
 
@@ -97,11 +97,11 @@ internal static class DockerComposeRenderer
             // insertion-order but we're sealed as the interface).
             foreach (var kv in config.Environment.OrderBy(static kv => kv.Key, StringComparer.Ordinal))
             {
-                sb.Append("      ");
-                sb.Append(kv.Key);
-                sb.Append(": ");
-                sb.Append(kv.Value);
-                sb.Append('\n');
+                sb.Append("      ")
+                    .Append(kv.Key)
+                    .Append(": ")
+                    .Append(kv.Value)
+                    .Append('\n');
             }
         }
 
@@ -110,9 +110,9 @@ internal static class DockerComposeRenderer
             sb.Append("    volumes:\n");
             foreach (var volume in config.Volumes)
             {
-                sb.Append("      - ");
-                sb.Append(volume);
-                sb.Append('\n');
+                sb.Append("      - ")
+                    .Append(volume)
+                    .Append('\n');
             }
         }
 

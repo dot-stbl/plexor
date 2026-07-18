@@ -17,7 +17,6 @@ using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Identifiers;
-using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
 using Shouldly;
 using Xunit;
@@ -27,7 +26,7 @@ namespace Plexor.Modules.Clusters.Unit.WorkloadActions;
 public sealed class WorkloadActionCommandHandlerShould
 {
     [Fact(DisplayName = "Given known workload with LocalId, when HandleAsync, then enqueues a command and waits for Acked")]
-    public async Task EnqueuesCommandAndReturnsAckedState()
+    public async Task EnqueuesCommandAndReturnsAckedStateAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var (cluster, node) = await SeedClusterAndNodeAsync(db);
@@ -86,7 +85,7 @@ public sealed class WorkloadActionCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given unknown workload id, when HandleAsync, then throws WorkloadNotFound")]
-    public async Task UnknownWorkloadThrows()
+    public async Task UnknownWorkloadThrowsAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var (cluster, _) = await SeedClusterAndNodeAsync(db);
@@ -99,7 +98,7 @@ public sealed class WorkloadActionCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given workload with no LocalId yet, when HandleAsync, then throws WorkloadNotFound")]
-    public async Task NoLocalIdThrows()
+    public async Task NoLocalIdThrowsAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var (cluster, node) = await SeedClusterAndNodeAsync(db);
@@ -130,7 +129,7 @@ public sealed class WorkloadActionCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given a workload assigned to no node, when HandleAsync, then throws WorkloadNotFound")]
-    public async Task UnassignedWorkloadThrows()
+    public async Task UnassignedWorkloadThrowsAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var (cluster, _) = await SeedClusterAndNodeAsync(db);

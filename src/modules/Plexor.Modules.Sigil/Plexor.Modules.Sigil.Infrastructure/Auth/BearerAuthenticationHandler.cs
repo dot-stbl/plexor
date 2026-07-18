@@ -28,6 +28,11 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 /// <see cref="AuthenticateResult" /> that the framework
 /// <c>AuthenticationMiddleware</c> maps to <c>HttpContext.User</c>.
 /// </summary>
+/// <param name="options"></param>
+/// <param name="loggerFactory"></param>
+/// <param name="urlEncoder"></param>
+/// <param name="jwt"></param>
+/// <param name="apiKeys"></param>
 /// <remarks>
 ///     <para><b>Token shapes.</b>
 ///     <list type="bullet">
@@ -93,6 +98,8 @@ public sealed class BearerAuthenticationHandler(
     }
 
     /// <summary>JWT branch — delegates to <see cref="IJwtSigningService" />.</summary>
+    /// <param name="compactJwt"></param>
+    /// <param name="cancellationToken"></param>
     private async Task<AuthenticateResult> VerifyJwtAsync(
         string compactJwt,
         CancellationToken cancellationToken)
@@ -117,6 +124,8 @@ public sealed class BearerAuthenticationHandler(
     ///     unknown shapes (typos, wrong separators) fall through to
     ///     a generic invalid-token failure.
     /// </summary>
+    /// <param name="rawToken"></param>
+    /// <param name="cancellationToken"></param>
     private async Task<AuthenticateResult> VerifyApiKeyAsync(
         string rawToken,
         CancellationToken cancellationToken)
@@ -149,6 +158,9 @@ public sealed class BearerAuthenticationHandler(
     ///     after the dot. Returns <c>false</c> for anything that
     ///     doesn't match.
     /// </summary>
+    /// <param name="rawToken"></param>
+    /// <param name="keyId"></param>
+    /// <param name="secret"></param>
     private static bool TryParseApiKeyToken(
         string rawToken,
         out Guid keyId,
@@ -232,6 +244,8 @@ public sealed class BearerAuthenticationHandler(
     ///     long integer — both are non-fatal: the caller proceeds with
     ///     whatever subset of <c>iat</c> / <c>exp</c> was readable.
     /// </summary>
+    /// <param name="principal"></param>
+    /// <param name="claimType"></param>
     private static long? TryReadUnixSeconds(ClaimsPrincipal principal, string claimType)
     {
         var raw = principal.FindFirstValue(claimType);

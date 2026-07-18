@@ -52,7 +52,7 @@ public sealed record K3sWorkloadConfig
     ///     for workloads that don't expose external ports
     ///     (background jobs, init containers).
     /// </summary>
-    public IReadOnlyList<int> Ports { get; init; } = Array.Empty<int>();
+    public IReadOnlyList<int> Ports { get; init; } = [];
 
     /// <summary>
     ///     Environment variables injected via the Deployment's
@@ -110,8 +110,8 @@ public sealed record K3sWorkloadConfig
             var nsValue = namespaceProp.GetString() ?? string.Empty;
             if (!RuntimeHelpers.IsValidK8sName(nsValue))
             {
-                error = $"config field 'namespace' must be a valid Kubernetes " +
-                        $"name (lowercase alphanumeric or '-', max 63 chars); " +
+                error = "config field 'namespace' must be a valid Kubernetes " +
+                        "name (lowercase alphanumeric or '-', max 63 chars); " +
                         $"got '{nsValue}'.";
                 return null;
             }

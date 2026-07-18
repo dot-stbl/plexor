@@ -88,7 +88,7 @@ public sealed record ListClustersQuery(
 /// (see <c>ClusterMappers.ToSummary</c>). EF Core's
 /// <c>Select(... new X { Prop = ... })</c> translates cleanly via the
 /// object-initializer syntax.</summary>
-public sealed partial class ClusterSummary
+public sealed class ClusterSummary
 {
     /// <summary>Cluster id (cluster_&lt;UUIDv7&gt;).</summary>
     public ClusterId Id { get; init; }
@@ -131,7 +131,7 @@ public sealed partial class ClusterSummary
 
 /// <summary>Single-cluster shape with embedded nodes.
 /// <c>sealed partial class</c> with init-only properties.</summary>
-public sealed partial class ClusterDetail
+public sealed class ClusterDetail
 {
     /// <summary>Cluster id.</summary>
     public ClusterId Id { get; init; }

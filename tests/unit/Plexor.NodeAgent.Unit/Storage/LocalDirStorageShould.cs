@@ -19,7 +19,7 @@ namespace Plexor.NodeAgent.Unit.Storage;
 public sealed class LocalDirStorageShould
 {
     [Fact(DisplayName = "Given a volume with another backend's handle, when DeleteAsync, then throws ArgumentException")]
-    public async Task DeleteRejectsForeignHandle()
+    public async Task DeleteRejectsForeignHandleAsync()
     {
         var sut = NewStorage(out _);
         var foreignHandle = new VolumeHandle(
@@ -31,7 +31,7 @@ public sealed class LocalDirStorageShould
     }
 
     [Fact(DisplayName = "Given a missing volume, when DeleteAsync, then no-op (idempotent)")]
-    public async Task DeleteIsIdempotent()
+    public async Task DeleteIsIdempotentAsync()
     {
         var root = TempDir();
         var sut = NewStorage(root, out _);
@@ -53,7 +53,7 @@ public sealed class LocalDirStorageShould
     /// </summary>
     [Fact(DisplayName = "Given a known imageRef, when CreateAsync, then handle points at {root}/{name}.qcow2",
           Skip = "Requires qemu-img on PATH — covered by integration test suite.")]
-    public async Task CreateReturnsHandlePointingAtQcow2()
+    public async Task CreateReturnsHandlePointingAtQcow2Async()
     {
         var root = TempDir();
         var sut = NewStorage(root, out _);

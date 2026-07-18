@@ -4,7 +4,6 @@
 // resolver. Cross-OS convention: <UserProfile>/.plexor/config.toml.
 // ============================================================================
 
-using Plexor.Shared.Configuration;
 using Shouldly;
 
 namespace Plexor.Shared.Configuration.Unit;

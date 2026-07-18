@@ -69,10 +69,12 @@ public abstract record RevocationCheckResult
 
     /// <summary>User does not exist (deleted) or
     /// <c>status = "suspended"</c>. Bearer must be rejected.</summary>
+    /// <param name="Reason"></param>
     public sealed record UserDisabled(string Reason) : RevocationCheckResult;
 
     /// <summary>User has rotated their password after the token was
     /// issued; the bearer predates the rotation and must be
     /// rejected. RFC 6750 §3 <c>error="invalid_token"</c>.</summary>
+    /// <param name="rotatedAt"></param>
     public sealed record PasswordRotated(DateTimeOffset rotatedAt) : RevocationCheckResult;
 }

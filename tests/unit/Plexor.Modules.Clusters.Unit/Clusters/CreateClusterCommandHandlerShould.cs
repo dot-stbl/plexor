@@ -13,7 +13,7 @@ namespace Plexor.Modules.Clusters.Unit.Clusters;
 public sealed class CreateClusterCommandHandlerShould
 {
     [Fact(DisplayName = "Given unique name, when CreateCluster, then returns join token + persists cluster")]
-    public async Task CreateClusterPersistsClusterAndReturnsToken()
+    public async Task CreateClusterPersistsClusterAndReturnsTokenAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var sut = new CreateClusterCommandHandler(db);
@@ -25,7 +25,7 @@ public sealed class CreateClusterCommandHandlerShould
 
         var result = await sut.HandleAsync(command);
 
-        result.ClusterId.ShouldNotBe(default(ClusterId));
+        result.ClusterId.ShouldNotBe(default);
         result.Token.ShouldNotBeNullOrWhiteSpace();
         result.ExpiresAt.ShouldBeGreaterThan(DateTimeOffset.UtcNow);
 
@@ -41,7 +41,7 @@ public sealed class CreateClusterCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given duplicate name in same org, when CreateCluster, then throws ClusterNameTaken")]
-    public async Task CreateClusterRejectsDuplicateName()
+    public async Task CreateClusterRejectsDuplicateNameAsync()
     {
         var orgId = Guid.NewGuid();
         await using var db = await TestDb.CreateAsync();
@@ -66,7 +66,7 @@ public sealed class CreateClusterCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given empty name, when CreateCluster, then throws ClusterNameTaken")]
-    public async Task CreateClusterRejectsEmptyName()
+    public async Task CreateClusterRejectsEmptyNameAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var sut = new CreateClusterCommandHandler(db);
@@ -82,7 +82,7 @@ public sealed class CreateClusterCommandHandlerShould
     [InlineData("nomad")]
     [InlineData("swarm")]
     [InlineData("docker-compose-v2")]
-    public async Task CreateClusterRejectsInvalidRuntimeId(string? runtimeId)
+    public async Task CreateClusterRejectsInvalidRuntimeIdAsync(string? runtimeId)
     {
         await using var db = await TestDb.CreateAsync();
         var sut = new CreateClusterCommandHandler(db);
@@ -98,10 +98,10 @@ public sealed class CreateClusterCommandHandlerShould
     }
 
     [Theory(DisplayName = "Given a supported runtime id, when CreateCluster, then persists the runtime on the cluster row")]
-    [InlineData(Plexor.Shared.NodeApi.ClusterRuntimeIds.DockerCompose)]
-    [InlineData(Plexor.Shared.NodeApi.ClusterRuntimeIds.PodmanQuadlet)]
-    [InlineData(Plexor.Shared.NodeApi.ClusterRuntimeIds.K3s)]
-    public async Task CreateClusterPersistsSupportedRuntimeId(string runtimeId)
+    [InlineData(Shared.NodeApi.ClusterRuntimeIds.DockerCompose)]
+    [InlineData(Shared.NodeApi.ClusterRuntimeIds.PodmanQuadlet)]
+    [InlineData(Shared.NodeApi.ClusterRuntimeIds.K3s)]
+    public async Task CreateClusterPersistsSupportedRuntimeIdAsync(string runtimeId)
     {
         await using var db = await TestDb.CreateAsync();
         var sut = new CreateClusterCommandHandler(db);
@@ -119,7 +119,7 @@ public sealed class CreateClusterCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given no runtime id in command, when CreateCluster, then defaults to docker-compose")]
-    public async Task CreateClusterDefaultsRuntimeId()
+    public async Task CreateClusterDefaultsRuntimeIdAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var sut = new CreateClusterCommandHandler(db);
@@ -132,7 +132,7 @@ public sealed class CreateClusterCommandHandlerShould
             NodeRole.Control));
 
         var persisted = await db.Clusters.SingleAsync();
-        persisted.RuntimeId.ShouldBe(Plexor.Shared.NodeApi.ClusterRuntimeIds.Default);
-        persisted.RuntimeId.ShouldBe(Plexor.Shared.NodeApi.ClusterRuntimeIds.DockerCompose);
+        persisted.RuntimeId.ShouldBe(Shared.NodeApi.ClusterRuntimeIds.Default);
+        persisted.RuntimeId.ShouldBe(Shared.NodeApi.ClusterRuntimeIds.DockerCompose);
     }
 }

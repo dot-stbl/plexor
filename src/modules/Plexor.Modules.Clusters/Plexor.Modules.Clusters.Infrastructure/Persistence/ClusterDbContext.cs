@@ -26,6 +26,7 @@ namespace Plexor.Modules.Clusters.Infrastructure.Persistence;
 ///     the schema constant live in
 ///     <c>Plexor.Shared.Persistence.DatabaseInformation</c>.
 /// </summary>
+/// <param name="options"></param>
 public sealed class ClusterDbContext(DbContextOptions<ClusterDbContext> options) : PlexorDbContext(options)
 {
     /// <summary>Clusters (forge.clusters) — Plexor.Host + joined nodes, one row per fleet.</summary>
@@ -68,8 +69,8 @@ internal sealed class ClusterConfiguration : IEntityTypeConfiguration<Cluster>
         // Navigation properties loaded via separate queries (GetClusterQueryHandler).
         // Not mapped — the init-only IReadOnlyList<Node> default breaks EF's
         // collection change tracker on InMemory.
-        builder.Ignore(static cluster => cluster.Nodes);
-        builder.Ignore(static cluster => cluster.Tokens);
+        builder.Ignore(static cluster => cluster.Nodes)
+            .Ignore(static cluster => cluster.Tokens);
 
         builder.Property(static cluster => cluster.Id)
             .HasColumnName("id")
@@ -122,7 +123,7 @@ internal sealed class ClusterConfiguration : IEntityTypeConfiguration<Cluster>
                 static (a, b) => (a == null && b == null) ||
                     (a != null && b != null && a.SequenceEqual(b)),
                 static v => v.Aggregate(0, static (acc, s) => HashCode.Combine(acc, s.GetHashCode(StringComparison.Ordinal))),
-                static v => (IReadOnlyList<string>)new List<string>(v)));
+                static v => new List<string>(v)));
 
         builder.Property(static cluster => cluster.HostVersion)
             .HasColumnName("host_version")

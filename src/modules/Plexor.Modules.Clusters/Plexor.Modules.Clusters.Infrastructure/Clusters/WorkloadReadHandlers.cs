@@ -11,7 +11,6 @@ using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
-using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;
 using Plexor.Shared.Contracts.Pagination;
 using Plexor.Shared.Filtering.Registry;
@@ -37,13 +36,13 @@ public sealed class ListWorkloadsQueryHandler(
 {
     /// <inheritdoc />
     public async Task<PageResult<WorkloadSummary>> HandleAsync(
-        ListWorkloadsQuery query,
+        ListWorkloadsQuery command,
         CancellationToken cancellationToken = default)
     {
         return await workloadRepo.PageAsync(
-            new WorkloadsByClusterSpec(query.ClusterId),
+            new WorkloadsByClusterSpec(command.ClusterId),
             w => mapper.ToSummary(w),
-            query.Query,
+            command.Query,
             fields,
             cancellationToken);
     }
@@ -59,15 +58,15 @@ public sealed class GetWorkloadQueryHandler(
 {
     /// <inheritdoc />
     public async Task<WorkloadSummary> HandleAsync(
-        GetWorkloadQuery query,
+        GetWorkloadQuery command,
         CancellationToken cancellationToken = default)
     {
         var workload = await workloadRepo.FirstOrDefaultAsync(
-            new WorkloadByIdSpec(query.ClusterId, query.WorkloadId),
+            new WorkloadByIdSpec(command.ClusterId, command.WorkloadId),
             cancellationToken)
             ?? throw new ClustersException(
                 ClustersExceptions.WorkloadNotFound,
-                $"Workload '{query.WorkloadId}' not found in cluster '{query.ClusterId}'.");
+                $"Workload '{command.WorkloadId}' not found in cluster '{command.ClusterId}'.");
 
         return mapper.ToSummary(workload);
     }

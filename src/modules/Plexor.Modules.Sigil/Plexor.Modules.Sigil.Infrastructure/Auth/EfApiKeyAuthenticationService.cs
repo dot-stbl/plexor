@@ -23,6 +23,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     expiry, revoked_at). Constant-time hash comparison via
 ///     <c>FixedTimeEquals</c> prevents timing leaks on the secret.
 /// </summary>
+/// <param name="db"></param>
 public sealed class EfApiKeyAuthenticationService(
     IdentityDbContext db) : IApiKeyAuthenticationService
 {
@@ -66,7 +67,7 @@ public sealed class EfApiKeyAuthenticationService(
         // match the format written by the issue handler
         // (CredentialCommandHandlers.IssueApiKey).
         byte[] presentedHash;
-        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(rawSecret), writable: false))
+        await using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(rawSecret), writable: false))
         {
             presentedHash = await SHA256.HashDataAsync(stream, cancellationToken);
         }
@@ -90,6 +91,7 @@ public sealed class EfApiKeyAuthenticationService(
     /// <c>is_service</c> flag tells downstream endpoints this is a
     /// machine caller (not a human user).
     /// </summary>
+    /// <param name="key"></param>
     private static ClaimsPrincipal BuildPrincipal(ApiKeySnapshot key)
     {
         var claims = new List<Claim>
@@ -110,6 +112,13 @@ public sealed class EfApiKeyAuthenticationService(
 
     /// <summary>Internal projection — keeps the EF query to the
     /// columns the handler actually needs.</summary>
+    /// <param name="Id"></param>
+    /// <param name="OrgId"></param>
+    /// <param name="UserId"></param>
+    /// <param name="SecretHash"></param>
+    /// <param name="Permissions"></param>
+    /// <param name="ExpiresAt"></param>
+    /// <param name="RevokedAt"></param>
     private sealed record ApiKeySnapshot(
         Guid Id,
         Guid OrgId,

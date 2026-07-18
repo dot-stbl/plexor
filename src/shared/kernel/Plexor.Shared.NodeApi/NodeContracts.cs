@@ -248,10 +248,12 @@ public sealed record JoinRequest(
     NodeHardware Hardware);
 
 /// <summary>
+/// <para>
 ///     Result of a successful <see cref="JoinRequest" />. The
 ///     NodeAgent persists these and uses them for every
 ///     subsequent call.
-///
+/// </para>
+/// <para>
 ///     The mTLS triple (<see cref="NodeCertificatePem" /> /
 ///     <see cref="NodePrivateKeyPem" /> / <see cref="CaCertificatePem" />)
 ///     is issued by the host on every successful join — the
@@ -259,6 +261,7 @@ public sealed record JoinRequest(
 ///     the client cert on every subsequent HTTPS call. The CA
 ///     certificate is included so the NodeAgent can verify the
 ///     host's server cert (mutual trust at the TLS layer).
+/// </para>
 /// </summary>
 /// <param name="NodeId">Plexor node id (node_&lt;UUIDv7&gt;).</param>
 /// <param name="ControlPlaneUrl">Post-join rendezvous point.</param>
@@ -393,6 +396,9 @@ public sealed record CommandEnvelope(
 ///     detail; the control plane may log it and surface it in the UI.
 /// </summary>
 /// <param name="CommandId"></param>
+/// <param name="NodeId"></param>
+/// <param name="Status"></param>
+/// <param name="ErrorMessage"></param>
 /// <param name="LocalId">
 ///     Provider-assigned runtime id (libvirt domain UUID, container
 ///     id, etc.). Populated by the agent for <c>workload.create</c>
@@ -401,9 +407,6 @@ public sealed record CommandEnvelope(
 ///     don't return a runtime handle (start / stop / delete
 ///     ack, heartbeat).
 /// </param>
-/// <param name="NodeId"></param>
-/// <param name="Status"></param>
-/// <param name="ErrorMessage"></param>
 /// <param name="CompletedAt"></param>
 public sealed record CommandResult(
     Guid CommandId,

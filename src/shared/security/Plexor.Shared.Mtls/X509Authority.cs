@@ -34,14 +34,12 @@ namespace Plexor.Shared.Mtls;
 /// </summary>
 public sealed class X509Authority
 {
-    // OIDs we set on every cert. Numeric form is unambiguous
-    // across .NET versions; the static readonly fields on
-    // OidCollection are stable but the string overload is what
-    // X509Certificate2's extension builder expects.
-    private const string BasicConstraintsOid = "2.5.29.19";
-    private const string KeyUsageOid = "2.5.29.15";
-    private const string ExtendedKeyUsageOid = "2.5.29.37";
-
+    /// <summary>
+    /// OIDs we set on every cert. Numeric form is unambiguous
+    /// across .NET versions; the static readonly fields on
+    /// OidCollection are stable but the string overload is what
+    /// X509Certificate2's extension builder expects.
+    /// </summary>
     private const string ClientAuthPurposeOid = "1.3.6.1.5.5.7.3.2";
     private const string ServerAuthPurposeOid = "1.3.6.1.5.5.7.3.1";
 
@@ -50,6 +48,8 @@ public sealed class X509Authority
     ///     the private key attached so Kestrel, X509Chain, and our
     ///     middleware can consume it without re-importing.
     /// </summary>
+    /// <param name="subject"></param>
+    /// <param name="validity"></param>
     public static X509Certificate2 CreateRoot(
         X500DistinguishedName subject,
         TimeSpan validity)
@@ -79,6 +79,12 @@ public sealed class X509Authority
     ///     CA's private key is read off the cert via
     ///     <see cref="GetRsaPrivateKey" />.
     /// </summary>
+    /// <param name="subject"></param>
+    /// <param name="caCert"></param>
+    /// <param name="validity"></param>
+    /// <param name="kind"></param>
+    /// <param name="subjectAltNames"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public static X509Certificate2 IssueLeaf(
         X500DistinguishedName subject,
         X509Certificate2 caCert,
@@ -132,12 +138,13 @@ public sealed class X509Authority
     public enum LeafKind
     {
         /// <summary>Client cert — authenticates the holder to a TLS server (mTLS NodeAgent).</summary>
-        Client,
+        Client = 0,
         /// <summary>Server cert — authenticates the holder as a TLS server (Kestrel host).</summary>
-        Server,
+        Server = 1,
     }
 
     /// <summary>PEM-encode a cert's public half (BEGIN CERTIFICATE).</summary>
+    /// <param name="cert"></param>
     public static string ToPem(X509Certificate2 cert)
     {
         return PemEncoding.WriteString(
@@ -151,6 +158,9 @@ public sealed class X509Authority
     ///     (<c>UseHttps(pfxPath, password)</c>). The PFX contains
     ///     exactly one cert (the leaf) and its matching key.
     /// </summary>
+    /// <param name="cert"></param>
+    /// <param name="password"></param>
+    /// <exception cref="ArgumentException"></exception>
     public static byte[] SaveAsPfx(X509Certificate2 cert, string password)
     {
         if (string.IsNullOrEmpty(password))
@@ -168,6 +178,8 @@ public sealed class X509Authority
     ///     KEY). Used by the NodeAgent join response so the node can
     ///     write it to /var/lib/plexor/node.key.
     /// </summary>
+    /// <param name="cert"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public static string PrivateKeyToPem(X509Certificate2 cert)
     {
         var rsa = cert.GetRSAPrivateKey()
@@ -182,6 +194,8 @@ public sealed class X509Authority
     ///     Rehydrate a CA cert from two PEM files on disk. Used at
     ///     host startup to load the persisted root.
     /// </summary>
+    /// <param name="certPath"></param>
+    /// <param name="keyPath"></param>
     public static X509Certificate2 LoadFromPemFiles(string certPath, string keyPath)
     {
         var cert = X509CertificateLoader.LoadCertificate(
@@ -288,6 +302,7 @@ public sealed class X509Authority
     ///     Returns null if the cert was loaded without its private
     ///     key (e.g. read from disk without the matching key file).
     /// </summary>
+    /// <param name="cert"></param>
     private static RSA? GetRsaPrivateKey(X509Certificate2 cert)
     {
         return cert.GetRSAPrivateKey();
@@ -298,6 +313,9 @@ public sealed class X509Authority
     ///     single O, single C). Used by the file-system authority
     ///     to mint the CA subject without string concatenation.
     /// </summary>
+    /// <param name="cn"></param>
+    /// <param name="organization"></param>
+    /// <param name="country"></param>
     public static X500DistinguishedName BuildDn(
         string cn,
         string organization = "Plexor",
@@ -315,6 +333,7 @@ public sealed class X509Authority
     ///     (<c>node_&lt;26-char-prefixed-ulid&gt;</c>); callers parse it
     ///     via <c>IdParse.ParseNodeId</c>.
     /// </summary>
+    /// <param name="subject"></param>
     public static string ExtractCommonName(string subject)
     {
         foreach (var part in subject.Split(','))

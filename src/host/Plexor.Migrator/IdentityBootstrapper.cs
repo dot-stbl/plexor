@@ -25,6 +25,11 @@ namespace Plexor.Migrator;
 /// it stays a no-op so subsequent starts don't accidentally rotate
 /// the seeded credentials.
 /// </summary>
+/// <param name="db"></param>
+/// <param name="passwordHasher"></param>
+/// <param name="configuration"></param>
+/// <param name="lifetime"></param>
+/// <param name="logger"></param>
 /// <remarks>
 ///     <para><b>What gets seeded.</b>
 ///     <list type="bullet">
@@ -163,7 +168,7 @@ internal sealed class IdentityBootstrapper(
                 FailedLoginCount = 0,
                 LockedUntil = null,
                 LastLoginAt = null,
-                PasswordChangedAt = (DateTimeOffset?)null,
+                PasswordChangedAt = null,
                 CreatedAt = now,
                 UpdatedAt = now,
             };

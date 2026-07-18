@@ -47,24 +47,28 @@ public static class IdParse
     ///     Throws <see cref="FormatException" /> on malformed input
     ///     (missing prefix, wrong body length, non-hex chars).
     /// </summary>
+    /// <param name="raw"></param>
     public static ClusterId ParseClusterId(string raw)
     {
         return new ClusterId(ParseUuidAfterPrefix(raw, ClusterId.Prefix));
     }
 
     /// <summary>Parse a wire-format ID into a <see cref="NodeId" />.</summary>
+    /// <param name="raw"></param>
     public static NodeId ParseNodeId(string raw)
     {
         return new NodeId(ParseUuidAfterPrefix(raw, NodeId.Prefix));
     }
 
     /// <summary>Parse a wire-format ID into a <see cref="TokenId" />.</summary>
+    /// <param name="raw"></param>
     public static TokenId ParseTokenId(string raw)
     {
         return new TokenId(ParseUuidAfterPrefix(raw, TokenId.Prefix));
     }
 
     /// <summary>Parse a wire-format ID into a <see cref="WorkloadId" />.</summary>
+    /// <param name="raw"></param>
     public static WorkloadId ParseWorkloadId(string raw)
     {
         return new WorkloadId(ParseUuidAfterPrefix(raw, WorkloadId.Prefix));
@@ -75,6 +79,9 @@ public static class IdParse
     ///     <paramref name="prefix" />, then convert the trailing
     ///     32 hex chars into a <see cref="Guid" />.
     /// </summary>
+    /// <param name="raw"></param>
+    /// <param name="prefix"></param>
+    /// <exception cref="FormatException"></exception>
     private static Guid ParseUuidAfterPrefix(string raw, string prefix)
     {
         if (!raw.StartsWith(prefix, StringComparison.Ordinal))
@@ -89,7 +96,7 @@ public static class IdParse
         }
 
         return Guid.ParseExact(
-            raw.Substring(prefix.Length),
+            raw[prefix.Length..],
             "N");
     }
 }

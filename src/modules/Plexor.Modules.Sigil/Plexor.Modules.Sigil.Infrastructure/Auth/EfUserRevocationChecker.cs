@@ -16,6 +16,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     AsNoTracking — the read is fire-and-forget. Returns the
 ///     three-state outcome in one DB roundtrip.
 /// </summary>
+/// <param name="db"></param>
 public sealed class EfUserRevocationChecker(IdentityDbContext db) : IUserRevocationChecker
 {
     /// <inheritdoc />
@@ -55,5 +56,7 @@ public sealed class EfUserRevocationChecker(IdentityDbContext db) : IUserRevocat
 
     /// <summary>Internal projection — keeps the EF query to two
     /// columns instead of selecting the whole row.</summary>
+    /// <param name="Status"></param>
+    /// <param name="PasswordChangedAt"></param>
     private sealed record UserRevocationSnapshot(string Status, DateTimeOffset? PasswordChangedAt);
 }

@@ -32,6 +32,7 @@ public sealed class ClustersByOrgSpec : Specification<Cluster, Cluster>
     }
 
     /// <summary>Compose an additional region filter onto this spec.</summary>
+    /// <param name="region"></param>
     public ClustersByOrgSpec WithRegion(string region)
     {
         return (ClustersByOrgSpec)WithWhere(c => c.Region == region);

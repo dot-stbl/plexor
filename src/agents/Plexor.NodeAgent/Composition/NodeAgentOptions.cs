@@ -7,8 +7,6 @@
 // loads that file on every call to prove the agent's identity.
 // ============================================================================
 
-using System.IO;
-
 namespace Plexor.NodeAgent.Composition;
 
 /// <summary>

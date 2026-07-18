@@ -4,7 +4,6 @@
 // ============================================================================
 
 using Microsoft.Extensions.Configuration;
-using Plexor.Shared.Configuration;
 using Shouldly;
 
 namespace Plexor.Shared.Configuration.Unit;
@@ -21,6 +20,7 @@ public sealed class PlexorEnvironmentVariablesProviderTests
     ///     would have to set real process env vars (race-prone
     ///     in parallel xUnit runs).
     /// </summary>
+    /// <param name="entries"></param>
     private sealed class TestableEnvProvider(System.Collections.IDictionary entries) : PlexorEnvironmentVariablesProvider
     {
         protected override System.Collections.IDictionary ReadEnvironmentVariables()
@@ -123,7 +123,7 @@ public sealed class PlexorEnvironmentVariablesProviderTests
 
         var config = BuildWithEnv(memory);
 
-        config.GetChildren().Select(c => c.Key).ShouldNotContain("FOO");
+        config.GetChildren().Select(static c => c.Key).ShouldNotContain("FOO");
     }
 
     /// <summary>

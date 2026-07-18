@@ -8,11 +8,8 @@ using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
-using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
-using Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;
 using Plexor.Shared.Identifiers;
-using Plexor.Shared.Persistence;
 using Plexor.Shared.Workloads;
 using Shouldly;
 using Xunit;
@@ -22,7 +19,7 @@ namespace Plexor.Modules.Clusters.Unit.Workloads;
 public sealed class DeleteWorkloadCommandHandlerShould
 {
     [Fact(DisplayName = "Given existing workload, when DeleteWorkload, then removes from db")]
-    public async Task DeleteWorkloadRemovesRow()
+    public async Task DeleteWorkloadRemovesRowAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
@@ -36,7 +33,7 @@ public sealed class DeleteWorkloadCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given non-existent workload, when DeleteWorkload, then throws WorkloadNotFound")]
-    public async Task DeleteWorkloadRejectsUnknownId()
+    public async Task DeleteWorkloadRejectsUnknownIdAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
@@ -50,7 +47,7 @@ public sealed class DeleteWorkloadCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given workload in different cluster, when DeleteWorkload, then throws WorkloadNotFound")]
-    public async Task DeleteWorkloadRejectsWrongCluster()
+    public async Task DeleteWorkloadRejectsWrongClusterAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster1 = await SeedClusterAsync(db, "cluster-1");

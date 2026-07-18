@@ -72,6 +72,7 @@ internal static class K3sWorkloadRenderer
     ///     a valid RFC 1123 DNS label (caller validated).
     /// </param>
     /// <param name="config">Parsed config.</param>
+    /// <exception cref="ArgumentException"></exception>
     public static K3sManifest Render(string workloadName, K3sWorkloadConfig config)
     {
         if (string.IsNullOrWhiteSpace(workloadName))
@@ -85,11 +86,11 @@ internal static class K3sWorkloadRenderer
         // .agents/rules/coding/code-shape.md §11.
 
         var hasPorts = config.Ports.Count > 0;
-        var labels = ImmutableDictionary.CreateRange(new[]
-        {
+        var labels = ImmutableDictionary.CreateRange(
+        [
             new KeyValuePair<string, string>("app", workloadName),
             new KeyValuePair<string, string>("managed-by", "plexor"),
-        });
+        ]);
 
         var deploymentYaml = K3sWorkloadRendererHelpers.BuildDeployment(
             workloadName, config.Namespace, config.Replicas,

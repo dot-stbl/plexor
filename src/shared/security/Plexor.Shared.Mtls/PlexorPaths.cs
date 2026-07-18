@@ -53,6 +53,7 @@ public static class PlexorPaths
     ///     Absolute paths (typical for production) pass through
     ///     unchanged.
     /// </summary>
+    /// <param name="path"></param>
     public static string ResolveAgainstDevRoot(string path)
     {
         if (Path.IsPathRooted(path))

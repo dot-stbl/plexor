@@ -24,6 +24,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Persistence;
 ///     and signing_keys in the 'sigil' PostgreSQL schema (schema-per-
 ///     module convention per .agents/STATE.md).
 /// </summary>
+/// <param name="options"></param>
 public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : PlexorDbContext(options)
 {
     /// <summary>Users (sigil.users) — operator accounts with email + password.</summary>

@@ -11,7 +11,6 @@
 // ImmutableDictionary normalization production uses.
 // ============================================================================
 
-using System.Collections.Immutable;
 using System.Text.Json;
 using Plexor.NodeAgent.Providers.Runtime;
 using Shouldly;
@@ -24,7 +23,7 @@ public sealed class PodmanQuadletRendererShould
     [Fact(DisplayName = "Given bare image, when Render, then emits minimal quadlet with all 4 sections")]
     public void RenderMinimalSpec()
     {
-        var config = ParseConfig(""" { "image": "nginx:1.25" } """);
+        var config = ParseConfig(/*lang=json,strict*/ """ { "image": "nginx:1.25" } """);
         var output = PodmanQuadletRenderer.Render("web", config);
 
         output.ShouldBe(
@@ -44,7 +43,7 @@ public sealed class PodmanQuadletRendererShould
     [Fact(DisplayName = "Given image + ports, when Render, then emits PublishPort lines")]
     public void RenderSpecWithPorts()
     {
-        var config = ParseConfig("""
+        var config = ParseConfig(/*lang=json,strict*/ """
             { "image": "nginx:1.25", "ports": [80, 443] }
             """);
         var output = PodmanQuadletRenderer.Render("web", config);
@@ -56,7 +55,7 @@ public sealed class PodmanQuadletRendererShould
     [Fact(DisplayName = "Given image + environment, when Render, then emits Environment lines (alphabetized)")]
     public void RenderSpecWithEnvironment()
     {
-        var config = ParseConfig("""
+        var config = ParseConfig(/*lang=json,strict*/ """
             { "image": "nginx:1.25",
               "environment": {
                   "LOG_LEVEL": "info",
@@ -72,7 +71,7 @@ public sealed class PodmanQuadletRendererShould
     [Fact(DisplayName = "Given restart policy, when Render, then emits Restart= in [Service]")]
     public void RenderSpecWithRestart()
     {
-        var config = ParseConfig("""
+        var config = ParseConfig(/*lang=json,strict*/ """
             { "image": "nginx:1.25", "restart": "on-failure" }
             """);
         var output = PodmanQuadletRenderer.Render("web", config);
@@ -83,7 +82,7 @@ public sealed class PodmanQuadletRendererShould
     [Fact(DisplayName = "Given autoStart=false, when Render, then omits [Install] section")]
     public void RenderOmitsInstallWhenAutoStartFalse()
     {
-        var config = ParseConfig("""
+        var config = ParseConfig(/*lang=json,strict*/ """
             { "image": "nginx:1.25", "autoStart": false }
             """);
         var output = PodmanQuadletRenderer.Render("web", config);

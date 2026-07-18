@@ -56,6 +56,10 @@ public abstract class Repository<T> where T : class
     ///     <see cref="ISpecification{T}" /> (entity rows); projection is
     ///     applied at the end of the pipeline, after Skip/Take.
     /// </summary>
+    /// <typeparam name="TResult">Projected result shape.</typeparam>
+    /// <param name="filterSpec">Filter + order spec applied before projection.</param>
+    /// <param name="projection">LINQ projection expression.</param>
+    /// <param name="cancellationToken">Forwarded to the database roundtrip.</param>
     public virtual async Task<IReadOnlyList<TResult>> ListAsync<TResult>(
         ISpecification<T> filterSpec,
         Expression<Func<T, TResult>> projection,
@@ -72,6 +76,8 @@ public abstract class Repository<T> where T : class
     ///     <see cref="ListAsync{TResult}(ISpecification{T}, Expression{Func{T, TResult}}, CancellationToken)" /> for
     ///     manual paged queries; <c>PageAsync</c> combines both atomically.
     /// </summary>
+    /// <param name="specification"></param>
+    /// <param name="cancellationToken"></param>
     public virtual async Task<int> CountAsync(
         ISpecification<T> specification,
         CancellationToken cancellationToken = default)
@@ -85,6 +91,9 @@ public abstract class Repository<T> where T : class
     ///     composite PKs, key is an anonymous object array; for single
     ///     Guid / int, just the value.
     /// </summary>
+    /// <typeparam name="TId">Primary key type (Guid, int, anonymous composite, etc.).</typeparam>
+    /// <param name="id">Primary key value.</param>
+    /// <param name="cancellationToken">Forwarded to the database roundtrip.</param>
     public virtual async Task<T?> GetByIdAsync<TId>(
         TId id,
         CancellationToken cancellationToken = default)
@@ -97,6 +106,8 @@ public abstract class Repository<T> where T : class
     ///     common "fetch by single unique field" pattern, define a
     ///     spec inline via `<c>new Specification&lt;T, T&gt;(projection: null).WithWhere(predicate)</c>`.
     /// </summary>
+    /// <param name="specification"></param>
+    /// <param name="cancellationToken"></param>
     public virtual async Task<T?> FirstOrDefaultAsync(
         ISpecification<T> specification,
         CancellationToken cancellationToken = default)
@@ -122,6 +133,7 @@ public abstract class Repository<T> where T : class
     ///     always work on entity columns (matching
     ///     <see cref="FilterableFieldSet{T}" /> field names).
     /// </summary>
+    /// <typeparam name="TResult">Projected result shape.</typeparam>
     /// <param name="filterSpec">Spec carrying filter/order/tracking on
     /// entity rows.</param>
     /// <param name="projection">Select expression that shapes each row

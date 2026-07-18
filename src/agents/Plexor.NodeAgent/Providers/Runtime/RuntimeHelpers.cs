@@ -26,6 +26,8 @@ internal static class RuntimeHelpers
     ///     <c>{manifestsDirectory}/{workloadName}/compose.yaml</c>.
     ///     Used by Docker Compose (single file per workload).
     /// </summary>
+    /// <param name="manifestsDirectory"></param>
+    /// <param name="workloadName"></param>
     public static string ComposeManifestPath(string manifestsDirectory, string workloadName)
     {
         return $"{manifestsDirectory}/{workloadName}/compose.yaml";
@@ -37,6 +39,8 @@ internal static class RuntimeHelpers
     ///     writes <c>kustomization.yaml</c>, <c>deployment.yaml</c>,
     ///     and (optionally) <c>service.yaml</c> inside. Used by k3s.
     /// </summary>
+    /// <param name="manifestsDirectory"></param>
+    /// <param name="workloadName"></param>
     public static string KustomizeManifestDirectory(string manifestsDirectory, string workloadName)
     {
         return $"{manifestsDirectory}/{workloadName}";
@@ -48,6 +52,8 @@ internal static class RuntimeHelpers
     ///     systemd resolves the corresponding <c>.service</c>
     ///     unit on <c>daemon-reload</c>. Used by Podman Quadlet.
     /// </summary>
+    /// <param name="quadletsDirectory"></param>
+    /// <param name="serviceName"></param>
     public static string QuadletPath(string quadletsDirectory, string serviceName)
     {
         return $"{quadletsDirectory}/{serviceName}.container";
@@ -58,6 +64,7 @@ internal static class RuntimeHelpers
     ///     Used by Podman Quadlet when invoking
     ///     <c>systemctl &lt;verb&gt; &lt;name&gt;.service</c>.
     /// </summary>
+    /// <param name="serviceName"></param>
     public static string SystemdUnitName(string serviceName)
     {
         return $"{serviceName}.service";
@@ -68,6 +75,7 @@ internal static class RuntimeHelpers
     ///     flag needed since we're a single-host single-tenant
     ///     deployment).
     /// </summary>
+    /// <param name="directory"></param>
     public static void EnsureDirectoryExists(string directory)
     {
         if (!Directory.Exists(directory))
@@ -83,6 +91,7 @@ internal static class RuntimeHelpers
     ///     <see cref="K3sWorkloadConfig.TryParse" /> on the
     ///     namespace field.
     /// </summary>
+    /// <param name="value"></param>
     public static bool IsValidK8sName(string value)
     {
         if (string.IsNullOrEmpty(value) || value.Length > 63)
@@ -112,6 +121,7 @@ internal static class RuntimeHelpers
     ///     quadlet contract and <see cref="PodmanQuadletConfig.TryParse" />
     ///     surfaces it as a config error at parse time.
     /// </summary>
+    /// <param name="value"></param>
     public static bool IsValidRestartPolicy(string value)
     {
         return value is "no" or "on-success" or "on-failure" or "on-abnormal"

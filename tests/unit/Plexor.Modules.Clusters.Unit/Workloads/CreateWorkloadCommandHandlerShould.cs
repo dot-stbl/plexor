@@ -23,16 +23,16 @@ namespace Plexor.Modules.Clusters.Unit.Workloads;
 public sealed class CreateWorkloadCommandHandlerShould
 {
     [Fact(DisplayName = "Given unique name, when CreateWorkload, then persists workload + returns summary")]
-    public async Task CreateWorkloadPersistsAndReturnsSummary()
+    public async Task CreateWorkloadPersistsAndReturnsSummaryAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
         var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper());
 
         var result = await sut.HandleAsync(
-            new CreateWorkloadCommand(cluster.Id, "web-1", "vm", """{"image":"nginx:latest"}"""));
+            new CreateWorkloadCommand(cluster.Id, "web-1", "vm", /*lang=json,strict*/ """{"image":"nginx:latest"}"""));
 
-        result.Id.ShouldNotBe(default(WorkloadId));
+        result.Id.ShouldNotBe(default);
         result.Name.ShouldBe("web-1");
         result.Kind.ShouldBe("vm");
         result.ClusterId.ShouldBe(cluster.Id);
@@ -42,12 +42,12 @@ public sealed class CreateWorkloadCommandHandlerShould
 
         var persisted = await db.Workloads.FindAsync(result.Id);
         persisted.ShouldNotBeNull();
-        persisted!.SpecJson.ShouldBe("""{"image":"nginx:latest"}""");
+        persisted!.SpecJson.ShouldBe(/*lang=json,strict*/ """{"image":"nginx:latest"}""");
         persisted.LastReportedAt.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Given empty name, when CreateWorkload, then throws InvalidWorkloadSpec")]
-    public async Task CreateWorkloadRejectsEmptyName()
+    public async Task CreateWorkloadRejectsEmptyNameAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
@@ -60,7 +60,7 @@ public sealed class CreateWorkloadCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given empty kind, when CreateWorkload, then throws InvalidWorkloadSpec")]
-    public async Task CreateWorkloadRejectsEmptyKind()
+    public async Task CreateWorkloadRejectsEmptyKindAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
@@ -73,7 +73,7 @@ public sealed class CreateWorkloadCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given duplicate name in same cluster, when CreateWorkload, then throws InvalidWorkloadSpec")]
-    public async Task CreateWorkloadRejectsDuplicateName()
+    public async Task CreateWorkloadRejectsDuplicateNameAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);

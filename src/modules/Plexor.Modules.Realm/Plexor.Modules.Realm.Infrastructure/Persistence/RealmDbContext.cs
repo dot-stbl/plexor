@@ -19,6 +19,7 @@ namespace Plexor.Modules.Realm.Infrastructure.Persistence;
 ///     (architecture theme — see AGENTS.md for the schema-vs-concept
 ///     naming map). Every other module FKs into realm.organizations.id.
 /// </summary>
+/// <param name="options"></param>
 public sealed class RealmDbContext(DbContextOptions<RealmDbContext> options) : PlexorDbContext(options)
 {
     /// <summary>Organizations (realm.organizations) — top-level tenant scope.</summary>

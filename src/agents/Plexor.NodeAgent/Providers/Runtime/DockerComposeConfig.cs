@@ -15,16 +15,19 @@ using System.Text.Json;
 namespace Plexor.NodeAgent.Providers.Runtime;
 
 /// <summary>
+/// <para>
 ///     Strongly-typed shape of a Docker Compose workload spec.
 ///     <see cref="TryParse" /> lifts the opaque
 ///     <c>WorkloadSpec.Config</c> JSON into this record; the
 ///     renderer turns it back into a YAML manifest.
-///
+/// </para>
+/// <para>
 ///     Image, ports, environment, and volumes map 1:1 to the
 ///     standard docker-compose <c>services.&lt;name&gt;</c> keys —
 ///     no transforms, no app-provider-specific conventions.
 ///     App providers (Postgres, Redis, ...) compose the right
 ///     values when they write the workload spec.
+/// </para>
 /// </summary>
 public sealed record DockerComposeConfig
 {
@@ -39,7 +42,7 @@ public sealed record DockerComposeConfig
     ///     for workloads that don't expose external ports (sidecars,
     ///     internal services).
     /// </summary>
-    public IReadOnlyList<int> Ports { get; init; } = Array.Empty<int>();
+    public IReadOnlyList<int> Ports { get; init; } = [];
 
     /// <summary>
     ///     Key-value pairs injected as
@@ -55,7 +58,7 @@ public sealed record DockerComposeConfig
     ///     in Phase 7+ (Plexor is Linux-only at v0.1, no Windows
     ///     path semantics).
     /// </summary>
-    public IReadOnlyList<string> Volumes { get; init; } = Array.Empty<string>();
+    public IReadOnlyList<string> Volumes { get; init; } = [];
 
     /// <summary>
     ///     Parse the workload spec's opaque config JSON into a

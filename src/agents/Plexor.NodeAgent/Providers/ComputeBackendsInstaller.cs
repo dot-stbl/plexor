@@ -15,8 +15,6 @@
 // which is preferable to silently picking a default.
 // ==========================================================================
 
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Plexor.NodeAgent.Providers.Image;
 using Plexor.NodeAgent.Providers.Network;
 using Plexor.NodeAgent.Providers.Storage;
@@ -36,6 +34,8 @@ public static class ComputeBackendsInstaller
     ///     directory (<c>NodeAgent:Storage:LocalDir:Root</c>).
     ///     Default root when unset: <c>/var/lib/plexor/volumes</c>.
     /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
     public static IServiceCollection AddLocalDirStorage(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -57,6 +57,8 @@ public static class ComputeBackendsInstaller
     ///     when unset — every ref lookup throws
     ///     <see cref="UnknownImageException" />.
     /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
     public static IServiceCollection AddLocalDirImageRegistry(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -71,6 +73,7 @@ public static class ComputeBackendsInstaller
     ///     backend. v0.1 ships only this; future OVS / OVN
     ///     backends register alongside.
     /// </summary>
+    /// <param name="services"></param>
     public static IServiceCollection AddLinuxBridgeNetwork(this IServiceCollection services)
     {
         services.AddSingleton<INetworkBackend, LinuxBridgeBackend>();
@@ -84,6 +87,8 @@ public static class ComputeBackendsInstaller
     ///     image downloads. Default cache directory when unset:
     ///     <c>/var/lib/plexor/images-cache</c>.
     /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
     /// <remarks>
     ///     The named HttpClient uses a 10-minute total request
     ///     timeout — cloud images are 500MB-2GB so a 30-second
@@ -99,7 +104,7 @@ public static class ComputeBackendsInstaller
     {
         services.Configure<HttpImageRegistryOptions>(configuration.GetSection("NodeAgent:Images:Http"));
 
-        services.AddHttpClient(HttpImageRegistry.HttpClientName, client =>
+        services.AddHttpClient(HttpImageRegistry.HttpClientName, static client =>
         {
             // 10 minutes — Ubuntu cloud image is ~600MB, on a
             // slow mirror a 30-second default would time out.

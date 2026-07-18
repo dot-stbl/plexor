@@ -23,16 +23,12 @@ namespace Plexor.Modules.Sigil.Infrastructure.ValueConverters;
 internal sealed class PermissionScopeListValueConverter
     : ValueConverter<IReadOnlyList<PermissionScope>, string[]>
 {
-    /// <summary>Stable model id for EF migrations — change this when
-    /// the conversion logic changes so EF regenerates the model.</summary>
-    private const string ConverterName = "PermissionScopeListValueConverter_v1";
-
     public PermissionScopeListValueConverter()
         : base(
-            convertToProviderExpression: permissions => permissions
+            convertToProviderExpression: static permissions => permissions
                 .Select(static p => p.Value)
                 .ToArray(),
-            convertFromProviderExpression: raw => raw
+            convertFromProviderExpression: static raw => raw
                 .Select(static value => new PermissionScope(value))
                 .ToArray())
     {
@@ -49,8 +45,8 @@ internal sealed class PermissionScopeValueConverter
 {
     public PermissionScopeValueConverter()
         : base(
-            convertToProviderExpression: p => p.Value,
-            convertFromProviderExpression: v => new PermissionScope(v))
+            convertToProviderExpression: static p => p.Value,
+            convertFromProviderExpression: static v => new PermissionScope(v))
     {
     }
 }

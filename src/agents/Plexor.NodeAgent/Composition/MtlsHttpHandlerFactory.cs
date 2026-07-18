@@ -45,12 +45,13 @@ public static class MtlsHttpHandlerFactory
     ///     before the cert has been enrolled (no file on disk
     ///     yet) — the agent must run the join flow first.
     /// </returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public static SocketsHttpHandler Build(NodeAgentOptions options)
     {
         if (!MtlsCertWriter.AlreadyEnrolled(options))
         {
             throw new InvalidOperationException(
-                $"NodeAgent is not enrolled — cert files missing at " +
+                "NodeAgent is not enrolled — cert files missing at " +
                 $"{options.CertDirectory}. Run the join flow first.");
         }
 
@@ -75,7 +76,7 @@ public static class MtlsHttpHandlerFactory
         {
             SslOptions = new SslClientAuthenticationOptions
             {
-                ClientCertificates = new X509CertificateCollection { cert },
+                ClientCertificates = [cert],
                 RemoteCertificateValidationCallback = (_, certificate, chain, _) =>
                     ValidateHostCertificate(certificate, chain, caCert),
             },
@@ -90,6 +91,9 @@ public static class MtlsHttpHandlerFactory
     ///     the candidate cert to the Plexor CA with no policy
     ///     violations.
     /// </summary>
+    /// <param name="certificate"></param>
+    /// <param name="chain"></param>
+    /// <param name="caCert"></param>
     private static bool ValidateHostCertificate(
         X509Certificate? certificate,
         X509Chain? chain,

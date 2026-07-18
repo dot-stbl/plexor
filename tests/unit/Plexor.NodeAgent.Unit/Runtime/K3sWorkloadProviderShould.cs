@@ -30,7 +30,7 @@ public sealed class K3sWorkloadProviderShould
     private const string ManifestsDirectory = "/var/lib/plexor/workloads/k3s";
 
     [Fact(DisplayName = "Given a valid spec, when CreateAsync, then writes manifest files + kubectl apply -k")]
-    public async Task CreateAsyncWritesManifestAndShellsKubectlApply()
+    public async Task CreateAsyncWritesManifestAndShellsKubectlApplyAsync()
     {
         var kubectl = Substitute.For<IKubectlCliRunner>();
         kubectl.RunAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -60,7 +60,7 @@ public sealed class K3sWorkloadProviderShould
 
         // kubectl apply -k was called exactly once.
         await kubectl.Received(1).RunAsync(
-            Arg.Is<string>(args => args.StartsWith("apply -k ", StringComparison.Ordinal) &&
+            Arg.Is<string>(static args => args.StartsWith("apply -k ", StringComparison.Ordinal) &&
                                   args.EndsWith("/web", StringComparison.Ordinal)),
             Arg.Any<CancellationToken>());
 
@@ -84,7 +84,7 @@ public sealed class K3sWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given a created workload, when StartAsync, then kubectl scale back to configured replicas")]
-    public async Task StartAsyncShellsScaleUp()
+    public async Task StartAsyncShellsScaleUpAsync()
     {
         var (sut, kubectl, list) = await CreateProviderWithWorkloadAsync();
 
@@ -94,7 +94,7 @@ public sealed class K3sWorkloadProviderShould
         // CreateAsync implicitly applied the manifest which
         // doesn't count as a scale call).
         await kubectl.Received(1).RunAsync(
-            Arg.Is<string>(args => args.StartsWith("scale deployment/web --replicas=", StringComparison.Ordinal) &&
+            Arg.Is<string>(static args => args.StartsWith("scale deployment/web --replicas=", StringComparison.Ordinal) &&
                                   args.EndsWith('1')),
             Arg.Any<CancellationToken>());
 
@@ -102,7 +102,7 @@ public sealed class K3sWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given a created workload, when StopAsync, then kubectl scale to 0 and flips state")]
-    public async Task StopAsyncShellsScaleToZeroAndFlipsState()
+    public async Task StopAsyncShellsScaleToZeroAndFlipsStateAsync()
     {
         var (sut, kubectl, list) = await CreateProviderWithWorkloadAsync();
 
@@ -117,14 +117,14 @@ public sealed class K3sWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given a created workload, when DeleteAsync, then kubectl delete -k + rm -r")]
-    public async Task DeleteAsyncShellsDeleteAndRemovesManifestDir()
+    public async Task DeleteAsyncShellsDeleteAndRemovesManifestDirAsync()
     {
         var (sut, kubectl, list) = await CreateProviderWithWorkloadAsync();
 
         await sut.DeleteAsync(list[0].Id, CancellationToken.None);
 
         await kubectl.Received(1).RunAsync(
-            Arg.Is<string>(args => args.StartsWith("delete -k ", StringComparison.Ordinal) &&
+            Arg.Is<string>(static args => args.StartsWith("delete -k ", StringComparison.Ordinal) &&
                                   args.Contains("--ignore-not-found", StringComparison.Ordinal)),
             Arg.Any<CancellationToken>());
 
@@ -132,7 +132,7 @@ public sealed class K3sWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given an unknown localId, when DeleteAsync, then is a no-op (idempotent contract)")]
-    public async Task DeleteAsyncOnUnknownIdIsNoOp()
+    public async Task DeleteAsyncOnUnknownIdIsNoOpAsync()
     {
         var kubectl = Substitute.For<IKubectlCliRunner>();
         var clock = Substitute.For<TimeProvider>();
@@ -146,7 +146,7 @@ public sealed class K3sWorkloadProviderShould
     }
 
     [Fact(DisplayName = "Given an invalid JSON config, when CreateAsync, then throws InvalidOperationException")]
-    public async Task CreateAsyncThrowsOnInvalidConfig()
+    public async Task CreateAsyncThrowsOnInvalidConfigAsync()
     {
         var kubectl = Substitute.For<IKubectlCliRunner>();
         var clock = Substitute.For<TimeProvider>();

@@ -10,7 +10,6 @@
 // ============================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
-using Plexor.Shared.Capabilities;
 using Plexor.Shared.Capabilities.Defaults;
 using Shouldly;
 
@@ -24,10 +23,10 @@ public sealed class NodeCapabilityAggregatorTests
     ///     registered).
     /// </summary>
     [Fact]
-    public async Task Empty_probes_yields_empty_report()
+    public async Task Empty_probes_yields_empty_reportAsync()
     {
         var aggregator = new NodeCapabilityAggregator(
-            Array.Empty<ICapabilityProbe>(),
+            [],
             NullLogger<NodeCapabilityAggregator>.Instance);
 
         var report = await aggregator.AggregateAsync();
@@ -39,7 +38,7 @@ public sealed class NodeCapabilityAggregatorTests
     ///     One probe's set is returned verbatim.
     /// </summary>
     [Fact]
-    public async Task Single_probe_contributes_its_capabilities()
+    public async Task Single_probe_contributes_its_capabilitiesAsync()
     {
         var aggregator = new NodeCapabilityAggregator(
             [new FixedProbe("docker", ["docker-runtime", "host-bridge"])],
@@ -60,7 +59,7 @@ public sealed class NodeCapabilityAggregatorTests
     ///     here, so duplicates collapse automatically.
     /// </summary>
     [Fact]
-    public async Task Overlapping_probes_are_unioned_not_duplicated()
+    public async Task Overlapping_probes_are_unioned_not_duplicatedAsync()
     {
         var aggregator = new NodeCapabilityAggregator(
             [
@@ -86,7 +85,7 @@ public sealed class NodeCapabilityAggregatorTests
     ///     valid Docker capability report.
     /// </summary>
     [Fact]
-    public async Task Throwing_probe_does_not_kill_the_report()
+    public async Task Throwing_probe_does_not_kill_the_reportAsync()
     {
         var aggregator = new NodeCapabilityAggregator(
             [
@@ -108,7 +107,7 @@ public sealed class NodeCapabilityAggregatorTests
     ///     automatically when DI registers it.
     /// </summary>
     [Fact]
-    public async Task Baseline_probe_advertises_host_bridge()
+    public async Task Baseline_probe_advertises_host_bridgeAsync()
     {
         var aggregator = new NodeCapabilityAggregator(
             [new HostBridgeCapabilityProbe()],
@@ -124,7 +123,7 @@ public sealed class NodeCapabilityAggregatorTests
     ///     control plane to detect a stale NodeAgent and re-probe.
     /// </summary>
     [Fact]
-    public async Task Probed_at_is_fresh_utc()
+    public async Task Probed_at_is_fresh_utcAsync()
     {
         var before = DateTimeOffset.UtcNow.AddSeconds(-1);
         var aggregator = new NodeCapabilityAggregator(
@@ -144,7 +143,7 @@ public sealed class NodeCapabilityAggregatorTests
     ///     keep working when we add fields.
     /// </summary>
     [Fact]
-    public async Task Report_to_string_contains_capabilities_and_probed_at()
+    public async Task Report_to_string_contains_capabilities_and_probed_atAsync()
     {
         var aggregator = new NodeCapabilityAggregator(
             [new FixedProbe("docker", ["docker-runtime", "host-bridge"])],
@@ -164,6 +163,8 @@ public sealed class NodeCapabilityAggregatorTests
     ///     what the aggregator does with a deterministic input
     ///     without depending on host state.
     /// </summary>
+    /// <param name="name"></param>
+    /// <param name="capabilities"></param>
     private sealed class FixedProbe(
         string name,
         IReadOnlyCollection<string> capabilities) : ICapabilityProbe
@@ -181,6 +182,8 @@ public sealed class NodeCapabilityAggregatorTests
     ///     Always throws. Used to assert that a broken probe
     ///     doesn't kill the report.
     /// </summary>
+    /// <param name="name"></param>
+    /// <param name="message"></param>
     private sealed class ThrowingProbe(
         string name,
         string message) : ICapabilityProbe

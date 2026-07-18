@@ -70,7 +70,7 @@ public sealed class CreateWorkloadCommandHandler(
             Name = command.Name,
             Kind = command.Kind,
             SpecJson = command.SpecJson,
-            State = Plexor.Shared.Workloads.WorkloadState.Provisioning,
+            State = Shared.Workloads.WorkloadState.Provisioning,
             LastMessage = null,
             LastReportedAt = null,
             CreatedAt = now,
@@ -100,15 +100,9 @@ public sealed class DeleteWorkloadCommandHandler(
     {
         var workload = await db.Workloads.FirstOrDefaultAsync(
             w => w.ClusterId == command.ClusterId && w.Id == command.WorkloadId,
-            cancellationToken);
-
-        if (workload is null)
-        {
-            throw new ClustersException(
+            cancellationToken) ?? throw new ClustersException(
                 ClustersExceptions.WorkloadNotFound,
                 $"Workload '{command.WorkloadId}' not found in cluster '{command.ClusterId}'.");
-        }
-
         db.Workloads.Remove(workload);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -149,15 +143,9 @@ public sealed class WorkloadActionCommandHandler(
         // should run workload.create first.
         var workload = await db.Workloads.FirstOrDefaultAsync(
             w => w.ClusterId == command.ClusterId && w.Id == command.WorkloadId,
-            cancellationToken);
-
-        if (workload is null)
-        {
-            throw new ClustersException(
+            cancellationToken) ?? throw new ClustersException(
                 ClustersExceptions.WorkloadNotFound,
                 $"Workload '{command.WorkloadId}' not found in cluster '{command.ClusterId}'.");
-        }
-
         if (string.IsNullOrEmpty(workload.LocalId))
         {
             throw new ClustersException(
@@ -207,7 +195,7 @@ public sealed class WorkloadActionCommandHandler(
             Type: commandType,
             PayloadJson: payloadJson)
         {
-            Status = Domain.Entities.NodeCommandStatus.Pending,
+            Status = NodeCommandStatus.Pending,
             CreatedAt = now
         };
 
@@ -228,7 +216,7 @@ public sealed class WorkloadActionCommandHandler(
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.CommandId == wireCommandId, cancellationToken);
 
-            if (refreshed?.Status == Domain.Entities.NodeCommandStatus.Acked)
+            if (refreshed?.Status == NodeCommandStatus.Acked)
             {
                 // Tier 4 reconciliation: the heartbeat updates the
                 // workload's State on the next tick. We trust the
@@ -242,7 +230,7 @@ public sealed class WorkloadActionCommandHandler(
                     updated?.State ?? workload.State);
             }
 
-            if (refreshed?.Status == Domain.Entities.NodeCommandStatus.Failed)
+            if (refreshed?.Status == NodeCommandStatus.Failed)
             {
                 var msg = refreshed.ResultJson ?? "command failed without error message";
                 throw new InvalidOperationException(

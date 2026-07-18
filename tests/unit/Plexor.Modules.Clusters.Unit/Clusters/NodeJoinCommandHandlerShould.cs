@@ -15,10 +15,10 @@ namespace Plexor.Modules.Clusters.Unit.Clusters;
 public sealed class NodeJoinCommandHandlerShould
 {
     [Fact(DisplayName = "Given valid active token + matching role + fresh hostname, when Join, then creates node + revokes token")]
-    public async Task JoinCreatesNodeAndRevokesToken()
+    public async Task JoinCreatesNodeAndRevokesTokenAsync()
     {
         var clusterId = IdGenerator.NewClusterId();
-        var tokenSecret = "test-secret-12345";
+        const string tokenSecret = "test-secret-12345";
         await using var db = await TestDb.CreateAsync();
         var now = DateTimeOffset.UtcNow;
         await db.Clusters.AddAsync(new Cluster
@@ -58,7 +58,7 @@ public sealed class NodeJoinCommandHandlerShould
             NodeRole.Compute,
             new NodeSpec(8, 32, 200, ["kvm"])));
 
-        result.NodeId.ShouldNotBe(default(NodeId));
+        result.NodeId.ShouldNotBe(default);
         result.ClusterId.ShouldBe(clusterId);
         result.NodeToken.ShouldNotBeNullOrWhiteSpace();
 
@@ -69,10 +69,10 @@ public sealed class NodeJoinCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given consumed (revoked) token, when Join, then throws InvalidJoinToken")]
-    public async Task JoinRejectsConsumedToken()
+    public async Task JoinRejectsConsumedTokenAsync()
     {
         var clusterId = IdGenerator.NewClusterId();
-        var tokenSecret = "consumed-secret";
+        const string tokenSecret = "consumed-secret";
         await using var db = await TestDb.CreateAsync();
         var now = DateTimeOffset.UtcNow;
         await db.Clusters.AddAsync(new Cluster
@@ -113,10 +113,10 @@ public sealed class NodeJoinCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given valid join, when Join, then returned client cert has node_<id> CN signed by Plexor CA")]
-    public async Task JoinIssuesClientCertWithNodeIdInSubject()
+    public async Task JoinIssuesClientCertWithNodeIdInSubjectAsync()
     {
         var clusterId = IdGenerator.NewClusterId();
-        var tokenSecret = "cert-test-secret";
+        const string tokenSecret = "cert-test-secret";
         await using var db = await TestDb.CreateAsync();
         var now = DateTimeOffset.UtcNow;
         await db.Clusters.AddAsync(new Cluster
@@ -184,10 +184,10 @@ public sealed class NodeJoinCommandHandlerShould
     }
 
     [Fact(DisplayName = "Given token for Control role but node requests Compute, when Join, then throws InvalidJoinToken")]
-    public async Task JoinRejectsRoleMismatch()
+    public async Task JoinRejectsRoleMismatchAsync()
     {
         var clusterId = IdGenerator.NewClusterId();
-        var tokenSecret = "control-only-secret";
+        const string tokenSecret = "control-only-secret";
         await using var db = await TestDb.CreateAsync();
         var now = DateTimeOffset.UtcNow;
         await db.Clusters.AddAsync(new Cluster

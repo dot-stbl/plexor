@@ -13,7 +13,7 @@ namespace Plexor.Modules.Clusters.Unit.Clusters;
 public sealed class DeleteClusterCommandHandlerShould
 {
     [Fact(DisplayName = "Given cluster with 2 nodes, when DeleteCluster, then cluster + nodes flipped to terminal status")]
-    public async Task DeleteClusterCascadesNodeStatus()
+    public async Task DeleteClusterCascadesNodeStatusAsync()
     {
         var clusterId = IdGenerator.NewClusterId();
         await using var db = await TestDb.CreateAsync();
@@ -62,11 +62,11 @@ public sealed class DeleteClusterCommandHandlerShould
 
         var nodes = await db.Nodes.AsNoTracking().ToArrayAsync();
         nodes.Length.ShouldBe(2);
-        nodes.ShouldAllBe(node => node.Status == NodeStatus.Gone);
+        nodes.ShouldAllBe(static node => node.Status == NodeStatus.Gone);
     }
 
     [Fact(DisplayName = "Given non-existent cluster, when DeleteCluster, then throws ClusterNotFound")]
-    public async Task DeleteClusterThrowsForMissing()
+    public async Task DeleteClusterThrowsForMissingAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var sut = new DeleteClusterCommandHandler(db);

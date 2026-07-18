@@ -12,9 +12,6 @@
 // Windows dev box is process-isolated by the OS already.
 // ============================================================================
 
-using System.Security.Cryptography;
-using Plexor.Shared.Mtls;
-
 namespace Plexor.NodeAgent.Composition;
 
 /// <summary>
@@ -32,6 +29,8 @@ public static class MtlsCertWriter
     ///     <see cref="NodeAgentOptions.Enrolled" /> = true on
     ///     success.
     /// </summary>
+    /// <param name="options"></param>
+    /// <param name="response"></param>
     public static void Persist(NodeAgentOptions options, Shared.NodeApi.JoinResponse response)
     {
         Directory.CreateDirectory(options.CertDirectory);
@@ -65,6 +64,7 @@ public static class MtlsCertWriter
     ///     whether to re-run the join flow (no cert → join) or
     ///     skip it (cert present → assume already enrolled).
     /// </summary>
+    /// <param name="options"></param>
     public static bool AlreadyEnrolled(NodeAgentOptions options)
     {
         return File.Exists(options.CertPath) &&
@@ -77,6 +77,7 @@ public static class MtlsCertWriter
     ///     Wipe the on-disk cert triple. Used on operator-requested
     ///     re-enrollment (e.g. CA rotation, node replacement).
     /// </summary>
+    /// <param name="options"></param>
     public static void Forget(NodeAgentOptions options)
     {
         if (File.Exists(options.CertPath))

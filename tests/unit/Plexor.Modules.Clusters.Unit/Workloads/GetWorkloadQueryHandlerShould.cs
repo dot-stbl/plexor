@@ -11,7 +11,6 @@ using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Identifiers;
-using Plexor.Shared.Persistence;
 using Plexor.Shared.Workloads;
 using Shouldly;
 using Xunit;
@@ -21,7 +20,7 @@ namespace Plexor.Modules.Clusters.Unit.Workloads;
 public sealed class GetWorkloadQueryHandlerShould
 {
     [Fact(DisplayName = "Given existing workload, when GetWorkload, then returns mapped summary")]
-    public async Task GetWorkloadReturnsSummary()
+    public async Task GetWorkloadReturnsSummaryAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
@@ -38,7 +37,7 @@ public sealed class GetWorkloadQueryHandlerShould
     }
 
     [Fact(DisplayName = "Given non-existent workload, when GetWorkload, then throws WorkloadNotFound")]
-    public async Task GetWorkloadRejectsUnknownId()
+    public async Task GetWorkloadRejectsUnknownIdAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
@@ -52,7 +51,7 @@ public sealed class GetWorkloadQueryHandlerShould
     }
 
     [Fact(DisplayName = "Given workload in different cluster, when GetWorkload, then throws WorkloadNotFound")]
-    public async Task GetWorkloadRejectsWrongCluster()
+    public async Task GetWorkloadRejectsWrongClusterAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster1 = await SeedClusterAsync(db, "cluster-1");

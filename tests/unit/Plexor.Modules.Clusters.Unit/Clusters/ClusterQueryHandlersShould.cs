@@ -14,7 +14,7 @@ namespace Plexor.Modules.Clusters.Unit.Clusters;
 public sealed class GetClusterQueryHandlerShould
 {
     [Fact(DisplayName = "Given existing cluster with nodes, when GetCluster, then returns detail with nodes")]
-    public async Task GetClusterReturnsDetailWithNodes()
+    public async Task GetClusterReturnsDetailWithNodesAsync()
     {
         var clusterId = IdGenerator.NewClusterId();
         await using var db = await TestDb.CreateAsync();
@@ -58,7 +58,7 @@ public sealed class GetClusterQueryHandlerShould
     }
 
     [Fact(DisplayName = "Given non-existent cluster, when GetCluster, then throws ClusterNotFound")]
-    public async Task GetClusterThrowsForMissing()
+    public async Task GetClusterThrowsForMissingAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var sut = new GetClusterQueryHandler(
@@ -75,7 +75,7 @@ public sealed class GetClusterQueryHandlerShould
 public sealed class ListClustersQueryHandlerShould
 {
     [Fact(DisplayName = "Given 3 clusters in org, when ListClusters page 1 size 2, then returns 2 items + total 3")]
-    public async Task ListClustersPaginatesCorrectly()
+    public async Task ListClustersPaginatesCorrectlyAsync()
     {
         var orgId = Guid.NewGuid();
         await using var db = await TestDb.CreateAsync();
@@ -97,7 +97,7 @@ public sealed class ListClustersQueryHandlerShould
 
         var sut = new ListClustersQueryHandler(
             new ClusterRepository(db),
-            Plexor.Shared.Filtering.Registry.FilterableFieldRegistry.For<Domain.Entities.Cluster>(),
+            Shared.Filtering.Registry.FilterableFieldRegistry.For<Domain.Entities.Cluster>(),
             new ClusterMapper());
         var filterQuery = new Plexor.Shared.Filtering.Query.FilterQuery { Page = 1, PageSize = 2 };
         var result = await sut.HandleAsync(new ListClustersQuery(orgId, filterQuery));

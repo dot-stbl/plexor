@@ -24,7 +24,6 @@
 // its own.
 // ============================================================================
 
-using Plexor.NodeAgent.Abstractions;
 using Plexor.NodeAgent.Composition;
 using Plexor.Shared.NodeApi;
 using ICommandTransport = Plexor.NodeAgent.Abstractions.ICommandTransport;
@@ -41,6 +40,7 @@ namespace Plexor.NodeAgent;
 /// <param name="dispatcher"></param>
 /// <param name="logger"></param>
 /// <param name="config"></param>
+/// <param name="nodeOptions"></param>
 /// <remarks>
 ///     Build the worker. Hardware and control-plane URL
 ///     come from configuration (Plexor:Node:* keys).
@@ -198,7 +198,7 @@ internal sealed class NodeAgentWorker(
                         // for now means drift detection is a no-op
                         // — heartbeats still flip nodes to Offline
                         // after three misses.
-                        Array.Empty<Plexor.Shared.NodeApi.WorkloadReport>()),
+                        []),
                     stoppingToken);
 
                 logger.LogDebug("Heartbeat sent for {NodeId}", current.NodeId);

@@ -23,6 +23,7 @@ public sealed class K3sWorkloadRendererShould
     [Fact(DisplayName = "Given bare image, when Render, then emits kustomization + deployment, no service")]
     public void RenderMinimalSpec()
     {
+        // lang=json
         var config = ParseConfig(""" { "image": "nginx:1.25" } """);
         var manifest = K3sWorkloadRenderer.Render("web", config);
 
@@ -39,6 +40,7 @@ public sealed class K3sWorkloadRendererShould
     [Fact(DisplayName = "Given image + ports, when Render, then service is emitted with both ports")]
     public void RenderSpecWithPorts()
     {
+        // lang=json
         var config = ParseConfig("""
             { "image": "nginx:1.25", "ports": [80, 443] }
             """);
@@ -58,6 +60,7 @@ public sealed class K3sWorkloadRendererShould
     [Fact(DisplayName = "Given replicas > 1 + namespace, when Render, then values propagate")]
     public void RenderPropagatesReplicasAndNamespace()
     {
+        // lang=json
         var config = ParseConfig("""
             { "image": "nginx:1.25", "replicas": 3, "namespace": "staging" }
             """);
@@ -71,6 +74,7 @@ public sealed class K3sWorkloadRendererShould
     [Fact(DisplayName = "Given image + environment, when Render, then env: block is alphabetized")]
     public void RenderEmitsSortedEnvBlock()
     {
+        // lang=json
         var config = ParseConfig("""
             { "image": "nginx:1.25",
               "environment": {

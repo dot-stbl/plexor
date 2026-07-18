@@ -61,7 +61,7 @@ public static class ClusterRuntimeIds
     ///     selector at the NodeAgent side.
     /// </summary>
     public static readonly IReadOnlyCollection<string> All =
-        new[] { DockerCompose, PodmanQuadlet, K3s };
+        [DockerCompose, PodmanQuadlet, K3s];
 
     /// <summary>
     ///     Returns true when <paramref name="runtimeId" /> is one

@@ -22,7 +22,7 @@ namespace Plexor.NodeAgent.Unit.Image;
 public sealed class HttpImageRegistryShould
 {
     [Fact(DisplayName = "Given a known ref and an empty cache, when EnsureLocalAsync, then downloads + caches + returns path")]
-    public async Task DownloadAndCache()
+    public async Task DownloadAndCacheAsync()
     {
         var cacheDir = TempDir();
         var handler = new FixtureHandler(
@@ -46,7 +46,7 @@ public sealed class HttpImageRegistryShould
     }
 
     [Fact(DisplayName = "Given a cached image, when EnsureLocalAsync, then returns cached path without network")]
-    public async Task CacheHitShortCircuits()
+    public async Task CacheHitShortCircuitsAsync()
     {
         var cacheDir = TempDir();
         var cachedPath = Path.Combine(cacheDir, "ubuntu-22.04.img");
@@ -72,7 +72,7 @@ public sealed class HttpImageRegistryShould
     }
 
     [Fact(DisplayName = "Given an unknown ref, when EnsureLocalAsync, then throws UnknownImageException")]
-    public async Task UnknownRefThrows()
+    public async Task UnknownRefThrowsAsync()
     {
         var sut = NewRegistry(
             TempDir(),
@@ -84,7 +84,7 @@ public sealed class HttpImageRegistryShould
     }
 
     [Fact(DisplayName = "Given a 404 from the source, when EnsureLocalAsync, then propagates HttpRequestException")]
-    public async Task NotFoundPropagatesHttp()
+    public async Task NotFoundPropagatesHttpAsync()
     {
         var handler = new FixtureHandler(
             "https://example.invalid/missing.qcow2",
@@ -103,7 +103,7 @@ public sealed class HttpImageRegistryShould
     }
 
     [Fact(DisplayName = "Given a ref that sanitises to an empty filename, when EnsureLocalAsync, then still produces a unique cached path")]
-    public async Task HostileRefFallsBackToHash()
+    public async Task HostileRefFallsBackToHashAsync()
     {
         var handler = new FixtureHandler(
             "https://example.invalid/x.qcow2",
@@ -155,10 +155,14 @@ public sealed class HttpImageRegistryShould
     ///     any matching request, and counts requests so the test
     ///     can assert the cache short-circuited.
     /// </summary>
+    /// <param name="expectedUrl">The exact URL the handler matches against.</param>
+    /// <param name="payload">Response body returned for matching requests.</param>
+    /// <param name="statusCode">HTTP status returned for matching requests.</param>
     private sealed class FixtureHandler(string expectedUrl, string payload, HttpStatusCode statusCode) : HttpMessageHandler
     {
         public int RequestCount { get; private set; }
 
+        /// <inheritdoc />
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
@@ -186,8 +190,10 @@ public sealed class HttpImageRegistryShould
     ///     CreateClient; we return the same client for all names
     ///     because the test owns exactly one handler.
     /// </summary>
+    /// <param name="handler">The handler every client returned by the factory wraps.</param>
     private sealed class StubHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
     {
+        /// <inheritdoc />
         public HttpClient CreateClient(string name)
         {
             return new HttpClient(handler, disposeHandler: false);

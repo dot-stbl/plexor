@@ -20,6 +20,7 @@ namespace Plexor.Shared.Authorization;
 /// no <c>Succeed</c> call on the missing ones — the framework then
 /// emits a 403.
 /// </summary>
+/// <param name="logger"></param>
 /// <remarks>
 ///     <para><b>Single handler for all permission requirements.</b>
 /// Registered once as scoped (one instance per request) so it can
@@ -76,6 +77,8 @@ public sealed class PermissionAuthorizationHandler(
     /// OR when the issued claim is the wildcard <c>"*"</c> (built-in
     /// admin role — every permission matches).
     /// </summary>
+    /// <param name="issuedPermission"></param>
+    /// <param name="requiredPermission"></param>
     private static bool PermissionMatches(string issuedPermission, string requiredPermission)
     {
         if (string.Equals(issuedPermission, requiredPermission, StringComparison.OrdinalIgnoreCase))

@@ -16,6 +16,7 @@ namespace Plexor.Host.NodeAgent;
 ///     boot — the operator sees the error in the systemd log instead
 ///     of the first NodeJoin attempt.
 /// </summary>
+/// <param name="caRoot"></param>
 public sealed class PlexorCaStartup(PlexorCaRoot caRoot) : IHostedService
 {
     /// <inheritdoc />

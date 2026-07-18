@@ -47,7 +47,7 @@ public sealed class HttpImageRegistryOptions
     ///     Map of image ref → download URL. Empty map = every
     ///     ref lookup throws <see cref="UnknownImageException" />.
     /// </summary>
-    public Dictionary<string, string> Catalog { get; set; } = new();
+    public Dictionary<string, string> Catalog { get; set; } = [];
 }
 
 /// <summary>
@@ -80,7 +80,7 @@ public sealed class HttpImageRegistry(
 
     /// <inheritdoc />
     public IReadOnlyCollection<string> AvailableImages =>
-        options.Value.Catalog.Keys.ToArray() as IReadOnlyCollection<string> ?? Array.Empty<string>();
+        options.Value.Catalog.Keys.ToArray() as IReadOnlyCollection<string> ?? [];
 
     /// <inheritdoc />
     public async Task<string> EnsureLocalAsync(string imageRef, CancellationToken cancellationToken)

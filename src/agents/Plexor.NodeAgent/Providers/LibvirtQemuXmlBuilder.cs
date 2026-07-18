@@ -123,6 +123,9 @@ internal static class LibvirtQemuXmlBuilder
 ///     control plane doesn't supply a value, so the agent stays
 ///     functional even with empty Config.
 /// </summary>
+/// <param name="RamBytes"></param>
+/// <param name="CpuCores"></param>
+/// <param name="Machine"></param>
 public sealed record LibvirtQemuConfig(
     long RamBytes = 1L * 1024 * 1024 * 1024,
     int CpuCores = 2,

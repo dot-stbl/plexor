@@ -22,7 +22,6 @@
 
 using Plexor.NodeAgent.Providers.Common;
 using Plexor.Shared.Compute;
-using Plexor.Shared.NodeApi;
 
 namespace Plexor.NodeAgent.Providers.Network;
 

@@ -19,17 +19,22 @@ namespace Plexor.Modules.Sigil.Infrastructure.Mappers;
 public interface ISigilMapper
 {
     /// <summary>Map <see cref="User" /> to <see cref="UserSummary" />.</summary>
+    /// <param name="source"></param>
     public UserSummary ToUserSummary(User source);
 
     /// <summary>Map <see cref="ApiKey" /> to <see cref="ApiKeySummary" />.</summary>
+    /// <param name="source"></param>
     public ApiKeySummary ToApiKeySummary(ApiKey source);
 
     /// <summary>Map <see cref="SshKey" /> to <see cref="SshKeySummary" />.</summary>
+    /// <param name="source"></param>
     public SshKeySummary ToSshKeySummary(SshKey source);
 
     /// <summary>Map <see cref="Role" /> to <see cref="RoleSummary" />.</summary>
+    /// <param name="source"></param>
     public RoleSummary ToRoleSummary(Role source);
 
     /// <summary>Map <see cref="RoleBinding" /> to <see cref="RoleBindingSummary" />.</summary>
+    /// <param name="source"></param>
     public RoleBindingSummary ToRoleBindingSummary(RoleBinding source);
 }

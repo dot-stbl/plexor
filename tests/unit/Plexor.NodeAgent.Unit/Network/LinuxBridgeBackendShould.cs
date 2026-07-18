@@ -17,7 +17,7 @@ namespace Plexor.NodeAgent.Unit.Network;
 public sealed class LinuxBridgeBackendShould
 {
     [Fact(DisplayName = "Given a handle from another backend, when DetachAsync, then throws ArgumentException")]
-    public async Task DetachRejectsForeignHandle()
+    public async Task DetachRejectsForeignHandleAsync()
     {
         var sut = NewBackend();
         var foreignHandle = new NetworkInterfaceHandle(
@@ -29,7 +29,7 @@ public sealed class LinuxBridgeBackendShould
     }
 
     [Fact(DisplayName = "Given a missing network, when DetachAsync, then no-op (idempotent)")]
-    public async Task DetachIsIdempotent()
+    public async Task DetachIsIdempotentAsync()
     {
         var sut = NewBackend();
 
@@ -50,7 +50,7 @@ public sealed class LinuxBridgeBackendShould
     /// </summary>
     [Fact(DisplayName = "Given a network name, when AttachAsync, then handle.Reference equals the name",
           Skip = "Requires libvirtd on host — covered by integration test suite.")]
-    public async Task AttachHandleReferenceIsTheNetworkName()
+    public async Task AttachHandleReferenceIsTheNetworkNameAsync()
     {
         var sut = NewBackend();
         var spec = new NetworkSpec("prod-vpc", NetworkKind.LinuxBridge);

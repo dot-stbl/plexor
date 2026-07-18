@@ -24,7 +24,7 @@ public sealed class PermissionPolicyProviderShould
     /// <c>null</c>) so the rest of the framework can try other
     /// providers.</summary>
     [Fact(DisplayName = "Given a policy name without the permission prefix, GetPolicyAsync returns null")]
-    public async Task UnknownPrefixReturnsNull()
+    public async Task UnknownPrefixReturnsNullAsync()
     {
         var provider = new PermissionPolicyProvider(NullLogger<PermissionPolicyProvider>.Instance);
 
@@ -36,7 +36,7 @@ public sealed class PermissionPolicyProviderShould
     /// <summary>A permission policy name with a single permission
     /// builds a policy containing exactly that one requirement.</summary>
     [Fact(DisplayName = "Given 'permission:foo', GetPolicyAsync returns a policy with one requirement")]
-    public async Task SinglePermissionBuildsOneRequirement()
+    public async Task SinglePermissionBuildsOneRequirementAsync()
     {
         var provider = new PermissionPolicyProvider(NullLogger<PermissionPolicyProvider>.Instance);
 
@@ -50,7 +50,7 @@ public sealed class PermissionPolicyProviderShould
     /// <summary>A comma-separated permission policy name builds one
     /// requirement per token.</summary>
     [Fact(DisplayName = "Given 'permission:foo,bar', GetPolicyAsync returns a policy with two requirements")]
-    public async Task MultiplePermissionsBuildMultipleRequirements()
+    public async Task MultiplePermissionsBuildMultipleRequirementsAsync()
     {
         var provider = new PermissionPolicyProvider(NullLogger<PermissionPolicyProvider>.Instance);
 
@@ -66,7 +66,7 @@ public sealed class PermissionPolicyProviderShould
     /// token is silently trimmed so copy-paste from config files
     /// doesn't break authorization.</summary>
     [Fact(DisplayName = "Whitespace around tokens is trimmed before resolution")]
-    public async Task TokenWhitespaceIsTrimmed()
+    public async Task TokenWhitespaceIsTrimmedAsync()
     {
         var provider = new PermissionPolicyProvider(NullLogger<PermissionPolicyProvider>.Instance);
 
@@ -80,7 +80,7 @@ public sealed class PermissionPolicyProviderShould
     /// (e.g. <c>permission:</c>) returns null so the framework can fall
     /// through rather than building a do-nothing policy.</summary>
     [Fact(DisplayName = "Given an empty permission list, GetPolicyAsync returns null")]
-    public async Task EmptyPermissionListReturnsNull()
+    public async Task EmptyPermissionListReturnsNullAsync()
     {
         var provider = new PermissionPolicyProvider(NullLogger<PermissionPolicyProvider>.Instance);
 
@@ -94,7 +94,7 @@ public sealed class PermissionPolicyProviderShould
     /// so adding this provider doesn't accidentally relax
     /// <c>[AllowAnonymous]</c> behaviour.</summary>
     [Fact(DisplayName = "GetDefaultPolicyAsync returns a non-null authentication policy")]
-    public async Task DefaultPolicyRequiresAuthentication()
+    public async Task DefaultPolicyRequiresAuthenticationAsync()
     {
         var provider = new PermissionPolicyProvider(NullLogger<PermissionPolicyProvider>.Instance);
 

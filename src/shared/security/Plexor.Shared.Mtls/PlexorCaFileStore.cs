@@ -16,6 +16,7 @@ namespace Plexor.Shared.Mtls;
 ///     responsible for chmod 0600 on the key file (this class
 ///     does so on every write).
 /// </summary>
+/// <param name="options"></param>
 /// <remarks>Construct a filesystem store bound to the given options.</remarks>
 public sealed class PlexorCaFileStore(CertAuthorityOptions options)
 {
@@ -40,6 +41,7 @@ public sealed class PlexorCaFileStore(CertAuthorityOptions options)
     ///     directory if missing and tightens permissions to mode
     ///     0600 on the key file (Unix only — no-op on Windows).
     /// </summary>
+    /// <param name="root"></param>
     public void WriteRoot(X509Certificate2 root)
     {
         var certDir = Path.GetDirectoryName(options.CertPath);

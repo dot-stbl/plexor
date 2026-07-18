@@ -25,14 +25,18 @@ namespace Plexor.Shared.Configuration;
 public static class PlexorConfigurationExtensions
 {
     /// <summary>
+    /// <para>
     ///     Append Plexor providers (TOML file + PLX_* env vars) to
     ///     the existing builder, in priority order (later wins).
-    ///
+    /// </para>
+    /// <para>
     ///     Layers added:
     ///       1. TOML at <see cref="PlexorConfigPaths.DefaultConfigFile" />
     ///          (returns null if PLX_CONFIG_FILE points elsewhere).
     ///       2. PLX_* environment variables — highest priority.
+    /// </para>
     /// </summary>
+    /// <param name="builder"></param>
     public static IConfigurationBuilder AddPlexorConfiguration(this IConfigurationBuilder builder)
     {
         var tomlPath = PlexorConfigPaths.DefaultConfigFile();
@@ -51,6 +55,7 @@ public static class PlexorConfigurationExtensions
 ///     the standard IConfigurationSource pattern so the caller
 ///     uses the regular <c>Add(source)</c> overload.
 /// </summary>
+/// <param name="provider"></param>
 public sealed class PlexorEnvironmentVariablesSource(PlexorEnvironmentVariablesProvider? provider = null) : IConfigurationSource
 {
     /// <inheritdoc />
@@ -66,6 +71,7 @@ public sealed class PlexorEnvironmentVariablesSource(PlexorEnvironmentVariablesP
 ///     there's no Microsoft.Extensions.Configuration base class to
 ///     inherit from for the file-source pattern.
 /// </summary>
+/// <param name="filePath"></param>
 public sealed class PlexorTomlConfigurationSource(string filePath) : IConfigurationSource
 {
     /// <summary>

@@ -74,6 +74,8 @@ public sealed class ClustersController(
     ///     caller's org, paged + filtered via <see cref="FilterQuery" />
     ///     URL envelope.
     /// </summary>
+    /// <param name="query"></param>
+    /// <param name="cancellationToken"></param>
     [HttpGet(Name = "clusters-list")]
     [EndpointSummary("List clusters in the caller's org")]
     [RequirePermission(ClusterPermissions.Read)]

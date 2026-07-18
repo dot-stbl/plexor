@@ -44,6 +44,7 @@ public interface ICapabilityProbe
     ///     <see cref="System.Threading.Tasks.Task" /> exception
     ///     propagation, not by an empty result).
     /// </summary>
+    /// <param name="cancellationToken"></param>
     /// <remarks>
     ///     The standard capability vocabulary is documented in
     ///     <c>runtime-capabilities-networking.md</c>. New

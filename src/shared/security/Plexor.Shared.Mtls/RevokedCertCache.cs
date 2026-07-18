@@ -25,6 +25,8 @@ namespace Plexor.Shared.Mtls;
 ///     <see cref="RevokedCertsDbContext" /> for periodic refresh.
 ///     Thread-safe for concurrent reads + occasional writes.
 /// </summary>
+/// <param name="services"></param>
+/// <param name="logger"></param>
 public sealed class RevokedCertCache(
     IServiceProvider services,
     ILogger<RevokedCertCache> logger)
@@ -38,6 +40,7 @@ public sealed class RevokedCertCache(
     ///     cache (within TTL) — a SELECT once per TTL window is enough
     ///     for the hot path.
     /// </summary>
+    /// <param name="serialHex"></param>
     public bool IsRevoked(string serialHex)
     {
         if (cache.ContainsKey(serialHex))
@@ -59,6 +62,7 @@ public sealed class RevokedCertCache(
     ///     path on cluster / node delete so the next request from
     ///     that node is rejected without waiting for the TTL.
     /// </summary>
+    /// <param name="serialHex"></param>
     public void MarkRevoked(string serialHex)
     {
         cache[serialHex] = DateTimeOffset.UtcNow;

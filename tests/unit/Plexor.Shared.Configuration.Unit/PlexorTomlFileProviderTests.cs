@@ -6,7 +6,6 @@
 // ============================================================================
 
 using Microsoft.Extensions.Configuration;
-using Plexor.Shared.Configuration;
 using Shouldly;
 
 namespace Plexor.Shared.Configuration.Unit;
@@ -139,10 +138,10 @@ public sealed class PlexorTomlFileProviderTests : IDisposable
     [Fact]
     public void Numbers_and_booleans_render_in_invariant_culture()
     {
-        var previous = System.Threading.Thread.CurrentThread.CurrentCulture;
+        var previous = Thread.CurrentThread.CurrentCulture;
         try
         {
-            System.Threading.Thread.CurrentThread.CurrentCulture =
+            Thread.CurrentThread.CurrentCulture =
                 new System.Globalization.CultureInfo("ru-RU");
 
             File.WriteAllText(tempFile,
@@ -162,7 +161,7 @@ public sealed class PlexorTomlFileProviderTests : IDisposable
         }
         finally
         {
-            System.Threading.Thread.CurrentThread.CurrentCulture = previous;
+            Thread.CurrentThread.CurrentCulture = previous;
         }
     }
 }

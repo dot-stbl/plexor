@@ -30,8 +30,8 @@ public sealed class NullableNodeIdConverter : ValueConverter<NodeId?, string?>
     /// </summary>
     public NullableNodeIdConverter()
         : base(
-            convertToProviderExpression: id => ToProvider(id),
-            convertFromProviderExpression: raw => FromProvider(raw))
+            convertToProviderExpression: static id => ToProvider(id),
+            convertFromProviderExpression: static raw => FromProvider(raw))
     {
     }
 
@@ -48,7 +48,7 @@ public sealed class NullableNodeIdConverter : ValueConverter<NodeId?, string?>
     private static NodeId? FromProvider(string? raw)
     {
         return raw is null
-            ? (NodeId?)null
+            ? null
             : new NodeId(Guid.ParseExact(raw, "N"));
     }
 }

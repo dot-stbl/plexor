@@ -48,17 +48,20 @@ public sealed class CertAuthorityOptions
     public TimeSpan CaLifetime { get; init; } = TimeSpan.FromDays(3650);
 
     /// <summary>
+    /// <para>
     ///     Path to the host's server certificate (PEM). Default
     ///     lives next to the CA in <c>dev-certs/</c>; production
     ///     overrides with the convention from the plan (e.g.
     ///     <c>/var/lib/plexor/host.pem</c>).
-    ///
+    /// </para>
+    /// <para>
     ///     PEM over PKCS#12 because PEM is supported by every
     ///     .NET SDK version via X509CertificateLoader.LoadCertificate
     ///     + RSA.ImportFromPem — no deprecated ctor needed.
     ///     PEM is also what the NodeAgent uses for the node
     ///     client cert, so the host and agent on-disk formats
     ///     stay symmetric and easy to inspect with openssl.
+    /// </para>
     /// </summary>
     public string HostCertPath { get; init; } = "dev-certs/host.pem";
 

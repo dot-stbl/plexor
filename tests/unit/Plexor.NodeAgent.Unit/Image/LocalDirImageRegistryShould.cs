@@ -16,7 +16,7 @@ namespace Plexor.NodeAgent.Unit.Image;
 public sealed class LocalDirImageRegistryShould
 {
     [Fact(DisplayName = "Given a registered ref, when EnsureLocalAsync, then resolves under RootDirectory")]
-    public async Task ResolveRelativePath()
+    public async Task ResolveRelativePathAsync()
     {
         var opts = Options.Create(new ImageRegistryOptions(
             RootDirectory: "/var/lib/plexor/images",
@@ -33,7 +33,7 @@ public sealed class LocalDirImageRegistryShould
     }
 
     [Fact(DisplayName = "Given an absolute path entry, when EnsureLocalAsync, then returns it unchanged")]
-    public async Task ResolveAbsolutePath()
+    public async Task ResolveAbsolutePathAsync()
     {
         var opts = Options.Create(new ImageRegistryOptions(
             RootDirectory: "/var/lib/plexor/images",
@@ -49,7 +49,7 @@ public sealed class LocalDirImageRegistryShould
     }
 
     [Fact(DisplayName = "Given an unknown ref, when EnsureLocalAsync, then throws UnknownImageException")]
-    public async Task RejectUnknownRef()
+    public async Task RejectUnknownRefAsync()
     {
         var opts = Options.Create(new ImageRegistryOptions(
             RootDirectory: "/var/lib/plexor/images",

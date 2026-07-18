@@ -29,6 +29,7 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 /// </summary>
 /// <param name="db">ClusterDbContext for writes + cluster lookup.</param>
 /// <param name="tokenRepo">Read surface for token-by-hash lookup.</param>
+/// <param name="caAuthority"></param>
 public sealed class NodeJoinCommandHandler(
     ClusterDbContext db,
     Repository<JoinToken> tokenRepo,
@@ -253,6 +254,7 @@ public sealed class NodeHeartbeatCommandHandler(
     /// <param name="nodeId">Calling node (drives the assigned-node filter).</param>
     /// <param name="now">Stamped onto <c>LastReportedAt</c> on every reconciled row.</param>
     /// <param name="cancellationToken"></param>
+    /// <exception cref="ClustersException"></exception>
     private async Task ReconcileWorkloadReportsAsync(
         IReadOnlyList<WorkloadReport> reports,
         ClusterId clusterId,

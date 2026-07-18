@@ -20,6 +20,7 @@ public static class SpecificationFactory
     /// <summary>
     ///     Identity spec — no projection, returns entity rows directly.
     /// </summary>
+    /// <typeparam name="T">Entity type the spec materialises.</typeparam>
     public static Specification<T, T> Identity<T>() where T : class
     {
         return new Specification<T, T>(projection: null);
@@ -29,6 +30,9 @@ public static class SpecificationFactory
     ///     Projection spec — caller passes the Select expression that
     ///     shapes the result rows.
     /// </summary>
+    /// <typeparam name="T">Source entity type the spec reads.</typeparam>
+    /// <typeparam name="TResult">Projected result shape.</typeparam>
+    /// <param name="projection">LINQ projection expression.</param>
     public static Specification<T, TResult> Default<T, TResult>(
         Expression<Func<T, TResult>> projection)
         where T : class

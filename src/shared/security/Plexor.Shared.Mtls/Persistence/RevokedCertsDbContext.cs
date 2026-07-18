@@ -18,6 +18,7 @@ namespace Plexor.Shared.Mtls.Persistence;
 ///     cache that <c>MtlsAuthMiddleware</c> consults on every
 ///     mTLS handshake; writes cascade from cluster / node delete.
 /// </summary>
+/// <param name="options"></param>
 public sealed class RevokedCertsDbContext(DbContextOptions<RevokedCertsDbContext> options) : PlexorDbContext(options)
 {
     /// <summary>forge.revoked_certs rows (one per revoked cert serial).</summary>

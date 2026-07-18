@@ -58,7 +58,7 @@ public sealed class WorkloadKindMapperShould
     [Fact(DisplayName = "Given unknown wire name, when FromName, then throws NotSupportedException")]
     public void ThrowOnUnknownName()
     {
-        var ex = Should.Throw<NotSupportedException>(() =>
+        var ex = Should.Throw<NotSupportedException>(static () =>
             WorkloadKindMapper.FromName("non-existent-runtime"));
 
         ex.Message.ShouldContain("non-existent-runtime");

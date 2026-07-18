@@ -21,6 +21,9 @@ namespace Plexor.Migrator;
 ///     pending migrations and seed first-run data. The host stops
 ///     itself after migrations succeed so the process exits 0.
 /// </summary>
+/// <param name="services"></param>
+/// <param name="logger"></param>
+/// <param name="lifetime"></param>
 internal sealed class MigrationRunner(
     IServiceProvider services,
     ILogger<MigrationRunner> logger,
@@ -37,6 +40,7 @@ internal sealed class MigrationRunner(
     ///     to migrate aborts the process before the host can serve
     ///     any traffic.
     /// </summary>
+    /// <param name="cancellationToken"></param>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         try

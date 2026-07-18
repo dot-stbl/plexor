@@ -31,6 +31,7 @@ public static class QemuImageRunner
     ///     <c>"create -f qcow2 -b /var/lib/.../base.qcow2 -F qcow2 /var/lib/.../overlay.qcow2 20G"</c>).
     /// </param>
     /// <param name="cancellationToken"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public static async Task<string> RunAsync(string args, CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo

@@ -27,5 +27,6 @@ public interface IWorkloadMapper
     ///     <see cref="WorkloadSummary" /> (list-card shape).
     ///     Property names match 1:1 — Mapperly handles the boilerplate.
     /// </summary>
+    /// <param name="source"></param>
     public WorkloadSummary ToSummary(Workload source);
 }

@@ -26,7 +26,7 @@ namespace Plexor.Host.UnitTests;
 public sealed class MapperlyApiSmokeTests(PostgresFixture fixture) : IClassFixture<PostgresFixture>
 {
     [Fact(DisplayName = "Given Mapperly-generated UserSummary projection, when EF Core materializes then mapper projects, then DTO field shape matches entity")]
-    public async Task MapperlyUserSummaryProjectsEndToEndFromPostgres()
+    public async Task MapperlyUserSummaryProjectsEndToEndFromPostgresAsync()
     {
         // Arrange: seed one user via the DbContext so we have a row
         // to fetch + project through Mapperly.

@@ -26,6 +26,8 @@ public static class PlexorCertAuthorityInstaller
     public static readonly TimeSpan DefaultCaLifetime = TimeSpan.FromDays(3650);
 
     /// <summary>Add Plexor CA services to the host's DI container.</summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
     public static IServiceCollection AddPlexorCertAuthority(
         this IServiceCollection services,
         IConfiguration configuration)

@@ -15,6 +15,7 @@ namespace Plexor.Shared.Mtls;
 ///     fresh root on disk if none exists, then serves it from
 ///     memory for the lifetime of the process.
 /// </summary>
+/// <param name="fileStore"></param>
 /// <remarks>Construct a root holder backed by the given file store.</remarks>
 public sealed class PlexorCaRoot(PlexorCaFileStore fileStore)
 {

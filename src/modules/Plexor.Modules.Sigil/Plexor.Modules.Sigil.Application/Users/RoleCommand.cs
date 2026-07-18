@@ -49,7 +49,7 @@ public sealed record ListRolesQuery(Guid OrgId);
 /// <summary>Public projection of <see cref="Domain.Entities.Role" />.
 /// <c>sealed partial class</c> with init-only properties for
 /// Mapperly source-generation compatibility.</summary>
-public sealed partial class RoleSummary
+public sealed class RoleSummary
 {
     /// <summary>Role id.</summary>
     public Guid Id { get; init; }

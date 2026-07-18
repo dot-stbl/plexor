@@ -24,6 +24,7 @@ public interface IClusterMapper
     ///     Map a single <see cref="Cluster" /> row to a
     ///     <see cref="ClusterSummary" /> (list-card shape).
     /// </summary>
+    /// <param name="source"></param>
     public ClusterSummary ToSummary(Cluster source);
 
     /// <summary>
@@ -32,11 +33,14 @@ public interface IClusterMapper
     ///     (single-cluster shape). <c>nodes</c> comes from a separate
     ///     <c>NodesByClusterSpec</c> repository call.
     /// </summary>
+    /// <param name="source"></param>
+    /// <param name="nodes"></param>
     public ClusterDetail ToDetail(Cluster source, IReadOnlyList<NodeSummary> nodes);
 
     /// <summary>
     ///     Map a single <see cref="Node" /> row to a
     ///     <see cref="NodeSummary" />. Property names match 1:1.
     /// </summary>
+    /// <param name="source"></param>
     public NodeSummary ToNodeSummary(Node source);
 }

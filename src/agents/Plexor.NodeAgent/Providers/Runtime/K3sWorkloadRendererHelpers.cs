@@ -12,7 +12,6 @@
 // (`K3sWorkloadRenderer.Render`) is the only caller in production.
 // ============================================================================
 
-using System.Collections.Immutable;
 using System.Text;
 
 namespace Plexor.NodeAgent.Providers.Runtime;
@@ -33,26 +32,29 @@ internal static class K3sWorkloadRendererHelpers
     ///     without external prerequisites, and lists the
     ///     resource files in declaration order.
     /// </summary>
+    /// <param name="workloadName"></param>
+    /// <param name="namespace"></param>
+    /// <param name="hasService"></param>
     public static string BuildKustomization(
         string workloadName, string @namespace, bool hasService)
     {
         var sb = new StringBuilder();
-        sb.Append("apiVersion: kustomize.config.k8s.io/v1beta1\n");
-        sb.Append("kind: Kustomization\n");
-        sb.Append("namespace: ");
-        sb.Append(@namespace);
-        sb.Append("\nresources:\n");
-        sb.Append("- deployment.yaml\n");
+        sb.Append("apiVersion: kustomize.config.k8s.io/v1beta1\n")
+            .Append("kind: Kustomization\n")
+            .Append("namespace: ")
+            .Append(@namespace)
+            .Append("\nresources:\n")
+            .Append("- deployment.yaml\n");
         if (hasService)
         {
             sb.Append("- service.yaml\n");
         }
         // Common labels propagate to all resources — useful when
         // the operator later runs `kubectl -l app=web delete all`.
-        sb.Append("commonLabels:\n");
-        sb.Append("  app: ");
-        sb.Append(workloadName);
-        sb.Append('\n');
+        sb.Append("commonLabels:\n")
+            .Append("  app: ")
+            .Append(workloadName)
+            .Append('\n');
         return sb.ToString();
     }
 
@@ -61,6 +63,13 @@ internal static class K3sWorkloadRendererHelpers
     ///     container. env: blocks sorted by key for byte-stable
     ///     YAML output (same determinism fix as Tier 3/4 renderers).
     /// </summary>
+    /// <param name="workloadName"></param>
+    /// <param name="namespace"></param>
+    /// <param name="replicas"></param>
+    /// <param name="image"></param>
+    /// <param name="ports"></param>
+    /// <param name="environment"></param>
+    /// <param name="labels"></param>
     public static string BuildDeployment(
         string workloadName,
         string @namespace,
@@ -71,45 +80,41 @@ internal static class K3sWorkloadRendererHelpers
         IReadOnlyDictionary<string, string> labels)
     {
         var sb = new StringBuilder();
-        sb.Append("apiVersion: ");
-        sb.Append(ApiVersionDeployment);
-        sb.Append("\nkind: Deployment\n");
-        sb.Append("metadata:\n");
-        sb.Append("  name: ");
-        sb.Append(workloadName);
-        sb.Append("\n  namespace: ");
-        sb.Append(@namespace);
-        sb.Append("\n  labels:\n");
+        sb.Append("apiVersion: ")
+            .Append(ApiVersionDeployment)
+            .Append("\nkind: Deployment\n")
+            .Append("metadata:\n")
+            .Append("  name: ")
+            .Append(workloadName)
+            .Append("\n  namespace: ")
+            .Append(@namespace)
+            .Append("\n  labels:\n");
         AppendLabels(sb, labels);
-        sb.Append("spec:\n");
-        sb.Append("  replicas: ");
-        sb.Append(replicas);
-        sb.Append("\n  selector:\n");
-        sb.Append("    matchLabels:\n");
-        sb.Append("      app: ");
-        sb.Append(workloadName);
-        sb.Append("\n  template:\n");
-        sb.Append("    metadata:\n");
-        sb.Append("      labels:\n");
+        sb.Append("spec:\n")
+            .Append("  replicas: ").Append(replicas)
+            .Append("\n  selector:\n")
+            .Append("    matchLabels:\n")
+            .Append("      app: ").Append(workloadName)
+            .Append("\n  template:\n")
+            .Append("    metadata:\n")
+            .Append("      labels:\n");
         AppendLabels(sb, labels);
-        sb.Append("    spec:\n");
-        sb.Append("      containers:\n");
-        sb.Append("      - name: ");
-        sb.Append(workloadName);
-        sb.Append("\n        image: ");
-        sb.Append(image);
-        sb.Append('\n');
+        sb.Append("    spec:\n")
+            .Append("      containers:\n")
+            .Append("      - name: ").Append(workloadName)
+            .Append("\n        image: ").Append(image)
+            .Append('\n');
 
         if (ports.Count > 0)
         {
             sb.Append("        ports:\n");
             foreach (var port in ports)
             {
-                sb.Append("        - containerPort: ");
-                sb.Append(port);
-                sb.Append("\n          name: port-");
-                sb.Append(port);
-                sb.Append("\n          protocol: TCP\n");
+                sb.Append("        - containerPort: ")
+                    .Append(port)
+                    .Append("\n          name: port-")
+                    .Append(port)
+                    .Append("\n          protocol: TCP\n");
             }
         }
 
@@ -119,13 +124,17 @@ internal static class K3sWorkloadRendererHelpers
             foreach (var kv in environment.OrderBy(
                          static kv => kv.Key, StringComparer.Ordinal))
             {
-                sb.Append("        - name: ");
-                sb.Append(kv.Key);
-                sb.Append("\n          value: \"");
+                sb.Append("        - name: ")
+                    .Append(kv.Key)
+                    .Append("\n          value: \"")
+                    .Append(kv.Value.Replace("\"", "\\\""))
+                    .Append("\"\n");
+
+
                 // Escape embedded quotes in env values so the
                 // emitted YAML stays parseable.
-                sb.Append(kv.Value.Replace("\"", "\\\""));
-                sb.Append("\"\n");
+
+
             }
         }
 
@@ -137,6 +146,10 @@ internal static class K3sWorkloadRendererHelpers
     ///     exposed ports on the same port number (NodePort /
     ///     LoadBalancer comes Phase 7+ via Plexor.Shared.Net).
     /// </summary>
+    /// <param name="workloadName"></param>
+    /// <param name="namespace"></param>
+    /// <param name="ports"></param>
+    /// <param name="labels"></param>
     public static string BuildService(
         string workloadName,
         string @namespace,
@@ -144,30 +157,30 @@ internal static class K3sWorkloadRendererHelpers
         IReadOnlyDictionary<string, string> labels)
     {
         var sb = new StringBuilder();
-        sb.Append("apiVersion: ");
-        sb.Append(ApiVersionService);
-        sb.Append("\nkind: Service\n");
-        sb.Append("metadata:\n");
-        sb.Append("  name: ");
-        sb.Append(workloadName);
-        sb.Append("\n  namespace: ");
-        sb.Append(@namespace);
-        sb.Append("\n  labels:\n");
+        sb.Append("apiVersion: ")
+            .Append(ApiVersionService)
+            .Append("\nkind: Service\n")
+            .Append("metadata:\n")
+            .Append("  name: ")
+            .Append(workloadName)
+            .Append("\n  namespace: ")
+            .Append(@namespace)
+            .Append("\n  labels:\n");
         AppendLabels(sb, labels);
-        sb.Append("spec:\n");
-        sb.Append("  selector:\n");
-        sb.Append("    app: ");
-        sb.Append(workloadName);
-        sb.Append("\n  ports:\n");
+        sb.Append("spec:\n")
+            .Append("  selector:\n")
+            .Append("    app: ")
+            .Append(workloadName)
+            .Append("\n  ports:\n");
         foreach (var port in ports)
         {
-            sb.Append("  - port: ");
-            sb.Append(port);
-            sb.Append("\n    targetPort: port-");
-            sb.Append(port);
-            sb.Append("\n    name: port-");
-            sb.Append(port);
-            sb.Append("\n    protocol: TCP\n");
+            sb.Append("  - port: ")
+                .Append(port)
+                .Append("\n    targetPort: port-")
+                .Append(port)
+                .Append("\n    name: port-")
+                .Append(port)
+                .Append("\n    protocol: TCP\n");
         }
         return sb.ToString();
     }
@@ -177,16 +190,18 @@ internal static class K3sWorkloadRendererHelpers
     ///     starts at <c>labels:</c> on its own line; this method
     ///     emits two-space-indented <c>key: value</c> pairs.
     /// </summary>
+    /// <param name="sb"></param>
+    /// <param name="labels"></param>
     private static void AppendLabels(
         StringBuilder sb, IReadOnlyDictionary<string, string> labels)
     {
         foreach (var kv in labels)
         {
-            sb.Append("    ");
-            sb.Append(kv.Key);
-            sb.Append(": ");
-            sb.Append(kv.Value);
-            sb.Append('\n');
+            sb.Append("    ")
+                .Append(kv.Key)
+                .Append(": ")
+                .Append(kv.Value)
+                .Append('\n');
         }
     }
 }

@@ -129,12 +129,12 @@ public sealed class ListApiKeysQueryHandler(
 {
     /// <inheritdoc />
     public Task<IReadOnlyCollection<ApiKeySummary>> HandleAsync(
-        ListApiKeysQuery query,
+        ListApiKeysQuery command,
         CancellationToken cancellationToken = default)
     {
         return db.ApiKeys
             .AsNoTracking()
-            .Where(key => key.UserId == query.OwnerId)
+            .Where(key => key.UserId == command.OwnerId)
             .OrderByDescending(key => key.CreatedAt)
             .Select(key => mapper.ToApiKeySummary(key))
             .ToArrayAsync(cancellationToken)
@@ -151,6 +151,7 @@ public sealed class ListApiKeysQueryHandler(
 ///     computes the SHA-256 fingerprint, and persists the row.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="mapper"></param>
 public sealed class AddSshKeyCommandHandler(
     IdentityDbContext db,
     ISigilMapper mapper) : ICommandHandler<AddSshKeyCommand, SshKeySummary>
@@ -254,18 +255,19 @@ public sealed class RevokeSshKeyCommandHandler(
 
 /// <summary>List SSH keys for a user.</summary>
 /// <param name="db"></param>
+/// <param name="mapper"></param>
 public sealed class ListSshKeysQueryHandler(
     IdentityDbContext db,
     ISigilMapper mapper) : ICommandHandler<ListSshKeysQuery, IReadOnlyCollection<SshKeySummary>>
 {
     /// <inheritdoc />
     public Task<IReadOnlyCollection<SshKeySummary>> HandleAsync(
-        ListSshKeysQuery query,
+        ListSshKeysQuery command,
         CancellationToken cancellationToken = default)
     {
         return db.SshKeys
             .AsNoTracking()
-            .Where(key => key.UserId == query.OwnerId)
+            .Where(key => key.UserId == command.OwnerId)
             .OrderByDescending(key => key.CreatedAt)
             .Select(key => mapper.ToSshKeySummary(key))
             .ToArrayAsync(cancellationToken)
