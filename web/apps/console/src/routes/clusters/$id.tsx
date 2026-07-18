@@ -19,6 +19,7 @@ import { PageTemplate } from '@/shared/ui/app-shell';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/primitives/tabs';
 import { AddNodeDialog, NodeRow, TokenRow, useGetCluster, useListNodes, useListTokens, countNodes, formatUptime } from '@/features/clusters';
+import { useDocumentTitle } from '@/shared/lib/use-document-title';
 
 export const Route = createFileRoute('/clusters/$id')({
   component: ClusterDetailPage,
@@ -28,6 +29,7 @@ function ClusterDetailPage() {
   const { t } = useTranslation();
   const { id } = Route.useParams();
   const { cluster } = useGetCluster(id);
+  useDocumentTitle(cluster?.name ?? null);
   const [addOpen, setAddOpen] = useState(false);
   const [tab, setTab] = useState('nodes');
 

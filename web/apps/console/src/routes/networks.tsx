@@ -3,9 +3,11 @@ import { AccountTree, Add } from '@nine-thirty-five/material-symbols-react/round
 import { useTranslation } from 'react-i18next';
 import { PlaceholderPage } from '@/shared/ui/app-shell';
 import { Button } from '@/shared/ui/primitives/button';
+import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/networks')({
   component: NetworksPage,
+  ...routeHead('Networks'),
 });
 
 function NetworksPage() {

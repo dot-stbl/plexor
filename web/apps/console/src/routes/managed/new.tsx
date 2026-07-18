@@ -32,6 +32,7 @@ import {
   useEngines,
   useRuntimeHosts,
 } from '@/features/databases';
+import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/managed/new')({
   staticData: { crumb: 'New cluster' },
@@ -39,6 +40,7 @@ export const Route = createFileRoute('/managed/new')({
     engine: typeof search.engine === 'string' ? search.engine : undefined,
   }),
   component: CreateClusterPage,
+  ...routeHead('New managed cluster'),
 });
 
 /**

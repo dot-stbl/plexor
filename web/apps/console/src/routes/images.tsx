@@ -7,6 +7,7 @@ import { Add, Delete, Image } from '@nine-thirty-five/material-symbols-react/rou
 import { Button } from '@/shared/ui/primitives/button';
 import { BulkActionToolbar } from '@/shared/ui/primitives/bulk-action-toolbar';
 import { PageTemplate } from '@/shared/ui/app-shell';
+import { routeHead } from '@/shared/lib/route-head';
 import {
   DataTable,
   DataTableToolbar,
@@ -22,6 +23,7 @@ import { getImageColumns, listImages } from '@/features/images';
 export const Route = createFileRoute('/images')({
   staticData: { crumb: 'Images' },
   component: ImagesPage,
+  ...routeHead('Images'),
 });
 
 /**

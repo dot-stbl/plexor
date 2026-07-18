@@ -5,9 +5,11 @@ import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { ClusterCard, useListClusters, countNodes } from '@/features/clusters';
+import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/clusters/')({
   component: ClustersPage,
+  ...routeHead('Clusters'),
 });
 
 function ClustersPage() {

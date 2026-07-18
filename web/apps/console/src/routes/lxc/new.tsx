@@ -25,10 +25,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { useListClusters } from '@/features/clusters';
 import type { NodeStatus } from '@/features/clusters';
+import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/lxc/new')({
   staticData: { crumb: 'New container' },
   component: CreateLxcPage,
+  ...routeHead('New container'),
 });
 
 const STATUS_LABEL: Record<NodeStatus, string> = {

@@ -2,9 +2,11 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { PageTemplate, SECTIONS, sectionPrimaryRoute } from '@/shared/ui/app-shell';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
+import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
+  ...routeHead(null),
 });
 
 const cardBase =

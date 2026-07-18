@@ -18,9 +18,11 @@ import {
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { getLxcColumns, listLxc } from '@/features/lxc';
+import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/lxc/')({
   component: LxcPage,
+  ...routeHead('LXC'),
 });
 
 /**

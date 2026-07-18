@@ -7,6 +7,7 @@ import { Add, Delete, Hexagon } from '@nine-thirty-five/material-symbols-react/r
 import { Button } from '@/shared/ui/primitives/button';
 import { BulkActionToolbar } from '@/shared/ui/primitives/bulk-action-toolbar';
 import { PageTemplate } from '@/shared/ui/app-shell';
+import { routeHead } from '@/shared/lib/route-head';
 import {
   DataTable,
   DataTableToolbar,
@@ -21,6 +22,7 @@ import { getK8sColumns, listK8s } from '@/features/k8s';
 
 export const Route = createFileRoute('/k8s/')({
   component: K8sPage,
+  ...routeHead('Kubernetes'),
 });
 
 /**

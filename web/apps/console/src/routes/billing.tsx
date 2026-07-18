@@ -3,9 +3,11 @@ import { Download, Receipt } from '@nine-thirty-five/material-symbols-react/roun
 import { useTranslation } from 'react-i18next';
 import { PlaceholderPage } from '@/shared/ui/app-shell';
 import { Button } from '@/shared/ui/primitives/button';
+import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/billing')({
   component: BillingPage,
+  ...routeHead('Billing'),
 });
 
 function BillingPage() {

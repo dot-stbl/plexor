@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Add, ArrowBack, DeployedCode, Stacks } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { Input } from '@/shared/ui/primitives/input';
+import { routeHead } from '@/shared/lib/route-head';
 import { Textarea } from '@/shared/ui/primitives/textarea';
 import { Switch } from '@/shared/ui/primitives/switch';
 import { Badge } from '@/shared/ui/primitives/badge';
@@ -32,6 +33,7 @@ import { listImages } from '@/features/images';
 export const Route = createFileRoute('/vms/new')({
   staticData: { crumb: 'New VM' },
   component: CreateVmPage,
+  ...routeHead('New VM'),
 });
 
 const STATUS_LABEL: Record<NodeStatus, string> = {

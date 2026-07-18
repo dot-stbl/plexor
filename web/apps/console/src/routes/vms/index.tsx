@@ -5,6 +5,7 @@ import { Add } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { useListVms } from '@/shared/api';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
+import { routeHead } from '@/shared/lib/route-head';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { DataTable, DataTableToolbar, emptyFilters, compactFilters, type FilterValues, type DataTableColumnsState } from '@/shared/ui/data-table';
 import { VmBulkToolbar, VmEmptyState, VmErrorBanner, VmNoResultsState, VmSkeleton, getVmColumns } from '@/features/vms';
@@ -23,6 +24,7 @@ import { MonoNum } from '@/shared/ui/primitives/mono-num';
 
 export const Route = createFileRoute('/vms/')({
   component: VmsPage,
+  ...routeHead('VMs'),
 });
 
 function VmsPage() {

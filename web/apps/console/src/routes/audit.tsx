@@ -3,9 +3,11 @@ import { FilterAlt, History } from '@nine-thirty-five/material-symbols-react/rou
 import { useTranslation } from 'react-i18next';
 import { PlaceholderPage } from '@/shared/ui/app-shell';
 import { Button } from '@/shared/ui/primitives/button';
+import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/audit')({
   component: AuditPage,
+  ...routeHead('Audit'),
 });
 
 function AuditPage() {

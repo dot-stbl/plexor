@@ -26,10 +26,12 @@ import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { useListClusters } from '@/features/clusters';
+import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/k8s/new')({
   staticData: { crumb: 'New Kubernetes cluster' },
   component: CreateK8sPage,
+  ...routeHead('New Kubernetes cluster'),
 });
 
 // A node pool = N identical nodes backed by one runtime, spanning the fleet.
