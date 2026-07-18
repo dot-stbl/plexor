@@ -74,7 +74,7 @@ export function AppSidebar() {
       {/* group/rail: hovering the collapsed rail reveals all label pills. */}
       <Sidebar collapsible="icon" data-od-id="app-sidebar" className="group/rail">
         <SidebarHeader className="gap-2 p-2">
-          {/* Expanded: [P] Plexor …… [collapse]. Collapsed: just [P] (rest hidden). */}
+          {/* Expanded: [P] Plexor / by ▪stbl …… [collapse]. Collapsed: just [P] (rest hidden). */}
           <div className="flex items-center gap-2">
             <Link
               to="/"
@@ -82,9 +82,23 @@ export function AppSidebar() {
               className="flex items-center gap-2 rounded-md p-1 text-foreground outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
             >
               <PlexorMark className="h-6 w-auto shrink-0 group-data-[collapsible=icon]:h-5" />
-              <span className="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
-                Plexor
-              </span>
+              <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+                <span className="text-sm font-semibold tracking-tight leading-tight">
+                  Plexor
+                </span>
+                <span className="flex items-center gap-1 font-mono text-[10px] leading-tight text-muted-foreground/70">
+                  by
+                  <svg
+                    viewBox="0 0 64 64"
+                    className="inline-block size-2.5"
+                    aria-hidden="true"
+                  >
+                    <rect width="64" height="64" className="fill-foreground" />
+                    <rect x="16" y="16" width="32" height="32" className="fill-background" />
+                  </svg>
+                  stbl
+                </span>
+              </div>
             </Link>
             <SidebarTrigger
               aria-label={t('shell.collapseMenu')}
