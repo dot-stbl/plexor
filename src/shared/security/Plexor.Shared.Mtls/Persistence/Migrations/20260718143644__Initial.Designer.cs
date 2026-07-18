@@ -12,8 +12,8 @@ using Plexor.Shared.Mtls.Persistence;
 namespace Plexor.Shared.Mtls.Persistence.Migrations
 {
     [DbContext(typeof(RevokedCertsDbContext))]
-    [Migration("20260716093752_RevokedCerts_Initial")]
-    partial class RevokedCerts_Initial
+    [Migration("20260718143644__Initial")]
+    partial class _Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

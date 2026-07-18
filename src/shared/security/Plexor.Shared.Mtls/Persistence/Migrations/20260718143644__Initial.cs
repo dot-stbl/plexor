@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Plexor.Shared.Mtls.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class RevokedCerts_Initial : Migration
+    public partial class _Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

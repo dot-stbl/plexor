@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Plexor.Modules.Realm.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialSchema : Migration
+    public partial class _Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,7 +16,8 @@ namespace Plexor.Modules.Realm.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "folders",
-                columns: static table => new
+                schema: "realm",
+                columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     org_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -25,12 +27,15 @@ namespace Plexor.Modules.Realm.Infrastructure.Migrations
                     status = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
-                schema: "realm",
-                constraints: static table => table.PrimaryKey("PK_folders", static x => x.id));
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_folders", x => x.id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "organizations",
-                columns: static table => new
+                schema: "realm",
+                columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
@@ -38,12 +43,15 @@ namespace Plexor.Modules.Realm.Infrastructure.Migrations
                     status = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
-                schema: "realm",
-                constraints: static table => table.PrimaryKey("PK_organizations", static x => x.id));
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_organizations", x => x.id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "teams",
-                columns: static table => new
+                schema: "realm",
+                columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     org_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -52,46 +60,48 @@ namespace Plexor.Modules.Realm.Infrastructure.Migrations
                     status = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
-                schema: "realm",
-                constraints: static table => table.PrimaryKey("PK_teams", static x => x.id));
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_teams", x => x.id);
+                });
 
             migrationBuilder.CreateIndex(
                 name: "ix_realm_folders_org_id",
+                schema: "realm",
                 table: "folders",
-                column: "org_id",
-                schema: "realm");
+                column: "org_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_realm_folders_org_id_team_id_slug",
-                table: "folders",
-                columns: ["org_id", "team_id", "slug"],
                 schema: "realm",
+                table: "folders",
+                columns: new[] { "org_id", "team_id", "slug" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_realm_folders_team_id",
+                schema: "realm",
                 table: "folders",
-                column: "team_id",
-                schema: "realm");
+                column: "team_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_realm_organizations_slug",
+                schema: "realm",
                 table: "organizations",
                 column: "slug",
-                schema: "realm",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_realm_teams_org_id",
+                schema: "realm",
                 table: "teams",
-                column: "org_id",
-                schema: "realm");
+                column: "org_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_realm_teams_org_id_slug",
-                table: "teams",
-                columns: ["org_id", "slug"],
                 schema: "realm",
+                table: "teams",
+                columns: new[] { "org_id", "slug" },
                 unique: true);
         }
 

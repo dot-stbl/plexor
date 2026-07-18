@@ -12,8 +12,8 @@ using Plexor.Modules.Sigil.Infrastructure.Persistence;
 namespace Plexor.Modules.Sigil.Infrastructure.Migrations
 {
     [DbContext(typeof(IdentityDbContext))]
-    [Migration("20260713113334_AddMustChangePassword")]
-    partial class AddMustChangePassword
+    [Migration("20260718143638__Initial")]
+    partial class _Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -356,15 +356,13 @@ namespace Plexor.Modules.Sigil.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("locked_until");
 
-                    b.Property<bool>("MustChangePassword")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("must_change_password");
-
                     b.Property<Guid>("OrgId")
                         .HasColumnType("uuid")
                         .HasColumnName("org_id");
+
+                    b.Property<DateTimeOffset?>("PasswordChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("password_changed_at");
 
                     b.Property<string>("PasswordHash")
                         .HasMaxLength(255)

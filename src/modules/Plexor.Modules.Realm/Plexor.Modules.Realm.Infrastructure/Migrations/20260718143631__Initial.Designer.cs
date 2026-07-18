@@ -12,8 +12,8 @@ using Plexor.Modules.Realm.Infrastructure.Persistence;
 namespace Plexor.Modules.Realm.Infrastructure.Migrations
 {
     [DbContext(typeof(RealmDbContext))]
-    [Migration("20260712121032_InitialSchema")]
-    partial class InitialSchema
+    [Migration("20260718143631__Initial")]
+    partial class _Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
