@@ -70,7 +70,7 @@
     <PropertyGroup>
       <_FormatLogFile>$(MSBuildThisFileDirectory)../../../obj/format-verify.log</_FormatLogFile>
     </PropertyGroup>
-    <Exec Command="dotnet format plexor.slnx verify-no-changes severity hidden no-restore $(_FormatExcludes) &gt; &quot;$(_FormatLogFile)&quot; 2&gt;&amp;1"
+    <Exec Command="dotnet format plexor.slnx --verify-no-changes --severity hidden --no-restore $(_FormatExcludes) &gt; &quot;$(_FormatLogFile)&quot; 2&gt;&amp;1"
           WorkingDirectory="$(MSBuildThisFileDirectory)../../.."
           IgnoreExitCode="true"/>
     <ReadLinesFromFile File="$(_FormatLogFile)">
