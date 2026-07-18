@@ -125,13 +125,20 @@
         var configureAwait = new Regex(@"\.ConfigureAwait\(false\)");
         var varIfNull = new Regex(@"var\s+(\w+)\s*=[^;]+;[ \t]*\r?\n[ \t]*if\s*\(?\s*\1\s+(is\s+null|==\s*null)\b");
         var sep = Path.DirectorySeparatorChar.ToString();
+        // Skip bin/obj (build outputs) and any EF Migrations folder
+        // (tool-generated, regenerated on every `dotnet ef migrations
+        // add`). The path check matches the conventional
+        // src/.../Migrations/ layout across all modules.
+        var excludedDirs = new[] { sep + "bin" + sep, sep + "obj" + sep, sep + "Migrations" + sep };
         foreach (var root in new[] { "src", "tests" })
         {
             var dir = Path.Combine(RepoRoot, root);
             if (!Directory.Exists(dir)) { continue; }
             foreach (var file in Directory.EnumerateFiles(dir, "*.cs", SearchOption.AllDirectories))
             {
-                if (file.Contains(sep + "bin" + sep) || file.Contains(sep + "obj" + sep)) { continue; }
+                var skip = false;
+                foreach (var ex in excludedDirs) { if (file.Contains(ex)) { skip = true; break; } }
+                if (skip) { continue; }
                 var text = File.ReadAllText(file);
                 if (configureAwait.IsMatch(text)) { sb.AppendLine(file + ": '.ConfigureAwait(false)' is forbidden in app code (use plain await)."); }
                 if (varIfNull.IsMatch(text)) { sb.AppendLine(file + ": 'var x = ...;' then 'if (x is null)' on separate lines (use inline 'if (expr is not { } x)')."); }
