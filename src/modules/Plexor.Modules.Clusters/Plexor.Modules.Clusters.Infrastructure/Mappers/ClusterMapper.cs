@@ -24,7 +24,7 @@
 // ==========================================================================
 
 using Plexor.Modules.Clusters.Application.Clusters;
-using Plexor.Modules.Clusters.Domain.Entities;
+using Plexor.Modules.Clusters.Domain;
 using Riok.Mapperly.Abstractions;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Mappers;

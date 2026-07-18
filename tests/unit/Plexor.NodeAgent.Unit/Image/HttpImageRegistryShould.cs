@@ -76,7 +76,7 @@ public sealed class HttpImageRegistryShould
     {
         var sut = NewRegistry(
             TempDir(),
-            new Dictionary<string, string>(),
+            [],
             new FixtureHandler("", "", HttpStatusCode.NotFound));
 
         await Should.ThrowAsync<UnknownImageException>(

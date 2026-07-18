@@ -12,10 +12,10 @@
 // call. Re-registering here would double-register and cause
 // scope/conflict errors.
 
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Application.Clusters;
+using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
@@ -38,12 +38,9 @@ public static class ClustersInfrastructureInstaller
     ///     <c>AddModuleDbContext&lt;T&gt;</c> — do not re-register here.
     /// </summary>
     /// <param name="services">The DI container.</param>
-    /// <param name="configuration">App configuration (unused in v0.1;
-    /// reserved for future options-bound module config).</param>
     /// <returns>The container, for chaining.</returns>
     public static IServiceCollection AddClustersInfrastructureCore(
-        this IServiceCollection services,
-        IConfiguration configuration)
+        this IServiceCollection services)
     {
         services.AddScoped<ICommandHandler<CreateClusterCommand, JoinTokenResult>, CreateClusterCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateClusterCommand, ClusterSummary>, UpdateClusterCommandHandler>();
@@ -88,9 +85,9 @@ public static class ClustersInfrastructureInstaller
         // Per-entity filter fields — repository reflection-builds the
         // schema once and caches. Singleton = built once, immutable.
         services.AddSingleton(
-            static sp => FilterableFieldRegistry.For<Cluster>());
+            static _ => FilterableFieldRegistry.For<Cluster>());
         services.AddSingleton(
-            static sp => FilterableFieldRegistry.For<Workload>());
+            static _ => FilterableFieldRegistry.For<Workload>());
 
         return services;
     }

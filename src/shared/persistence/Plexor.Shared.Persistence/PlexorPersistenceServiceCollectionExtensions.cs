@@ -49,6 +49,7 @@ public static class PlexorPersistenceServiceCollectionExtensions
     {
         services.AddDbContext<TContext>((sp, options) =>
         {
+            _ = sp; // Action<IServiceProvider, DbContextOptionsBuilder> signature required by EF.
             options.UseNpgsql(connectionString,
                 npg => npg.MigrationsAssembly(typeof(TContext).Assembly.GetName().Name));
 

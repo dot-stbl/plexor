@@ -103,6 +103,7 @@ public sealed class LocalDirStorage(
     /// <param name="cancellationToken"></param>
     private VolumeHandle CreateDirectory(VolumeSpec volumeSpec, CancellationToken cancellationToken)
     {
+        _ = cancellationToken; // captured for interface contract; Directory.CreateDirectory is sync
         var path = Path.Combine(root, $"{volumeSpec.Name}.dir");
 
         // Pre-populate from the base image (if any) BEFORE the
@@ -114,7 +115,7 @@ public sealed class LocalDirStorage(
         // would replace this with a CoW clone.
         Directory.CreateDirectory(path);
 
-        if (volumeSpec.BaseImageRef is { } baseRef)
+        if (volumeSpec.BaseImageRef is not null)
         {
             // Resolve via IImageRegistry — the cache may be a
             // downloaded file (HttpImageRegistry) or a local

@@ -3,7 +3,7 @@
 // NodeRepository — per-module subclass of Repository<Node>.
 // ==========================================================================
 
-using Plexor.Modules.Clusters.Domain.Entities;
+using Plexor.Modules.Clusters.Domain;
 using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Persistence;

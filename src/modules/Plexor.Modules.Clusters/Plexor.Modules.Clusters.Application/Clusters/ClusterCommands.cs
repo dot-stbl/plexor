@@ -6,7 +6,6 @@
 // ============================================================================
 
 using Plexor.Modules.Clusters.Domain;
-using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Shared.Filtering.Query;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.NodeApi;

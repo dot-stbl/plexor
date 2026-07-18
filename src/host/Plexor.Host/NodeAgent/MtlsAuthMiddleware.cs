@@ -121,7 +121,7 @@ public sealed class MtlsAuthMiddleware(
         CancellationToken cancellationToken)
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        context.Response.Headers["WWW-Authenticate"] = "mTLS";
+        context.Response.Headers.WWWAuthenticate = "mTLS";
         await context.Response.WriteAsync(reason, cancellationToken);
     }
 }

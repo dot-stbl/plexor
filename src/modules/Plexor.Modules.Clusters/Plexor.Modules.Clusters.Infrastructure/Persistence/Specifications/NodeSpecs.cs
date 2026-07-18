@@ -4,7 +4,7 @@
 // Identity projection; Repository pushes NodeSummary projection.
 // ==========================================================================
 
-using Plexor.Modules.Clusters.Domain.Entities;
+using Plexor.Modules.Clusters.Domain;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Persistence;
 

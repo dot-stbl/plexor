@@ -12,7 +12,7 @@ using Plexor.Shared.Filtering.Registry;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Kernel.Common;
 
-namespace Plexor.Modules.Clusters.Domain.Entities;
+namespace Plexor.Modules.Clusters.Domain;
 
 /// <summary>
 ///     One-time bearer credential for joining a node to a cluster.

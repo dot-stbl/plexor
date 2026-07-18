@@ -352,7 +352,7 @@ public sealed class IamApiKeysController(
         Guid keyId,
         CancellationToken cancellationToken)
     {
-        return Ok(await revokeHandler.HandleAsync(new RevokeApiKeyCommand(keyId), cancellationToken));
+        return Ok(await revokeHandler.HandleAsync(new RevokeApiKeyCommand(userId, keyId), cancellationToken));
     }
 }
 
@@ -431,7 +431,7 @@ public sealed class IamSshKeysController(
         Guid keyId,
         CancellationToken cancellationToken)
     {
-        return Ok(await revokeHandler.HandleAsync(new RevokeSshKeyCommand(keyId), cancellationToken));
+        return Ok(await revokeHandler.HandleAsync(new RevokeSshKeyCommand(userId, keyId), cancellationToken));
     }
 }
 

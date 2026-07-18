@@ -6,8 +6,6 @@
 // .agents/docs/ui/ui-state-machines.md (Node lifecycle).
 // ============================================================================
 
-using Plexor.Modules.Clusters.Domain.Entities;
-
 namespace Plexor.Modules.Clusters.Domain;
 
 /// <summary>

@@ -142,12 +142,12 @@ builder.Services.AddFiltering();
 // until then ICurrentUser always returns the anonymous defaults
 // (Guid.Empty ids + empty collections).
 builder.Services.AddSigilApplicationCore(builder.Configuration);
-builder.Services.AddSigilInfrastructureCore(builder.Configuration);
+builder.Services.AddSigilInfrastructureCore();
 builder.Services.AddPlexorSigilApi();
 
 // Clusters module — control-plane fleet (Cluster + Node aggregates +
 // NodeAgent join/heartbeat endpoints). Phase 5.
-builder.Services.AddClustersInfrastructureCore(builder.Configuration);
+builder.Services.AddClustersInfrastructureCore();
 builder.Services.AddExceptionHandler<Plexor.Modules.Clusters.Infrastructure.Errors.ClustersExceptionHandler>();
 
 // Strip our own IHostedService implementations when the host is being

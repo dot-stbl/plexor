@@ -39,8 +39,7 @@ internal sealed class HttpCommandTransport(INodeApi api, ILogger<HttpCommandTran
     {
         return await CallAsync(
             () => api.JoinAsync(request, cancellationToken),
-            "join",
-            cancellationToken);
+            "join");
     }
 
     /// <inheritdoc />
@@ -52,8 +51,7 @@ internal sealed class HttpCommandTransport(INodeApi api, ILogger<HttpCommandTran
                 await api.HeartbeatAsync(request.NodeId, request, cancellationToken);
                 return null;
             },
-            "heartbeat",
-            cancellationToken);
+            "heartbeat");
     }
 
     /// <inheritdoc />
@@ -63,8 +61,7 @@ internal sealed class HttpCommandTransport(INodeApi api, ILogger<HttpCommandTran
     {
         return await CallAsync(
             () => api.PollAsync(request.NodeId, request, cancellationToken),
-            "poll",
-            cancellationToken);
+            "poll");
     }
 
     /// <inheritdoc />
@@ -76,8 +73,7 @@ internal sealed class HttpCommandTransport(INodeApi api, ILogger<HttpCommandTran
                 await api.SubmitResultAsync(result.NodeId, result.CommandId, result, cancellationToken);
                 return null;
             },
-            "submit",
-            cancellationToken);
+            "submit");
     }
 
     /// <summary>
@@ -90,12 +86,10 @@ internal sealed class HttpCommandTransport(INodeApi api, ILogger<HttpCommandTran
     /// <typeparam name="T"></typeparam>
     /// <param name="call"></param>
     /// <param name="operation"></param>
-    /// <param name="cancellationToken"></param>
     /// <exception cref="HttpRequestException"></exception>
     private async Task<T> CallAsync<T>(
         Func<Task<T>> call,
-        string operation,
-        CancellationToken cancellationToken)
+        string operation)
     {
         try
         {

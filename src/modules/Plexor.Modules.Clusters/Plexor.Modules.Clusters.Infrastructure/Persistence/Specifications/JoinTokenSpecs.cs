@@ -3,7 +3,7 @@
 // JoinTokenSpecifications — reusable specs for JoinToken reads.
 // ==========================================================================
 
-using Plexor.Modules.Clusters.Domain.Entities;
+using Plexor.Modules.Clusters.Domain;
 using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;

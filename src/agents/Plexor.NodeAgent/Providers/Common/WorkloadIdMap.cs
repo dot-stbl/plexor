@@ -119,8 +119,7 @@ public sealed class WorkloadIdMap
     ///     Snapshot of the map for a list call. The
     ///     provider's ListAsync builds the return value from this.
     /// </summary>
-    /// <param name="agentHostname"></param>
-    public IReadOnlyList<LocalWorkload> Snapshot(string agentHostname)
+    public IReadOnlyList<LocalWorkload> Snapshot()
     {
         var now = DateTimeOffset.UtcNow;
         return [.. entries

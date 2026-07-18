@@ -59,7 +59,7 @@ builder.Services.AddModuleDbContext<IdentityDbContext>(migrationConnection);
 builder.Services.AddModuleDbContext<ClusterDbContext>(migrationConnection);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(migrationConnection);
 
-builder.Services.AddSigilInfrastructureCore(builder.Configuration);
+builder.Services.AddSigilInfrastructureCore();
 
 builder.Services.AddHostedService<MigrationRunner>();
 builder.Services.AddHostedService<IdentityBootstrapper>();

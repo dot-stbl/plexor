@@ -101,7 +101,17 @@ public sealed class SigningKeyBootstrapper(
         using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var publicPem = ecdsa.ExportSubjectPublicKeyInfoPem();
         var privatePem = ecdsa.ExportPkcs8PrivateKeyPem();
-        var kid = string.Create(CultureInfo.InvariantCulture, $"key_{DateTime.UtcNow:yyyy}_q{DateTime.UtcNow.Month / 4 + 1}");
+        // Quarter index (1..4) by month; written explicitly so IDE0047 + RCS1123
+        // (both flag `(Month/4)+1` as either superfluous or required) agree.
+        var month = DateTime.UtcNow.Month;
+        var quarter = month switch
+        {
+            <= 3 => 1,
+            <= 6 => 2,
+            <= 9 => 3,
+            _ => 4,
+        };
+        var kid = string.Create(CultureInfo.InvariantCulture, $"key_{DateTime.UtcNow:yyyy}_q{quarter}");
         return (kid, publicPem, privatePem);
     }
 }

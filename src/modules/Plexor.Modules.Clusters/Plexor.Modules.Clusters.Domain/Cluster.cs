@@ -13,7 +13,7 @@ using Plexor.Shared.Identifiers;
 using Plexor.Shared.Kernel.Common;
 using Plexor.Shared.NodeApi;
 
-namespace Plexor.Modules.Clusters.Domain.Entities;
+namespace Plexor.Modules.Clusters.Domain;
 
 /// <summary>
 ///     Plexor.Host control plane + a set of joined Plexor.NodeAgent

@@ -1,6 +1,5 @@
 using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
-using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
@@ -97,7 +96,7 @@ public sealed class ListClustersQueryHandlerShould
 
         var sut = new ListClustersQueryHandler(
             new ClusterRepository(db),
-            Shared.Filtering.Registry.FilterableFieldRegistry.For<Domain.Entities.Cluster>(),
+            Shared.Filtering.Registry.FilterableFieldRegistry.For<Domain.Cluster>(),
             new ClusterMapper());
         var filterQuery = new Plexor.Shared.Filtering.Query.FilterQuery { Page = 1, PageSize = 2 };
         var result = await sut.HandleAsync(new ListClustersQuery(orgId, filterQuery));

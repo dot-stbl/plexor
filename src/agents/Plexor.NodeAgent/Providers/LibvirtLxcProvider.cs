@@ -201,7 +201,7 @@ public sealed class LibvirtLxcProvider(
     public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken cancellationToken)
     {
         return Task.FromResult<IReadOnlyList<LocalWorkload>>(
-            workloads.Snapshot(Environment.MachineName));
+            workloads.Snapshot());
     }
 
     /// <summary>

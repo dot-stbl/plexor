@@ -49,7 +49,7 @@ public sealed class LinuxBridgeBackendShould
     ///     integration suite covers it.
     /// </summary>
     [Fact(DisplayName = "Given a network name, when AttachAsync, then handle.Reference equals the name",
-          Skip = "Requires libvirtd on host — covered by integration test suite.")]
+          Skip = "Requires virsh on PATH — covered by integration test suite.")]
     public async Task AttachHandleReferenceIsTheNetworkNameAsync()
     {
         var sut = NewBackend();

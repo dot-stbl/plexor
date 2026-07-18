@@ -35,8 +35,9 @@ public sealed record IssueApiKeyCommand(
 public sealed record IssueApiKeyResult(Guid KeyId, string RawSecret);
 
 /// <summary>Revoke an API key.</summary>
+/// <param name="OwnerId">Owner whose keys can be revoked (route-level scope).</param>
 /// <param name="KeyId">Target key id.</param>
-public sealed record RevokeApiKeyCommand(Guid KeyId);
+public sealed record RevokeApiKeyCommand(Guid OwnerId, Guid KeyId);
 
 /// <summary>List API keys for a user (active + revoked).</summary>
 /// <param name="OwnerId">Owner whose keys to enumerate.</param>
@@ -94,8 +95,9 @@ public sealed record AddSshKeyCommand(
     string PublicKey);
 
 /// <summary>Revoke an SSH key.</summary>
+/// <param name="OwnerId">Owner whose keys can be revoked (route-level scope).</param>
 /// <param name="KeyId">Target key id.</param>
-public sealed record RevokeSshKeyCommand(Guid KeyId);
+public sealed record RevokeSshKeyCommand(Guid OwnerId, Guid KeyId);
 
 /// <summary>List SSH keys for a user (active + revoked).</summary>
 /// <param name="OwnerId">Owner whose keys to enumerate.</param>

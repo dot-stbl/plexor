@@ -32,8 +32,6 @@ namespace Plexor.NodeAgent.Providers.Image;
 /// </param>
 public sealed class LocalDirImageRegistry(IOptions<ImageRegistryOptions> options) : IImageRegistry
 {
-    private readonly IOptions<ImageRegistryOptions> options = options;
-
     /// <inheritdoc />
     public IReadOnlyCollection<string> AvailableImages =>
         options.Value.Catalog.Keys.ToArray();

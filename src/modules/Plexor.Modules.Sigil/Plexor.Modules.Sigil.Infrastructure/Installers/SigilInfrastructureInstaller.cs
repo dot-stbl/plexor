@@ -9,7 +9,6 @@
 // ============================================================================
 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
@@ -45,14 +44,9 @@ public static class SigilInfrastructureInstaller
 {
     /// <summary>Register Sigil Infrastructure-layer services.</summary>
     /// <param name="services">The host's service collection.</param>
-    /// <param name="configuration">
-    ///     Reserved for Options binding in 3.2+. Pre-bound so adding
-    ///     <c>IOptions</c> later doesn't change the call site.
-    /// </param>
     /// <returns>The same <paramref name="services" /> for chaining.</returns>
     public static IServiceCollection AddSigilInfrastructureCore(
-        this IServiceCollection services,
-        IConfiguration configuration)
+        this IServiceCollection services)
     {
         // ICurrentUser implementation lives in Infrastructure.
         // Lifetime is Scoped because IHttpContextAccessor.HttpContext

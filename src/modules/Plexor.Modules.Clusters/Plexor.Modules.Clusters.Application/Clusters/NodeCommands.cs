@@ -15,7 +15,7 @@ namespace Plexor.Modules.Clusters.Application.Clusters;
 ///     First-call payload from a NodeAgent redeeming a join token.
 ///     Anonymous at the controller layer — the join token itself is
 ///     the credential. On success the host creates a
-///     <see cref="Domain.Entities.Node" /> row and returns a
+///     <see cref="Node" /> row and returns a
 ///     node-bearer token + WireGuard config.
 /// </summary>
 /// <param name="JoinToken">Opaque JWT-format token from <see cref="RotateJoinTokenCommand" />.</param>
@@ -30,8 +30,8 @@ public sealed record NodeJoinCommand(
 
 /// <summary>
 ///     Periodic keepalive from a joined node. Stamps
-///     <see cref="Domain.Entities.Node.LastHeartbeatAt" /> and flips
-///     <see cref="Domain.Entities.Node.Status" /> to
+///     <see cref="Node.LastHeartbeatAt" /> and flips
+///     <see cref="Node.Status" /> to
 ///     <see cref="NodeStatus.Ready" />. Returns 401 + node-removal
 ///     signal if the cluster has been disabled. Phase D Tier 4:
 ///     <see cref="Reports" /> drives drift detection — the control
@@ -62,7 +62,7 @@ public sealed record ListNodesQuery(ClusterId ClusterId);
 
 // --- projections ------------------------------------------------------------
 
-/// <summary>Public projection of <see cref="Domain.Entities.Node" />.
+/// <summary>Public projection of <see cref="Node" />.
 /// <c>sealed partial class</c> with init-only properties for
 /// Mapperly source-generation compatibility (see
 /// <c>ClusterMappers.ToNodeSummary</c>).</summary>

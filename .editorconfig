@@ -349,6 +349,7 @@ dotnet_diagnostic.CA1707.severity = none # identifier should not contain undersc
 dotnet_diagnostic.CA1716.severity = none # identifier should not match keyword
 dotnet_diagnostic.CA1812.severity = none # avoid uninstantiated internal classes (DI)
 dotnet_diagnostic.CA1873.severity = none # wrap logger.LogX in IsEnabled — IsEnabled wrappers are noise
+dotnet_diagnostic.xUnit1004.severity = none # \`[Fact(Skip = \"...\")]\` is the canonical xUnit pattern for environment-dependent tests; xUnit encourages \`[Trait(\"Category\", \"Integration\")]\` + filter, but for v0.1 single-suite projects the Skip parameter is the simpler escape hatch.
 dotnet_diagnostic.CA2007.severity = none # ConfigureAwait — не нужно в app code (dup of MA0004)
 dotnet_diagnostic.MA0042.severity = none # do not use blocking calls in async — sync Validate() in preloaders is fine
 dotnet_diagnostic.MA0045.severity = none # make method async — sync filter/extension methods intentionally sync

@@ -105,7 +105,7 @@ public sealed class RevokeApiKeyCommandHandler(
     {
 
         var rows = await db.ApiKeys
-            .Where(key => key.Id == command.KeyId && key.RevokedAt == null)
+            .Where(key => key.Id == command.KeyId && key.UserId == command.OwnerId && key.RevokedAt == null)
             .ExecuteUpdateAsync(
                 setters => setters.SetProperty(key => key.RevokedAt, DateTimeOffset.UtcNow),
                 cancellationToken);
@@ -238,7 +238,7 @@ public sealed class RevokeSshKeyCommandHandler(
     {
 
         var rows = await db.SshKeys
-            .Where(key => key.Id == command.KeyId && key.RevokedAt == null)
+            .Where(key => key.Id == command.KeyId && key.UserId == command.OwnerId && key.RevokedAt == null)
             .ExecuteUpdateAsync(
                 setters => setters.SetProperty(key => key.RevokedAt, DateTimeOffset.UtcNow),
                 cancellationToken);

@@ -213,7 +213,7 @@ public sealed class LibvirtKvmProvider(
     public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken cancellationToken)
     {
         return Task.FromResult<IReadOnlyList<LocalWorkload>>(
-            workloads.Snapshot(Environment.MachineName));
+            workloads.Snapshot());
     }
 
     /// <summary>

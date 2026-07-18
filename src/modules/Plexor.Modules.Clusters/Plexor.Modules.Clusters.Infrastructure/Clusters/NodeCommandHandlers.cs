@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
-using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;

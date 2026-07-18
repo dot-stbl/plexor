@@ -204,7 +204,7 @@ public sealed class LibvirtQemuProvider(
     public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken cancellationToken)
     {
         return Task.FromResult<IReadOnlyList<LocalWorkload>>(
-            workloads.Snapshot(Environment.MachineName));
+            workloads.Snapshot());
     }
 
     private LocalWorkload Snapshot(Guid id, DateTimeOffset? startedAt)

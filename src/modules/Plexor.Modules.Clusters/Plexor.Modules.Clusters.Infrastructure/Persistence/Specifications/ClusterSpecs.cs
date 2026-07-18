@@ -9,7 +9,7 @@
 // filter/order logic only.
 // ==========================================================================
 
-using Plexor.Modules.Clusters.Domain.Entities;
+using Plexor.Modules.Clusters.Domain;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Persistence;
 
