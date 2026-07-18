@@ -82,7 +82,8 @@ public sealed class DockerComposeWorkloadProvider(
         WorkloadSpec spec,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(spec);
+        // spec is non-nullable; trust the type system per
+        // .agents/rules/coding/code-shape.md §11.
         if (string.IsNullOrWhiteSpace(spec.Name))
         {
             throw new ArgumentException(
@@ -95,10 +96,10 @@ public sealed class DockerComposeWorkloadProvider(
                 $"Cannot create docker-compose workload '{spec.Name}': {error}");
 
         var id = Guid.NewGuid();
-        var manifestPath = GetManifestPath(spec.Name);
+        var manifestPath = RuntimeHelpers.ComposeManifestPath(ManifestsDirectory, spec.Name);
         var yaml = DockerComposeRenderer.Render(spec.Name, config);
 
-        EnsureDirectoryExists(Path.GetDirectoryName(manifestPath)!);
+        RuntimeHelpers.EnsureDirectoryExists(Path.GetDirectoryName(manifestPath)!);
         await File.WriteAllTextAsync(manifestPath, yaml, cancellationToken);
 
         // First-time up: pulls the image, starts the service,
@@ -244,25 +245,4 @@ public sealed class DockerComposeWorkloadProvider(
         return Task.FromResult(snapshot);
     }
 
-    /// <summary>
-    ///     Compose path convention: <c>/var/lib/plexor/workloads/&lt;name&gt;/compose.yaml</c>.
-    ///     Forward-slash (Linux-only) — see file header.
-    /// </summary>
-    private static string GetManifestPath(string serviceName)
-    {
-        return $"{ManifestsDirectory}/{serviceName}/compose.yaml";
-    }
-
-    /// <summary>
-    ///     Idempotent mkdir -p equivalent for v0.1 (no recursive
-    ///     flag needed since we're a single-host single-tenant
-    ///     deployment).
-    /// </summary>
-    private static void EnsureDirectoryExists(string directory)
-    {
-        if (!Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-    }
 }

@@ -79,7 +79,8 @@ public sealed class K3sWorkloadProvider(
         WorkloadSpec spec,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(spec);
+        // spec is non-nullable; trust the type system per
+        // .agents/rules/coding/code-shape.md §11.
         if (string.IsNullOrWhiteSpace(spec.Name))
         {
             throw new ArgumentException(
@@ -92,10 +93,10 @@ public sealed class K3sWorkloadProvider(
                 $"Cannot create k3s workload '{spec.Name}': {error}");
 
         var id = Guid.NewGuid();
-        var manifestDir = GetManifestPath(spec.Name);
+        var manifestDir = RuntimeHelpers.KustomizeManifestDirectory(ManifestsDirectory, spec.Name);
         var manifest = K3sWorkloadRenderer.Render(spec.Name, config);
 
-        EnsureDirectoryExists(manifestDir);
+        RuntimeHelpers.EnsureDirectoryExists(manifestDir);
         await File.WriteAllTextAsync(
             $"{manifestDir}/kustomization.yaml", manifest.KustomizationYaml, cancellationToken);
         await File.WriteAllTextAsync(
@@ -241,26 +242,4 @@ public sealed class K3sWorkloadProvider(
         return Task.FromResult(snapshot);
     }
 
-    /// <summary>
-    ///     Manifest directory convention:
-    ///     <c>/var/lib/plexor/workloads/k3s/&lt;name&gt;/</c>.
-    ///     Forward-slash (Linux-only) — see file header.
-    /// </summary>
-    private static string GetManifestPath(string workloadName)
-    {
-        return $"{ManifestsDirectory}/{workloadName}";
-    }
-
-    /// <summary>
-    ///     Idempotent mkdir equivalent for v0.1 (no recursive
-    ///     flag needed since we're a single-host single-tenant
-    ///     deployment).
-    /// </summary>
-    private static void EnsureDirectoryExists(string directory)
-    {
-        if (!Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-    }
 }

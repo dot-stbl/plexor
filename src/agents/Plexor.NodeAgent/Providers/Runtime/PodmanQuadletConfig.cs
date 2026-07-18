@@ -162,7 +162,7 @@ public sealed record PodmanQuadletConfig
                 return null;
             }
             var restartValue = restartProp.GetString() ?? string.Empty;
-            if (!IsValidRestartPolicy(restartValue))
+            if (!RuntimeHelpers.IsValidRestartPolicy(restartValue))
             {
                 error = $"config field 'restart' must be one of: " +
                         "no, on-success, on-failure, on-abnormal, on-watchdog, on-abort, always.";
@@ -182,15 +182,4 @@ public sealed record PodmanQuadletConfig
         };
     }
 
-    /// <summary>
-    ///     Whitelist of systemd-valid <c>Restart=</c> values.
-    ///     Anything else is a typo / misunderstanding of the
-    ///     quadlet contract and we surface it as a config error
-    ///     at parse time.
-    /// </summary>
-    private static bool IsValidRestartPolicy(string value)
-    {
-        return value is "no" or "on-success" or "on-failure" or "on-abnormal"
-            or "on-watchdog" or "on-abort" or "always";
-    }
 }

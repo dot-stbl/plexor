@@ -80,7 +80,8 @@ public sealed class PodmanQuadletWorkloadProvider(
         WorkloadSpec spec,
         CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(spec);
+        // spec is non-nullable; trust the type system per
+        // .agents/rules/coding/code-shape.md §11.
         if (string.IsNullOrWhiteSpace(spec.Name))
         {
             throw new ArgumentException(
@@ -93,16 +94,16 @@ public sealed class PodmanQuadletWorkloadProvider(
                 $"Cannot create podman-quadlet workload '{spec.Name}': {error}");
 
         var id = Guid.NewGuid();
-        var quadletPath = GetQuadletPath(spec.Name);
+        var quadletPath = RuntimeHelpers.QuadletPath(QuadletsDirectory, spec.Name);
         var quadletContents = PodmanQuadletRenderer.Render(spec.Name, config);
 
-        EnsureDirectoryExists(Path.GetDirectoryName(quadletPath)!);
+        RuntimeHelpers.EnsureDirectoryExists(Path.GetDirectoryName(quadletPath)!);
         await File.WriteAllTextAsync(quadletPath, quadletContents, cancellationToken);
 
         // Tell systemd about the new unit, then start it.
         await systemd.RunSystemctlAsync("daemon-reload", cancellationToken);
         await systemd.RunSystemctlAsync(
-            $"start {GetServiceName(spec.Name)}",
+            $"start {RuntimeHelpers.SystemdUnitName(spec.Name)}",
             cancellationToken);
 
         var now = clock.GetUtcNow();
@@ -115,7 +116,7 @@ public sealed class PodmanQuadletWorkloadProvider(
 
         logger.LogInformation(
             "Created podman-quadlet workload {Name} (localId {LocalId}, unit {Unit}, quadlet {QuadletPath})",
-            spec.Name, id, GetServiceName(spec.Name), quadletPath);
+            spec.Name, id, RuntimeHelpers.SystemdUnitName(spec.Name), quadletPath);
 
         return local;
     }
@@ -132,7 +133,7 @@ public sealed class PodmanQuadletWorkloadProvider(
         }
 
         await systemd.RunSystemctlAsync(
-            $"start {GetServiceName(local.Name)}",
+            $"start {RuntimeHelpers.SystemdUnitName(local.Name)}",
             cancellationToken);
 
         var now = clock.GetUtcNow();
@@ -160,7 +161,7 @@ public sealed class PodmanQuadletWorkloadProvider(
         }
 
         await systemd.RunSystemctlAsync(
-            $"stop {GetServiceName(local.Name)}",
+            $"stop {RuntimeHelpers.SystemdUnitName(local.Name)}",
             cancellationToken);
 
         var updated = local with { State = WorkloadState.Stopped };
@@ -187,7 +188,7 @@ public sealed class PodmanQuadletWorkloadProvider(
                 clock.GetUtcNow(), null);
         }
 
-        var unit = GetServiceName(local.Name);
+        var unit = RuntimeHelpers.SystemdUnitName(local.Name);
         if (quadletPaths.TryGetValue(id, out var quadletPath))
         {
             await systemd.RunSystemctlAsync($"stop {unit}", cancellationToken);
@@ -228,37 +229,4 @@ public sealed class PodmanQuadletWorkloadProvider(
         return Task.FromResult(snapshot);
     }
 
-    /// <summary>
-    ///     Quadlet path convention:
-    ///     <c>/etc/containers/systemd/&lt;name&gt;.container</c>.
-    ///     Forward-slash (Linux-only) — see file header.
-    /// </summary>
-    private static string GetQuadletPath(string serviceName)
-    {
-        return $"{QuadletsDirectory}/{serviceName}.container";
-    }
-
-    /// <summary>
-    ///     systemd service name convention: <c>&lt;name&gt;.service</c>.
-    ///     systemd resolves quadlets <c>&lt;name&gt;.container</c>
-    ///     into the matching <c>&lt;name&gt;.service</c> on
-    ///     <c>daemon-reload</c>.
-    /// </summary>
-    private static string GetServiceName(string serviceName)
-    {
-        return $"{serviceName}.service";
-    }
-
-    /// <summary>
-    ///     Idempotent mkdir equivalent for v0.1 (no recursive flag
-    ///     needed since we're a single-host single-tenant
-    ///     deployment).
-    /// </summary>
-    private static void EnsureDirectoryExists(string directory)
-    {
-        if (!Directory.Exists(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-    }
 }

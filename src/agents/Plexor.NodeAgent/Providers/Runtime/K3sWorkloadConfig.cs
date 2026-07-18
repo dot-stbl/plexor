@@ -108,7 +108,7 @@ public sealed record K3sWorkloadConfig
                 return null;
             }
             var nsValue = namespaceProp.GetString() ?? string.Empty;
-            if (!IsValidK8sName(nsValue))
+            if (!RuntimeHelpers.IsValidK8sName(nsValue))
             {
                 error = $"config field 'namespace' must be a valid Kubernetes " +
                         $"name (lowercase alphanumeric or '-', max 63 chars); " +
@@ -195,31 +195,4 @@ public sealed record K3sWorkloadConfig
         };
     }
 
-    /// <summary>
-    ///     RFC 1123 DNS-label validation: lowercase alphanumeric
-    ///     or '-', max 63 chars. K8s rejects anything else on
-    ///     namespace/service/deployment create.
-    /// </summary>
-    private static bool IsValidK8sName(string value)
-    {
-        if (string.IsNullOrEmpty(value) || value.Length > 63)
-        {
-            return false;
-        }
-
-        foreach (var c in value)
-        {
-            if (!char.IsAsciiLetterOrDigit(c) && c != '-')
-            {
-                return false;
-            }
-            // Lowercase only — uppercase letters return false.
-            if (char.IsAsciiLetter(c) && char.IsUpper(c))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
 }
