@@ -1,4 +1,4 @@
-# Plexor
+# plexor
 
 **self-hosted cloud platform**
 
@@ -6,7 +6,7 @@
 
 A modular monolith for self-hosted infrastructure.
 
-Plexor gives you cloud-like ergonomics on your own hardware —
+plexor gives you cloud-like ergonomics on your own hardware —
 control plane, compute, networking, identity, audit, all in
 one .NET codebase.
 
@@ -25,11 +25,11 @@ public, the runtime is not stable yet. Don't deploy this in prod.
 
 ## Modules (planned / in progress)
 
-- `Plexor.Modules.Realm` — Organization / Team / Folder hierarchy
-- `Plexor.Modules.Sigil` — Users, Roles, API keys, SSH keys
-- `Plexor.Modules.Clusters` — Control plane + Node fleet
-- `Plexor.Modules.Audit` — Audit log
-- `Plexor.Shared.Kernel` — CQRS, persistence, base types
+- `plexor.modules.realm` — Organization / Team / Folder hierarchy
+- `plexor.modules.sigil` — Users, Roles, API keys, SSH keys
+- `plexor.modules.clusters` — Control plane + Node fleet
+- `plexor.modules.audit` — Audit log
+- `plexor.shared.kernel` — CQRS, persistence, base types
 
 ## Plans
 
