@@ -87,7 +87,7 @@ When Alliance ships the endpoint:
   - Replace the TODO call site.
   - Strike the entry from contracts/dsp-tz.md (move to a "Shipped" section
     at the bottom for traceability).
-  - Commit per commit-format.md ([hybrid](shared/dsp): ...).
+  - Commit per commit-format.md ([.stbl](feat/<area>): ...).
 ```
 
 ## What this rule forbids

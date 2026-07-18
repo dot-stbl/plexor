@@ -82,7 +82,7 @@ solution. Локально-мотивированное `severity = none` рад
 2. `<PackageReference Include="..." PrivateAssets="all" />` в `Directory.Build.props` (для всех) или в `.csproj` (для одного).
 3. `dotnet build console.x.slnx -c Debug` — посмотреть новые warnings.
 4. Разобрать warnings: починить / подавить с обоснованием / baseline.
-5. Отдельный коммит `[hybrid](meta/deps): add <package> analyzer`.
+5. Отдельный коммит `[.stbl](feat/meta/deps): add <package> analyzer`.
 
 ## Связанные правила
 

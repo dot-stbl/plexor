@@ -84,7 +84,7 @@ of tier: a bad engineering-zone edit fails the build before it ships.
 # ✅ Tier A (pi-coding, owner present)
 owner: "почини TEMP DIAGNOSTICS блок в targets"
 agent: edits src/build/Hybrid.Build.Tools/Hybrid.Build.Tools.targets directly,
-       runs build gate, commits with [hybrid](meta/build): ...
+       runs build gate, commits with [.stbl](feat/meta/build): ...
 
 # ✅ Tier A — phase D-ZONE override already on the record
 agent (executing Phase 8a Task 4): rewrites src/host/Hybrid.Host/Program.cs
