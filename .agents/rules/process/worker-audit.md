@@ -14,10 +14,24 @@ Skipping = полагаться на CI чтобы поймать то что т
 
 ## Шаги (по порядку)
 
+### 0. Mechanical: format drift (ОБЯЗАТЕЛЬНО перед build)
+
+```bash
+dotnet format plexor.slnx --severity hidden
+```
+
+Format drift — самый частый повод «я не могу закоммитить, CI красный».
+Если ты не починил drift в этом шаге, build упадёт (VerifyFormatOnBuild
+target валит на любом drift), и ты будешь re-итерировать. **Чини до
+build, не после**.
+
+Если drift слишком большой (50+ violations), вынеси в отдельный
+«format cleanup» commit — не смешивай с feature-работой.
+
 ### 1. Mechanical: build + analyzer warnings
 
 ```bash
-dotnet build console.x.slnx -c Debug
+dotnet build plexor.slnx -c Debug
 ```
 
 **Любой warning = failure.** В этом проекте `TreatWarningsAsErrors=true`
