@@ -1,9 +1,3 @@
-<div align="right">
-
-<img src="https://raw.githubusercontent.com/dot-stbl/.github/main/assets/wordmark.svg" alt="" width="120">
-
-</div>
-
 # Plexor
 
 **self-hosted cloud platform**
