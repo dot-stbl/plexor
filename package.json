@@ -1,0 +1,9 @@
+{
+  "name": "plexor",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@dot-stbl/regent": "^0.5.2"
+  }
+}
