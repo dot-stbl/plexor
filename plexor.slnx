@@ -5,9 +5,6 @@
     <!--                                                                        -->
     <!-- Conventions:                                                            -->
     <!--   /src/                — production code                                 -->
-    <!--   /src/build/          — MSBuild SDK / shared targets (FIRST:           -->
-    <!--                          topological order so VerifyFormatOnBuild       -->
-    <!--                          fires exactly once per solution build)         -->
     <!--   /src/shared/         — kernel + cross-cutting libraries                -->
     <!--   /src/modules/<M>/     — vertical-slice modules (Domain/Application/    -->
     <!--                           Infrastructure)                                 -->
@@ -25,11 +22,6 @@
     <!-- ====================================================================== -->
 
     <Folder Name="/src/" />
-
-    <!-- ============ Build SDK (top of topo order — fires gates once) ====== -->
-    <Folder Name="/src/build/">
-        <Project Path="src/build/Plexor.Build.Tools/Plexor.Build.Tools.csproj" />
-    </Folder>
 
     <!-- ============ Shared libraries (grouped by concern) ================ -->
     <!-- Four sub-groups: kernel (contracts/abstractions), persistence       -->
