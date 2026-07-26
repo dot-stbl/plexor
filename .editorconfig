@@ -347,3 +347,224 @@ dotnet_diagnostic.RCS1141.severity = none
 dotnet_diagnostic.RCS1142.severity = none
 dotnet_diagnostic.RCS1140.severity = none
 dotnet_diagnostic.IDE0370.severity = none
+
+# =====================================================================
+# Generated / tool-produced files — comprehensive silence
+# =====================================================================
+# These files are NEVER hand-edited; any style enforcement is pure noise.
+# Categories (mirror .regentrc.ts `excludePaths` — keep in sync):
+#   - EF Core migrations (Migrations/**/*.cs)        -- `dotnet ef migrations add`
+#   - EF Core Designer (.Designer.cs)                -- paired with each migration
+#   - EF Core ModelSnapshot (*ModelSnapshot.cs)      -- design-time DB shape
+#   - Roslyn source-gen (*.g.cs, *.AssemblyAttributes.cs) -- GlobalUsings + assembly metadata
+#   - User-shipped Generated/                        -- open-api, klient-codegen, etc.
+#
+# Strategy: each per-glob block redeclares every severity=error rule from
+# [*.cs] with severity = none (or silent for csharp_style_* rules) so
+# generated files compile clean against the same strict enforcement that
+# applies to hand-written production code. Last-match-wins in editorconfig,
+# so blocks at the END of the file override the [*.cs] defaults.
+# Missing one rule => Roslyn still flags it on generated files => be thorough.
+# =====================================================================
+
+# ----- All EF Core migrations (covers both Migrations/Foo/*.cs and Migrations/*.cs) -----
+[Migrations/**/*.cs]
+# Roslyn diagnostics (severity=error in [*.cs]):
+dotnet_diagnostic.IDE0007.severity = none
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.IDE0011.severity = none
+dotnet_diagnostic.IDE0046.severity = none
+dotnet_diagnostic.IDE0022.severity = none
+dotnet_diagnostic.IDE0040.severity = none
+dotnet_diagnostic.VSTHRD200.severity = none
+dotnet_diagnostic.VSTHRD002.severity = none
+dotnet_diagnostic.VSTHRD103.severity = none
+dotnet_diagnostic.VSTHRD104.severity = none
+dotnet_diagnostic.CA1852.severity = none
+dotnet_diagnostic.CA2254.severity = none
+# csharp_style_* rules downgraded to silent (downgrade, not disable, so the
+# rule still resolves; just doesn't fail the build):
+csharp_style_namespace_declarations = file_scoped:silent
+csharp_using_directive_placement = outside_namespace:silent
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_var_elsewhere = true:silent
+csharp_prefer_braces = true:silent
+csharp_style_pattern_matching_over_is_with_cast_check = true:silent
+csharp_style_pattern_matching_over_as_with_null_check = true:silent
+csharp_style_inlined_variable_declaration = true:silent
+csharp_style_expression_bodied_methods = false:silent
+dotnet_style_require_accessibility_modifiers = always:silent
+# naming rule downgraded:
+dotnet_naming_rule.private_fields_camel_case.severity = none
+# ReSharper -- don't reformat / rewrap these (tool-generated formatting is
+# authoritative; let EF and Roslyn write what they write):
+resharper_braces_for_ifelse = next_line:silent
+resharper_csharp_max_line_length = unset
+resharper_csharp_indent_size = unset
+resharper_csharp_wrap_lines_style = unset
+
+# ----- EF Core Designer files (paired with each migration) -----
+# More-specific glob wins over [Migrations/**/*.cs], but EF emits long lines
+# and unchecked brace style that ReSharper likes to "fix" -- declare here so
+# the override is visible at the section that scopes the actual file shape.
+[Migrations/*.Designer.cs]
+dotnet_diagnostic.IDE0007.severity = none
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.IDE0011.severity = none
+dotnet_diagnostic.IDE0046.severity = none
+dotnet_diagnostic.IDE0022.severity = none
+dotnet_diagnostic.IDE0040.severity = none
+dotnet_diagnostic.VSTHRD200.severity = none
+dotnet_diagnostic.VSTHRD002.severity = none
+dotnet_diagnostic.VSTHRD103.severity = none
+dotnet_diagnostic.VSTHRD104.severity = none
+dotnet_diagnostic.CA1852.severity = none
+dotnet_diagnostic.CA2254.severity = none
+csharp_style_namespace_declarations = file_scoped:silent
+csharp_using_directive_placement = outside_namespace:silent
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_var_elsewhere = true:silent
+csharp_prefer_braces = true:silent
+csharp_style_pattern_matching_over_is_with_cast_check = true:silent
+csharp_style_pattern_matching_over_as_with_null_check = true:silent
+csharp_style_inlined_variable_declaration = true:silent
+csharp_style_expression_bodied_methods = false:silent
+dotnet_style_require_accessibility_modifiers = always:silent
+dotnet_naming_rule.private_fields_camel_case.severity = none
+resharper_braces_for_ifelse = next_line:silent
+resharper_csharp_max_line_length = unset
+resharper_csharp_indent_size = unset
+resharper_csharp_wrap_lines_style = unset
+
+# ----- EF Core ModelSnapshot files (one per DbContext) -----
+[Migrations/*ModelSnapshot.cs]
+dotnet_diagnostic.IDE0007.severity = none
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.IDE0011.severity = none
+dotnet_diagnostic.IDE0046.severity = none
+dotnet_diagnostic.IDE0022.severity = none
+dotnet_diagnostic.IDE0040.severity = none
+dotnet_diagnostic.VSTHRD200.severity = none
+dotnet_diagnostic.VSTHRD002.severity = none
+dotnet_diagnostic.VSTHRD103.severity = none
+dotnet_diagnostic.VSTHRD104.severity = none
+dotnet_diagnostic.CA1852.severity = none
+dotnet_diagnostic.CA2254.severity = none
+csharp_style_namespace_declarations = file_scoped:silent
+csharp_using_directive_placement = outside_namespace:silent
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_var_elsewhere = true:silent
+csharp_prefer_braces = true:silent
+csharp_style_pattern_matching_over_is_with_cast_check = true:silent
+csharp_style_pattern_matching_over_as_with_null_check = true:silent
+csharp_style_inlined_variable_declaration = true:silent
+csharp_style_expression_bodied_methods = false:silent
+dotnet_style_require_accessibility_modifiers = always:silent
+dotnet_naming_rule.private_fields_camel_case.severity = none
+resharper_braces_for_ifelse = next_line:silent
+resharper_csharp_max_line_length = unset
+resharper_csharp_indent_size = unset
+resharper_csharp_wrap_lines_style = unset
+
+# ----- Roslyn source-generated files (*.g.cs) -----
+# Auto-emitted by Roslyn source-generators (GlobalUsings.g.cs, etc.) and
+# Mapperly. Live in obj/ during build, but user-authored *.g.cs can exist
+# in source under Generated/. Same silence rules apply.
+[*.g.cs]
+dotnet_diagnostic.IDE0007.severity = none
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.IDE0011.severity = none
+dotnet_diagnostic.IDE0046.severity = none
+dotnet_diagnostic.IDE0022.severity = none
+dotnet_diagnostic.IDE0040.severity = none
+dotnet_diagnostic.VSTHRD200.severity = none
+dotnet_diagnostic.VSTHRD002.severity = none
+dotnet_diagnostic.VSTHRD103.severity = none
+dotnet_diagnostic.VSTHRD104.severity = none
+dotnet_diagnostic.CA1852.severity = none
+dotnet_diagnostic.CA2254.severity = none
+csharp_style_namespace_declarations = file_scoped:silent
+csharp_using_directive_placement = outside_namespace:silent
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_var_elsewhere = true:silent
+csharp_prefer_braces = true:silent
+csharp_style_pattern_matching_over_is_with_cast_check = true:silent
+csharp_style_pattern_matching_over_as_with_null_check = true:silent
+csharp_style_inlined_variable_declaration = true:silent
+csharp_style_expression_bodied_methods = false:silent
+dotnet_style_require_accessibility_modifiers = always:silent
+dotnet_naming_rule.private_fields_camel_case.severity = none
+resharper_braces_for_ifelse = next_line:silent
+resharper_csharp_max_line_length = unset
+resharper_csharp_indent_size = unset
+resharper_csharp_wrap_lines_style = unset
+
+# ----- Roslyn source-generated AssemblyAttributes (*.AssemblyAttributes.cs) -----
+# Emitted per-assembly by the SDK (e.g. ".NETCoreApp,Version=v10.0.AssemblyAttributes.cs").
+# Glob matches the literal "*.AssemblyAttributes.cs" suffix regardless of dir.
+[*.AssemblyAttributes.cs]
+dotnet_diagnostic.IDE0007.severity = none
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.IDE0011.severity = none
+dotnet_diagnostic.IDE0046.severity = none
+dotnet_diagnostic.IDE0022.severity = none
+dotnet_diagnostic.IDE0040.severity = none
+dotnet_diagnostic.VSTHRD200.severity = none
+dotnet_diagnostic.VSTHRD002.severity = none
+dotnet_diagnostic.VSTHRD103.severity = none
+dotnet_diagnostic.VSTHRD104.severity = none
+dotnet_diagnostic.CA1852.severity = none
+dotnet_diagnostic.CA2254.severity = none
+csharp_style_namespace_declarations = file_scoped:silent
+csharp_using_directive_placement = outside_namespace:silent
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_var_elsewhere = true:silent
+csharp_prefer_braces = true:silent
+csharp_style_pattern_matching_over_is_with_cast_check = true:silent
+csharp_style_pattern_matching_over_as_with_null_check = true:silent
+csharp_style_inlined_variable_declaration = true:silent
+csharp_style_expression_bodied_methods = false:silent
+dotnet_style_require_accessibility_modifiers = always:silent
+dotnet_naming_rule.private_fields_camel_case.severity = none
+resharper_braces_for_ifelse = next_line:silent
+resharper_csharp_max_line_length = unset
+resharper_csharp_indent_size = unset
+resharper_csharp_wrap_lines_style = unset
+
+# ----- User-shipped Generated/ folder -----
+# Convention: any code under src/**/Generated/** is auto-generated and
+# committed (openapi client stubs, klient codegen, etc.). Same silence rules.
+[Generated/**/*.cs]
+dotnet_diagnostic.IDE0007.severity = none
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.IDE0011.severity = none
+dotnet_diagnostic.IDE0046.severity = none
+dotnet_diagnostic.IDE0022.severity = none
+dotnet_diagnostic.IDE0040.severity = none
+dotnet_diagnostic.VSTHRD200.severity = none
+dotnet_diagnostic.VSTHRD002.severity = none
+dotnet_diagnostic.VSTHRD103.severity = none
+dotnet_diagnostic.VSTHRD104.severity = none
+dotnet_diagnostic.CA1852.severity = none
+dotnet_diagnostic.CA2254.severity = none
+csharp_style_namespace_declarations = file_scoped:silent
+csharp_using_directive_placement = outside_namespace:silent
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_var_elsewhere = true:silent
+csharp_prefer_braces = true:silent
+csharp_style_pattern_matching_over_is_with_cast_check = true:silent
+csharp_style_pattern_matching_over_as_with_null_check = true:silent
+csharp_style_inlined_variable_declaration = true:silent
+csharp_style_expression_bodied_methods = false:silent
+dotnet_style_require_accessibility_modifiers = always:silent
+dotnet_naming_rule.private_fields_camel_case.severity = none
+resharper_braces_for_ifelse = next_line:silent
+resharper_csharp_max_line_length = unset
+resharper_csharp_indent_size = unset
+resharper_csharp_wrap_lines_style = unset
