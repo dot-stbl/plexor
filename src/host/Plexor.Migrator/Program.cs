@@ -18,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Plexor.Migrator;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Quotas.Infrastructure.Persistence;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
@@ -54,15 +55,20 @@ var migrationConnection =
 // → Identity (users referenced by clusters.nodes) → Clusters
 // (FKs to sigil.users + realm.organizations) → Mtls RevokedCerts
 // (no FKs, kept last; shares forge schema with Clusters).
+// Quotas is isolated (polymorphic ScopeId, no FKs into Realm /
+// Sigil) — runs after them so a freshly-migrated quotas schema can
+// reference the catalog rows the seeder is about to insert.
 builder.Services.AddModuleDbContext<RealmDbContext>(migrationConnection);
 builder.Services.AddModuleDbContext<IdentityDbContext>(migrationConnection);
 builder.Services.AddModuleDbContext<ClusterDbContext>(migrationConnection);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(migrationConnection);
+builder.Services.AddModuleDbContext<QuotasDbContext>(migrationConnection);
 
 builder.Services.AddSigilInfrastructureCore();
 
 builder.Services.AddHostedService<MigrationRunner>();
 builder.Services.AddHostedService<IdentityBootstrapper>();
+builder.Services.AddHostedService<QuotaDefinitionSeeder>();
 
 var app = builder.Build();
 app.Run();
