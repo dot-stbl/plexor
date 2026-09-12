@@ -173,13 +173,13 @@ organization, on org creation. Defaults:
 |-----|---------------|
 | `compute.vms.count` | 100 |
 | `compute.vms.vcpu` | 256 |
-| `compute.vms.ram_gb` | 512 |
+| `compute.vms.ram_gb` | 1024 |
 | `storage.volumes.count` | 200 |
 | `storage.volumes.gb` | 4096 |
-| `network.floating_ips.count` | 20 |
+| `network.floating_ips.count` | 10 |
 | `network.load_balancers.count` | 20 |
-| `api.requests.per_hour.user` | 10000 |
-| `api.requests.per_hour.org` | 100000 |
+| `api.requests.per_hour.user` | 1000 |
+| `api.requests.per_hour.org` | 10000 |
 
 Seeding is idempotent: re-running the seeder on an
 existing org SHALL NOT overwrite existing assignments.

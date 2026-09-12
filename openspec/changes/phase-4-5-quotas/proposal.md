@@ -62,11 +62,11 @@ Plus:
   override flow in v1 — admin raises the limit.
 - Default assignments seeded by the `Plexor.Migrator` on org
   creation (compute.vms.count=100, compute.vms.vcpu=256,
-  compute.vms.ram_gb=512, storage.volumes.count=200,
-  storage.volumes.gb=4096, network.floating_ips.count=20,
+  compute.vms.ram_gb=1024, storage.volumes.count=200,
+  storage.volumes.gb=4096, network.floating_ips.count=10,
   network.load_balancers.count=20,
-  api.requests.per_hour.user=10000,
-  api.requests.per_hour.org=100000). Idempotent — skip on
+  api.requests.per_hour.user=1000,
+  api.requests.per_hour.org=10000). Idempotent — skip on
   re-run.
 - REST endpoints: `GET /api/v1/quotas/definitions`,
   `GET /api/v1/quotas/assignments?scope=org|team|folder&id=X`,
