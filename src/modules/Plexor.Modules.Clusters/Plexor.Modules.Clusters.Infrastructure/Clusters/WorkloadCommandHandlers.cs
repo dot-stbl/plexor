@@ -184,7 +184,7 @@ public sealed class WorkloadActionCommandHandler(
 #pragma warning disable VSTHRD103 // Sync serialize — no I/O on a small string payload.
         var payloadJson = System.Text.Json.JsonSerializer.Serialize(
             new Plexor.Shared.NodeApi.WorkloadActionPayload(
-                LocalId: workload.LocalId!));
+                LocalId: workload.LocalId));
 #pragma warning restore VSTHRD103
 
         var now = DateTimeOffset.UtcNow;
