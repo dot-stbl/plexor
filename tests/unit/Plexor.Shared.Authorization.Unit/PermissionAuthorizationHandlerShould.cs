@@ -126,6 +126,45 @@ public sealed class PermissionAuthorizationHandlerShould
         context.HasSucceeded.ShouldBeTrue();
     }
 
+    /// <summary>The literal wildcard <c>"*"</c> claim short-circuits
+    /// every permission requirement — built-in admin roles get one
+    /// such claim and the handler matches it against any required
+    /// permission, even ones the caller doesn't list individually.</summary>
+    [Fact(DisplayName = "Given a caller with the '*' wildcard claim, when authorizing, then every permission requirement succeeds")]
+    public async Task SuperAdminWildcardSucceedsForAnyPermissionAsync()
+    {
+        var handler = new PermissionAuthorizationHandler(NullLogger<PermissionAuthorizationHandler>.Instance);
+        var requirement = new PermissionRequirement("compute.vms.read");
+        var context = new AuthorizationHandlerContext(
+            [requirement],
+            ClaimsPrincipal("*"),
+            resource: null);
+
+        await handler.HandleAsync(context);
+
+        context.HasSucceeded.ShouldBeTrue();
+    }
+
+    /// <summary>The string <c>"*.*"</c> is NOT the super-admin
+    /// wildcard — it's a literal 3-segment permission that matches
+    /// nothing by itself. A caller presenting only this claim against
+    /// an unrelated requirement must fail. Guards against operators
+    /// confusing the wildcard token with a "all services" form.</summary>
+    [Fact(DisplayName = "Given a caller with '*.*' claim, when authorizing a different permission, then the requirement fails")]
+    public async Task StarDotStarIsNotSuperAdminWildcardAsync()
+    {
+        var handler = new PermissionAuthorizationHandler(NullLogger<PermissionAuthorizationHandler>.Instance);
+        var requirement = new PermissionRequirement("compute.vms.read");
+        var context = new AuthorizationHandlerContext(
+            [requirement],
+            ClaimsPrincipal("*.*"),
+            resource: null);
+
+        await handler.HandleAsync(context);
+
+        context.HasSucceeded.ShouldBeFalse();
+    }
+
     private static ClaimsPrincipal AnonymousUser()
     {
         return new ClaimsPrincipal(new ClaimsIdentity());
