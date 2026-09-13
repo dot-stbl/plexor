@@ -21,8 +21,10 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Logging.Abstractions;
+using Plexor.Host.Filters;
 using Plexor.Host.Installers;
 using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
@@ -161,15 +163,22 @@ builder.Services.AddClustersInfrastructureCore();
 builder.Services.AddExceptionHandler<Plexor.Modules.Clusters.Infrastructure.Errors.ClustersExceptionHandler>();
 
 // Quotas module — Phase 4.5.b ships the enforcer + scope resolver +
-// catalog reader. The IQuotaEnforcer service participates in the
-// caller's resource-create transaction (Compute / Storage / Network
-// wire-up lands in 4.5.c/d); 4.5.e adds IRateLimiter; 4.5.g adds
-// the controllers. Application layer has no services today (the
-// catalog seed is hosted by Plexor.Migrator); the call still goes
-// through AddQuotasApplicationCore so the Program.cs chain stays
-// stable as Application services land.
+// catalog reader; 4.5.c wires the enforcer into Compute resource-create
+// paths; 4.5.d into Storage + Network; 4.5.e adds IRateLimiter +
+// RateLimitFilter + the cleanup BackgroundService; 4.5.g adds the
+// controllers. Application layer has no services today (the catalog
+// seed is hosted by Plexor.Migrator); the call still goes through
+// AddQuotasApplicationCore so the Program.cs chain stays stable as
+// Application services land.
 builder.Services.AddQuotasApplicationCore(builder.Configuration);
 builder.Services.AddQuotasInfrastructureCore();
+
+// Rate-limit action filter (4.5.e) — runs on every authenticated
+// action before the controller. Anonymous requests bypass the filter
+// (auth middleware emits 401 before this point). The filter is
+// registered globally via MvcOptions.Filters so per-controller
+// allowlists are not yet wired (Phase 2 concern).
+builder.Services.Configure<MvcOptions>(static options => options.Filters.Add<RateLimitFilter>());
 
 // Strip our own IHostedService implementations when the host is being
 // launched by the build-time OpenAPI document generator. Without this,

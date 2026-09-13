@@ -31,10 +31,15 @@ namespace Plexor.Modules.Quotas.Infrastructure.Installers;
 ///     the catalog seeder (<c>QuotaDefinitionSeeder</c>) outside this
 ///     installer because the seed must run after schema migrations
 ///     apply.</para>
-///     <para><b>What lands in 4.5.e+.</b>
-///     <c>IRateLimiter</c> EF implementation; 4.5.g adds the
-///     <c>QuotaExceededException</c> → 429 ProblemDetails exception
-///     handler.</para>
+///     <para><b>What lands in 4.5.e.</b>
+///     <c>IRateLimiter</c> (scoped — shares the per-request DbContext
+///     with the controller the filter wraps) and
+///     <see cref="RateLimitCleanupService" /> (singleton hosted
+///     service — opens its own scope per sweep).</para>
+///     <para><b>What lands in 4.5.g+.</b>
+///     The <c>QuotaExceededException</c> → 429 ProblemDetails exception
+///     handler lives in the Api project (registered alongside the
+///     controllers).</para>
 /// </remarks>
 public static class QuotasInfrastructureInstaller
 {
@@ -62,6 +67,18 @@ public static class QuotasInfrastructureInstaller
         // pg_advisory_xact_lock. Participates in the caller's
         // transaction; the caller rolls back on Denied.
         services.AddScoped<IQuotaEnforcer, EfQuotaEnforcer>();
+
+        // IRateLimiter — sliding-window rate limit. Scoped — shares
+        // the per-request DbContext with the controller the
+        // RateLimitFilter wraps. Reads the count + inserts one event
+        // row per call; the cleanup BackgroundService keeps the table
+        // bounded.
+        services.AddScoped<IRateLimiter, EfRateLimiter>();
+
+        // RateLimitCleanupService — singleton hosted service. The
+        // BackgroundService opens its own scope per sweep (DbContext
+        // is scoped per request, not per host).
+        services.AddHostedService<RateLimitCleanupService>();
 
         return services;
     }
