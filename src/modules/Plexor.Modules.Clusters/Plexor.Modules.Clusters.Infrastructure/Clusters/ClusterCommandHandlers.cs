@@ -15,7 +15,9 @@ using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.Kernel.Quotas;
 using Plexor.Shared.NodeApi;
+using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 
@@ -25,16 +27,41 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 ///     <see cref="JoinTokenResult" /> for the operator's join-landing
 ///     page.
 /// </summary>
-/// <param name="db"></param>
+/// <param name="db">EF Core context for the resource-create transaction.</param>
+/// <param name="quotaEnforcer">
+///     Reserves <c>compute.clusters.count</c> capacity inside the same
+///     transaction as the cluster INSERT — see 4.5.c and
+///     <c>openspec/changes/phase-4-5-quotas/design.md</c> §"Enforcement:
+///     pure-sync with pg_advisory_xact_lock".
+/// </param>
+/// <remarks>
+///     <para><b>Why a transaction wraps the whole handler.</b> The
+///     enforcer's <c>UPDATE quotas.quota_usage</c> + the cluster +
+///     join-token INSERTs share one Postgres connection (via the
+///     shared <c>NpgsqlDataSource</c>; see
+///     <see cref="Plexor.Shared.Persistence.PlexorDataSourceExtensions" />)
+///     and commit / roll back together. A duplicate-name collision
+///     inside the uniqueness check, or any other pre-commit failure,
+///     rolls back the reserved quota automatically — the caller never
+///     sees a quota counter that disagrees with the live resource
+///     set.</para>
+///     <para><b>Why the enforcer runs before the uniqueness check.</b>
+///     A request that's over-quota fails fast on the enforcer's
+///     <c>Denied</c> without touching the uniqueness SELECT. A request
+///     that's within quota but collides on name rolls back the
+///     reservation cleanly because the open transaction disposes
+///     before the exception propagates.</para>
+/// </remarks>
 public sealed class CreateClusterCommandHandler(
-    ClusterDbContext db) : ICommandHandler<CreateClusterCommand, JoinTokenResult>
+    ClusterDbContext db,
+    IQuotaEnforcer quotaEnforcer) : ICommandHandler<CreateClusterCommand, JoinTokenResult>
 {
     /// <inheritdoc />
     public async Task<JoinTokenResult> HandleAsync(
         CreateClusterCommand command,
         CancellationToken cancellationToken = default)
     {
-
+        // Cheap in-memory validation — no DB hit, no quota cost yet.
         if (string.IsNullOrWhiteSpace(command.Name))
         {
             throw new ClustersException(
@@ -50,6 +77,37 @@ public sealed class CreateClusterCommandHandler(
                 "Expected one of: docker-compose, podman-quadlet, k3s.");
         }
 
+        // Single transaction: the enforcer's UPDATE on quotas.quota_usage
+        // and the cluster + join-token INSERTs commit (or roll back)
+        // together. Both contexts (ClusterDbContext + QuotasDbContext)
+        // draw from the shared NpgsqlDataSource. The transaction is
+        // skipped against non-relational providers (e.g. the InMemory
+        // provider used by handler unit tests) — production runs
+        // always go through the transactional path.
+        await using var transaction =
+            await db.Database.BeginTransactionIfSupportedAsync(cancellationToken);
+
+        // Pre-check + reserve BEFORE the uniqueness SELECT. The enforcer
+        // acquires pg_advisory_xact_lock at scope granularity + upserts
+        // quota_usage + bumps current_value. If the scope is over
+        // limit, the open transaction rolls back via Dispose (no
+        // INSERT was made yet).
+        var quotaCheck = await quotaEnforcer.CheckAndReserveAsync(
+            QuotaScope.Org(command.OrgId),
+            QuotaDefinitionKey.ClustersCount,
+            amount: 1,
+            cancellationToken);
+
+        if (quotaCheck is QuotaCheckResult.Denied denied)
+        {
+            throw new QuotaExceededException(
+                denied.Limit,
+                denied.Used,
+                denied.Requested);
+        }
+
+        // Uniqueness check now runs inside the transaction so a
+        // duplicate-name collision rolls back the reserved quota.
         if (await db.Clusters.AsNoTracking().AnyAsync(
                 cluster => cluster.OrgId == command.OrgId && cluster.Name == command.Name,
                 cancellationToken))
@@ -93,6 +151,10 @@ public sealed class CreateClusterCommandHandler(
         await db.Clusters.AddAsync(cluster, cancellationToken);
         await db.JoinTokens.AddAsync(joinToken, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
 
         return new JoinTokenResult(
             clusterId,

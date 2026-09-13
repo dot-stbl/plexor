@@ -14,6 +14,8 @@ using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.Kernel.Quotas;
+using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 
@@ -26,11 +28,37 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 ///     <see cref="WorkloadSummary" /> so the operator's
 ///     <c>POST</c> response carries the wire id.
 /// </summary>
-/// <param name="db">EF Core context for the write.</param>
+/// <param name="db">EF Core context for the resource-create transaction.</param>
 /// <param name="mapper">Entity → DTO mapper (Mapperly-generated).</param>
+/// <param name="quotaEnforcer">
+///     Reserves <c>compute.workloads.count</c> capacity inside the same
+///     transaction as the workload INSERT — see 4.5.c and
+///     <c>openspec/changes/phase-4-5-quotas/design.md</c> §"Enforcement:
+///     pure-sync with pg_advisory_xact_lock".</param>
+/// <remarks>
+///     <para><b>OrgId lookup.</b> The quota is org-scoped (the
+///     workload catalog counts at the org level, not per cluster), so
+///     the handler fetches the parent cluster's <c>OrgId</c> via a
+///     single-column SELECT before calling the enforcer. A missing
+///     parent cluster throws <see cref="ClustersExceptions.ClusterNotFound" />
+///     before any quota is consumed.</para>
+///     <para><b>Why a transaction wraps the whole handler.</b>
+///     <c>compute.workloads.count</c> reserves inside the same
+///     transaction as the workload INSERT (both share the shared
+///     <c>NpgsqlDataSource</c>). A duplicate-name collision inside
+///     the cluster uniqueness check, or any other pre-commit failure,
+///     rolls back the reservation automatically.</para>
+///     <para><b>Why the enforcer runs before the uniqueness check.</b>
+///     An over-quota request fails fast on the enforcer's <c>Denied</c>
+///     without touching the uniqueness SELECT. A within-quota request
+///     that collides on name rolls back the reservation cleanly
+///     because the open transaction disposes before the exception
+///     propagates.</para>
+/// </remarks>
 public sealed class CreateWorkloadCommandHandler(
     ClusterDbContext db,
-    IWorkloadMapper mapper) : ICommandHandler<CreateWorkloadCommand, WorkloadSummary>
+    IWorkloadMapper mapper,
+    IQuotaEnforcer quotaEnforcer) : ICommandHandler<CreateWorkloadCommand, WorkloadSummary>
 {
     /// <inheritdoc />
     public async Task<WorkloadSummary> HandleAsync(
@@ -51,6 +79,43 @@ public sealed class CreateWorkloadCommandHandler(
                 "Workload kind is required.");
         }
 
+        // Single transaction: enforcer UPDATE on quotas.quota_usage +
+        // workload INSERT commit (or roll back) together. Skipped
+        // against non-relational providers (e.g. the InMemory
+        // provider used by handler unit tests) — production runs
+        // always go through the transactional path.
+        await using var transaction =
+            await db.Database.BeginTransactionIfSupportedAsync(cancellationToken);
+
+        // Resolve the cluster's OrgId for the org-scoped quota lookup.
+        // The Workload row holds cluster_id but no FK (forge schema
+        // doesn't enforce it — see WorkloadConfiguration); fetching the
+        // parent cluster's OrgId also serves as a sanity check that
+        // the cluster exists before we burn quota.
+        var clusterOrgId = await db.Clusters.AsNoTracking()
+            .Where(cluster => cluster.Id == command.ClusterId)
+            .Select(static cluster => (Guid?)cluster.OrgId)
+            .FirstOrDefaultAsync(cancellationToken) ?? throw new ClustersException(
+                ClustersExceptions.ClusterNotFound,
+                $"Cluster '{command.ClusterId}' not found.");
+
+        // Pre-check + reserve compute.workloads.count at the org scope.
+        var quotaCheck = await quotaEnforcer.CheckAndReserveAsync(
+            QuotaScope.Org(clusterOrgId),
+            QuotaDefinitionKey.WorkloadsCount,
+            amount: 1,
+            cancellationToken);
+
+        if (quotaCheck is QuotaCheckResult.Denied denied)
+        {
+            throw new QuotaExceededException(
+                denied.Limit,
+                denied.Used,
+                denied.Requested);
+        }
+
+        // Uniqueness check now runs inside the transaction so a
+        // duplicate-name collision rolls back the reserved quota.
         if (await db.Workloads.AsNoTracking().AnyAsync(
                 w => w.ClusterId == command.ClusterId && w.Name == command.Name,
                 cancellationToken))
@@ -79,6 +144,10 @@ public sealed class CreateWorkloadCommandHandler(
 
         await db.Workloads.AddAsync(workload, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
 
         return mapper.ToSummary(workload);
     }
@@ -184,7 +253,7 @@ public sealed class WorkloadActionCommandHandler(
 #pragma warning disable VSTHRD103 // Sync serialize — no I/O on a small string payload.
         var payloadJson = System.Text.Json.JsonSerializer.Serialize(
             new Plexor.Shared.NodeApi.WorkloadActionPayload(
-                LocalId: workload.LocalId!));
+                LocalId: workload.LocalId));
 #pragma warning restore VSTHRD103
 
         var now = DateTimeOffset.UtcNow;

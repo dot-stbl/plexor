@@ -24,6 +24,13 @@ keys:
 - `compute.vms.count` — number of VMs.
 - `compute.vms.vcpu` — cumulative vCPU across VMs.
 - `compute.vms.ram_gb` — cumulative RAM GiB across VMs.
+- `compute.clusters.count` — number of clusters in the
+  org. Reserved by `CreateClusterCommandHandler` inside the
+  resource-create transaction (4.5.c).
+- `compute.workloads.count` — number of workloads across
+  all clusters in the org. Reserved by
+  `CreateWorkloadCommandHandler` inside the resource-create
+  transaction (4.5.c).
 - `storage.volumes.count` — number of volumes.
 - `storage.volumes.gb` — cumulative volume GiB.
 - `network.floating_ips.count` — number of floating IPs.
@@ -174,6 +181,8 @@ organization, on org creation. Defaults:
 | `compute.vms.count` | 100 |
 | `compute.vms.vcpu` | 256 |
 | `compute.vms.ram_gb` | 1024 |
+| `compute.clusters.count` | 10 |
+| `compute.workloads.count` | 100 |
 | `storage.volumes.count` | 200 |
 | `storage.volumes.gb` | 4096 |
 | `network.floating_ips.count` | 10 |

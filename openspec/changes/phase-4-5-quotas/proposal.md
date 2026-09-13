@@ -50,7 +50,14 @@ Plus:
   `CheckAndReserveAsync(scope, definitionKey, amount, ct)`.
   Implementation uses Postgres `pg_advisory_xact_lock` at scope
   granularity, taken inside the resource-create transaction
-  (atomic with the INSERT). No async reconcile.
+  (atomic with the INSERT). No async reconcile. The lock +
+  the resource INSERT require a shared `NpgsqlDataSource`
+  singleton across every `PlexorDbContext` — Postgres advisory
+  locks are connection-scoped, not database-scoped, so without a
+  shared pool the lock and the UPDATE would land on a different
+  physical connection than the INSERT. The composition root wires
+  one `NpgsqlDataSource` via `PlexorDataSourceExtensions.AddPlexorDataSource`
+  and every `AddModuleDbContext<TContext>` overload draws from it.
 - `IRateLimiter` in `Plexor.Shared.Kernel` with sliding-window
   count via `SELECT COUNT(*) FROM rate_limit_events WHERE
   principal_id = $1 AND occurred_at > now() - interval '1 hour'`.
@@ -62,7 +69,8 @@ Plus:
   override flow in v1 — admin raises the limit.
 - Default assignments seeded by the `Plexor.Migrator` on org
   creation (compute.vms.count=100, compute.vms.vcpu=256,
-  compute.vms.ram_gb=1024, storage.volumes.count=200,
+  compute.vms.ram_gb=1024, compute.clusters.count=10,
+  compute.workloads.count=100, storage.volumes.count=200,
   storage.volumes.gb=4096, network.floating_ips.count=10,
   network.load_balancers.count=20,
   api.requests.per_hour.user=1000,

@@ -6,6 +6,7 @@
 // here; those are covered by integration tests against real Postgres.
 // ==========================================================================
 
+using NSubstitute;
 using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
@@ -14,6 +15,7 @@ using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.Kernel.Quotas;
 using Plexor.Shared.Workloads;
 using Shouldly;
 using Xunit;
@@ -27,7 +29,7 @@ public sealed class CreateWorkloadCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper());
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer());
 
         var result = await sut.HandleAsync(
             new CreateWorkloadCommand(cluster.Id, "web-1", "vm", /*lang=json,strict*/ """{"image":"nginx:latest"}"""));
@@ -51,7 +53,7 @@ public sealed class CreateWorkloadCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper());
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer());
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "", "vm", "{}")));
@@ -64,7 +66,7 @@ public sealed class CreateWorkloadCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper());
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer());
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "web-1", "", "{}")));
@@ -90,7 +92,7 @@ public sealed class CreateWorkloadCommandHandlerShould
             UpdatedAt = now,
         });
         await db.SaveChangesAsync();
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper());
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer());
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "web-1", "vm", "{}")));
@@ -114,5 +116,25 @@ public sealed class CreateWorkloadCommandHandlerShould
         await db.Clusters.AddAsync(cluster);
         await db.SaveChangesAsync();
         return cluster;
+    }
+
+    /// <summary>
+    ///     NSubstitute-backed <see cref="IQuotaEnforcer" /> that always
+    ///     returns <see cref="QuotaCheckResult.Allowed" />. Lets the
+    ///     existing workload-handler tests stay focused on the workload
+    ///     path without spinning up the EF enforcer (which requires a
+    ///     real Postgres). Tests that need to exercise the denied path
+    ///     can swap this for a customised substitute.
+    /// </summary>
+    private static IQuotaEnforcer AllowedQuotaEnforcer()
+    {
+        var enforcer = Substitute.For<IQuotaEnforcer>();
+        enforcer.CheckAndReserveAsync(
+            Arg.Any<QuotaScope>(),
+            Arg.Any<QuotaDefinitionKey>(),
+            Arg.Any<decimal>(),
+            Arg.Any<CancellationToken>())
+            .Returns(new QuotaCheckResult.Allowed());
+        return enforcer;
     }
 }
