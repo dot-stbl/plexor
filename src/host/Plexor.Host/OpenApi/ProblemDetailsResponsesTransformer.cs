@@ -49,6 +49,7 @@ public sealed class ProblemDetailsResponsesTransformer : IOpenApiOperationTransf
         ("400", "Bad Request — request body or query parameters failed validation.", ProblemDetailsSchemas.Validation()),
         ("404", "Not Found — the requested resource does not exist.", ProblemDetailsSchemas.Base()),
         ("409", "Conflict — the request collides with the current state of the target resource.", ProblemDetailsSchemas.Base()),
+        ("429", "Too Many Requests — sliding-window rate limit on the principal or org window fired (4.5.e).", ProblemDetailsSchemas.Base()),
         ("500", "Internal Server Error — an unexpected server-side failure occurred.", ProblemDetailsSchemas.Base()),
     ];
 

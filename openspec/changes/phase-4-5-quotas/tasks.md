@@ -66,17 +66,17 @@ current state of `plexor.slnx`.
 
 ## 4.5.e — IRateLimiter + RateLimitFilter
 
-- [ ] `IRateLimiter` interface in `Plexor.Shared.Kernel`.
-- [ ] `EfRateLimiter`: sliding window via
+- [x] `IRateLimiter` interface in `Plexor.Shared.Kernel`.
+- [x] `EfRateLimiter`: sliding-window via
   `SELECT COUNT(*)` + INSERT into `rate_limit_events` per call.
-- [ ] `RateLimitResult`: `Allowed` / `AllowedWithWarning` /
+- [x] `RateLimitResult`: `Allowed` / `AllowedWithWarning` /
   `Denied` (with `RetryAfter`).
-- [ ] `RateLimitFilter : IAsyncActionFilter` — runs after auth,
+- [x] `RateLimitFilter : IAsyncActionFilter` — runs after auth,
   before controller.
-- [ ] Principal resolution: user from JWT, api_key from claims.
-- [ ] Two principals checked: `principal_id` (user or key),
+- [x] Principal resolution: user from JWT, api_key from claims.
+- [x] Two principals checked: `principal_id` (user or key),
   `org_id` (aggregate).
-- [ ] Cleanup BackgroundService — daily delete events older
+- [x] Cleanup BackgroundService — daily delete events older
   than the max period (1h for v1).
 
 ## 4.5.f — OrgSeeder (default assignments)
