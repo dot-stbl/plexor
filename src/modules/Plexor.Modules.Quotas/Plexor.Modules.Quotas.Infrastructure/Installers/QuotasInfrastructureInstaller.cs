@@ -36,6 +36,13 @@ namespace Plexor.Modules.Quotas.Infrastructure.Installers;
 ///     with the controller the filter wraps) and
 ///     <see cref="RateLimitCleanupService" /> (singleton hosted
 ///     service — opens its own scope per sweep).</para>
+///     <para><b>What lands in 4.5.f.</b>
+///     <c>IOrgSeeder</c> (scoped — same DbContext lifetime as the
+///     enforcer) and <c>OrgSeederHostedService</c> (singleton hosted
+///     service — runs once at startup, opens its own scope). The
+///     composition root (Plexor.Host / Plexor.Migrator) wires the
+///     <c>Func&lt;CancellationToken, Task&lt;IReadOnlyCollection&lt;Guid&gt;&gt;&gt;</c>
+///     delegate the hosted service consumes to enumerate org ids.</para>
 ///     <para><b>What lands in 4.5.g+.</b>
 ///     The <c>QuotaExceededException</c> → 429 ProblemDetails exception
 ///     handler lives in the Api project (registered alongside the
@@ -75,10 +82,21 @@ public static class QuotasInfrastructureInstaller
         // bounded.
         services.AddScoped<IRateLimiter, EfRateLimiter>();
 
+        // IOrgSeeder — 4.5.f. Inserts one QuotaAssignment row per
+        // catalog default for every org. Scoped — the hosted service
+        // opens its own scope per sweep.
+        services.AddScoped<IOrgSeeder, EfOrgSeeder>();
+
         // RateLimitCleanupService — singleton hosted service. The
         // BackgroundService opens its own scope per sweep (DbContext
         // is scoped per request, not per host).
         services.AddHostedService<RateLimitCleanupService>();
+
+        // OrgSeederHostedService — 4.5.f. Runs once at host/migrator
+        // startup. Resolves the IOrgSeeder from a fresh scope and
+        // delegates to it for the org ids the composition root
+        // supplied via the Func<...> delegate.
+        services.AddHostedService<OrgSeederHostedService>();
 
         return services;
     }

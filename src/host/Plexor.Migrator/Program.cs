@@ -18,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Plexor.Migrator;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Quotas.Infrastructure.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Persistence;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
@@ -71,6 +72,36 @@ builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
 
 builder.Services.AddSigilInfrastructureCore();
+
+// Quotas infrastructure — needed for the OrgSeederHostedService (4.5.f)
+// and its IOrgSeeder dependency. Other Quotas services registered by
+// this installer (catalog / scope resolver / enforcer / rate limiter /
+// RateLimitCleanupService) are inert for the migrator's short
+// lifetime — only IOrgSeeder + OrgSeederHostedService are actually
+// resolved. RateLimitCleanupService is a no-op during the typical
+// one-shot migrate cycle (no hourly sweep boundary falls inside).
+builder.Services.AddQuotasInfrastructureCore();
+
+// OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
+// to seed. Same pattern as Plexor.Host — singleton delegate opens a
+// fresh scope so the scoped RealmDbContext lifetime is respected.
+// Non-async lambda body — the Realm query is a simple SELECT id, so
+// sync ToList is fine; wrapping in Task.FromResult avoids the
+// Task<List<T>> → Task<IReadOnlyCollection<T>> invariance issue that
+// trips the async-lambda form. In v0.1 the Realm query typically
+// returns zero rows (the migrator runs Realm migrations but does not
+// seed an org yet — that's a Phase 2 concern); the hosted service
+// no-ops gracefully in that case.
+builder.Services.AddSingleton<Func<CancellationToken, Task<IReadOnlyCollection<Guid>>>>(
+    static sp => cancellationToken =>
+    {
+        using var scope = sp.CreateAsyncScope();
+        var realm = scope.ServiceProvider.GetRequiredService<RealmDbContext>();
+        var ids = realm.Organizations
+            .Select(static organization => organization.Id)
+            .ToList();
+        return Task.FromResult<IReadOnlyCollection<Guid>>(ids);
+    });
 
 builder.Services.AddHostedService<MigrationRunner>();
 builder.Services.AddHostedService<IdentityBootstrapper>();
