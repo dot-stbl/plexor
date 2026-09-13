@@ -47,6 +47,9 @@ public static class IdentityExceptions
     /// <summary>Refresh token reuse detected — family revocation triggered.</summary>
     public const string RefreshTokenReplayed = "identity.refresh_token.replayed";
 
+    /// <summary>Refresh token past its expiry instant — caller must log in again.</summary>
+    public const string RefreshTokenExpired = "identity.refresh_token.expired";
+
     /// <summary>API key presented an unknown kid or wrong secret.</summary>
     public const string InvalidApiKey = "identity.api_key.invalid";
 
