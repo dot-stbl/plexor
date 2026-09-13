@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "workspaces": ["apps/*", "tooling/*"],
   "scripts": {
     "dev": "bun --filter '@plexor/console' dev",
     "build": "bun --filter '@plexor/console' build",
