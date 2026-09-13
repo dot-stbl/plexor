@@ -34,6 +34,11 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />
+    <!-- Phase 4.5 — quotas enforcer + scope resolver (4.5.b). The
+         Application layer holds IQuotaCatalog; Infrastructure holds
+         IQuotaScopeResolver + IQuotaEnforcer + the DbContext. -->
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Quotas\Plexor.Modules.Quotas.Application\Plexor.Modules.Quotas.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Quotas\Plexor.Modules.Quotas.Infrastructure\Plexor.Modules.Quotas.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

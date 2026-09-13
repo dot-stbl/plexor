@@ -29,4 +29,10 @@
     <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
+  <!-- EfQuotaCatalog + EfQuotaScopeResolver are public so the unit-test
+       project can construct them directly (the test asserts EF-query
+       semantics on the in-memory provider). EfQuotaEnforcer stays internal
+       because its raw-SQL path needs a real Postgres — tests go through
+       IQuotaEnforcer in 4.5.c/d when the integration test infra lands. -->
+
 </Project>

@@ -105,6 +105,7 @@
         <Project Path="tests/unit/Plexor.ArchitectureTests/Plexor.ArchitectureTests.csproj" />
         <Project Path="tests/unit/Plexor.Host.UnitTests/Plexor.Host.UnitTests.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Clusters.Unit/Plexor.Modules.Clusters.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Modules.Quotas.Unit/Plexor.Modules.Quotas.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Realm.Unit/Plexor.Modules.Realm.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Sigil.Unit/Plexor.Modules.Sigil.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Filtering.Unit/Plexor.Shared.Filtering.Unit.csproj" />

@@ -12,6 +12,10 @@
 // ============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
+using Plexor.Modules.Quotas.Application.Quotas;
+using Plexor.Modules.Quotas.Infrastructure.Persistence;
+using Plexor.Modules.Quotas.Infrastructure.Quotas;
+using Plexor.Shared.Kernel.Quotas;
 
 namespace Plexor.Modules.Quotas.Infrastructure.Installers;
 
@@ -19,23 +23,18 @@ namespace Plexor.Modules.Quotas.Infrastructure.Installers;
 ///     DI registration extension for the Quotas Infrastructure layer.
 /// </summary>
 /// <remarks>
-///     <para><b>What's here in 4.5.a.</b>
-///     The catalog seed <c>IHostedService</c> lives in
-///     <c>Plexor.Migrator</c> (alongside <c>IdentityBootstrapper</c>)
-///     because the seed is part of the migrator's startup sequence —
-///     the catalog must be present before <c>MigrationRunner</c>
-///     finishes. It is registered via
-///     <c>builder.Services.AddHostedService&lt;QuotaDefinitionSeeder&gt;()</c>
-///     in <c>Plexor.Migrator/Program.cs</c>, not here.</para>
-///     <para><b>What lands in 4.5.b+.</b>
-///     <list type="bullet">
-///       <item><c>IQuotaCatalog</c> EF implementation (Application interface
-///       → Infrastructure binding).</item>
-///       <item><c>IQuotaEnforcer</c> EF implementation + scope resolver.</item>
-///       <item><c>IRateLimiter</c> EF implementation.</item>
-///       <item>4.5.g exception handler mapping
-///       <c>QuotaExceededException</c> → 429 ProblemDetails.</item>
-///     </list></para>
+///     <para><b>What's here in 4.5.b.</b>
+///     <c>IQuotaCatalog</c>, <c>IQuotaScopeResolver</c>, and
+///     <c>IQuotaEnforcer</c> EF implementations. All three are scoped
+///     — they share the <see cref="QuotasDbContext" /> lifetime with
+///     the caller's resource-create transaction. The migrator hosts
+///     the catalog seeder (<c>QuotaDefinitionSeeder</c>) outside this
+///     installer because the seed must run after schema migrations
+///     apply.</para>
+///     <para><b>What lands in 4.5.e+.</b>
+///     <c>IRateLimiter</c> EF implementation; 4.5.g adds the
+///     <c>QuotaExceededException</c> → 429 ProblemDetails exception
+///     handler.</para>
 /// </remarks>
 public static class QuotasInfrastructureInstaller
 {
@@ -50,11 +49,20 @@ public static class QuotasInfrastructureInstaller
     public static IServiceCollection AddQuotasInfrastructureCore(
         this IServiceCollection services)
     {
-        // 4.5.a ships no Infrastructure services yet. The catalog
-        // seeder is hosted by Plexor.Migrator (it must run after
-        // schema migrations apply). 4.5.b adds IQuotaCatalog +
-        // IQuotaEnforcer bindings; 4.5.e adds IRateLimiter; 4.5.g adds
-        // the exception handler.
+        // IQuotaCatalog — read-only EF surface over quota_definitions.
+        // Used by the resolver (effective-limit lookup) and the 4.5.g
+        // REST endpoint.
+        services.AddScoped<IQuotaCatalog, EfQuotaCatalog>();
+
+        // IQuotaScopeResolver — walks folder → org → default. The team
+        // row is Phase 2. Reads only.
+        services.AddScoped<IQuotaScopeResolver, EfQuotaScopeResolver>();
+
+        // IQuotaEnforcer — atomic check + reserve via
+        // pg_advisory_xact_lock. Participates in the caller's
+        // transaction; the caller rolls back on Denied.
+        services.AddScoped<IQuotaEnforcer, EfQuotaEnforcer>();
+
         return services;
     }
 }
