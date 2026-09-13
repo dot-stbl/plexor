@@ -14,6 +14,7 @@ using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Shared.Kernel.Quotas;
 
 namespace Plexor.Migrator;
 
@@ -35,7 +36,10 @@ namespace Plexor.Migrator;
 ///     <list type="bullet">
 ///       <item>Two built-in roles: <c>admin</c> (all permissions —
 ///       represented by a single sentinel string <c>*</c>) and
-///       <c>viewer</c> (no permissions yet).</item>
+///       <c>viewer</c> (read-only; carries
+///       <see cref="QuotaPermissions.Read" /> = <c>quotas.read</c> so
+///       the 4.5.g quotas endpoints can be exercised by any
+///       authenticated user without an explicit role binding).</item>
 ///       <item>One user <c>admin@plexor.local</c> bound to the
 ///       <c>admin</c> role, with <c>PasswordChangedAt = null</c> so
 ///       the operator's first login detects the unset timestamp
@@ -124,9 +128,13 @@ internal sealed class IdentityBootstrapper(
             // Built-in roles. Permissions stored as PermissionScope
             // (the value-object form, not raw strings) so the
             // IReadOnlyList<PermissionScope> column converter in
-            // RoleConfiguration accepts them.
+            // RoleConfiguration accepts them. The viewer role carries
+            // QuotaPermissions.Read so every authenticated user can
+            // view quota state without an explicit role binding;
+            // QuotaPermissions.AssignOrg stays admin-only (the admin
+            // role's * wildcard already covers it).
             var adminPermissions = new[] { new PermissionScope(WildcardPermission) };
-            var viewerPermissions = Array.Empty<PermissionScope>();
+            var viewerPermissions = new[] { new PermissionScope(QuotaPermissions.Read) };
 
             var adminRole = new Role
             {
@@ -144,7 +152,7 @@ internal sealed class IdentityBootstrapper(
                 Id = viewerRoleId,
                 OrgId = orgId,
                 Name = ViewerRoleName,
-                Description = "Built-in viewer (no permissions yet).",
+                Description = "Built-in viewer (read-only; includes quotas.read).",
                 Permissions = viewerPermissions,
                 BuiltIn = true,
                 CreatedAt = now,

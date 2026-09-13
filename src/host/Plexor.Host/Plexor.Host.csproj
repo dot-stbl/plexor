@@ -36,9 +36,12 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />
     <!-- Phase 4.5 — quotas enforcer + scope resolver (4.5.b). The
          Application layer holds IQuotaCatalog; Infrastructure holds
-         IQuotaScopeResolver + IQuotaEnforcer + the DbContext. -->
+         IQuotaScopeResolver + IQuotaEnforcer + the DbContext; Api
+         holds the exception handler (4.5.g.1) and will hold the
+         controllers (4.5.g.2). -->
     <ProjectReference Include="..\..\modules\Plexor.Modules.Quotas\Plexor.Modules.Quotas.Application\Plexor.Modules.Quotas.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Quotas\Plexor.Modules.Quotas.Infrastructure\Plexor.Modules.Quotas.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Quotas\Plexor.Modules.Quotas.Api\Plexor.Modules.Quotas.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>
