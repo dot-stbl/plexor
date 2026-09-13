@@ -24,8 +24,18 @@ namespace Plexor.Modules.Sigil.Infrastructure.Persistence;
 ///     and signing_keys in the 'sigil' PostgreSQL schema (schema-per-
 ///     module convention per .agents/STATE.md).
 /// </summary>
+/// <remarks>
+///     <para><b>Not <c>sealed</c>.</b> Test projects inherit from this
+///     context and override <see cref="OnModelCreating" /> to drop the
+///     PostgreSQL-specific <c>text[]</c> mapping on
+///     <see cref="Role.Permissions" />, which the InMemory provider
+///     cannot model (its converter chain fails to compose
+///     <c>IReadOnlyList&lt;PermissionScope&gt; → string[] → string</c>).
+///     Documented extension point per <c>naming-and-types.md</c> §2
+///     exception #2 — production code MUST NOT subclass this type.</para>
+/// </remarks>
 /// <param name="options"></param>
-public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : PlexorDbContext(options)
+public class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : PlexorDbContext(options)
 {
     /// <summary>Users (sigil.users) — operator accounts with email + password.</summary>
     public DbSet<User> Users => Set<User>();
