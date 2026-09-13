@@ -81,12 +81,12 @@ current state of `plexor.slnx`.
 
 ## 4.5.f — OrgSeeder (default assignments)
 
-- [ ] `OrgSeeder` in `Plexor.Migrator` — runs on first deploy
+- [x] `OrgSeeder` in `Plexor.Migrator` — runs on first deploy
   AND on new org creation.
-- [ ] Idempotent: skip if the assignment already exists for
+- [x] Idempotent: skip if the assignment already exists for
   `(definition, scope)`.
-- [ ] Default values from the proposal table.
-- [ ] Unit tests: idempotency, default value correctness.
+- [x] Default values from the proposal table.
+- [x] Unit tests: idempotency, default value correctness.
 
 ## 4.5.g — REST endpoints
 

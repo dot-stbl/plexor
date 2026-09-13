@@ -173,6 +173,25 @@ builder.Services.AddExceptionHandler<Plexor.Modules.Clusters.Infrastructure.Erro
 builder.Services.AddQuotasApplicationCore(builder.Configuration);
 builder.Services.AddQuotasInfrastructureCore();
 
+// OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
+// to seed. The Quotas module does not depend on Realm — we supply the
+// seam from here so the Quotas layer stays loosely coupled. Singleton
+// delegate; the inner factory opens a fresh scope on each call so the
+// scoped RealmDbContext lifetime is respected. Non-async lambda body
+// — the Realm query is a simple SELECT id, so sync ToList is fine;
+// wrapping in Task.FromResult avoids the Task<List<T>> → Task<IReadOnlyCollection<T>>
+// invariance issue that trips the async-lambda form.
+builder.Services.AddSingleton<Func<CancellationToken, Task<IReadOnlyCollection<Guid>>>>(
+    static sp => cancellationToken =>
+    {
+        using var scope = sp.CreateAsyncScope();
+        var realm = scope.ServiceProvider.GetRequiredService<RealmDbContext>();
+        var ids = realm.Organizations
+            .Select(static organization => organization.Id)
+            .ToList();
+        return Task.FromResult<IReadOnlyCollection<Guid>>(ids);
+    });
+
 // Rate-limit action filter (4.5.e) — runs on every authenticated
 // action before the controller. Anonymous requests bypass the filter
 // (auth middleware emits 401 before this point). The filter is
