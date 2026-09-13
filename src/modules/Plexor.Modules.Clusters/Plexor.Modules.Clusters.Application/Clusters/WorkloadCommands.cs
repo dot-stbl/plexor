@@ -24,11 +24,27 @@ namespace Plexor.Modules.Clusters.Application.Clusters;
 /// <param name="Name">Operator-facing name (unique per cluster).</param>
 /// <param name="Kind">Runtime identifier — "vm" / "lxc" / "k8s.pod" / "container".</param>
 /// <param name="SpecJson">Operator-supplied configuration (image, env, ports, volumes) as JSON.</param>
+/// <param name="TargetNodeId">
+///     Optional manual pin — when set the scheduler must place this
+///     workload on this specific node. ManualPlacementScheduler (v0.1)
+///     honors this; a future policy scheduler may refuse the pin if
+///     the candidate set doesn't contain the node or the node lacks
+///     <paramref name="RequiredCapabilities" />. Null = "pick for me"
+///     (which currently maps to "stay unassigned").
+/// </param>
+/// <param name="RequiredCapabilities">
+///     Capability names the workload needs from the chosen node
+///     (e.g. "nested-virt" for vm, "k3s-server" for control-plane
+///     pods). Used by a future policy scheduler; the manual scheduler
+///     ignores the list. Empty array = no capability requirements.
+/// </param>
 public sealed record CreateWorkloadCommand(
     ClusterId ClusterId,
     string Name,
     string Kind,
-    string SpecJson);
+    string SpecJson,
+    NodeId? TargetNodeId = null,
+    IReadOnlyCollection<string>? RequiredCapabilities = null);
 
 /// <summary>
 ///     Soft-delete a workload. The NodeAgent's next drift poll
