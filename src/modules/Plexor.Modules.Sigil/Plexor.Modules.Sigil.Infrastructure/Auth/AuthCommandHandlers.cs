@@ -26,12 +26,14 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 /// <param name="users"></param>
 /// <param name="passwordHasher"></param>
 /// <param name="refreshTokens"></param>
+/// <param name="roleNames"></param>
 /// <param name="tokenIssuer"></param>
 /// <param name="db"></param>
 public sealed class LoginCommandHandler(
     IUserLookup users,
     IPasswordHasher passwordHasher,
     IRefreshTokenStore refreshTokens,
+    IRoleNameLoader roleNames,
     ITokenIssuer tokenIssuer,
     IdentityDbContext db) : ICommandHandler<LoginCommand, LoginResult>
 {
@@ -82,7 +84,7 @@ public sealed class LoginCommandHandler(
 
         await RegisterSuccessfulLoginAsync(user.Id, cancellationToken);
 
-        var roles = await LoadRolesAsync(user.Id, cancellationToken);
+        var roles = await roleNames.LoadAsync(user.Id, cancellationToken);
 
         // First-login password rotation: issue a short-lived token
         // whose only permission is iam.users.change-own-password, and
@@ -230,22 +232,6 @@ public sealed class LoginCommandHandler(
                     .SetProperty(u => u.LastLoginAt, (DateTimeOffset?)now),
                 cancellationToken);
     }
-
-    private async Task<IReadOnlyCollection<string>> LoadRolesAsync(
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        return await db.RoleBindings
-            .AsNoTracking()
-            .Where(binding => binding.UserId == userId)
-            .Join(
-                db.Roles.AsNoTracking(),
-                binding => binding.RoleId,
-                role => role.Id,
-                (_, role) => role.Name)
-            .Distinct()
-            .ToArrayAsync(cancellationToken);
-    }
 }
 
 /// <summary>
@@ -255,10 +241,12 @@ public sealed class LoginCommandHandler(
 ///     replay.
 /// </summary>
 /// <param name="refreshTokens"></param>
+/// <param name="roleNames"></param>
 /// <param name="tokenIssuer"></param>
 /// <param name="db"></param>
 public sealed class RefreshCommandHandler(
     IRefreshTokenStore refreshTokens,
+    IRoleNameLoader roleNames,
     ITokenIssuer tokenIssuer,
     IdentityDbContext db) : ICommandHandler<RefreshCommand, LoginResult>
 {
@@ -321,7 +309,7 @@ public sealed class RefreshCommandHandler(
             .Join(db.Users, token => token.UserId, user => user.Id, (_, user) => user)
             .FirstAsync(cancellationToken);
 
-        var roles = await LoadRolesAsync(owner.Id, cancellationToken);
+        var roles = await roleNames.LoadAsync(owner.Id, cancellationToken);
         var access = await tokenIssuer.IssueAsync(
             owner.Id, owner.OrgId, roles, cancellationToken);
 
@@ -329,22 +317,6 @@ public sealed class RefreshCommandHandler(
             AccessToken: access.CompactJwt,
             RefreshToken: newRefreshRaw,
             AccessTokenExpiresAtUtc: access.ExpiresAtUtc);
-    }
-
-    private async Task<IReadOnlyCollection<string>> LoadRolesAsync(
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        return await db.RoleBindings
-            .AsNoTracking()
-            .Where(binding => binding.UserId == userId)
-            .Join(
-                db.Roles.AsNoTracking(),
-                binding => binding.RoleId,
-                role => role.Id,
-                (_, role) => role.Name)
-            .Distinct()
-            .ToArrayAsync(cancellationToken);
     }
 }
 

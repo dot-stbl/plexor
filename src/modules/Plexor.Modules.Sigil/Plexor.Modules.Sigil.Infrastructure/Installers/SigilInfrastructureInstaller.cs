@@ -114,6 +114,14 @@ public static class SigilInfrastructureInstaller
         services.AddScoped<IPermissionResolver, PermissionResolver>();
         services.AddSingleton<ITokenIssuer, TokenIssuer>();
 
+        // Role-name loader — used by Login + Refresh handlers to read
+        // the set of role names assigned to the caller so the issued
+        // JWT can carry one `role` claim per name. Scoped (DbContext
+        // reuse). Split out of the handlers as the byte-identical
+        // `LoadRolesAsync` body lived in two places; one port, one
+        // implementation.
+        services.AddScoped<IRoleNameLoader, EfRoleNameLoader>();
+
         // Revocation checker — JwtSigningService calls it after
         // signature + lifetime validation succeeds so a stolen,
         // signature-valid JWT is rejected once the user is disabled
