@@ -2,30 +2,383 @@
 
 ## Purpose
 
-Capacity control for the Plexor platform. A single self-hosted
-user can exhaust host resources (CPU, RAM, volume storage,
-floating IPs) because nothing currently limits them; multi-tenant
-SaaS deploys need per-organization capacity limits to charge for
-usage and prevent noisy neighbors.
+Capacity control for the Plexor platform. The quota subsystem
+prevents a single user from exhausting host resources (CPU, RAM,
+volumes, floating IPs) and provides per-organization capacity
+limits for multi-tenant SaaS deploys.
 
-The quota capability is **not implemented in v0.1**. The current
-state is: every resource-creation endpoint accepts whatever
-request the operator sends, with no upper bound beyond the host
-hardware itself.
+Two enforcement modes:
 
-The proposed implementation is **scheduled for Phase 4.5**.
-See `openspec/changes/phase-4-5-quotas/` for the proposal, the
-implementation task list, the design decisions, and the spec
-deltas that will land when the change is merged.
+- **Resource quotas** — pure-sync, transaction-bound checks
+  (`IQuotaEnforcer.CheckAndReserveAsync`) that reserve capacity
+  inside the same DB transaction as the resource INSERT.
+- **API rate-limits** — sliding-window per-principal +
+  per-organization request counts (`IRateLimiter.CheckAsync`) that
+  short-circuit HTTP requests before they reach the controller.
+
+Both modes ship in v0.1 via the new `Plexor.Modules.Quotas`
+module (schema `quotas`). Audit events flow through
+`IQuotaAuditEmitter` — v1 logs structured events, the future
+`Plexor.Modules.Audit` module swaps the implementation for
+`atlas.audit_entries` inserts behind the same interface.
 
 ## Requirements
 
-This capability is scheduled for Phase 4.5. See
-`changes/phase-4-5-quotas/` for the proposed implementation.
+### Requirement: QuotaDefinition catalog
 
-No current-state requirements exist for this capability. The
-proposed requirements that will land when the change is merged
-are listed in
-`openspec/changes/phase-4-5-quotas/specs/quotas/spec.md` under
-`## ADDED Requirements`. Once that change is merged, those
-requirements move up into this file under `## Requirements`.
+The system SHALL expose a catalog of limit keys via
+`QuotaDefinition`
+(`Plexor.Modules.Quotas.Domain.Entities.QuotaDefinition`)
+rows in `quotas.quota_definitions`. v1 ships the following
+keys:
+
+- `compute.vms.count` — number of VMs.
+- `compute.vms.vcpu` — cumulative vCPU across VMs.
+- `compute.vms.ram_gb` — cumulative RAM GiB across VMs.
+- `compute.clusters.count` — number of clusters in the org.
+  Reserved by `CreateClusterCommandHandler` inside the
+  resource-create transaction (4.5.c).
+- `compute.workloads.count` — number of workloads across all
+  clusters in the org. Reserved by
+  `CreateWorkloadCommandHandler` inside the resource-create
+  transaction (4.5.c).
+- `storage.volumes.count` — number of volumes.
+- `storage.volumes.gb` — cumulative volume GiB.
+- `network.floating_ips.count` — number of floating IPs.
+- `network.load_balancers.count` — number of load balancers.
+- `api.requests.per_hour.user` — sliding-window request count
+  per user.
+- `api.requests.per_hour.org` — sliding-window request count
+  per organization.
+
+Every `QuotaDefinition` SHALL expose a stable `Key` (the catalog
+identifier), a human-readable `Description`, a `Period`
+(`none` | `hour` | `day` | `month`; v1 uses `none` and `hour`),
+and an `EffectiveFrom` / `EffectiveUntil` pair (null = currently
+effective).
+
+Catalog keys SHALL be stable across versions — adding a new key
+is a non-breaking change; renaming or removing a key is a breaking
+change requiring a migration step.
+
+### Requirement: QuotaAssignment polymorphic scope
+
+The system SHALL expose per-scope limit values via
+`QuotaAssignment`
+(`Plexor.Modules.Quotas.Domain.Entities.QuotaAssignment`)
+rows in `quotas.quota_assignments`. A row binds a
+`DefinitionKey` to a scope via `(ScopeType, ScopeId)` where
+`ScopeType` is `Org` | `Team` | `Folder` and `ScopeId` is the
+matching Realm entity id.
+
+`QuotaAssignment` SHALL have the following invariants:
+
+- Exactly one row per `(ScopeType, ScopeId, DefinitionKey,
+  Period)` (enforced by DB UNIQUE constraint).
+- The same `DefinitionKey` MAY appear at multiple scopes for
+  the same Realm tree (e.g. org-wide 100 VMs + folder-specific
+  10 VMs).
+- Removing a `QuotaAssignment` SHALL NOT remove the
+  corresponding `QuotaUsage` row — the usage counter persists
+  so a future re-assignment resumes from the same value.
+
+### Requirement: Effective value resolution
+
+The system SHALL resolve the effective value for a
+`(scope, definition_key)` request by walking the Realm
+hierarchy: folder → team → org → default, and returning the
+**minimum** of the values found.
+
+- If a folder-scoped assignment exists for `DefinitionKey`,
+  the folder value wins (regardless of whether a team or
+  org-scoped assignment also exists).
+- Else, if a team-scoped assignment exists for
+  `DefinitionKey`, the team value wins.
+- Else, if an org-scoped assignment exists for
+  `DefinitionKey`, the org value wins.
+- Else, the catalog's built-in default value wins.
+
+The walker MUST be deterministic and MUST return a
+`QuotaCheckResult` that records which scope's value was
+selected (so audit entries can cite the source).
+
+### Requirement: IQuotaEnforcer with atomic check-and-reserve
+
+The system SHALL expose `IQuotaEnforcer`
+(`Plexor.Shared.Kernel.Quotas.IQuotaEnforcer`) with
+`CheckAndReserveAsync(scope, definitionKey, amount, ct)` that:
+
+1. Acquires a Postgres advisory transaction-scoped lock at
+   scope granularity
+   (`pg_advisory_xact_lock(<scope-hash>)`).
+2. Resolves the effective assignment value via the scope
+   walker.
+3. Reads + locks the corresponding `QuotaUsage` row.
+4. Computes `current + amount` vs `effective_limit`.
+5. Returns `Allowed` if `current + amount ≤ effective_limit`.
+6. Returns `AllowedWithWarning(thresholdPct = 80)` if
+   `current + amount > 0.8 * effective_limit` and the call
+   would still succeed.
+7. Returns `Denied` (with current + effective limit +
+   requested amount in the result) if the call would exceed
+   the limit.
+
+The lock + the `QuotaUsage` UPDATE + the caller's resource
+INSERT SHALL all run in the **same** DB transaction. A
+failed resource creation SHALL roll back the reserved quota.
+
+### Requirement: Tiered enforcement at 80% / 100%
+
+The system SHALL emit a tiered signal from the enforcer:
+
+- 80% threshold reached (caller's request succeeds but
+  `current + amount > 0.8 * effective_limit`) →
+  `AllowedWithWarning(thresholdPct = 80)`. The HTTP response
+  carries `X-Quota-Warning: true`. The UI shows a warning
+  badge next to the resource.
+- 100% reached (caller's request would exceed
+  `effective_limit`) → `Denied`. The handler throws
+  `QuotaExceededException`, mapped to HTTP 429 ProblemDetails
+  with `code = "quotas.exceeded"`, `extensions.limit`,
+  `extensions.used`, `extensions.requested`.
+
+No admin override / bypass flow SHALL exist in v1. The
+correct path past the limit is to raise the assignment (admin
+edits `QuotaAssignment.Value`).
+
+### Requirement: IRateLimiter with sliding window
+
+The system SHALL expose `IRateLimiter`
+(`Plexor.Shared.Kernel.Quotas.IRateLimiter`) with sliding-window
+count via the `rate_limit_events` table. Per-call, the limiter
+SHALL:
+
+1. `SELECT COUNT(*) FROM rate_limit_events WHERE principal_id =
+   $1 AND occurred_at > now() - interval '1 hour'`.
+2. INSERT one event row (cheap, single PK).
+3. Return `Allowed` if `count + 1 ≤ limit`, else `Denied` with
+   `RetryAfter` (seconds until the oldest in-window event
+   expires).
+4. Return `AllowedWithWarning` at the 80% threshold (same
+   signal shape as the quota enforcer).
+
+A daily `BackgroundService` SHALL delete events older than the
+max period (1h) to keep the table bounded.
+
+### Requirement: Rate-limit applies to both principal and org
+
+The system SHALL check rate limits against two principals:
+
+- `principal_id` — the user id (JWT auth) OR the API key id
+  (service auth).
+- `org_id` — the organization id (aggregate).
+
+`IRateLimiter` SHALL check both, returning the more
+restrictive result (the lower of the two limits wins). A
+runaway service account SHALL be blocked by its org's limit
+even if its own limit is high.
+
+### Requirement: Default assignments seeded per org
+
+The system SHALL seed a `QuotaAssignment` row for every
+`QuotaDefinition` in the catalog, scoped to the organization,
+on org creation. Defaults:
+
+| Key | Default value |
+|-----|---------------|
+| `compute.vms.count` | 100 |
+| `compute.vms.vcpu` | 256 |
+| `compute.vms.ram_gb` | 1024 |
+| `compute.clusters.count` | 10 |
+| `compute.workloads.count` | 100 |
+| `storage.volumes.count` | 200 |
+| `storage.volumes.gb` | 4096 |
+| `network.floating_ips.count` | 10 |
+| `network.load_balancers.count` | 20 |
+| `api.requests.per_hour.user` | 1000 |
+| `api.requests.per_hour.org` | 10000 |
+
+Seeding is idempotent: re-running the seeder on an existing
+org SHALL NOT overwrite existing assignments.
+
+The seeder runs in `Plexor.Migrator` on first deploy and on
+new org creation. The same `OrgSeeder` MUST also be registered
+as a domain event consumer for the org-created event so
+SaaS-deploy-created orgs get seeded without a re-migration.
+
+### Requirement: REST endpoints for quota management
+
+The system SHALL expose the following endpoints, all behind
+`Plexor.Shared.Authorization.RequirePermissionAttribute`:
+
+- `GET /api/v1/quotas/definitions` (`quotas.read`) — return
+  the catalog.
+- `GET /api/v1/quotas/assignments?scope=org|team|folder&id=X`
+  (`quotas.read`) — list assignments at the given scope.
+- `PUT /api/v1/quotas/assignments` (`quotas.assign.org`) —
+  create or update an assignment.
+- `DELETE /api/v1/quotas/assignments/{id}`
+  (`quotas.assign.org`) — remove an assignment.
+- `GET /api/v1/quotas/usage?scope=...&id=...` (`quotas.read`)
+  — return current usage for the scope.
+- `GET /api/v1/quotas/effective?scope=...&id=...`
+  (`quotas.read`) — return the resolved effective value per
+  definition key for the scope.
+
+`PUT` SHALL be validated by FluentValidation: `value > 0`,
+scope exists, definition exists in the catalog. Endpoints are
+tenant-scoped — a user in Org X SHALL NOT view or assign
+quotas for Org Y (enforced via the `current.OrgId` filter in
+the controllers).
+
+### Requirement: Audit integration
+
+The system SHALL emit quota audit events through the
+`IQuotaAuditEmitter` interface
+(`Plexor.Shared.Kernel.Quotas.IQuotaAuditEmitter`). The v1
+implementation is structured logging
+(`LoggingQuotaAuditEmitter`); the future `atlas` module
+(Phase 5+) swaps the implementation for an
+`atlas.audit_entries` insert behind the same interface.
+
+Four events ship in v1, each with a stable dot.case wire name
+(`QuotaAuditEventExtensions.WireName`):
+
+- `AssignmentChanged` → `quotas.assignment.changed` —
+  emitted on every successful
+  `PUT /api/v1/quotas/assignments`. Carries the
+  `QuotaAssignment.Id`, definition key, scope, actor user id.
+- `AssignmentRemoved` → `quotas.assignment.removed` —
+  emitted on every successful
+  `DELETE /api/v1/quotas/assignments/{id}`. Carries the
+  assignment id, definition key (resolved from the catalog
+  before delete), scope, actor user id.
+- `UsageExceeded` → `quotas.usage.exceeded` — emitted when
+  `IQuotaEnforcer.CheckAndReserveAsync` returns
+  `QuotaCheckResult.Denied`. Carries the requested amount,
+  the effective limit, the observed usage, the scope, and the
+  actor user id.
+- `LimitApproaching` → `quotas.limit.approaching` — emitted
+  when the reservation crosses the 80% threshold for a
+  `(scope, definition_key)` pair. Carries the
+  post-reservation usage, the limit, the threshold percentage
+  (80), the scope, and the actor user id.
+
+`IQuotaAuditEmitter.EmitAsync` MUST NOT throw — audit
+emission failure must never break a user request. v1 wraps
+the work in try/catch and records failures at
+`LogLevel.Critical`. The call sites (`EfQuotaEnforcer`,
+`QuotasController`) await the emit inline; a future DB-backed
+emitter can swap to a `Channel<T>` + `BackgroundService`
+consumer if the I/O cost becomes meaningful.
+
+The `ActorUserId` is propagated from the caller into
+`QuotaScope.ActorUserId`; resource-create handlers
+(`CreateClusterCommandHandler`,
+`CreateWorkloadCommandHandler`) read `ICurrentUser.UserId`
+and pass it on the `QuotaScope.Org(orgId, actorUserId)` call
+so the audit context carries the actor without a
+cross-module dependency in the kernel contract.
+
+The `atlas` schema (owned by `Plexor.Modules.Audit`, shipped
+Phase 5+) is the eventual destination; the
+`atlas.audit_entries.action` column maps to the same wire
+name string.
+
+### Requirement: Migration order
+
+The `quotas` schema migrations SHALL run after `realm` and
+`sigil` migrations and before (or alongside) `atlas`. The
+`Plexor.Migrator` orders schemas by FK dependency: `realm` →
+`sigil` → `atlas` → `quotas`. `QuotaAssignment.ScopeId` does
+not require a DB-level FK to `realm.organizations.id` (it is
+polymorphic across `Org` / `Team` / `Folder`), but the
+runtime MUST validate the scope id exists in the appropriate
+Realm table before persisting an assignment.
+
+## Key Entities
+
+### `QuotaDefinition`
+
+`Plexor.Modules.Quotas.Domain.Entities.QuotaDefinition` (schema
+`quotas.quota_definitions`). Fields:
+
+- `Id : Guid` — UUID v7, PK.
+- `Key : string` — stable catalog identifier
+  (`compute.vms.count`).
+- `Description : string` — human-readable label.
+- `Period : QuotaPeriod` — `none` | `hour` | `day` | `month`.
+- `DefaultValue : long` — catalog default if no assignment
+  exists.
+- `Unit : string` — human-readable unit (`vms`, `vcpu`,
+  `gb`, `requests`).
+- `EffectiveFrom : DateTimeOffset?` — null = currently
+  effective.
+- `EffectiveUntil : DateTimeOffset?` — null = no scheduled
+  retirement.
+
+### `QuotaAssignment`
+
+`Plexor.Modules.Quotas.Domain.Entities.QuotaAssignment` (schema
+`quotas.quota_assignments`). Fields:
+
+- `Id : Guid` — UUID v7, PK.
+- `ScopeType : QuotaScopeKind` — `Org` | `Team` | `Folder`.
+- `ScopeId : Guid` — id of the matching Realm entity.
+- `OrgId : Guid` — denormalized for tenant-scoped queries.
+- `DefinitionKey : string` — references
+  `QuotaDefinition.Key`.
+- `Value : long` — the limit value for this scope.
+- `CreatedAt : DateTimeOffset`, `UpdatedAt :
+  DateTimeOffset`.
+
+`UNIQUE (ScopeType, ScopeId, DefinitionKey, Period)`.
+
+### `QuotaUsage`
+
+`Plexor.Modules.Quotas.Domain.Entities.QuotaUsage` (schema
+`quotas.quota_usage`). Fields:
+
+- `Id : Guid` — UUID v7, PK.
+- `ScopeType : QuotaScopeKind`.
+- `ScopeId : Guid`.
+- `OrgId : Guid` — denormalized.
+- `DefinitionKey : string`.
+- `CurrentValue : long` — current consumption. Reset at
+  period boundary for `hour` / `day` / `month`.
+- `PeriodStart : DateTimeOffset` — current period start.
+- `UpdatedAt : DateTimeOffset`.
+
+`UNIQUE (ScopeType, ScopeId, DefinitionKey, PeriodStart)`.
+
+### `RateLimitEvent`
+
+`Plexor.Modules.Quotas.Domain.Entities.RateLimitEvent` (schema
+`quotas.rate_limit_events`). Fields:
+
+- `Id : Guid` — UUID v7, PK.
+- `PrincipalId : Guid` — user id or API key id.
+- `OrgId : Guid` — denormalized for org-aggregate queries.
+- `Kind : string` — `user` | `api_key` | `org`.
+- `Endpoint : string` — request path (bounded cardinality).
+- `OccurredAt : DateTimeOffset` — UTC timestamp.
+
+`INDEX (PrincipalId, OccurredAt)`,
+`INDEX (OrgId, OccurredAt)`.
+
+### Value Objects and Exceptions
+
+- `QuotaScopeKind` (enum) — `Org` | `Team` | `Folder`.
+- `QuotaScope` (record) — `(ScopeType, ScopeId, OrgId,
+  ActorUserId?)`.
+- `QuotaDefinitionKey` (record) — typed wrapper for `string`.
+- `QuotaCheckResult` (discriminated record) — `Allowed` |
+  `AllowedWithWarning(thresholdPct, limit, used, requested)` |
+  `Denied(limit, used, requested)`.
+- `RateLimitResult` (discriminated record) — `Allowed` |
+  `AllowedWithWarning(thresholdPct)` | `Denied(retryAfter)`.
+- `QuotaException` — base, stable code
+  `quotas.exceeded`.
+- `QuotaExceededException` — thrown by handlers when
+  `Denied` is returned. Mapped to 429 ProblemDetails via
+  `QuotaExceptionHandler`.
