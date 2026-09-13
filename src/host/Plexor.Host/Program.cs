@@ -108,7 +108,11 @@ builder.Services
             options.JsonSerializerOptions.Converters.Add(
                 new JsonStringEnumConverter());
         })
-        .AddApplicationPart(typeof(Plexor.Modules.Sigil.Api.Controllers.AuthController).Assembly);
+        .AddApplicationPart(typeof(Plexor.Modules.Sigil.Api.Controllers.AuthController).Assembly)
+        // 4.5.g.2 — QuotasController (GET /api/v1/quotas/*) lives in
+        // the Quotas.Api assembly; AddApplicationPart makes it
+        // discoverable alongside the Sigil controllers above.
+        .AddApplicationPart(typeof(Plexor.Modules.Quotas.Api.Controllers.QuotasController).Assembly);
 
 // Persistence — single shared NpgsqlDataSource + schema-per-module DbContexts.
 // All PlexorDbContext subclasses in Plexor.Modules.*.Infrastructure assemblies
@@ -191,14 +195,14 @@ builder.Services.AddExceptionHandler<QuotaExceptionHandler>();
 // wrapping in Task.FromResult avoids the Task<List<T>> → Task<IReadOnlyCollection<T>>
 // invariance issue that trips the async-lambda form.
 builder.Services.AddSingleton<Func<CancellationToken, Task<IReadOnlyCollection<Guid>>>>(
-    static sp => cancellationToken =>
+    static sp => async cancellationToken =>
     {
-        using var scope = sp.CreateAsyncScope();
+        await using var scope = sp.CreateAsyncScope();
         var realm = scope.ServiceProvider.GetRequiredService<RealmDbContext>();
         var ids = realm.Organizations
             .Select(static organization => organization.Id)
             .ToList();
-        return Task.FromResult<IReadOnlyCollection<Guid>>(ids);
+        return await Task.FromResult<IReadOnlyCollection<Guid>>(ids);
     });
 
 // Rate-limit action filter (4.5.e) — runs on every authenticated
