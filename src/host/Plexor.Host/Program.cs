@@ -30,6 +30,7 @@ using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Quotas.Api.Errors;
 using Plexor.Modules.Quotas.Application.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Persistence;
@@ -172,6 +173,14 @@ builder.Services.AddExceptionHandler<Plexor.Modules.Clusters.Infrastructure.Erro
 // Application services land.
 builder.Services.AddQuotasApplicationCore(builder.Configuration);
 builder.Services.AddQuotasInfrastructureCore();
+// QuotaExceptionHandler (4.5.g.1) — maps QuotaExceededException
+// thrown by resource-create handlers (4.5.c Compute.CreateCluster /
+// CreateWorkload, 4.5.d Storage / Network) to an HTTP 429
+// ProblemDetails. Without this handler the exception would bubble up
+// as a 500 via the global error pipeline — misleading to a caller
+// that hit a capacity wall. Sits next to IdentityExceptionHandler +
+// ClustersExceptionHandler; 4.5.g.2 adds the QuotasController.
+builder.Services.AddExceptionHandler<QuotaExceptionHandler>();
 
 // OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
 // to seed. The Quotas module does not depend on Realm — we supply the
