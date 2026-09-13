@@ -7,6 +7,7 @@
 // ============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
+using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Errors;
@@ -39,37 +40,38 @@ public static class PlexorSigilApiServiceCollectionExtensions
         // Handlers — scoped per request so DbContext is reused across
         // the multi-DB-roundtrip pipeline (login does user lookup,
         // password verify, failed-login update, refresh issue,
-        // permission resolve, access issue).
-        services.AddScoped<LoginCommandHandler>();
-        services.AddScoped<RefreshCommandHandler>();
-        services.AddScoped<LogoutCommandHandler>();
-        services.AddScoped<MeQueryHandler>();
+        // permission resolve, access issue). Bound via ICommandHandler so
+        // the controllers can be unit-tested with NSubstitute.
+        services.AddScoped<ICommandHandler<LoginCommand, LoginResult>, LoginCommandHandler>();
+        services.AddScoped<ICommandHandler<RefreshCommand, LoginResult>, RefreshCommandHandler>();
+        services.AddScoped<ICommandHandler<LogoutCommand, LogoutResult>, LogoutCommandHandler>();
+        services.AddScoped<ICommandHandler<MeQuery, MeResult>, MeQueryHandler>();
 
         // User CRUD handlers — same scoped lifetime (DbContext reuse).
-        services.AddScoped<CreateUserCommandHandler>();
-        services.AddScoped<UpdateUserCommandHandler>();
-        services.AddScoped<DisableUserCommandHandler>();
-        services.AddScoped<ChangePasswordCommandHandler>();
-        services.AddScoped<GetUserQueryHandler>();
-        services.AddScoped<ListUsersQueryHandler>();
+        services.AddScoped<ICommandHandler<CreateUserCommand, CreateUserResult>, CreateUserCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateUserCommand, UserSummary>, UpdateUserCommandHandler>();
+        services.AddScoped<ICommandHandler<DisableUserCommand, UserSummary>, DisableUserCommandHandler>();
+        services.AddScoped<ICommandHandler<ChangePasswordCommand, ChangePasswordResult>, ChangePasswordCommandHandler>();
+        services.AddScoped<ICommandHandler<GetUserQuery, UserSummary>, GetUserQueryHandler>();
+        services.AddScoped<ICommandHandler<ListUsersQuery, UserPage>, ListUsersQueryHandler>();
 
         // Role + role-binding CRUD handlers.
-        services.AddScoped<CreateRoleCommandHandler>();
-        services.AddScoped<UpdateRoleCommandHandler>();
-        services.AddScoped<DeleteRoleCommandHandler>();
-        services.AddScoped<GetRoleQueryHandler>();
-        services.AddScoped<ListRolesQueryHandler>();
-        services.AddScoped<CreateRoleBindingCommandHandler>();
-        services.AddScoped<DeleteRoleBindingCommandHandler>();
-        services.AddScoped<ListRoleBindingsQueryHandler>();
+        services.AddScoped<ICommandHandler<CreateRoleCommand, CreateRoleResult>, CreateRoleCommandHandler>();
+        services.AddScoped<ICommandHandler<UpdateRoleCommand, RoleSummary>, UpdateRoleCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteRoleCommand, DeleteRoleResult>, DeleteRoleCommandHandler>();
+        services.AddScoped<ICommandHandler<GetRoleQuery, RoleSummary>, GetRoleQueryHandler>();
+        services.AddScoped<ICommandHandler<ListRolesQuery, IReadOnlyCollection<RoleSummary>>, ListRolesQueryHandler>();
+        services.AddScoped<ICommandHandler<CreateRoleBindingCommand, CreateRoleBindingResult>, CreateRoleBindingCommandHandler>();
+        services.AddScoped<ICommandHandler<DeleteRoleBindingCommand, DeleteRoleBindingResult>, DeleteRoleBindingCommandHandler>();
+        services.AddScoped<ICommandHandler<ListRoleBindingsQuery, IReadOnlyCollection<RoleBindingSummary>>, ListRoleBindingsQueryHandler>();
 
         // Credential (API key + SSH key) handlers.
-        services.AddScoped<IssueApiKeyCommandHandler>();
-        services.AddScoped<RevokeApiKeyCommandHandler>();
-        services.AddScoped<ListApiKeysQueryHandler>();
-        services.AddScoped<AddSshKeyCommandHandler>();
-        services.AddScoped<RevokeSshKeyCommandHandler>();
-        services.AddScoped<ListSshKeysQueryHandler>();
+        services.AddScoped<ICommandHandler<IssueApiKeyCommand, IssueApiKeyResult>, IssueApiKeyCommandHandler>();
+        services.AddScoped<ICommandHandler<RevokeApiKeyCommand, RevokeApiKeyResult>, RevokeApiKeyCommandHandler>();
+        services.AddScoped<ICommandHandler<ListApiKeysQuery, IReadOnlyCollection<ApiKeySummary>>, ListApiKeysQueryHandler>();
+        services.AddScoped<ICommandHandler<AddSshKeyCommand, SshKeySummary>, AddSshKeyCommandHandler>();
+        services.AddScoped<ICommandHandler<RevokeSshKeyCommand, RevokeSshKeyResult>, RevokeSshKeyCommandHandler>();
+        services.AddScoped<ICommandHandler<ListSshKeysQuery, IReadOnlyCollection<SshKeySummary>>, ListSshKeysQueryHandler>();
 
         // User lookup — read-only, scoped.
         services.AddScoped<IUserLookup, EfUserLookup>();

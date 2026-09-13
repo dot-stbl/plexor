@@ -9,11 +9,15 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Plexor.Modules.Sigil.Application.Users;
-using Plexor.Modules.Sigil.Infrastructure.Users;
+using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Modules.Sigil.Api.Controllers;
+
+// IamController depends on ICommandHandler<TCommand, TResult> for the user CRUD
+// handlers so unit tests can mock dispatch with NSubstitute. Concrete handlers
+// implement the same interface; see PlexorSigilApiServiceCollectionExtensions.
 
 /// <summary>
 /// Route names — referenced by [HttpGet/Post/Patch/Delete(..., Name = ...)]
@@ -62,12 +66,12 @@ file static class IamRouteNames
 [Tags(["iam", "users"])]
 [Authorize]
 public sealed class IamController(
-    CreateUserCommandHandler createHandler,
-    UpdateUserCommandHandler updateHandler,
-    DisableUserCommandHandler disableHandler,
-    ChangePasswordCommandHandler changePasswordHandler,
-    GetUserQueryHandler getHandler,
-    ListUsersQueryHandler listHandler) : ControllerBase
+    ICommandHandler<CreateUserCommand, CreateUserResult> createHandler,
+    ICommandHandler<UpdateUserCommand, UserSummary> updateHandler,
+    ICommandHandler<DisableUserCommand, UserSummary> disableHandler,
+    ICommandHandler<ChangePasswordCommand, ChangePasswordResult> changePasswordHandler,
+    ICommandHandler<GetUserQuery, UserSummary> getHandler,
+    ICommandHandler<ListUsersQuery, UserPage> listHandler) : ControllerBase
 {
     /// <summary>
     ///     <c>POST /iam/users</c> — create a new user inside the

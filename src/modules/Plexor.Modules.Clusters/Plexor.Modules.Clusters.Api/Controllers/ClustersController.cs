@@ -62,6 +62,7 @@ public sealed class ClustersController(
         // OrgId comes from the caller's claims in v0.2+; for v0.1 we
         // derive it from the request (single-tenant MVP — every caller
         // belongs to the same org). Phase 5 follow-up: read org from ICurrentUser.
+        // [known-issue: P0-5 follow-up] — single-tenant hardcode; per-user ICurrentUser lookup in v0.2+.
         var orgId = Guid.Empty;
         var result = await createHandler.HandleAsync(
             new CreateClusterCommand(orgId, request.Name, request.Region, request.InitialNodeRole),
