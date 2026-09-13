@@ -107,13 +107,13 @@ builder.Services
         })
         .AddApplicationPart(typeof(Plexor.Modules.Sigil.Api.Controllers.AuthController).Assembly);
 
-// Persistence — schema-per-module DbContexts. Connection string
-// Persistence — single Postgres connection string, schema-per-module.
-// All PlexorDbContext subclasses in Plexor.Modules.*.Infrastructure
-// assemblies are discovered at startup and registered against the
-// shared connection string (sigil / realm / atlas schemas all live
-// in the same Postgres instance — schema-per-module is the isolation
-// primitive, not database-per-module).
+// Persistence — single shared NpgsqlDataSource + schema-per-module DbContexts.
+// All PlexorDbContext subclasses in Plexor.Modules.*.Infrastructure assemblies
+// are registered against the same connection pool, so cross-DbContext
+// transactions work (the 4.5.c quota enforcer runs its UPDATE on
+// quotas.quota_usage inside the resource-create transaction opened on
+// ClusterDbContext; both writes commit atomically because they share a
+// physical connection).
 //
 // The Migrator CLI applies pending migrations before Host starts in
 // production; in dev you can run `dotnet ef database update` against
@@ -122,12 +122,18 @@ var postgresConnection = builder.Configuration.GetConnectionString("Postgres")
                          ?? throw new InvalidOperationException(
                              "ConnectionStrings:Postgres missing from configuration.");
 
+// Build the shared data source once at the top of the composition
+// root and pass it explicitly to every AddModuleDbContext call.
+// AddPlexorDataSource registers the instance as a singleton so any
+// other service that needs the data source can resolve it.
+var plexorDataSource = builder.Services.AddPlexorDataSource(postgresConnection);
+
 // Explicit DbContext registration — same set + order as the migrator.
-builder.Services.AddModuleDbContext<RealmDbContext>(postgresConnection);
-builder.Services.AddModuleDbContext<IdentityDbContext>(postgresConnection);
-builder.Services.AddModuleDbContext<ClusterDbContext>(postgresConnection);
-builder.Services.AddModuleDbContext<RevokedCertsDbContext>(postgresConnection);
-builder.Services.AddModuleDbContext<QuotasDbContext>(postgresConnection);
+builder.Services.AddModuleDbContext<RealmDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<IdentityDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<ClusterDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
 var contextCount = 5;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to

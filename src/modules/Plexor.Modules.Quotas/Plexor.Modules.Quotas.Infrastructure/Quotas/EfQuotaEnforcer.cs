@@ -110,6 +110,7 @@ internal sealed class EfQuotaEnforcer(
 
             return new QuotaCheckResult.Denied(
                 Limit: effective.Value,
+                Used: currentValue,
                 Requested: amount,
                 Reason: $"scope {scope.Kind}/{scope.Id} would exceed {definitionKey.Value} limit ({effective.Value})");
         }

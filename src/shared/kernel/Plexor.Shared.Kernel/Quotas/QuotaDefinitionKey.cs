@@ -40,6 +40,17 @@ public readonly record struct QuotaDefinitionKey(string Value)
     /// <summary>Cumulative RAM GiB across VMs.</summary>
     public static QuotaDefinitionKey VmsRamGb { get; } = new("compute.vms.ram_gb");
 
+    /// <summary>Number of clusters in the org (the Plexor control-plane
+    /// + joined NodeAgent fleet). Reserved by <c>CreateClusterCommandHandler</c>
+    /// inside the resource-create transaction.</summary>
+    public static QuotaDefinitionKey ClustersCount { get; } = new("compute.clusters.count");
+
+    /// <summary>Number of workloads across all clusters in the org
+    /// (control-plane view of every deployed workload). Reserved by
+    /// <c>CreateWorkloadCommandHandler</c> inside the resource-create
+    /// transaction.</summary>
+    public static QuotaDefinitionKey WorkloadsCount { get; } = new("compute.workloads.count");
+
     /// <summary>Number of volumes across the scope.</summary>
     public static QuotaDefinitionKey VolumesCount { get; } = new("storage.volumes.count");
 

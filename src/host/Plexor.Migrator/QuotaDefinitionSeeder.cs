@@ -32,7 +32,7 @@ namespace Plexor.Migrator;
 ///     limits are stored separately in <c>quota_assignments</c>. The
 ///     4.5.f <c>OrgSeeder</c> creates per-org assignments from the
 ///     catalog's <see cref="QuotaDefinition.DefaultValue" />.</para>
-///     <para><b>Catalog seed (4.5.a).</b>
+///     <para><b>Catalog seed (4.5.a + 4.5.c).</b>
 ///     <list type="table">
 ///         <listheader>
 ///             <term>Key</term><description>Unit / Period / Default</description>
@@ -43,6 +43,10 @@ namespace Plexor.Migrator;
 ///             <description>Vcpu / None / 256</description></item>
 ///         <item><term><c>compute.vms.ram_gb</c></term>
 ///             <description>Gb / None / 1024</description></item>
+///         <item><term><c>compute.clusters.count</c></term>
+///             <description>Count / None / 10</description></item>
+///         <item><term><c>compute.workloads.count</c></term>
+///             <description>Count / None / 100</description></item>
 ///         <item><term><c>storage.volumes.count</c></term>
 ///             <description>Count / None / 200</description></item>
 ///         <item><term><c>storage.volumes.gb</c></term>
@@ -59,7 +63,9 @@ namespace Plexor.Migrator;
 ///     <para><b>Idempotency.</b> The seeder reads existing keys on every
 ///     run and only inserts rows whose <c>Key</c> is missing. Re-running
 ///     the seeder (after a deploy restart) is a no-op once the catalog is
-///     fully populated.</para>
+///     fully populated. 4.5.c adds the two Plexor-resource keys
+///     (<c>compute.clusters.count</c>, <c>compute.workloads.count</c>);
+///     existing rows for the 9 prior keys are untouched.</para>
 /// </remarks>
 internal sealed class QuotaDefinitionSeeder(
     QuotasDbContext db,
@@ -76,6 +82,8 @@ internal sealed class QuotaDefinitionSeeder(
         new("compute.vms.count",              "Number of VMs.",                              QuotaUnit.Count,      QuotaPeriod.None, 100m),
         new("compute.vms.vcpu",               "Cumulative vCPU across VMs.",                 QuotaUnit.Vcpu,       QuotaPeriod.None, 256m),
         new("compute.vms.ram_gb",             "Cumulative RAM GiB across VMs.",              QuotaUnit.Gb,         QuotaPeriod.None, 1024m),
+        new("compute.clusters.count",         "Number of clusters in the org.",              QuotaUnit.Count,      QuotaPeriod.None, 10m),
+        new("compute.workloads.count",        "Number of workloads across all clusters.",    QuotaUnit.Count,      QuotaPeriod.None, 100m),
         new("storage.volumes.count",          "Number of volumes.",                          QuotaUnit.Count,      QuotaPeriod.None, 200m),
         new("storage.volumes.gb",             "Cumulative volume GiB.",                      QuotaUnit.Gb,         QuotaPeriod.None, 4096m),
         new("network.floating_ips.count",     "Number of floating IPs.",                     QuotaUnit.Count,      QuotaPeriod.None, 10m),

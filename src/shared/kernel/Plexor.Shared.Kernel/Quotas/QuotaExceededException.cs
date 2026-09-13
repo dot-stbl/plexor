@@ -1,6 +1,16 @@
-using Plexor.Shared.Kernel.Quotas;
+// SPDX-License-Identifier: Apache-2.0
+// ============================================================================
+// QuotaExceededException — thrown by resource-create handlers when the
+// quota enforcer returns Denied. Maps to HTTP 429 ProblemDetails
+// with code = "quotas.exceeded" and extension fields for limit, used,
+// requested.
+//
+// Lives in Plexor.Shared.Kernel (next to IQuotaEnforcer / QuotaScope /
+// QuotaCheckResult) so Compute / Storage / Network handlers can throw
+// it without taking a dependency on Plexor.Modules.Quotas.Domain.
+// ============================================================================
 
-namespace Plexor.Modules.Quotas.Domain.Errors;
+namespace Plexor.Shared.Kernel.Quotas;
 
 /// <summary>
 ///     Thrown by handlers when <see cref="QuotaCheckResult.Denied" />

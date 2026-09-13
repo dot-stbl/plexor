@@ -46,6 +46,12 @@ var migrationConnection =
     ?? throw new InvalidOperationException(
         "ConnectionStrings:Postgres (or MIGRATOR_CONNECTION env var) is not configured.");
 
+// Build the shared NpgsqlDataSource once. The migrator and the Host
+// use the same pool pattern so a design-time `dotnet ef database
+// update` from this directory resolves the same physical connection
+// as the running host.
+var plexorDataSource = builder.Services.AddPlexorDataSource(migrationConnection);
+
 // Explicit DbContext registration. Every PlexorDbContext subclass
 // owns its own table set + migrations; the migrator applies them
 // in the order declared below. Adding a new DbContext requires
@@ -58,11 +64,11 @@ var migrationConnection =
 // Quotas is isolated (polymorphic ScopeId, no FKs into Realm /
 // Sigil) — runs after them so a freshly-migrated quotas schema can
 // reference the catalog rows the seeder is about to insert.
-builder.Services.AddModuleDbContext<RealmDbContext>(migrationConnection);
-builder.Services.AddModuleDbContext<IdentityDbContext>(migrationConnection);
-builder.Services.AddModuleDbContext<ClusterDbContext>(migrationConnection);
-builder.Services.AddModuleDbContext<RevokedCertsDbContext>(migrationConnection);
-builder.Services.AddModuleDbContext<QuotasDbContext>(migrationConnection);
+builder.Services.AddModuleDbContext<RealmDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<IdentityDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<ClusterDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
 
 builder.Services.AddSigilInfrastructureCore();
 
