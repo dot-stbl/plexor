@@ -14,6 +14,7 @@ using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.NodeApi;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 
@@ -170,9 +171,9 @@ public sealed class WorkloadActionCommandHandler(
 
         var commandType = command.Action switch
         {
-            WorkloadAction.Start => "workload.start",
-            WorkloadAction.Stop => "workload.stop",
-            WorkloadAction.Restart => "workload.start",  // restart = start after stop; the agent handles the pair
+            WorkloadAction.Start => WireCommandTypes.WorkloadStart,
+            WorkloadAction.Stop => WireCommandTypes.WorkloadStop,
+            WorkloadAction.Restart => WireCommandTypes.WorkloadStart,  // restart = start after stop; the agent handles the pair
             _ => throw new ArgumentOutOfRangeException(nameof(command), command.Action, null)
         };
 
