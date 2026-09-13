@@ -1,4 +1,13 @@
-namespace Plexor.Modules.Quotas.Domain;
+// SPDX-License-Identifier: Apache-2.0
+// ============================================================================
+// QuotaScope — polymorphic (Kind, Id, OrgId) scope value. Shared between
+// Plexor.Modules.Quotas (catalog / walker / enforcer) and the modules
+// that construct QuotaScope values (Compute / Storage / Network
+// resource-create handlers); the type is therefore in Plexor.Shared.Kernel,
+// not in a single module.
+// ============================================================================
+
+namespace Plexor.Shared.Kernel.Quotas;
 
 /// <summary>
 ///     Polymorphic quota scope — the (Kind, Id, OrgId) triple the

@@ -1,3 +1,5 @@
+using Plexor.Shared.Kernel.Quotas;
+
 namespace Plexor.Modules.Quotas.Domain.Errors;
 
 /// <summary>
