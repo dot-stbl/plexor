@@ -5,6 +5,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { TooltipProvider } from '@/shared/ui/primitives/tooltip';
 import { Toaster } from '@/shared/ui/primitives/sonner';
 import { ThemeProvider } from '@/shared/lib/theme-provider';
+import { getBootConfig } from '@/shared/lib/config';
 import '@/shared/lib/i18n';
 import { routeTree } from './routeTree.gen';
 
@@ -42,6 +43,24 @@ import './index.css';
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       document.documentElement.classList.add('dark');
     }
+  }
+})();
+
+// Operator-controlled brand — swap the boot favicon in if the host
+// shipped one. Done synchronously before React mounts so the first paint
+// already has the operator's icon (no flash from default → custom).
+(function applyBootFavicon() {
+  try {
+    var boot = getBootConfig();
+    if (boot.brand.faviconUrl) {
+      var link = document.getElementById('favicon-link');
+      if (link) {
+        link.setAttribute('href', boot.brand.faviconUrl);
+      }
+    }
+  } catch {
+    // Boot config unavailable — the default favicon (set in index.html)
+    // stays in place.
   }
 })();
 
