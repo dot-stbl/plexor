@@ -87,6 +87,21 @@ public static class QuotasInfrastructureInstaller
         // opens its own scope per sweep.
         services.AddScoped<IOrgSeeder, EfOrgSeeder>();
 
+        // IQuotaAssignmentRepository — 4.5.g.2. Read + write surface
+        // for the polymorphic quota_assignments table. The 4.5.g.2
+        // GET /api/v1/quotas/assignments endpoint exercises the read
+        // path; 4.5.g.3 will exercise UpsertAsync + DeleteAsync from
+        // the PUT + DELETE handlers. Scoped — shares the per-request
+        // DbContext with the controller.
+        services.AddScoped<IQuotaAssignmentRepository, EfQuotaAssignmentRepository>();
+
+        // IQuotaUsageReader — 4.5.g.2. Read-only surface over the
+        // quota_usage snapshot table. The 4.5.g.2 GET
+        // /api/v1/quotas/usage endpoint pairs each row with the
+        // resolved effective limit. Scoped — same lifetime pattern as
+        // the assignment repo.
+        services.AddScoped<IQuotaUsageReader, EfQuotaUsageReader>();
+
         // RateLimitCleanupService — singleton hosted service. The
         // BackgroundService opens its own scope per sweep (DbContext
         // is scoped per request, not per host).

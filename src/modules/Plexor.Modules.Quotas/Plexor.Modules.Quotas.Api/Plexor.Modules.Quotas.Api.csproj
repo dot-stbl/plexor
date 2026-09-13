@@ -18,6 +18,14 @@
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\Plexor.Modules.Quotas.Infrastructure\Plexor.Modules.Quotas.Infrastructure.csproj" />
+    <!-- 4.5.g.2: QuotasController needs ICurrentUser to read the
+         caller's TenantId for tenant-scoped assignment / usage /
+         effective queries. The interface lives in
+         Plexor.Modules.Sigil.Application.Abstractions — Quotas does
+         not depend on the Sigil Infrastructure layer (the
+         HttpContextCurrentUser implementation), only on the
+         Application-layer abstraction. -->
+    <ProjectReference Include="..\..\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Application\Plexor.Modules.Sigil.Application.csproj" />
     <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
