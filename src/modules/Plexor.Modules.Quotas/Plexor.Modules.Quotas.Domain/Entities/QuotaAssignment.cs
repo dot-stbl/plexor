@@ -1,5 +1,6 @@
 using Plexor.Shared.Filtering.Registry;
 using Plexor.Shared.Kernel.Common;
+using Plexor.Shared.Kernel.Quotas;
 
 namespace Plexor.Modules.Quotas.Domain.Entities;
 

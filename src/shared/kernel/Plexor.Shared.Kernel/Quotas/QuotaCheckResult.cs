@@ -1,4 +1,12 @@
-namespace Plexor.Modules.Quotas.Domain;
+// SPDX-License-Identifier: Apache-2.0
+// ============================================================================
+// QuotaCheckResult — discriminated union returned by IQuotaEnforcer.
+// Lives in Plexor.Shared.Kernel because the enforcer contract lives
+// there; resource-create handlers across modules pattern-match on
+// the concrete variants.
+// ============================================================================
+
+namespace Plexor.Shared.Kernel.Quotas;
 
 /// <summary>
 ///     Outcome of an <c>IQuotaEnforcer.CheckAndReserveAsync</c> call.
@@ -11,8 +19,8 @@ namespace Plexor.Modules.Quotas.Domain;
 ///     request succeeds but the caller should be alerted), and
 ///     <see cref="Denied" /> when the call would exceed the
 ///     effective limit (the handler throws
-///     <see cref="Errors.QuotaExceededException" /> and the API
-///     responds with 429 ProblemDetails).</para>
+///     <c>Plexor.Modules.Quotas.Domain.Errors.QuotaExceededException</c>
+///     and the API responds with 429 ProblemDetails).</para>
 /// </remarks>
 public abstract record QuotaCheckResult
 {
@@ -37,10 +45,10 @@ public abstract record QuotaCheckResult
 
     /// <summary>
     ///     The request would exceed the effective limit. The handler
-    ///     throws <see cref="Errors.QuotaExceededException" />; the API
-    ///     responds with 429 ProblemDetails
-    ///     (<c>code = "quotas.exceeded"</c>) and extension fields for
-    ///     <c>limit</c>, <c>used</c>, <c>requested</c>.
+    ///     throws <c>QuotaExceededException</c>; the API responds with
+    ///     429 ProblemDetails (<c>code = "quotas.exceeded"</c>) and
+    ///     extension fields for <c>limit</c>, <c>used</c>,
+    ///     <c>requested</c>.
     /// </summary>
     /// <param name="Limit">Effective limit value.</param>
     /// <param name="Requested">Amount the caller tried to reserve.</param>

@@ -28,6 +28,9 @@ using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Quotas.Application.Installers;
+using Plexor.Modules.Quotas.Infrastructure.Installers;
+using Plexor.Modules.Quotas.Infrastructure.Persistence;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Api;
 using Plexor.Modules.Sigil.Application.Installers;
@@ -124,7 +127,8 @@ builder.Services.AddModuleDbContext<RealmDbContext>(postgresConnection);
 builder.Services.AddModuleDbContext<IdentityDbContext>(postgresConnection);
 builder.Services.AddModuleDbContext<ClusterDbContext>(postgresConnection);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(postgresConnection);
-var contextCount = 4;
+builder.Services.AddModuleDbContext<QuotasDbContext>(postgresConnection);
+var contextCount = 5;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -150,11 +154,28 @@ builder.Services.AddPlexorSigilApi();
 builder.Services.AddClustersInfrastructureCore();
 builder.Services.AddExceptionHandler<Plexor.Modules.Clusters.Infrastructure.Errors.ClustersExceptionHandler>();
 
+// Quotas module — Phase 4.5.b ships the enforcer + scope resolver +
+// catalog reader. The IQuotaEnforcer service participates in the
+// caller's resource-create transaction (Compute / Storage / Network
+// wire-up lands in 4.5.c/d); 4.5.e adds IRateLimiter; 4.5.g adds
+// the controllers. Application layer has no services today (the
+// catalog seed is hosted by Plexor.Migrator); the call still goes
+// through AddQuotasApplicationCore so the Program.cs chain stays
+// stable as Application services land.
+builder.Services.AddQuotasApplicationCore(builder.Configuration);
+builder.Services.AddQuotasInfrastructureCore();
+
 // Strip our own IHostedService implementations when the host is being
 // launched by the build-time OpenAPI document generator. Without this,
 // `dotnet build` would run SigningKeyBootstrapper (and any other IHostedService
 // that talks to Postgres) just to emit artifacts/openapi.json.
 builder.Services.RemoveHostedServicesForOpenApiGeneration();
+
+// TimeProvider — single source of wall-clock for the host. Quotas
+// enforcer reads it for quota_usage.last_reconciled_at / updated_at;
+// future modules (Compute retry budgets, audit timestamps) use the
+// same injected clock.
+builder.Services.AddSingleton(TimeProvider.System);
 
 // Logging — Plexor console formatter (color-coded by level, formatted
 // for grep-ability). Replaces the default simple formatter so all ASP.NET

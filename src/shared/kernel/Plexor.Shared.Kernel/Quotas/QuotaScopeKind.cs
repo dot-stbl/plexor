@@ -1,4 +1,13 @@
-namespace Plexor.Modules.Quotas.Domain;
+// SPDX-License-Identifier: Apache-2.0
+// ============================================================================
+// QuotaScopeKind — which level of the Realm hierarchy a quota scope targets.
+// Lives in Plexor.Shared.Kernel because the scope-walker + enforcer
+// signatures reference it from non-module code (Resource-create handlers
+// in Compute / Storage / Network construct QuotaScope values that pass
+// through IQuotaEnforcer.CheckAndReserveAsync).
+// ============================================================================
+
+namespace Plexor.Shared.Kernel.Quotas;
 
 /// <summary>
 ///     Which level of the Realm hierarchy a quota scope targets.
