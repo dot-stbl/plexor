@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <!--
@@ -40,6 +41,7 @@
     <ProjectReference Include="..\..\..\src\installer\Plexor.Installer.Cli\Plexor.Installer.Cli.csproj"/>
     <!-- All modules: -->
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj"/>
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Clusters\Plexor.Modules.Clusters.Domain\Plexor.Modules.Clusters.Domain.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Application\Plexor.Modules.Sigil.Application.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Infrastructure\Plexor.Modules.Sigil.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Domain\Plexor.Modules.Realm.Domain.csproj"/>
