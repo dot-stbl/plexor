@@ -12,6 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- 4.5.g.3: UpsertQuotaAssignmentRequestValidator (FluentValidation)
+         shares the same NuGet version as Application/Infrastructure/Shared
+         (Directory.Packages.props is off — explicit versions here). -->
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Plexor.Modules.Quotas.Application\Plexor.Modules.Quotas.Application.csproj" />
     <ProjectReference Include="..\Plexor.Modules.Quotas.Domain\Plexor.Modules.Quotas.Domain.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Authorization\Plexor.Shared.Authorization.csproj" />
