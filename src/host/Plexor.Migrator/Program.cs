@@ -20,6 +20,7 @@ using Plexor.Migrator;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Quotas.Infrastructure.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Persistence;
+using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
@@ -81,6 +82,15 @@ builder.Services.AddSigilInfrastructureCore();
 // resolved. RateLimitCleanupService is a no-op during the typical
 // one-shot migrate cycle (no hourly sweep boundary falls inside).
 builder.Services.AddQuotasInfrastructureCore();
+
+// Realm auth-providers (4.6.1) — wires the IOrgAuthProviderSeeder
+// EF implementation + the first-boot hosted service so the migrator
+// seeds a default Sigil row for every existing org right after the
+// InitAuthProviders migration applies. Idempotent on re-run. The
+// RealmApplication layer isn't needed here — the installer only
+// registers Application-layer + Infrastructure-layer services that
+// can be resolved against the Migrator's service collection.
+builder.Services.AddRealmAuthProviders();
 
 // OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
 // to seed. Same pattern as Plexor.Host — singleton delegate opens a

@@ -111,6 +111,14 @@ public static class DatabaseInformation
         /// <summary>Organizations module — folder rows belong to an org (team optional for org-level folders).</summary>
         public const string Folders = "folders";
 
+        /// <summary>Organizations module (4.6.1) — one row per org,
+        /// declares the per-tenant authentication backend
+        /// (Sigil default or OIDC). UNIQUE on <c>org_id</c>.
+        /// Schema name <c>realm</c>; see the
+        /// <c>OrgAuthProviderConfig</c> entity in
+        /// <c>Plexor.Modules.Realm.Domain.Entities</c>.</summary>
+        public const string OrgAuthProviderConfigs = "org_auth_provider_configs";
+
         /// <summary>Identity module — user accounts.</summary>
         public const string Users = "users";
 
