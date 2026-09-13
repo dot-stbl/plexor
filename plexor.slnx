@@ -57,6 +57,10 @@
     <!-- <Folder Name="...Plexor.Modules.X/"> contains the three project    -->
     <!-- layers (Domain/Application/Infrastructure). Matches console.x.      -->
     <Folder Name="/src/modules/" />
+    <Folder Name="/src/modules/Plexor.Modules.Audit/">
+        <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Application/Plexor.Modules.Audit.Application.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Infrastructure/Plexor.Modules.Audit.Infrastructure.csproj" />
+    </Folder>
     <Folder Name="/src/modules/Plexor.Modules.Sigil/">
         <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Domain/Plexor.Modules.Sigil.Domain.csproj" />
         <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Application/Plexor.Modules.Sigil.Application.csproj" />
@@ -98,6 +102,7 @@
     <Folder Name="/tests/unit/">
         <Project Path="tests/unit/Plexor.ArchitectureTests/Plexor.ArchitectureTests.csproj" />
         <Project Path="tests/unit/Plexor.Host.UnitTests/Plexor.Host.UnitTests.csproj" />
+        <Project Path="tests/unit/Plexor.Modules.Audit.Unit/Plexor.Modules.Audit.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Clusters.Unit/Plexor.Modules.Clusters.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Realm.Unit/Plexor.Modules.Realm.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Sigil.Unit/Plexor.Modules.Sigil.Unit.csproj" />

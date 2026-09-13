@@ -34,6 +34,7 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
