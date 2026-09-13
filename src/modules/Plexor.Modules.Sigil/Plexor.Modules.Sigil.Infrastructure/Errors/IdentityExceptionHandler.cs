@@ -57,7 +57,17 @@ public sealed class IdentityExceptionHandler(ILogger<IdentityExceptionHandler> l
             Instance = httpContext.Request.Path,
         };
 
+        // Surface the inner exception type as machine-readable metadata only
+        // (no message, no stack trace) so observability can correlate without
+        // leaking PII / secrets into the client-visible body. The full inner
+        // exception is logged at Debug below.
+        if (identityEx.InnerException is { } inner)
+        {
+            problem.Extensions["innerType"] = inner.GetType().FullName;
+        }
+
         logger.LogDebug(
+            identityEx.InnerException,
             "Identity exception {Code} mapped to HTTP {Status} for {Path}.",
             identityEx.Code,
             statusCode,
