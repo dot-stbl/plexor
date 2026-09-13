@@ -14,6 +14,7 @@ using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Kernel.Quotas;
 using Plexor.Shared.NodeApi;
@@ -34,6 +35,13 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 ///     <c>openspec/changes/phase-4-5-quotas/design.md</c> §"Enforcement:
 ///     pure-sync with pg_advisory_xact_lock".
 /// </param>
+/// <param name="currentUser">
+///     Per-request caller identity (4.5.h). The handler forwards
+///     <see cref="ICurrentUser.UserId" /> into the
+///     <see cref="QuotaScope" /> so the audit emitter can attach the
+///     actor to every <c>UsageExceeded</c> / <c>LimitApproaching</c>
+///     event.
+/// </param>
 /// <remarks>
 ///     <para><b>Why a transaction wraps the whole handler.</b> The
 ///     enforcer's <c>UPDATE quotas.quota_usage</c> + the cluster +
@@ -51,10 +59,18 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 ///     that's within quota but collides on name rolls back the
 ///     reservation cleanly because the open transaction disposes
 ///     before the exception propagates.</para>
+///     <para><b>ICurrentUser dependency (4.5.h).</b> The interface lives
+///     in <c>Plexor.Modules.Sigil.Application.Abstractions</c>; the
+///     handler depends on the Application layer only, never on the
+///     Sigil Infrastructure layer (the <c>HttpContextCurrentUser</c>
+///     implementation). Forward plan: move ICurrentUser into
+///     <c>Plexor.Shared.Kernel</c> so this cross-module reference
+///     becomes a same-module reference.</para>
 /// </remarks>
 public sealed class CreateClusterCommandHandler(
     ClusterDbContext db,
-    IQuotaEnforcer quotaEnforcer) : ICommandHandler<CreateClusterCommand, JoinTokenResult>
+    IQuotaEnforcer quotaEnforcer,
+    ICurrentUser currentUser) : ICommandHandler<CreateClusterCommand, JoinTokenResult>
 {
     /// <inheritdoc />
     public async Task<JoinTokenResult> HandleAsync(
@@ -91,9 +107,11 @@ public sealed class CreateClusterCommandHandler(
         // acquires pg_advisory_xact_lock at scope granularity + upserts
         // quota_usage + bumps current_value. If the scope is over
         // limit, the open transaction rolls back via Dispose (no
-        // INSERT was made yet).
+        // INSERT was made yet). The ActorUserId flows into the
+        // QuotaScope so the audit emitter can attach the caller to
+        // any UsageExceeded / LimitApproaching event.
         var quotaCheck = await quotaEnforcer.CheckAndReserveAsync(
-            QuotaScope.Org(command.OrgId),
+            QuotaScope.Org(command.OrgId, currentUser.UserId),
             QuotaDefinitionKey.ClustersCount,
             amount: 1,
             cancellationToken);

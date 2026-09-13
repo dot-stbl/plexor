@@ -226,23 +226,59 @@ assign quotas for Org Y (enforced via the
 
 ### Requirement: Audit integration
 
-The system SHALL emit the following audit events to
-`atlas.audit_entries`:
+The system SHALL emit quota audit events through the
+`IQuotaAuditEmitter` interface
+(`Plexor.Shared.Kernel.Quotas.IQuotaAuditEmitter`). The v1
+implementation is structured logging
+(`LoggingQuotaAuditEmitter`); the future `atlas` module
+(Phase 5+) swaps the implementation for an `atlas.audit_entries`
+insert behind the same interface.
 
-- `QuotaAssignedChanged` — emitted on every successful
-  PUT or DELETE of `QuotaAssignment`. Includes old value,
-  new value, scope, definition key, actor id.
-- `QuotaUsageExceeded` — emitted when the enforcer returns
-  `Denied`. Includes the requested amount, the limit, the
-  current usage, the principal, and the scope.
-- `QuotaLimitApproaching` — emitted when the enforcer first
+Four events ship in v1, each with a stable dot.case wire name
+(`QuotaAuditEventExtensions.WireName`):
+
+- `AssignmentChanged` →
+  `quotas.assignment.changed` — emitted on every successful
+  `PUT /api/v1/quotas/assignments`. Carries the
+  `QuotaAssignment.Id`, definition key, scope, actor user id.
+- `AssignmentRemoved` →
+  `quotas.assignment.removed` — emitted on every successful
+  `DELETE /api/v1/quotas/assignments/{id}`. Carries the
+  assignment id, definition key (resolved from the catalog
+  before delete), scope, actor user id.
+- `UsageExceeded` →
+  `quotas.usage.exceeded` — emitted when
+  `IQuotaEnforcer.CheckAndReserveAsync` returns
+  `QuotaCheckResult.Denied`. Carries the requested amount,
+  the effective limit, the observed usage, the scope, and
+  the actor user id.
+- `LimitApproaching` →
+  `quotas.limit.approaching` — emitted when the reservation
   crosses the 80% threshold for a `(scope, definition_key)`
-  pair. Suppressed if already emitted within the last 24
-  hours to avoid log spam.
+  pair. Carries the post-reservation usage, the limit, the
+  threshold percentage (80), the scope, and the actor user id.
 
-The `atlas` schema is owned by `Plexor.Modules.Audit`; the
-quotas module writes audit entries through the standard
-`IAuditWriter` abstraction.
+`IQuotaAuditEmitter.EmitAsync` MUST NOT throw — audit
+emission failure must never break a user request. v1 wraps
+the work in try/catch and records failures at
+`LogLevel.Critical`. The call sites (`EfQuotaEnforcer`,
+`QuotasController`) await the emit inline; a future
+DB-backed emitter can swap to a `Channel<T>` +
+`BackgroundService` consumer if the I/O cost becomes
+meaningful.
+
+The `ActorUserId` is propagated from the caller into
+`QuotaScope.ActorUserId`; resource-create handlers
+(`CreateClusterCommandHandler`, `CreateWorkloadCommandHandler`)
+read `ICurrentUser.UserId` and pass it on the
+`QuotaScope.Org(orgId, actorUserId)` call so the audit
+context carries the actor without a cross-module dependency
+in the kernel contract.
+
+The `atlas` schema (owned by `Plexor.Modules.Audit`,
+shipped Phase 5+) is the eventual destination; the
+`atlas.audit_entries.action` column maps to the same
+wire name string.
 
 ### Requirement: Migration order
 

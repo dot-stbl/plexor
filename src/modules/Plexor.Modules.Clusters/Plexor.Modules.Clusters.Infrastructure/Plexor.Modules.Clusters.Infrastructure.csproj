@@ -18,6 +18,17 @@
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Identifiers\Plexor.Shared.Identifiers.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj" />
+    <!-- 4.5.h: ICurrentUser is consumed by CreateClusterCommandHandler +
+         CreateWorkloadCommandHandler so the quota audit context can
+         carry the actor's user id when the enforcer emits
+         UsageExceeded / LimitApproaching events. Sigil.Application is
+         the boundary (Application-layer abstractions only — the
+         Infrastructure-layer HttpContextCurrentUser is NOT pulled in).
+         Forward plan: move ICurrentUser into Plexor.Shared.Kernel once
+         the Org/Team/Folder rename lands (AGENTS.md §"ICurrentUser
+         shape post-rename") so this module-to-module reference can be
+         dropped. -->
+    <ProjectReference Include="..\..\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Application\Plexor.Modules.Sigil.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

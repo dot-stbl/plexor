@@ -24,37 +24,55 @@ namespace Plexor.Shared.Kernel.Quotas;
 ///     <para><b>OrgId denormalization.</b> Always populated — even on
 ///     folder / team scopes the OrgId is the tenant boundary for
 ///     authorization and audit filtering.</para>
+///     <para><b>ActorUserId (4.5.h).</b> The id of the user (or
+///     API-key owner) that triggered the quota check, propagated so
+///     the enforcer can populate the audit context without coupling to
+///     <c>ICurrentUser</c>. Null is permitted for system-driven
+///     callers (background reconciliation, OrgSeeder) — the audit
+///     emitter writes <c>actor_user_id = null</c> in that case.</para>
 /// </remarks>
 /// <param name="Kind">Org / Team / Folder.</param>
 /// <param name="Id">Id of the matching Realm entity.</param>
 /// <param name="OrgId">Tenant the scope belongs to.</param>
-public sealed record QuotaScope(QuotaScopeKind Kind, Guid Id, Guid OrgId)
+/// <param name="ActorUserId">Id of the calling user (or API-key
+/// owner). Null when the check is system-driven.</param>
+public sealed record QuotaScope(
+    QuotaScopeKind Kind,
+    Guid Id,
+    Guid OrgId,
+    Guid? ActorUserId = null)
 {
     /// <summary>Construct an org-scoped quota scope.</summary>
     /// <param name="orgId">Organization id.</param>
+    /// <param name="actorUserId">Caller identity — see
+    /// <see cref="ActorUserId" />.</param>
     /// <returns>Scope with <see cref="OrgId" /> = <paramref name="orgId" />.</returns>
-    public static QuotaScope Org(Guid orgId)
+    public static QuotaScope Org(Guid orgId, Guid? actorUserId = null)
     {
-        return new QuotaScope(QuotaScopeKind.Org, orgId, orgId);
+        return new QuotaScope(QuotaScopeKind.Org, orgId, orgId, actorUserId);
     }
 
     /// <summary>Construct a team-scoped quota scope.</summary>
     /// <param name="teamId">Team id.</param>
     /// <param name="orgId">Organization id (denormalized).</param>
+    /// <param name="actorUserId">Caller identity — see
+    /// <see cref="ActorUserId" />.</param>
     /// <returns>Scope with <see cref="Kind" /> = Team.</returns>
-    public static QuotaScope Team(Guid teamId, Guid orgId)
+    public static QuotaScope Team(Guid teamId, Guid orgId, Guid? actorUserId = null)
     {
-        return new QuotaScope(QuotaScopeKind.Team, teamId, orgId);
+        return new QuotaScope(QuotaScopeKind.Team, teamId, orgId, actorUserId);
     }
 
     /// <summary>Construct a folder-scoped quota scope.</summary>
     /// <param name="folderId">Folder id.</param>
     /// <param name="orgId">Organization id (denormalized).</param>
     /// <param name="teamId">Team id (unused today; reserved for future scope-walker hints).</param>
+    /// <param name="actorUserId">Caller identity — see
+    /// <see cref="ActorUserId" />.</param>
     /// <returns>Scope with <see cref="Kind" /> = Folder.</returns>
-    public static QuotaScope Folder(Guid folderId, Guid orgId, Guid? teamId)
+    public static QuotaScope Folder(Guid folderId, Guid orgId, Guid? teamId, Guid? actorUserId = null)
     {
         _ = teamId;
-        return new QuotaScope(QuotaScopeKind.Folder, folderId, orgId);
+        return new QuotaScope(QuotaScopeKind.Folder, folderId, orgId, actorUserId);
     }
 }

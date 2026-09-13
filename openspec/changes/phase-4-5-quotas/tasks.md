@@ -103,11 +103,21 @@ current state of `plexor.slnx`.
 
 ## 4.5.h — Audit integration
 
-- [ ] Domain event `ResourceCreated` / `ResourceDeleted`
-  published by Compute / Storage / Network modules.
-- [ ] `QuotasModule` consumer updates `QuotaUsage` on event
+- [x] ~~Domain event `ResourceCreated` / `ResourceDeleted`
+  published by Compute / Storage / Network modules~~
+  (moot — 4.5.c design.md chose inline enforcement; the
+  enforcer updates `QuotaUsage` atomically inside the
+  resource-create transaction).
+- [x] ~~`QuotasModule` consumer updates `QuotaUsage` on event
   (alternative to inline; pick one — inline chosen for now,
-  document why in `design.md`).
-- [ ] `AuditEntry` entries for: `QuotaAssignedChanged`,
+  document why in `design.md`)~~
+  (covered by 4.5.c — see
+  `openspec/changes/phase-4-5-quotas/design.md` §"Inline
+  enforcement vs. event-driven consumption update").
+- [x] `AuditEntry` entries for: `QuotaAssignedChanged`,
   `QuotaUsageExceeded`, `QuotaLimitApproaching` (80%
-  threshold crossing).
+  threshold crossing) — v1 ships via
+  `IQuotaAuditEmitter` + `LoggingQuotaAuditEmitter` with
+  stable dot.case wire names. Phase 5+ swaps the
+  implementation for an `atlas.audit_entries` insert behind
+  the same interface.
