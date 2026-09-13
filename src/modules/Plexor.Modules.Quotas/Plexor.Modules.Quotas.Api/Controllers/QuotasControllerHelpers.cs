@@ -67,9 +67,35 @@ internal static class QuotasControllerHelpers
     }
 
     /// <summary>
+    ///     400 <see cref="ValidationProblemDetails" /> for the PUT
+    ///     endpoint when the FluentValidation chain rejects the body.
+    ///     The dictionary comes from
+    ///     <c>ValidationResult.ToDictionary()</c> (property-name →
+    ///     error messages); ASP.NET Core binds it into the standard
+    ///     <c>errors</c> shape per RFC 9457.
+    /// </summary>
+    /// <param name="errors">Dictionary keyed by property name,
+    /// value = the error message(s) from the validator (one per
+    /// failure on that property).</param>
+    /// <returns>A typed <see cref="BadRequestObjectResult" /> wrapping
+    /// the <see cref="ValidationProblemDetails" />.</returns>
+    public static BadRequestObjectResult InvalidRequestResponse(
+        IDictionary<string, string[]> errors)
+    {
+        var problem = new ValidationProblemDetails(errors)
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Validation failed",
+            Detail = "One or more request fields failed validation.",
+        };
+        return new BadRequestObjectResult(problem);
+    }
+
+    /// <summary>
     ///     Build a <c>definition id → key</c> map for the catalog. The
-    ///     map is consumed by <see cref="MapToSummary" /> and
-    ///     <see cref="BuildUsageEntriesAsync" /> to denormalise the
+    ///     map is consumed by the <c>MapToSummary(QuotaAssignment,
+    ///     IReadOnlyDictionary&lt;Guid, string&gt;)</c> overload and
+    ///     by <see cref="BuildUsageEntriesAsync" /> to denormalise the
     ///     stable catalog key into the response shape without a join.
     /// </summary>
     /// <param name="definitions">Catalog rows from
@@ -106,6 +132,45 @@ internal static class QuotasControllerHelpers
             Id = row.Id,
             DefinitionId = row.DefinitionId,
             DefinitionKey = keyById.GetValueOrDefault(row.DefinitionId, string.Empty),
+            ScopeKind = row.ScopeKind.ToString(),
+            ScopeId = row.ScopeId,
+            OrgId = row.OrgId,
+            Value = row.Value,
+            Period = row.Period.ToString(),
+            CreatedBy = row.CreatedBy,
+            CreatedAt = row.CreatedAt,
+            UpdatedAt = row.UpdatedAt,
+        };
+    }
+
+    /// <summary>
+    ///     Map one <see cref="QuotaAssignment" /> row to its
+    ///     <see cref="QuotaAssignmentSummary" /> projection using the
+    ///     already-resolved <paramref name="definition" />. Used by the
+    ///     4.5.g.3 PUT path — the controller fetches the
+    ///     <c>QuotaDefinition</c> via <c>IQuotaCatalog.FindByKeyAsync</c>
+    ///     to validate the request, so it has the row in hand at
+    ///     upsert time and a second <c>ListAllAsync</c> round-trip
+    ///     would be redundant. Rows whose definition is
+    ///     <see langword="null" /> fall back to an empty
+    ///     <c>DefinitionKey</c> for parity with the list-path
+    ///     overload.
+    /// </summary>
+    /// <param name="row">Persisted <see cref="QuotaAssignment" />
+    /// returned by <c>IQuotaAssignmentRepository.UpsertAsync</c>.</param>
+    /// <param name="definition">Resolved catalog row, or
+    /// <see langword="null" /> when the FK is intact but the catalog
+    /// row is missing.</param>
+    /// <returns>The projection.</returns>
+    public static QuotaAssignmentSummary MapToSummary(
+        QuotaAssignment row,
+        QuotaDefinition? definition)
+    {
+        return new QuotaAssignmentSummary
+        {
+            Id = row.Id,
+            DefinitionId = row.DefinitionId,
+            DefinitionKey = definition?.Key ?? string.Empty,
             ScopeKind = row.ScopeKind.ToString(),
             ScopeId = row.ScopeId,
             OrgId = row.OrgId,

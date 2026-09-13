@@ -31,6 +31,7 @@ using Plexor.Host.OpenApi;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Quotas.Api.Errors;
+using Plexor.Modules.Quotas.Api.Installers;
 using Plexor.Modules.Quotas.Application.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Persistence;
@@ -177,6 +178,12 @@ builder.Services.AddExceptionHandler<Plexor.Modules.Clusters.Infrastructure.Erro
 // Application services land.
 builder.Services.AddQuotasApplicationCore(builder.Configuration);
 builder.Services.AddQuotasInfrastructureCore();
+// QuotasApi (4.5.g.3) — registers the FluentValidation validator for
+// the PUT /api/v1/quotas/assignments body. Controllers are still
+// discovered via AddApplicationPart above; this installer only adds
+// Api-layer DI registrations. Mirrors AddPlexorSigilApi for the
+// Sigil module.
+builder.Services.AddQuotasApiCore();
 // QuotaExceptionHandler (4.5.g.1) — maps QuotaExceededException
 // thrown by resource-create handlers (4.5.c Compute.CreateCluster /
 // CreateWorkload, 4.5.d Storage / Network) to an HTTP 429
