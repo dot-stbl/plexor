@@ -19,8 +19,8 @@ namespace Plexor.Shared.Kernel.Quotas;
 ///     request succeeds but the caller should be alerted), and
 ///     <see cref="Denied" /> when the call would exceed the
 ///     effective limit (the handler throws
-///     <c>Plexor.Modules.Quotas.Domain.Errors.QuotaExceededException</c>
-///     and the API responds with 429 ProblemDetails).</para>
+///     <see cref="QuotaExceededException" /> and the API responds with
+///     429 ProblemDetails).</para>
 /// </remarks>
 public abstract record QuotaCheckResult
 {
@@ -51,7 +51,9 @@ public abstract record QuotaCheckResult
     ///     <c>requested</c>.
     /// </summary>
     /// <param name="Limit">Effective limit value.</param>
+    /// <param name="Used">Observed usage at the time of the check
+    /// (before the failed reservation).</param>
     /// <param name="Requested">Amount the caller tried to reserve.</param>
     /// <param name="Reason">Short human-readable explanation (returned in the ProblemDetails <c>detail</c>).</param>
-    public sealed record Denied(decimal Limit, decimal Requested, string Reason) : QuotaCheckResult;
+    public sealed record Denied(decimal Limit, decimal Used, decimal Requested, string Reason) : QuotaCheckResult;
 }

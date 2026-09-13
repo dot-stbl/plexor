@@ -73,6 +73,21 @@ Properties:
   primary tenant. Multi-host / multi-cluster would revisit
   this with partition-keyed locks (Phase 7+).
 
+**Cross-DbContext transaction requirement.** The advisory
+lock + `quota_usage` UPDATE live on `QuotasDbContext`; the
+resource INSERT lives on `ClusterDbContext` /
+`WorkloadDbContext` / `StorageDbContext` / etc. Postgres
+advisory locks are connection-scoped, not database-scoped —
+without a shared physical connection the lock would be
+released at the wrong scope and the UPDATE would commit
+before the INSERT. Plexor registers a single
+`NpgsqlDataSource` singleton via
+`Plexor.Shared.Persistence.PlexorDataSourceExtensions.AddPlexorDataSource`
+and every `AddModuleDbContext<TContext>` overload draws from
+it; both contexts share one connection pool, so an open
+transaction on one context is observable from the other and
+the two writes commit (or roll back) atomically.
+
 **Alternative considered — row-level lock on `quota_usage`
 row.** Rejected: the row may not exist yet (first INSERT for
 that scope), and the advisory lock is lighter than taking a
