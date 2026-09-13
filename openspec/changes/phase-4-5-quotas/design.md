@@ -205,6 +205,48 @@ still emitted — but for audit consumption
 `QuotaLimitApproaching` events), not for quota-state
 synchronization.
 
+## Audit emission — v1 structured logging, Phase 5+ atlas swap
+
+Quota state changes flow through one boundary:
+`IQuotaAuditEmitter` in
+`Plexor.Shared.Kernel.Quotas`. v1 ships `LoggingQuotaAuditEmitter`
+(Plexor.Modules.Quotas.Infrastructure) — one structured log
+line per event with the wire name in `audit_event` and the rest
+of the context in scope properties. Phase 5+ swaps the
+implementation for an `atlas.audit_entries` insert behind the
+same interface; call sites in `EfQuotaEnforcer` and
+`QuotasController` stay unchanged.
+
+| Event | Wire name | Emitted from | LogLevel |
+|-------|-----------|--------------|----------|
+| `AssignmentChanged` | `quotas.assignment.changed` | `QuotasController.UpsertAssignmentAsync` | `Information` |
+| `AssignmentRemoved` | `quotas.assignment.removed` | `QuotasController.DeleteAssignmentAsync` | `Information` |
+| `UsageExceeded` | `quotas.usage.exceeded` | `EfQuotaEnforcer.CheckAndReserveAsync` (on `Denied`) | `Warning` |
+| `LimitApproaching` | `quotas.limit.approaching` | `EfQuotaEnforcer.CheckAndReserveAsync` (crossed 80% threshold) | `Warning` |
+
+Three details worth pinning:
+
+- **No-throw contract.** Audit emission must never break a user
+  request; the implementation wraps its work in try/catch and
+  records failures at `LogLevel.Critical`. The v1 logging path
+  is microseconds; the contract is `Task` because the Phase 5+
+  DB insert will be a real I/O call.
+- **`ActorUserId` flows through `QuotaScope`.** The audit
+  emitter needs the caller's user id; the enforcer can't reach
+  `ICurrentUser` directly (no cross-module dependency in the
+  kernel contract). The caller populates
+  `QuotaScope.ActorUserId` from `ICurrentUser.UserId` and the
+  enforcer forwards it into the audit context. `CreateClusterCommandHandler`
+  and `CreateWorkloadCommandHandler` were updated in 4.5.h to
+  inject `ICurrentUser` and pass it on the
+  `QuotaScope.Org(orgId, actorUserId)` call.
+- **Await inline.** The current implementation is fire-and-forget
+  semantically (logging is microseconds); we await inline so the
+  controller never returns before the audit line is written.
+  Phase 5+ can swap to a `Channel<IQuotaAuditEvent>` +
+  BackgroundService consumer if the DB insert latency becomes
+  meaningful.
+
 ## Open questions deferred
 
 - **Token bucket vs sliding window.** Sliding window is

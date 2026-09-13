@@ -13,6 +13,7 @@ using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Kernel.Quotas;
 using Plexor.Shared.Persistence;
@@ -54,11 +55,16 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 ///     that collides on name rolls back the reservation cleanly
 ///     because the open transaction disposes before the exception
 ///     propagates.</para>
+///     <para><b>ICurrentUser dependency (4.5.h).</b> Same justification
+///     as <see cref="CreateClusterCommandHandler" /> — signature-level
+///     propagation keeps the audit emitter in step with the caller
+///     without a request-scoped static or ambient context.</para>
 /// </remarks>
 public sealed class CreateWorkloadCommandHandler(
     ClusterDbContext db,
     IWorkloadMapper mapper,
-    IQuotaEnforcer quotaEnforcer) : ICommandHandler<CreateWorkloadCommand, WorkloadSummary>
+    IQuotaEnforcer quotaEnforcer,
+    ICurrentUser currentUser) : ICommandHandler<CreateWorkloadCommand, WorkloadSummary>
 {
     /// <inheritdoc />
     public async Task<WorkloadSummary> HandleAsync(
@@ -100,8 +106,11 @@ public sealed class CreateWorkloadCommandHandler(
                 $"Cluster '{command.ClusterId}' not found.");
 
         // Pre-check + reserve compute.workloads.count at the org scope.
+        // ActorUserId flows into the QuotaScope so the audit emitter
+        // can attach the caller to any UsageExceeded / LimitApproaching
+        // event.
         var quotaCheck = await quotaEnforcer.CheckAndReserveAsync(
-            QuotaScope.Org(clusterOrgId),
+            QuotaScope.Org(clusterOrgId, currentUser.UserId),
             QuotaDefinitionKey.WorkloadsCount,
             amount: 1,
             cancellationToken);

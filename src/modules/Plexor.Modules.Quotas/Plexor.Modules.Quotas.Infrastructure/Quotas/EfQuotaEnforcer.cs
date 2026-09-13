@@ -12,7 +12,6 @@
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Plexor.Modules.Quotas.Application.Quotas;
 using Plexor.Modules.Quotas.Infrastructure.Persistence;
 using Plexor.Shared.Kernel.Quotas;
@@ -28,7 +27,7 @@ namespace Plexor.Modules.Quotas.Infrastructure.Quotas;
 /// <param name="resolver">Scoped <see cref="IQuotaScopeResolver" /> for the effective limit.</param>
 /// <param name="catalog">Scoped <see cref="IQuotaCatalog" /> for definition lookup.</param>
 /// <param name="clock">Injected <see cref="TimeProvider" /> for the row's <c>LastReconciledAt</c> / <c>UpdatedAt</c> stamps.</param>
-/// <param name="logger">Structured logger for denied + warning events.</param>
+/// <param name="auditEmitter">Scoped <see cref="IQuotaAuditEmitter" /> — emits <c>UsageExceeded</c> + <c>LimitApproaching</c> events at the audit points (4.5.h).</param>
 /// <remarks>
 ///     <para><b>Lock key.</b> A stable 64-bit hash of
 ///     <c>$"quota:{scope.Kind}:{scope.Id}"</c>. Two callers for the same
@@ -44,13 +43,21 @@ namespace Plexor.Modules.Quotas.Infrastructure.Quotas;
 ///     without a separate "ensure exists" round-trip. EF Core's
 ///     <c>Database.SqlQueryRaw&lt;T&gt;</c> is the canonical escape hatch
 ///     for scalar projections not bound to a tracked entity.</para>
+///     <para><b>Audit emission (4.5.h).</b> The enforcer emits
+///     <c>UsageExceeded</c> on a <c>Denied</c> result and
+///     <c>LimitApproaching</c> on a successful reservation that crossed
+///     the 80% threshold. Both calls happen inline (the structured-log
+///     implementation is microseconds; a future DB-backed emitter can
+///     swap to a channel if the I/O cost becomes significant). The
+///     emitter MUST NOT throw — the audit contract is fire-and-forget
+///     so a quota denial never breaks the user request.</para>
 /// </remarks>
 internal sealed class EfQuotaEnforcer(
     QuotasDbContext db,
     IQuotaScopeResolver resolver,
     IQuotaCatalog catalog,
     TimeProvider clock,
-    ILogger<EfQuotaEnforcer> logger) : IQuotaEnforcer
+    IQuotaAuditEmitter auditEmitter) : IQuotaEnforcer
 {
     /// <summary>80% threshold fires the warning variant of the result.</summary>
     private const decimal WarningThresholdPct = 80m;
@@ -101,14 +108,18 @@ internal sealed class EfQuotaEnforcer(
         var proposed = currentValue + amount;
         if (proposed > effective.Value)
         {
-            logger.LogWarning(
-                "Quota denied for {ScopeKind}/{ScopeId} on {DefinitionKey}: would be {Proposed}, limit is {Limit}, requested {Amount}",
-                scope.Kind,
-                scope.Id,
-                definitionKey.Value,
-                proposed,
-                effective.Value,
-                amount);
+            await auditEmitter.EmitAsync(
+                QuotaAuditEvent.UsageExceeded,
+                new QuotaAuditContext(
+                    OrgId: scope.OrgId,
+                    ActorUserId: scope.ActorUserId,
+                    DefinitionKey: definitionKey.Value,
+                    ScopeKind: scope.Kind.ToString(),
+                    ScopeId: scope.Id,
+                    Used: currentValue,
+                    Limit: effective.Value,
+                    Requested: amount),
+                cancellationToken);
 
             return new QuotaCheckResult.Denied(
                 Limit: effective.Value,
@@ -135,6 +146,23 @@ internal sealed class EfQuotaEnforcer(
             EfQuotaEnforcerHelpers.ScopeKindString(scope.Kind),
             scope.Id,
             definition.Id);
+
+        if (crossesWarning)
+        {
+            await auditEmitter.EmitAsync(
+                QuotaAuditEvent.LimitApproaching,
+                new QuotaAuditContext(
+                    OrgId: scope.OrgId,
+                    ActorUserId: scope.ActorUserId,
+                    DefinitionKey: definitionKey.Value,
+                    ScopeKind: scope.Kind.ToString(),
+                    ScopeId: scope.Id,
+                    Used: proposed,
+                    Limit: effective.Value,
+                    Requested: amount,
+                    ThresholdPct: WarningThresholdPct),
+                cancellationToken);
+        }
 
         return crossesWarning
             ? new QuotaCheckResult.AllowedWithWarning(

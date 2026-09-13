@@ -53,23 +53,27 @@ file static class QuotasRouteNames
 }
 
 /// <summary>
-///     Read endpoints for the quotas capability. Mounted at
+///     Read + write endpoints for the quotas capability. Mounted at
 ///     <c>/api/v1/quotas/*</c> via <see cref="ApiRoutes.Base" />.
-///     All four endpoints require the <c>quotas.read</c> permission
-///     (admins with the <c>*</c> wildcard pass through; the
-///     <c>viewer</c> role seeded by the Migrator's
-///     <c>IdentityBootstrapper</c> also has <c>quotas.read</c>).
+///     Read endpoints require <c>quotas.read</c>; PUT / DELETE require
+///     <c>quotas.assign.org</c>. Tenant scoping is enforced at the
+///     query level by passing <c>currentUser.TenantId</c> as the orgId
+///     filter to the repositories.
 /// </summary>
 /// <param name="catalog">Scoped <see cref="IQuotaCatalog" /> —
 /// reads the catalog rows.</param>
 /// <param name="assignments">Scoped <see cref="IQuotaAssignmentRepository" /> —
-/// reads QuotaAssignment rows at the requested scope + org.</param>
+/// reads + writes QuotaAssignment rows at the requested scope + org.</param>
 /// <param name="usage">Scoped <see cref="IQuotaUsageReader" /> —
 /// reads the latest consumption snapshots at the requested scope + org.</param>
 /// <param name="resolver">Scoped <see cref="IQuotaScopeResolver" /> —
 /// resolves the effective limit via the folder → org → default walk.</param>
+/// <param name="auditEmitter">Scoped <see cref="IQuotaAuditEmitter" /> —
+/// emits <c>AssignmentChanged</c> on PUT and <c>AssignmentRemoved</c> on
+/// DELETE (4.5.h).</param>
 /// <param name="currentUser">Scoped <see cref="ICurrentUser" /> —
-/// supplies the caller's <c>TenantId</c> for tenant-scoped queries.</param>
+/// supplies the caller's <c>TenantId</c> + <c>UserId</c> for
+/// tenant-scoped queries and audit context.</param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/quotas")]
 [Tags(["quotas"])]
@@ -79,6 +83,7 @@ public sealed class QuotasController(
     IQuotaAssignmentRepository assignments,
     IQuotaUsageReader usage,
     IQuotaScopeResolver resolver,
+    IQuotaAuditEmitter auditEmitter,
     ICurrentUser currentUser) : ControllerBase
 {
     /// <summary>
@@ -294,6 +299,17 @@ public sealed class QuotasController(
             currentUser.UserId,
             cancellationToken);
 
+        await auditEmitter.EmitAsync(
+            QuotaAuditEvent.AssignmentChanged,
+            new QuotaAuditContext(
+                OrgId: currentUser.TenantId,
+                ActorUserId: currentUser.UserId,
+                DefinitionKey: request.DefinitionKey,
+                ScopeKind: kind.ToString(),
+                ScopeId: request.ScopeId,
+                AssignmentId: row.Id),
+            cancellationToken);
+
         return Ok(QuotasControllerHelpers.MapToSummary(row, definition));
     }
 
@@ -303,7 +319,10 @@ public sealed class QuotasController(
     ///     <c>OrgId</c> doesn't match the caller's
     ///     <see cref="ICurrentUser.TenantId" /> returns 404 — same
     ///     shape as a missing id, so callers can't probe another
-    ///     org's assignment ids.
+    ///     org's assignment ids. The dictionary key of the affected
+    ///     <c>QuotaDefinition</c> is resolved BEFORE delete so the
+    ///     audit event can carry it (the assignment row only holds
+    ///     <c>DefinitionId</c>).
     /// </summary>
     /// <param name="assignmentId">UUID v7 of the assignment row.</param>
     /// <param name="cancellationToken">Cooperative cancellation.</param>
@@ -325,7 +344,30 @@ public sealed class QuotasController(
                 title: "Assignment not found");
         }
 
+        // Resolve the catalog key BEFORE delete so the audit event can
+        // carry the stable wire identifier. The assignment row only
+        // stores DefinitionId — the FK to quota_definitions may not be
+        // preloaded, so a catalog lookup is the safe path. Missing
+        // catalog row falls back to a sentinel — defensive against a
+        // catalog row being removed while an assignment still
+        // references it (shouldn't happen but the shape stays valid).
+        var definitions = await catalog.ListAllAsync(cancellationToken);
+        var keyById = QuotasControllerHelpers.BuildDefinitionKeyMap(definitions);
+        var definitionKey = keyById.GetValueOrDefault(existing.DefinitionId, "(deleted)");
+
         await assignments.DeleteAsync(assignmentId, cancellationToken);
+
+        await auditEmitter.EmitAsync(
+            QuotaAuditEvent.AssignmentRemoved,
+            new QuotaAuditContext(
+                OrgId: currentUser.TenantId,
+                ActorUserId: currentUser.UserId,
+                DefinitionKey: definitionKey,
+                ScopeKind: existing.ScopeKind.ToString(),
+                ScopeId: existing.ScopeId,
+                AssignmentId: assignmentId),
+            cancellationToken);
+
         return NoContent();
     }
 }
