@@ -102,6 +102,16 @@ public static class QuotasInfrastructureInstaller
         // the assignment repo.
         services.AddScoped<IQuotaUsageReader, EfQuotaUsageReader>();
 
+        // IQuotaAuditEmitter — 4.5.h. v1 writes one structured log
+        // line per quota audit event (UsageExceeded + LimitApproaching
+        // from the enforcer; AssignmentChanged + AssignmentRemoved from
+        // the controller). Phase 5+ swaps the implementation for an
+        // atlas.audit_entries insert behind the same interface.
+        // Scoped — the enforcer + the controller share the per-request
+        // lifetime so the emit can carry request-scoped enrichments
+        // via the logger scope.
+        services.AddScoped<IQuotaAuditEmitter, LoggingQuotaAuditEmitter>();
+
         // RateLimitCleanupService — singleton hosted service. The
         // BackgroundService opens its own scope per sweep (DbContext
         // is scoped per request, not per host).

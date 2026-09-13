@@ -14,6 +14,7 @@ using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Kernel.Quotas;
 using Plexor.Shared.Workloads;
@@ -24,12 +25,14 @@ namespace Plexor.Modules.Clusters.Unit.Workloads;
 
 public sealed class CreateWorkloadCommandHandlerShould
 {
+    private static readonly Guid StubActorUserId = Guid.NewGuid();
+
     [Fact(DisplayName = "Given unique name, when CreateWorkload, then persists workload + returns summary")]
     public async Task CreateWorkloadPersistsAndReturnsSummaryAsync()
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer());
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer(), StubCurrentUser());
 
         var result = await sut.HandleAsync(
             new CreateWorkloadCommand(cluster.Id, "web-1", "vm", /*lang=json,strict*/ """{"image":"nginx:latest"}"""));
@@ -53,7 +56,7 @@ public sealed class CreateWorkloadCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer());
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer(), StubCurrentUser());
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "", "vm", "{}")));
@@ -66,7 +69,7 @@ public sealed class CreateWorkloadCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer());
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer(), StubCurrentUser());
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "web-1", "", "{}")));
@@ -92,7 +95,7 @@ public sealed class CreateWorkloadCommandHandlerShould
             UpdatedAt = now,
         });
         await db.SaveChangesAsync();
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer());
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), AllowedQuotaEnforcer(), StubCurrentUser());
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "web-1", "vm", "{}")));
@@ -136,5 +139,18 @@ public sealed class CreateWorkloadCommandHandlerShould
             Arg.Any<CancellationToken>())
             .Returns(new QuotaCheckResult.Allowed());
         return enforcer;
+    }
+
+    /// <summary>
+    ///     NSubstitute-backed <see cref="ICurrentUser" /> that returns
+    ///     a stable stub id. Added in 4.5.h so the handler can
+    ///     populate <see cref="QuotaScope.ActorUserId" /> when calling
+    ///     the enforcer.
+    /// </summary>
+    private static ICurrentUser StubCurrentUser()
+    {
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.UserId.Returns(StubActorUserId);
+        return currentUser;
     }
 }
