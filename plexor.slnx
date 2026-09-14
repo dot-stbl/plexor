@@ -80,6 +80,12 @@
         <Project Path="src/modules/Plexor.Modules.Quotas/Plexor.Modules.Quotas.Infrastructure/Plexor.Modules.Quotas.Infrastructure.csproj" />
         <Project Path="src/modules/Plexor.Modules.Quotas/Plexor.Modules.Quotas.Api/Plexor.Modules.Quotas.Api.csproj" />
     </Folder>
+    <Folder Name="/src/modules/Plexor.Modules.Branding/">
+        <Project Path="src/modules/Plexor.Modules.Branding/Plexor.Modules.Branding.Domain/Plexor.Modules.Branding.Domain.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Branding/Plexor.Modules.Branding.Application/Plexor.Modules.Branding.Application.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Branding/Plexor.Modules.Branding.Infrastructure/Plexor.Modules.Branding.Infrastructure.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Branding/Plexor.Modules.Branding.Api/Plexor.Modules.Branding.Api.csproj" />
+    </Folder>
 
     <!-- ============ Hosts (entry points) =================================== -->
     <Folder Name="/src/host/">
@@ -106,6 +112,7 @@
         <Project Path="tests/unit/Plexor.Host.UnitTests/Plexor.Host.UnitTests.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Clusters.Unit/Plexor.Modules.Clusters.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Quotas.Unit/Plexor.Modules.Quotas.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Modules.Branding.Unit/Plexor.Modules.Branding.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Realm.Unit/Plexor.Modules.Realm.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Sigil.Unit/Plexor.Modules.Sigil.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Filtering.Unit/Plexor.Shared.Filtering.Unit.csproj" />

@@ -28,6 +28,10 @@ using Plexor.Host.Filters;
 using Plexor.Host.Installers;
 using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
+using Plexor.Modules.Branding.Api.Installers;
+using Plexor.Modules.Branding.Application.Installers;
+using Plexor.Modules.Branding.Infrastructure.Installers;
+using Plexor.Modules.Branding.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Quotas.Api.Errors;
@@ -113,7 +117,11 @@ builder.Services
         // 4.5.g.2 — QuotasController (GET /api/v1/quotas/*) lives in
         // the Quotas.Api assembly; AddApplicationPart makes it
         // discoverable alongside the Sigil controllers above.
-        .AddApplicationPart(typeof(Plexor.Modules.Quotas.Api.Controllers.QuotasController).Assembly);
+        .AddApplicationPart(typeof(Plexor.Modules.Quotas.Api.Controllers.QuotasController).Assembly)
+        // BrandingController (GET /api/v1/branding/*) lives in the
+        // Branding.Api assembly; AddApplicationPart makes it
+        // discoverable alongside the Quotas controllers above.
+        .AddApplicationPart(typeof(Plexor.Modules.Branding.Api.Controllers.BrandingController).Assembly);
 
 // Persistence — single shared NpgsqlDataSource + schema-per-module DbContexts.
 // All PlexorDbContext subclasses in Plexor.Modules.*.Infrastructure assemblies
@@ -142,7 +150,8 @@ builder.Services.AddModuleDbContext<IdentityDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<ClusterDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
-var contextCount = 5;
+builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
+var contextCount = 6;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -192,6 +201,15 @@ builder.Services.AddQuotasApiCore();
 // that hit a capacity wall. Sits next to IdentityExceptionHandler +
 // ClustersExceptionHandler; 4.5.g.2 adds the QuotasController.
 builder.Services.AddExceptionHandler<QuotaExceptionHandler>();
+
+// Branding module — operator-global + per-org branding.
+// Application installs the BrandingGlobalSeederHostedService; the
+// Infrastructure installer wires the EF-backed IBrandingService;
+// the API installer registers the FluentValidation validators.
+// Mirrors the Quotas trio above (Application + Infrastructure + Api).
+builder.Services.AddBrandingApplicationCore(builder.Configuration);
+builder.Services.AddBrandingInfrastructureCore();
+builder.Services.AddBrandingApiCore();
 
 // OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
 // to seed. The Quotas module does not depend on Realm — we supply the
