@@ -1,4 +1,3 @@
-using Plexor.Modules.Sigil.Domain;
 using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Realm.Domain.Entities;
@@ -49,7 +48,7 @@ public sealed class Folder : ICreatedAt
     public string Slug { get; init; } = string.Empty;
 
     /// <summary>Folder status. <c>"active"</c> by default.</summary>
-    public string Status { get; init; } = UserStatusValues.Active;
+    public string Status { get; init; } = UserStatuses.Active;
 
     /// <summary>Creation time (UTC). See
     /// <see cref="Plexor.Shared.Kernel.Common.ICreatedAt" />.</summary>

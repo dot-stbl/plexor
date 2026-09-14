@@ -7,8 +7,8 @@
 
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Application.Auth;
-using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
@@ -38,7 +38,7 @@ public sealed class EfUserRevocationChecker(IdentityDbContext db) : IUserRevocat
             return new RevocationCheckResult.UserDisabled("User not found.");
         }
 
-        if (!string.Equals(snapshot.Status, UserStatusValues.Active, StringComparison.Ordinal))
+        if (!string.Equals(snapshot.Status, UserStatuses.Active, StringComparison.Ordinal))
         {
             return new RevocationCheckResult.UserDisabled(
                 $"User status is '{snapshot.Status}'.");
