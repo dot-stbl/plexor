@@ -1,27 +1,36 @@
 /**
  * Window-level config injected by the host at boot time.
  *
- * The Plexor backend renders the operator's branding and theme defaults
+ * The Plexor backend renders the operator's branding + theme defaults
  * into a `<script>` tag in the served HTML before first paint, so the
  * console can read them from `window.__PLEXOR_CONFIG__` without a
  * round-trip. For dev (vite, no host) the window object is missing or
  * empty, and `getBootConfig()` returns the defaults below.
  *
- * The merge is one level deep — a partial override (e.g. only `brand.name`)
- * falls back to the default for the rest. Two levels is enough for the
- * v1 shape (`brand.*`, `theme.*`); if a future commit needs deeper
+ * The merge is one level deep — a partial override (e.g. only
+ * `brand.name`) falls back to the default for the rest. Two levels
+ * is enough for the v1 shape; if a future commit needs deeper
  * nesting, replace the spread with a real deep-merge helper.
  *
- * Schema — `PlexorBootConfig`:
+ * Schema — `PlexorBootConfig` (v1):
  *
- *   brand.name         string             "Plexor"
- *   brand.logoUrl      string | null      "/brand.svg" or null
- *   brand.faviconUrl   string | null      "/favicon.svg" or null
- *   theme.defaultPresetId  string         "plexor-default-light"
+ *   brand.name         string                       "Plexor"
+ *   brand.logoUrl      string | null                "/brand.svg" or null
+ *   brand.faviconUrl   string | null                "/favicon.svg" or null
+ *   theme.defaultPresetId string                     "plexor-default-light"
+ *   branding.global    GlobalBrandingConfig        operator defaults
+ *   branding.org       OrgBrandingConfig | null    per-org override (null = no override)
  *
- * The shape stays here even when the values are empty; a future SaaS
- * deploy will set `brand.logoUrl` per-tenant from the tenant row.
+ * The nested `branding` section mirrors the backend's IBrandingService
+ * resolved view (commit 2 + commit 4). The flat `brand.*` /
+ * `theme.*` keys stay for backward compatibility with the v1.0
+ * sidebar / favicon script (commit db0de5c).
  */
+import type {
+  GlobalBrandingConfig,
+  OrgBrandingConfig,
+} from '@/features/branding/branding-types';
+
 export interface PlexorBootConfig {
   readonly brand: {
     readonly name: string;
@@ -30,6 +39,16 @@ export interface PlexorBootConfig {
   };
   readonly theme: {
     readonly defaultPresetId: string;
+  };
+  /**
+   * Resolved branding at boot time. Backend's GET /api/v1/branding/boot
+   * merges the operator-global row + per-org override; null fields in
+   * the org override fall back to the global default. Undefined when
+   * the host hasn't shipped a branding section yet (dev / older host).
+   */
+  readonly branding?: {
+    readonly global: GlobalBrandingConfig;
+    readonly org: OrgBrandingConfig | null;
   };
 }
 
@@ -52,13 +71,21 @@ const DEFAULT_CONFIG: PlexorBootConfig = {
 
 /**
  * Read the boot config. Merges `window.__PLEXOR_CONFIG__` over the
- * defaults; missing keys fall back. Unknown keys are ignored — the host
- * can ship extras without breaking the console.
+ * defaults; missing keys fall back. Unknown keys are ignored — the
+ * host can ship extras without breaking the console.
  */
 export function getBootConfig(): PlexorBootConfig {
   const boot = (typeof window === 'undefined' ? undefined : window.__PLEXOR_CONFIG__) ?? {};
   return {
     brand: { ...DEFAULT_CONFIG.brand, ...boot.brand },
     theme: { ...DEFAULT_CONFIG.theme, ...boot.theme },
+    branding: boot.branding
+      ? {
+          global: {
+            ...boot.branding.global,
+          },
+          org: boot.branding.org ?? null,
+        }
+      : undefined,
   };
 }
