@@ -7,11 +7,12 @@
 // IRefreshTokenStore. The lookup surface (IUserLookup) is the real
 // EfUserLookup because it is a thin LINQ wrapper over the DbContext.
 //
-// Lockout threshold + window are constants on the handler (5 failures,
-// 15 minutes) — tested as observable behaviour, not by reaching into the
-// constants. The handler reads DateTimeOffset.UtcNow directly (no
-// TimeProvider injection), so "lockout expired" tests seed LockedUntil
-// in the past rather than fake the clock.
+// Lockout threshold + window live on the production
+// `LockoutAccountStateGuard` (5 failures, 15 minutes) — tested as
+// observable behaviour, not by reaching into the constants. The
+// guard reads wall-clock via `TimeProvider.System`; "lockout
+// expired" tests seed LockedUntil in the past rather than fake the
+// clock.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -317,10 +318,14 @@ public sealed class LoginCommandHandlerShould
     /// external dependency. The lookup surface (IUserLookup) is mocked
     /// too — the real EfUserLookup relies on provider-specific LINQ
     /// translation for value-object comparisons, which InMemory +
-    /// SQLite don't agree on. Each call mints fresh mocks so tests
-    /// cannot share state. Callers configure the <paramref name="db" />
-    /// context with the seeded user via <see cref="SeedUserAsync" />
-    /// and arrange the lookup mock to return it.</summary>
+    /// SQLite don't agree on. The account-state guard (lockout +
+    /// counter policy) is the real <see cref="LockoutAccountStateGuard" />
+    /// so the lockout behaviour tests exercise the production code
+    /// path (not a NSubstitute mock that bypasses EF writes). Each
+    /// call mints fresh mocks so tests cannot share state. Callers
+    /// configure the <paramref name="db" /> context with the seeded
+    /// user via <see cref="SeedUserAsync" /> and arrange the lookup
+    /// mock to return it.</summary>
     /// <param name="db"></param>
     private static async Task<(
         LoginCommandHandler Sut,
@@ -335,8 +340,9 @@ public sealed class LoginCommandHandlerShould
         var refresh = Substitute.For<IRefreshTokenStore>();
         var users = Substitute.For<IUserLookup>();
         var roles = Substitute.For<IRoleNameLoader>();
+        var accountStateGuard = new LockoutAccountStateGuard(db, TimeProvider.System);
 
-        var sut = new LoginCommandHandler(users, hasher, refresh, roles, issuer, db);
+        var sut = new LoginCommandHandler(users, hasher, refresh, roles, issuer, accountStateGuard);
         await Task.CompletedTask;
         return (sut, hasher, issuer, refresh, users);
     }

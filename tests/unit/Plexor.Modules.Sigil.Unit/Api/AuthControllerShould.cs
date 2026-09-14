@@ -9,6 +9,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using Plexor.Modules.Sigil.Api.Controllers;
+using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Shouldly;

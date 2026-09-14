@@ -129,6 +129,13 @@ public static class SigilInfrastructureInstaller
         // implementation.
         services.AddScoped<IRoleNameLoader, EfRoleNameLoader>();
 
+        // Account-state guard — owns the lockout + counter policy the
+        // login handler used to carry as private methods. Scoped
+        // because the EF writes go through IdentityDbContext; the
+        // TimeProvider is the singleton TimeProvider.System registered
+        // in the host's composition root.
+        services.AddScoped<IAccountStateGuard, LockoutAccountStateGuard>();
+
         // Revocation checker — JwtSigningService calls it after
         // signature + lifetime validation succeeds so a stolen,
         // signature-valid JWT is rejected once the user is disabled
