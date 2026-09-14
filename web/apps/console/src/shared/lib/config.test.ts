@@ -85,4 +85,66 @@ describe('getBootConfig', () => {
     expect(config.brand.name).toBe('Acme');
     expect(config.theme.defaultPresetId).toBe('plexor-default-light');
   });
+
+  it('returns branding section as undefined when the host has not shipped one', () => {
+    window.__PLEXOR_CONFIG__ = {};
+
+    const config = getBootConfig();
+
+    expect(config.branding).toBeUndefined();
+  });
+
+  it('returns the branding section with global + null org when the host ships a global-only view', () => {
+    window.__PLEXOR_CONFIG__ = {
+      branding: {
+        global: {
+          brandName: 'Acme',
+          brandLogoUrl: '/acme.svg',
+          brandFaviconUrl: '/acme-favicon.svg',
+          defaultPresetId: 'plexor-noir',
+          customAccent: 'oklch(0.5 0.2 250)',
+          updatedAt: '2026-09-14T12:00:00Z',
+        },
+        org: null,
+      },
+    };
+
+    const config = getBootConfig();
+
+    expect(config.branding).toBeDefined();
+    expect(config.branding?.global.brandName).toBe('Acme');
+    expect(config.branding?.global.defaultPresetId).toBe('plexor-noir');
+    expect(config.branding?.global.customAccent).toBe('oklch(0.5 0.2 250)');
+    expect(config.branding?.org).toBeNull();
+  });
+
+  it('returns the branding section with both global and org when the host ships a per-org merge', () => {
+    window.__PLEXOR_CONFIG__ = {
+      branding: {
+        global: {
+          brandName: 'Plexor',
+          brandLogoUrl: null,
+          brandFaviconUrl: null,
+          defaultPresetId: 'plexor-default-light',
+          customAccent: null,
+          updatedAt: '2026-09-14T12:00:00Z',
+        },
+        org: {
+          orgId: '00000000-0000-0000-0000-000000000001',
+          presetId: 'plexor-noir',
+          customAccent: 'oklch(0.6 0.18 30)',
+          brandName: 'Tenant',
+          brandLogoUrl: '/tenant.svg',
+          brandFaviconUrl: null,
+          updatedAt: '2026-09-14T12:00:00Z',
+        },
+      },
+    };
+
+    const config = getBootConfig();
+
+    expect(config.branding?.org?.presetId).toBe('plexor-noir');
+    expect(config.branding?.org?.brandName).toBe('Tenant');
+    expect(config.branding?.global.brandName).toBe('Plexor');
+  });
 });
