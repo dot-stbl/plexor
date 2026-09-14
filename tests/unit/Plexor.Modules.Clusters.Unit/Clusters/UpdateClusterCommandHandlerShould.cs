@@ -31,7 +31,7 @@ public sealed class UpdateClusterCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new UpdateClusterCommandHandler(db, new ClusterMapper());
+        var sut = new UpdateClusterCommandHandler(db, new ClusterMapper(), TimeProvider.System);
         var result = await sut.HandleAsync(new UpdateClusterCommand(
             clusterId,
             "prod-eu-1-renamed",
@@ -78,7 +78,7 @@ public sealed class UpdateClusterCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new UpdateClusterCommandHandler(db, new ClusterMapper());
+        var sut = new UpdateClusterCommandHandler(db, new ClusterMapper(), TimeProvider.System);
         var ex = await Should.ThrowAsync<ClustersException>(() =>
             sut.HandleAsync(new UpdateClusterCommand(clusterId, "prod-eu-2", null)));
 
@@ -107,7 +107,7 @@ public sealed class UpdateClusterCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new UpdateClusterCommandHandler(db, new ClusterMapper());
+        var sut = new UpdateClusterCommandHandler(db, new ClusterMapper(), TimeProvider.System);
         var result = await sut.HandleAsync(new UpdateClusterCommand(
             clusterId,
             "prod-eu-1",
@@ -125,7 +125,7 @@ public sealed class UpdateClusterCommandHandlerShould
     public async Task UpdateClusterThrowsForMissingAsync()
     {
         await using var db = await TestDb.SqliteAsync();
-        var sut = new UpdateClusterCommandHandler(db, new ClusterMapper());
+        var sut = new UpdateClusterCommandHandler(db, new ClusterMapper(), TimeProvider.System);
 
         var ex = await Should.ThrowAsync<ClustersException>(() =>
             sut.HandleAsync(new UpdateClusterCommand(
@@ -154,7 +154,7 @@ public sealed class UpdateClusterCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new UpdateClusterCommandHandler(db, new ClusterMapper());
+        var sut = new UpdateClusterCommandHandler(db, new ClusterMapper(), TimeProvider.System);
         await sut.HandleAsync(new UpdateClusterCommand(clusterId, string.Empty, null));
 
         db.ChangeTracker.Clear();
