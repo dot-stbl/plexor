@@ -168,6 +168,14 @@ public static class SigilInfrastructureInstaller
         // singleton-or-shared; the client holds no per-request state.
         services.AddSingleton<IOidcTokenClient, OidcTokenClient>();
 
+        // Phase 4.6.3b — server-side state for the OIDC
+        // authorization-code + PKCE flow. Singleton — the underlying
+        // IMemoryCache is process-wide and the OidcFlowStateStore
+        // holds no per-request state. The PKCE verifier lives here
+        // until the callback leg consumes it (10-minute TTL,
+        // one-shot read+remove).
+        services.AddSingleton<IOidcFlowStateStore, OidcFlowStateStore>();
+
         // Revocation checker — JwtSigningService calls it after
         // signature + lifetime validation succeeds so a stolen,
         // signature-valid JWT is rejected once the user is disabled
