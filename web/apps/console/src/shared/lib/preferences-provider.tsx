@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import i18n from '@/shared/lib/i18n';
+import { applyPreset } from '@/shared/lib/themes/apply-tokens';
+import { getPreset, DEFAULT_PRESET_ID as REGISTRY_DEFAULT_PRESET_ID } from '@/shared/lib/themes/registry';
 
 /**
  * User visual preferences. The single source of truth for theme, accent
@@ -9,6 +11,13 @@ import i18n from '@/shared/lib/i18n';
  * Theme precedence: explicit `theme` value wins; if it's 'system' we
  * follow `prefers-color-scheme` via the inline script in main.tsx
  * (no flash) — this provider just records the user's intent.
+ *
+ * Theme presets (v1 of the registry): the `theme` picker maps to one of
+ * the two default presets in `themes/presets.ts`. The boot config's
+ * `theme.defaultPresetId` is read on mount but only consumed by the
+ * future preset-picker UI (next commit); in v1 the picker is the only
+ * way to switch themes and it always resolves to `plexor-default-light`
+ * or `plexor-default-dark`.
  *
  * Language: also persisted here (NOT only in i18next's own 'plexor-lang'
  * key). This is the single source of truth — i18n is synced via
@@ -85,34 +94,57 @@ function loadFromStorage(): Preferences {
   }
 }
 
+/**
+ * Map the `light | dark | system` picker value to a preset id.
+ *
+ * v1 ships three presets (`plexor-default-light`, `plexor-default-dark`,
+ * `plexor-noir`); only the first two are reachable through the picker.
+ * The boot config's `theme.defaultPresetId` is consumed by
+ * `getBootConfig()` (called from `main.tsx`'s favicon IIFE) and will
+ * become the seed for the preset picker UI added in the next commit.
+ */
+function presetIdForMode(theme: Theme, systemPrefersDark: boolean): string {
+  if (theme === 'system') {
+    return systemPrefersDark ? 'plexor-default-dark' : 'plexor-default-light';
+  }
+  return theme === 'dark' ? 'plexor-default-dark' : 'plexor-default-light';
+}
+
 function applyToDocument(prefs: Preferences) {
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
 
-  // Theme — class list (the inline script in main.tsx already applied
-  // the resolved class before mount, so this just keeps it in sync if
-  // the user toggles at runtime).
-  root.classList.remove('light', 'dark');
-  if (prefs.theme === 'system') {
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    root.classList.add(mql.matches ? 'dark' : 'light');
-  } else {
-    root.classList.add(prefs.theme);
+  // 1. Theme preset — sets tokens, data-theme attribute, and the .dark
+  //    Tailwind class. The preset's `isDarkPreferred` drives the class.
+  const systemPrefersDark =
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const presetId = presetIdForMode(prefs.theme, systemPrefersDark);
+  let preset;
+  try {
+    preset = getPreset(presetId);
+  } catch {
+    // Unknown preset id (e.g. a removed preset in storage) — fall back to
+    // the registry default so we always render something rather than
+    // crash on a stale id.
+    preset = getPreset(REGISTRY_DEFAULT_PRESET_ID);
   }
+  applyPreset(preset);
 
-  // Accent — CSS var override. Defaults are defined in :root in index.css;
-  // the user override lands here, scoped to <html>.
+  // 2. Accent — user override on top of the preset's --accent. The preset
+  //    already wrote its own value; the picker lets the user swap it.
   root.style.setProperty('--accent', ACCENT_VALUES[prefs.accent]);
   root.style.setProperty('--accent-foreground', 'oklch(100% 0 0)');
 
-  // Font size — base scale. All Tailwind `text-*` utilities resolve
-  // through rem (1rem = font-size on <html>), so changing this scales
-  // the entire UI proportionally.
+  // 3. Font size — base scale. All Tailwind `text-*` utilities resolve
+  //    through rem (1rem = font-size on <html>), so changing this scales
+  //    the entire UI proportionally.
   root.style.fontSize = FONT_SIZE_VALUES[prefs.fontSize];
 
-  // Language — keep i18n in sync with the pref. i18next's own
-  // localStorage key 'plexor-lang' is only used on init detection;
-  // the pref is the source of truth after that.
+  // 4. Language — keep i18n in sync with the pref. i18next's own
+  //    localStorage key 'plexor-lang' is only used on init detection;
+  //    the pref is the source of truth after that.
   if (i18n.language !== prefs.language) {
     void i18n.changeLanguage(prefs.language);
   }

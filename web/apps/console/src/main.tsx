@@ -5,6 +5,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { TooltipProvider } from '@/shared/ui/primitives/tooltip';
 import { Toaster } from '@/shared/ui/primitives/sonner';
 import { ThemeProvider } from '@/shared/lib/theme-provider';
+import { getBootConfig } from '@/shared/lib/config';
 import '@/shared/lib/i18n';
 import { routeTree } from './routeTree.gen';
 
@@ -43,6 +44,44 @@ import './index.css';
       document.documentElement.classList.add('dark');
     }
   }
+})();
+
+// Operator-controlled brand — swap the boot favicon in if the host
+// shipped one. Done synchronously before React mounts so the first paint
+// already has the operator's icon (no flash from default → custom).
+(function applyBootFavicon() {
+  try {
+    var boot = getBootConfig();
+    if (boot.brand.faviconUrl) {
+      var link = document.getElementById('favicon-link');
+      if (link) {
+        link.setAttribute('href', boot.brand.faviconUrl);
+      }
+    }
+  } catch (_) {
+    // Boot config unavailable — the default favicon (set in index.html)
+    // stays in place.
+  }
+})();
+
+// Operator custom CSS escape hatch — probe HEAD /custom.css and enable
+// the placeholder link in index.html when the file exists. The
+// cache-busting ?v=Date.now() suffix forces a fresh fetch on every
+// reload so theme changes in custom.css are picked up at the next
+// page load. Async; failure is silent (404 = no custom.css = no link).
+(function enableCustomCssAsync() {
+  var link = document.getElementById('custom-css-link');
+  if (link === null) return;
+  fetch('/custom.css', { method: 'HEAD' })
+    .then(function (response) {
+      if (!response.ok) return;
+      if (link === null) return;
+      link.setAttribute('href', '/custom.css?v=' + Date.now());
+      link.removeAttribute('disabled');
+    })
+    .catch(function () {
+      // Network error — leave the link disabled (no-op).
+    });
 })();
 
 const queryClient = new QueryClient({

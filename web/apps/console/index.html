@@ -19,7 +19,7 @@
     <meta name="robots" content="index,follow" />
 
     <!-- Favicons -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" id="favicon-link" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icon-192.png" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link
@@ -41,6 +41,18 @@
 
     <!-- PWA manifest -->
     <link rel="manifest" href="/manifest.json" />
+
+    <!-- Operator-supplied custom CSS escape hatch. Disabled by
+         default; main.tsx probes HEAD /custom.css and enables the
+         link (with a cache-busting ?v=Date.now()) when the operator
+         has shipped a file. Applied AFTER the runtime theme tokens
+         so it can override any token. -->
+    <link
+      id="custom-css-link"
+      rel="stylesheet"
+      href=""
+      disabled
+    />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
