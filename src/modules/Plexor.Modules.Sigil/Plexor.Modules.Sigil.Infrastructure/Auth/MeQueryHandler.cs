@@ -9,7 +9,6 @@
 
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
-using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Errors;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;

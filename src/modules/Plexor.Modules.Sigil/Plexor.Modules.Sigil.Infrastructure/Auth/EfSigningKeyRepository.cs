@@ -13,12 +13,15 @@ using Plexor.Modules.Sigil.Infrastructure.Persistence;
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
 /// <summary>
+/// <para>
 ///     EF Core implementation of <see cref="ISigningKeyRepository" />.
 ///     All reads are <c>AsNoTracking</c> — these rows are
 ///     append-only and the verifier doesn't mutate them.
-///
+/// </para>
+/// <para>
 ///     Sprint 3 (item 1): wall-clock now read via injected
 ///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 /// <param name="db"></param>
 /// <param name="clock"></param>

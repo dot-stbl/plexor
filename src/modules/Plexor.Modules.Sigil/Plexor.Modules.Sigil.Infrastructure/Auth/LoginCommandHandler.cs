@@ -10,7 +10,6 @@ using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Authorization;
 using Plexor.Modules.Sigil.Application.Users;
-using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 
@@ -29,13 +28,16 @@ public static class LoginRefreshTokenLifetime
 }
 
 /// <summary>
+/// <para>
 ///     Password-grant login. Validates credentials, applies lockout
 ///     state, increments failed-login counters, and issues a fresh
 ///     access + refresh pair on success.
-///
+/// </para>
+/// <para>
 ///     Sprint 3 (item 1): wall-clock now read via injected
 ///     <see cref="TimeProvider" /> per time-and-wire-format.md §3
 ///     (lockout counter / expiry math).
+/// </para>
 /// </summary>
 /// <param name="users">User lookup — by email or username.</param>
 /// <param name="passwordHasher">Password verification.</param>

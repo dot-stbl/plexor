@@ -15,14 +15,17 @@ using Plexor.Modules.Sigil.Domain.Entities;
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
 /// <summary>
+/// <para>
 ///     Ensures the <c>signing_keys</c> table has an active keypair
 ///     on application startup. v0.1: "first writer wins" — if no
 ///     active key exists, generate an ECDSA P-256 keypair with a
 ///     kid derived from the current year + quarter, export to
 ///     PKCS#8 PEM, insert it.
-///
+/// </para>
+/// <para>
 /// Sprint 3 (item 1): wall-clock now read via injected
 ///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 /// <param name="keys"></param>
 /// <param name="logger"></param>

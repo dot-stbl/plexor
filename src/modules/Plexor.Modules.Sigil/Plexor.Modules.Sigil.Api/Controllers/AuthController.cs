@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
-using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Modules.Sigil.Api.Controllers;

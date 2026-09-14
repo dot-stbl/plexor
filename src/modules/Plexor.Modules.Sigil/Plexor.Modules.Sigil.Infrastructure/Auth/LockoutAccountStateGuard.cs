@@ -8,7 +8,6 @@
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
-using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;

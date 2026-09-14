@@ -9,19 +9,21 @@
 
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
-using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Errors;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
 /// <summary>
+/// <para>
 ///     Refresh-token rotation. Verifies the presented token, rotates
 ///     it inside the same family, re-issues the access token against
 ///     the resolved permissions, and triggers family revocation on
 ///     replay.
-///
+/// </para>
+/// <para>
 ///     Sprint 3 (item 1): wall-clock now read via injected
 ///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 /// <param name="refreshTokens">Refresh token store — issue / rotate / revoke.</param>
 /// <param name="tokenIssuer">Access token issuer.</param>

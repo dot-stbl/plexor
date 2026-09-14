@@ -17,12 +17,15 @@ using Plexor.Modules.Sigil.Domain.Entities;
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
 /// <summary>
+/// <para>
 ///     ECDSA P-256 JWT signing service. Reads the active key from
 ///     <see cref="ISigningKeyRepository" />, signs with the private
 ///     key, verifies with the public key.
-///
+/// </para>
+/// <para>
 /// Sprint 3 (item 1): wall-clock now read via injected
 ///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 /// <param name="keys"></param>
 /// <param name="revocationChecker"></param>

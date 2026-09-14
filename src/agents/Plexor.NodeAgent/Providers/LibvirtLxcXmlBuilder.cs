@@ -134,7 +134,7 @@ internal static class LibvirtLxcXmlBuilder
     /// <param name="result">Resolved config (defaults if parse failed).</param>
     public static bool TryDeserializeConfig(JsonElement config, out LibvirtLxcConfig result)
     {
-        return LibvirtConfigDeserializer.TryDeserialize(config, () => new LibvirtLxcConfig(), out result);
+        return LibvirtConfigDeserializer.TryDeserialize(config, static () => new LibvirtLxcConfig(), out result);
     }
 }
 

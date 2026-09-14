@@ -18,13 +18,16 @@ using Plexor.Modules.Sigil.Infrastructure.Persistence;
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
 /// <summary>
+/// <para>
 ///     EF Core implementation of <see cref="IApiKeyAuthenticationService" />.
 ///     Single roundtrip reads the key row (id, secret_hash, permissions,
 ///     expiry, revoked_at). Constant-time hash comparison via
 ///     <c>FixedTimeEquals</c> prevents timing leaks on the secret.
-///
+/// </para>
+/// <para>
 /// Sprint 3 (item 1): wall-clock now read via injected
 ///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 /// <param name="db"></param>
 /// <param name="clock"></param>

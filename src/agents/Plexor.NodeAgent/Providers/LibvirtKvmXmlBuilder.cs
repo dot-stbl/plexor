@@ -13,7 +13,6 @@
 
 using System.Globalization;
 using System.Text;
-using System.Text.Json;
 using System.Xml;
 using Plexor.Shared.NodeApi;
 
@@ -37,7 +36,7 @@ internal static class LibvirtKvmXmlBuilder
         string volumePath,
         string networkBridge)
     {
-        var config = LibvirtConfigDeserializer.TryDeserialize(spec.Config, () => new LibvirtKvmConfig(), out var c)
+        var config = LibvirtConfigDeserializer.TryDeserialize(spec.Config, static () => new LibvirtKvmConfig(), out var c)
                 ? c
                 : new LibvirtKvmConfig();
 

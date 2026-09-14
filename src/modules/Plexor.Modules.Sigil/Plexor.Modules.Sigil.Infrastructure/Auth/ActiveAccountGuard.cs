@@ -27,6 +27,7 @@ public static class ActiveAccountGuard
     ///     <see cref="UserStatusValues.Active" />.
     /// </summary>
     /// <param name="user">The resolved user row.</param>
+    /// <exception cref="IdentityException"></exception>
     public static void EnsureActive(User user)
     {
         if (!string.Equals(user.Status, UserStatusValues.Active, StringComparison.Ordinal))
@@ -45,6 +46,7 @@ public static class ActiveAccountGuard
     ///     auth-mode leakage).
     /// </summary>
     /// <param name="user">The resolved user row.</param>
+    /// <exception cref="IdentityException"></exception>
     public static void EnsurePasswordExists(User user)
     {
         if (user.PasswordHash is null)

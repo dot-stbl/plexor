@@ -31,6 +31,7 @@ namespace Plexor.Migrator;
 /// <param name="configuration"></param>
 /// <param name="lifetime"></param>
 /// <param name="logger"></param>
+/// <param name="clock"></param>
 /// <remarks>
 ///     <para><b>What gets seeded.</b>
 ///     <list type="bullet">

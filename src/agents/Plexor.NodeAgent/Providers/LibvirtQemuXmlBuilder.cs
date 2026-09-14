@@ -105,7 +105,7 @@ internal static class LibvirtQemuXmlBuilder
     /// <param name="result">Resolved config (defaults if parse failed).</param>
     public static bool TryDeserializeConfig(JsonElement config, out LibvirtQemuConfig result)
     {
-        return LibvirtConfigDeserializer.TryDeserialize(config, () => new LibvirtQemuConfig(), out result);
+        return LibvirtConfigDeserializer.TryDeserialize(config, static () => new LibvirtQemuConfig(), out result);
     }
 }
 

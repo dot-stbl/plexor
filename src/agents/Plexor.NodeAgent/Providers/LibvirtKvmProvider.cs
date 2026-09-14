@@ -33,11 +33,14 @@ using Plexor.Shared.Workloads;
 namespace Plexor.NodeAgent.Providers;
 
 /// <summary>
-///     <see cref="IWorkloadProvider" /> for KVM VMs via libvirt. v0.1
+///     <para>
+/// <see cref="IWorkloadProvider" /> for KVM VMs via libvirt. v0.1
 ///     uses the <c>virsh</c> CLI; future v0.2+ uses LibvirtClient.
-///
+/// </para>
+/// <para>
 ///     Sprint 3 (item 1): wall-clock now read via injected
 ///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 /// <param name="volumes">
 ///     Storage backend — provides the disk image the domain

@@ -29,13 +29,16 @@ using Plexor.Shared.Workloads;
 namespace Plexor.NodeAgent.Providers;
 
 /// <summary>
-///     <see cref="IWorkloadProvider" /> for LXC system containers via
+///     <para>
+/// <see cref="IWorkloadProvider" /> for LXC system containers via
 ///     libvirt. Different <see cref="WorkloadKind" /> from KVM (the
 ///     agent's dispatcher routes by Kind), so the agent runs the
 ///     same commands against fundamentally different technology.
-///
+/// </para>
+/// <para>
 ///     Sprint 3 (item 1): wall-clock now read via injected
 ///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 /// <param name="volumes"></param>
 /// <param name="networks"></param>

@@ -41,6 +41,7 @@ namespace Plexor.NodeAgent;
 /// <param name="logger"></param>
 /// <param name="config"></param>
 /// <param name="nodeOptions"></param>
+/// <param name="clock"></param>
 /// <remarks>
 ///     Build the worker. Hardware and control-plane URL
 ///     come from configuration (Plexor:Node:* keys).

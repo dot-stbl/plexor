@@ -14,7 +14,6 @@ using Plexor.Modules.Sigil.Api.Controllers;
 using Plexor.Modules.Sigil.Api.Records;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Users;
-using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Users;
 using Shouldly;
 using Xunit;

@@ -19,13 +19,16 @@ using Plexor.Shared.NodeApi;
 namespace Plexor.NodeAgent.Composition;
 
 /// <summary>
+/// <para>
 ///     Routes a <see cref="CommandEnvelope" /> to its
 ///     <see cref="ICommandExecutor" /> by the wire type, executes it,
 ///     and wraps the outcome in a <see cref="CommandResult" />. Singleton
 ///     in DI — the dispatch table is built once at startup.
-///
+/// </para>
+/// <para>
 ///     Sprint 3 (item 1): wall-clock now read via injected
 ///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 internal sealed class CommandDispatcher
 {
