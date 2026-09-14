@@ -49,6 +49,7 @@ using Plexor.Modules.Quotas.Infrastructure.Persistence;
 using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Api;
+using Plexor.Modules.Sigil.Api.Endpoints;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
@@ -366,5 +367,16 @@ app.MapControllers();
 // hatch (commit 5). Mounted before MapControllers so it takes
 // priority over any controller route with the same path.
 app.MapCustomCssEndpoint();
+
+// OIDC flow endpoints (Phase 4.6.3b) — the inbound anonymous
+// surface for tenants configured with an external OIDC IDP.
+//   /auth/oidc/authorize  → redirect to the IDP's auth endpoint
+//   /auth/oidc/callback   → finish the PKCE flow + IDP code exchange
+//   /auth/oidc/logout     → RP-initiated logout (best-effort)
+// Mounted before MapControllers so they take priority over any
+// future controller route with the same path.
+app.MapOidcAuthorize();
+app.MapOidcCallback();
+app.MapOidcLogout();
 
 app.Run();
