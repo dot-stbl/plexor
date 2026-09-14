@@ -1,5 +1,3 @@
-using Plexor.Shared.Filtering.Schema;
-
 namespace Plexor.Shared.Filtering.Operators;
 
 /// <summary>
@@ -10,7 +8,8 @@ namespace Plexor.Shared.Filtering.Operators;
 /// <remarks>
 ///     <para>
 ///         The wire names are stable identifiers consumed by the frontend
-///         (<see cref="FilterableSchemaTransformer" /> → <c>x-filterable</c>
+///         (<c>FilterableSchemaTransformer</c> in
+///         <c>Plexor.Shared.Filtering.Web</c> → <c>x-filterable</c>
 ///         extension → kubb plugin's <c>filterable.types.ts</c>). Renaming
 ///         any of these is a breaking change for the generated client —
 ///         the FE generator will refuse unknown names and fall back to

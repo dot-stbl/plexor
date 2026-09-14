@@ -1,52 +1,34 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Plexor.Shared.Filtering.Registry;
-using Plexor.Shared.Filtering.Schema;
 
 namespace Plexor.Shared.Filtering.DI;
 
 /// <summary>
-///     DI extension to wire <see cref="IFilterableEntity" /> registration,
-///     the <see cref="FilterableEntityRegistry" />, and the
-///     <see cref="FilterableSchemaTransformer" />.
+///     DI extension that registers per-entity filterable markers.
+///     Lives in <c>Plexor.Shared.Filtering.Core</c> — pure BCL, no ASP.NET
+///     Core dependency. The OpenAPI schema transformer + the
+///     <c>AddFiltering()</c> composition extension live in
+///     <c>Plexor.Shared.Filtering.Web</c>.
 /// </summary>
 /// <remarks>
 ///     <para><b>Usage.</b> In a module's DI installer:</para>
 ///     <code>
 /// services
-///     .AddFiltering()
 ///     .AddFilterableEntity&lt;Plexor.Modules.Realm.Domain.TenantRecord&gt;()
 ///     .AddFilterableEntity&lt;Plexor.Modules.Audit.Domain.AuditEntry&gt;();
 ///     </code>
-///     <para><b>Wire-up ordering.</b> Call <see cref="AddFiltering" /> first
-///     (registers the registry + transformer), then one
-///     <see cref="AddFilterableEntity{T}" /> per entity. Calling order
-///     does not affect emission output — the transformer pulls the full
-///     registry on every schema pass.</para>
-///     <para><b>OpenAPI registration.</b> <see cref="AddFiltering" /> does
-///     NOT itself register the transformer on the OpenAPI builder; the
-///     host calls <c>AddOpenApi().AddSchemaTransformer&lt;FilterableSchemaTransformer&gt;()</c>
-///     separately so the wiring stays in the host's composition root.</para>
+///     <para>
+///         Each <c>AddFilterableEntity&lt;T&gt;()</c> registers a
+///         <see cref="FilterableEntitySeed{T}" /> hosted service that
+///         <see cref="FilterableEntityRegistry.Register{T}" />s the entity at
+///         startup. The registry is populated by the seeds, then read by the
+///         OpenAPI schema transformer (registered separately via
+///         <c>AddFiltering()</c> in the Web project).
+///     </para>
 /// </remarks>
 public static class FilteringServiceCollectionExtensions
 {
-    /// <summary>
-    ///     Registers the filterable-entity infrastructure: the singleton
-    ///     registry and the schema transformer. Caller still needs to call
-    ///     <c>AddSchemaTransformer&lt;FilterableSchemaTransformer&gt;</c> on
-    ///     the OpenAPI options to actually emit the extensions.
-    /// </summary>
-    /// <param name="services">DI service collection.</param>
-    public static IServiceCollection AddFiltering(this IServiceCollection services)
-    {
-
-        services.TryAddSingleton<FilterableEntityRegistry>();
-        services.TryAddSingleton<FilterableSchemaTransformer>();
-
-        return services;
-    }
-
     /// <summary>
     ///     Registers <typeparamref name="T" /> as filterable. Emits its
     ///     properties as <c>x-filterable</c> on the matching OpenAPI schema

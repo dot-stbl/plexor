@@ -1,59 +1,77 @@
+using System.Reflection;
+using NetArchTest.Rules;
 using Shouldly;
-
 using Xunit;
 
 namespace Plexor.ArchitectureTests;
 
+/// <summary>
+///     Domain projects must have zero framework/IO dependencies per
+///     <c>architecture.md</c> Law 2. NetArchTest-driven assertions that
+///     catch accidental AspNetCore/EF/HttpClient references before code
+///     review. Fails the build on violation.
+/// </summary>
 public sealed class DomainIsolationShould
 {
-    [Fact(DisplayName = "Given a Domain assembly, when EF Core is referenced, then fail (Domain must be framework-free)")]
-    public void DomainProjectsShouldNotDependOnEf()
+    private static readonly string[] DomainProjectNames =
+    [
+        "Plexor.Modules.Sigil.Domain",
+        "Plexor.Modules.Clusters.Domain",
+        "Plexor.Modules.Realm.Domain",
+    ];
+
+    private static readonly Assembly[] DomainAssemblies = DomainProjectNames
+        .Select(static name => Assembly.Load(name))
+        .ToArray();
+
+    [Fact(DisplayName = "Domain projects should not depend on Plexor.Shared.Filtering.Web")]
+    public void DomainProjectsShouldNotDependOnFilteringWeb()
     {
-        var forbidden = new[] { "Microsoft.EntityFrameworkCore" };
+        var result = Types.InAssemblies(DomainAssemblies)
+            .ShouldNot()
+            .HaveDependencyOn("Plexor.Shared.Filtering.Web")
+            .GetResult();
 
-        var failing = DomainAssemblies.All
-            .Select(asm => (asm.GetName().Name, Refs: asm.GetReferencedAssemblies()))
-            .Where(x => x.Refs.Any(refAsm => forbidden.Any(prefix =>
-                refAsm.Name?.StartsWith(prefix, StringComparison.Ordinal) == true)))
-            .Select(x => x.Name)
-            .ToList();
+        var failingTypes = string.Join(", ", result.FailingTypeNames ?? []);
 
-        failing.ShouldBeEmpty(
-            $"Domain assemblies must not reference EF Core. Violations: {string.Join(", ", failing)}");
+        result.IsSuccessful.ShouldBeTrue(
+            "Domain projects must not reference Plexor.Shared.Filtering.Web " +
+            "(it pulls in Microsoft.AspNetCore.App via FrameworkReference). " +
+            "Domain projects depend on Plexor.Shared.Filtering.Core instead." +
+            "\nOffending types: " + failingTypes);
     }
 
-    [Fact(DisplayName = "Given a Domain assembly, when AspNetCore / System.Net.Http is referenced, then fail (Domain must be framework-free)")]
-    public void DomainProjectsShouldNotDependOnAspNetCore()
+    [Fact(DisplayName = "Domain projects should not depend on Plexor.Host")]
+    public void DomainProjectsShouldNotDependOnHost()
     {
-        var forbidden = new[] { "Microsoft.AspNetCore", "System.Net.Http" };
+        var result = Types.InAssemblies(DomainAssemblies)
+            .ShouldNot()
+            .HaveDependencyOn("Plexor.Host")
+            .GetResult();
 
-        var failing = DomainAssemblies.All
-            .Select(asm => (asm.GetName().Name, Refs: asm.GetReferencedAssemblies()))
-            .Where(x => x.Refs.Any(refAsm => forbidden.Any(prefix =>
-                refAsm.Name?.StartsWith(prefix, StringComparison.Ordinal) == true)))
-            .Select(x => x.Name)
-            .ToList();
+        var failingTypes = string.Join(", ", result.FailingTypeNames ?? []);
 
-        failing.ShouldBeEmpty(
-            $"Domain assemblies must not reference AspNetCore / System.Net.Http. Violations: {string.Join(", ", failing)}");
+        result.IsSuccessful.ShouldBeTrue(
+            "Domain projects must not reference Plexor.Host " +
+            "(composition root, not domain)." +
+            "\nOffending types: " + failingTypes);
     }
 
-    [Fact(DisplayName = "Given a Domain assembly, when own Infrastructure is referenced, then fail (Domain must not reach into Infrastructure)")]
-    public void DomainProjectsShouldNotDependOnOwnInfrastructure()
+    [Fact(DisplayName = "Domain projects should not contain types from Microsoft.AspNetCore.* namespaces")]
+    public void DomainProjectsShouldNotUseAspNetCoreNamespaces()
     {
-        var forbidden = DomainAssemblies.All
-            .Select(static asm => asm.GetName().Name?.Replace(".Domain", ".Infrastructure"))
-            .Where(name => name is not null)
-            .Cast<string>()
-            .ToArray();
+        // ResideInNamespace matches by prefix; "Microsoft.AspNetCore" catches
+        // Microsoft.AspNetCore.Mvc, Microsoft.AspNetCore.OpenApi, etc.
+        var result = Types.InAssemblies(DomainAssemblies)
+            .ShouldNot()
+            .ResideInNamespace("Microsoft.AspNetCore")
+            .GetResult();
 
-        var failing = DomainAssemblies.All
-            .SelectMany(asm => asm.GetReferencedAssemblies()
-                .Where(refAsm => forbidden.Contains(refAsm.Name))
-                .Select(refAsm => $"{asm.GetName().Name} -> {refAsm.Name}"))
-            .ToList();
+        var failingTypes = string.Join(", ", result.FailingTypeNames ?? []);
 
-        failing.ShouldBeEmpty(
-            $"Domain assemblies must not reference own Infrastructure. Violations: {string.Join(", ", failing)}");
+        result.IsSuccessful.ShouldBeTrue(
+            "Domain projects must not contain types in Microsoft.AspNetCore.* namespaces " +
+            "(Law 2 from architecture.md: Domain has zero framework/IO dependencies)." +
+            "\nOffending types: " + failingTypes);
     }
 }
