@@ -12,8 +12,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
+using Plexor.Modules.Sigil.Application.AuthProviders;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
 using Plexor.Shared.Authorization;
 
@@ -113,6 +115,19 @@ public static class SigilInfrastructureInstaller
         // and the JWT signing service so callers don't have to.
         services.AddScoped<IPermissionResolver, PermissionResolver>();
         services.AddSingleton<ITokenIssuer, TokenIssuer>();
+
+        // Phase 4 — role resolver. Same shape as IPermissionResolver
+        // but projects to role.Name (used by the `role` claims baked
+        // into the access token). Splitting permissions from roles
+        // avoids a join + select-many on the same table.
+        services.AddScoped<IRoleResolver, EfRoleResolver>();
+
+        // Phase 4.6.2a — IAuthProvider implementation for the local
+        // email+password backend. The bearer handler today bypasses
+        // this provider; the future dispatcher (4.6.2c) routes the
+        // bearer credential through it. Scoped — it depends on a
+        // scoped DbContext (Realm) plus the per-request IUserLookup.
+        services.AddScoped<IAuthProvider, SigilAuthProvider>();
 
         // Revocation checker — JwtSigningService calls it after
         // signature + lifetime validation succeeds so a stolen,
