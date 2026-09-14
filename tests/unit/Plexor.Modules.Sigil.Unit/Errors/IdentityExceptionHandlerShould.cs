@@ -52,7 +52,7 @@ public sealed class IdentityExceptionHandlerShould
             CancellationToken.None);
 
         problem.ShouldNotBeNull();
-        return problem!;
+        return problem;
     }
 
     /// <summary>Generic <see cref="IdentityException" /> with the

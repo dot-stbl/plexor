@@ -86,7 +86,7 @@ public sealed class PlexorCaFileStoreShould
             File.Exists(options.CertPath).ShouldBeFalse();
             File.Exists(options.KeyPath).ShouldBeFalse();
 
-            Should.Throw<IOException>(() => store.ReadRoot());
+            Should.Throw<IOException>(store.ReadRoot);
         }
         finally
         {
@@ -171,6 +171,7 @@ file static class FileStoreTestHelpers
     ///     <see cref="Path.GetTempPath" />. The directory is NOT
     ///     created — callers must create it themselves if needed.
     /// </summary>
+    /// <param name="prefix"></param>
     public static string NewTempDir(string prefix)
     {
         return Path.Combine(Path.GetTempPath(), prefix + "-" + Guid.NewGuid().ToString("N"));
@@ -182,6 +183,7 @@ file static class FileStoreTestHelpers
     ///     parent test class and the bootstrap tests (which copy
     ///     this same layout).
     /// </summary>
+    /// <param name="tempDir"></param>
     public static CertAuthorityOptions CreateOptionsInTempDir(string tempDir)
     {
         return new CertAuthorityOptions
@@ -199,6 +201,7 @@ file static class FileStoreTestHelpers
     ///     dir eventually, and failing the test on a transient
     ///     antivirus lock would be flaky.
     /// </summary>
+    /// <param name="tempDir"></param>
     public static void CleanupTempDir(string tempDir)
     {
         if (Directory.Exists(tempDir))

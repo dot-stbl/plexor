@@ -11,8 +11,6 @@
 // a RevokedCertsDbContext registration.
 // ============================================================================
 
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shouldly;
@@ -242,6 +240,7 @@ file static class IssuerTestHelpers
     ///     dir eventually, and failing the test on a transient
     ///     antivirus lock would be flaky.
     /// </summary>
+    /// <param name="tempDir"></param>
     public static void CleanupTempDir(string tempDir)
     {
         if (Directory.Exists(tempDir))

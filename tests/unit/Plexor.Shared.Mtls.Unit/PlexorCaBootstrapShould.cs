@@ -164,6 +164,7 @@ file static class BootstrapTestHelpers
     ///     <see cref="Path.GetTempPath" />. The directory is NOT
     ///     created — callers must create it themselves if needed.
     /// </summary>
+    /// <param name="prefix"></param>
     public static string NewTempDir(string prefix)
     {
         return Path.Combine(Path.GetTempPath(), prefix + "-" + Guid.NewGuid().ToString("N"));
@@ -175,6 +176,7 @@ file static class BootstrapTestHelpers
     ///     absolute so <c>PlexorCaBootstrap.ResolvePaths</c> leaves
     ///     them untouched (the resolver is private).
     /// </summary>
+    /// <param name="tempDir"></param>
     public static CertAuthorityOptions CreateOptionsInTempDir(string tempDir)
     {
         return new CertAuthorityOptions
@@ -192,6 +194,7 @@ file static class BootstrapTestHelpers
     ///     dir eventually, and failing the test on a transient
     ///     antivirus lock would be flaky.
     /// </summary>
+    /// <param name="tempDir"></param>
     public static void CleanupTempDir(string tempDir)
     {
         if (Directory.Exists(tempDir))

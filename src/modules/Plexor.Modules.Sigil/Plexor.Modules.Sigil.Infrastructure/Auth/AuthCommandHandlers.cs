@@ -242,7 +242,6 @@ public sealed class LoginCommandHandler(
 ///     replay.
 /// </summary>
 /// <param name="refreshTokens"></param>
-/// <param name="roleNames"></param>
 /// <param name="tokenIssuer"></param>
 /// <param name="ownerResolver">
 ///     Resolves the user that owns the rotated refresh token, plus
@@ -251,7 +250,6 @@ public sealed class LoginCommandHandler(
 /// </param>
 public sealed class RefreshCommandHandler(
     IRefreshTokenStore refreshTokens,
-    IRoleNameLoader roleNames,
     ITokenIssuer tokenIssuer,
     IRefreshTokenOwnerResolver ownerResolver) : ICommandHandler<RefreshCommand, LoginResult>
 {

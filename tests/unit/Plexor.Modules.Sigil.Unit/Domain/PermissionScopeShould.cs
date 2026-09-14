@@ -26,6 +26,7 @@ public sealed class PermissionScopeShould
     /// <summary>Canonical valid forms are accepted: 3-segment
     /// service.resource.action, with the literal <c>*</c> as the
     /// super-admin shortcut.</summary>
+    /// <param name="raw"></param>
     [Theory(DisplayName = "Given a well-formed permission string, IsWellFormed returns true")]
     [InlineData("compute.vms.read")]
     [InlineData("iam.users.list")]
@@ -39,6 +40,7 @@ public sealed class PermissionScopeShould
 
     /// <summary>Empty / whitespace / control-char-only strings are
     /// rejected outright — they can't carry any permission meaning.</summary>
+    /// <param name="raw"></param>
     [Theory(DisplayName = "Given empty or whitespace input, IsWellFormed returns false")]
     [InlineData("")]
     [InlineData(" ")]
@@ -52,6 +54,7 @@ public sealed class PermissionScopeShould
     /// <summary>Without a dot, the string isn't a permission at all —
     /// even if every char is otherwise legal. Prevents accidental
     /// single-token grants.</summary>
+    /// <param name="raw"></param>
     [Theory(DisplayName = "Given input without a dot separator, IsWellFormed returns false")]
     [InlineData("compute")]
     [InlineData("vms")]
@@ -65,6 +68,7 @@ public sealed class PermissionScopeShould
     /// is lowercase; mixed-case input must not silently pass the
     /// validator and reach the JWT signer (where case-sensitivity
     /// across services would diverge).</summary>
+    /// <param name="raw"></param>
     [Theory(DisplayName = "Given uppercase characters, IsWellFormed returns false")]
     [InlineData("Compute.vms.read")]
     [InlineData("compute.VMS.read")]
@@ -77,6 +81,7 @@ public sealed class PermissionScopeShould
     /// <summary>Punctuation outside the allowed set (<c>.</c> and
     /// <c>_</c>) is rejected — protects against injection of
     /// shell-meta or path-traversal chars via the permission string.</summary>
+    /// <param name="raw"></param>
     [Theory(DisplayName = "Given illegal characters, IsWellFormed returns false")]
     [InlineData("compute!vms.read")]
     [InlineData("compute@vms.read")]
@@ -92,6 +97,7 @@ public sealed class PermissionScopeShould
     /// <summary>Structural dot errors — leading dot, trailing dot, and
     /// consecutive dots — all reject. Each silently passing would let
     /// an attacker smuggle empty segments past the validator.</summary>
+    /// <param name="raw"></param>
     [Theory(DisplayName = "Given a structurally malformed dot sequence, IsWellFormed returns false")]
     [InlineData("foo.")]
     [InlineData(".foo")]
@@ -107,6 +113,7 @@ public sealed class PermissionScopeShould
     /// sneak through as a "valid 3-segment string" and confuse the
     /// authorization handler (which only treats literal <c>*</c> as
     /// super-admin).</summary>
+    /// <param name="raw"></param>
     [Theory(DisplayName = "Given super-admin wildcard variants, IsWellFormed returns false")]
     [InlineData("**")]
     [InlineData("*.*")]
@@ -169,6 +176,7 @@ public sealed class PermissionScopeShould
     /// <c>identity.permission.invalid</c> code. The exception code is
     /// stable across renames so ProblemDetails clients can branch on
     /// it.</summary>
+    /// <param name="raw"></param>
     [Theory(DisplayName = "Given an invalid permission string, the constructor throws IdentityException")]
     [InlineData("")]
     [InlineData("   ")]

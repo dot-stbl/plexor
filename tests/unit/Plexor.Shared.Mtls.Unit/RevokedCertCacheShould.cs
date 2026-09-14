@@ -109,6 +109,7 @@ file static class RevokedCacheTestHelpers
     ///     false — the fail-open path the production code already
     ///     documents.
     /// </summary>
+    /// <param name="clock"></param>
     public static RevokedCertCache CreateCache(TimeProvider clock)
     {
         var services = new ServiceCollection().BuildServiceProvider();
@@ -125,6 +126,9 @@ file static class RevokedCacheTestHelpers
     ///     production surface exposes only IsRevoked / MarkRevoked /
     ///     Invalidate, not the timestamp itself.
     /// </summary>
+    /// <param name="cache"></param>
+    /// <param name="serialHex"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public static DateTimeOffset GetStoredTimestamp(RevokedCertCache cache, string serialHex)
     {
         const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;

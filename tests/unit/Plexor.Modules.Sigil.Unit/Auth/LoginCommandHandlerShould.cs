@@ -16,6 +16,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
+using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Authorization;
 using Plexor.Modules.Sigil.Application.Users;
@@ -333,8 +334,9 @@ public sealed class LoginCommandHandlerShould
         var issuer = Substitute.For<ITokenIssuer>();
         var refresh = Substitute.For<IRefreshTokenStore>();
         var users = Substitute.For<IUserLookup>();
+        var roles = Substitute.For<IRoleNameLoader>();
 
-        var sut = new LoginCommandHandler(users, hasher, refresh, issuer, db);
+        var sut = new LoginCommandHandler(users, hasher, refresh, roles, issuer, db);
         await Task.CompletedTask;
         return (sut, hasher, issuer, refresh, users);
     }

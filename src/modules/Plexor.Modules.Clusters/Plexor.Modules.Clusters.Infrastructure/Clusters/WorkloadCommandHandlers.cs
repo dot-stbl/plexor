@@ -80,7 +80,7 @@ public sealed class CreateWorkloadCommandHandler(
             command.ClusterId,
             cancellationToken);
 
-        var spec = new WorkloadSpec(
+        var spec = new Plexor.Modules.Clusters.Application.Abstractions.WorkloadSpec(
             ClusterId: command.ClusterId,
             Name: command.Name,
             Kind: command.Kind,
