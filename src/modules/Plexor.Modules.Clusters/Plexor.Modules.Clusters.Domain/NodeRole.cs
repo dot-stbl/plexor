@@ -123,8 +123,8 @@ public sealed record NodeSpec(
     public static NodeCounts Aggregate(IReadOnlyList<Node> nodes)
     {
         var byStatus = nodes
-            .GroupBy(node => node.Status)
-            .ToDictionary(group => group.Key, group => group.Count());
+            .GroupBy(static node => node.Status)
+            .ToDictionary(static group => group.Key, static group => group.Count());
 
         return new NodeCounts(
             Total: nodes.Count,

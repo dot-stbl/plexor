@@ -40,15 +40,16 @@ public static class SigilApplicationInstaller
 {
     /// <summary>Register Sigil Application-layer services.</summary>
     /// <param name="services">The host's service collection.</param>
+    /// <param name="_">
+    ///     Reserved for Options binding (AuthOptions refresh-token
+    ///     lifetime etc.). Unused today; the parameter exists so the
+    ///     call-site chain stays stable when binding lands.
+    /// </param>
     /// <returns>The same <paramref name="services" /> for chaining.</returns>
     public static IServiceCollection AddSigilApplicationCore(
         this IServiceCollection services,
         IConfiguration _)
     {
-        // IConfiguration parameter is reserved for Options binding
-        // (AuthOptions refresh-token lifetime, etc.). Unused today;
-        // the parameter exists so the call site is stable when binding
-        // lands.
         return services;
     }
 }
