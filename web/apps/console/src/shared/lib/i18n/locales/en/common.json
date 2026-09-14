@@ -802,7 +802,13 @@
       "livePreview": "Live preview",
       "livePreviewHelp": "Updates as you type — reflects what the operator + per-org config produces.",
       "livePreviewBrandName": "Plexor",
-      "livePreviewAccent": "Accent"
+      "livePreviewAccent": "Accent",
+      "customCssTitle": "Custom CSS escape hatch",
+      "customCssDescription": "Operator-edited CSS file applied AFTER runtime theme tokens. Lets you override any token or add new selectors.",
+      "customCssFilePath": "File path",
+      "customCssOpen": "Open file",
+      "customCssNote": "This file is read on every page load. Edit + save + reload the browser to pick up changes.",
+      "customCssWarning": "The escape hatch can break the UI — use only when the preset registry isn't enough."
     }
   }
 }

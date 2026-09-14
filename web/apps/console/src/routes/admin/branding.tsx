@@ -512,6 +512,39 @@ function AdminBrandingPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* -------- Custom CSS escape hatch card --------------------- */}
+      <Card className="mt-4" data-od-id="admin-branding-custom-css">
+        <CardHeader>
+          <CardTitle>{t('admin.branding.customCssTitle')}</CardTitle>
+          <CardDescription>{t('admin.branding.customCssDescription')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Field
+            id="custom-css-path"
+            label={t('admin.branding.customCssFilePath')}
+            help={t('admin.branding.customCssNote')}
+          >
+            <div className="flex items-center gap-2">
+              <code className="flex-1 truncate rounded-md border border-border bg-muted/30 px-3 py-2 font-mono text-[11px]">
+                /etc/plexor/custom.css
+              </code>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.open('/custom.css', '_blank', 'noopener,noreferrer');
+                }}
+              >
+                {t('admin.branding.customCssOpen')}
+              </Button>
+            </div>
+          </Field>
+          <p className="text-[11px] text-muted-foreground">
+            {t('admin.branding.customCssWarning')}
+          </p>
+        </CardContent>
+      </Card>
     </PageTemplate>
   );
 }
