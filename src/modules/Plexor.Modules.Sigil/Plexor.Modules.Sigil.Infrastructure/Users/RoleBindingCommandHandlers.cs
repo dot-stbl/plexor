@@ -20,15 +20,16 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 ///     <see cref="IdentityExceptions.InvalidPermission" />.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="clock"></param>
 public sealed class CreateRoleBindingCommandHandler(
-    IdentityDbContext db) : ICommandHandler<CreateRoleBindingCommand, CreateRoleBindingResult>
+    IdentityDbContext db,
+    TimeProvider clock) : ICommandHandler<CreateRoleBindingCommand, CreateRoleBindingResult>
 {
     /// <inheritdoc />
     public async Task<CreateRoleBindingResult> HandleAsync(
         CreateRoleBindingCommand command,
         CancellationToken cancellationToken = default)
     {
-
         // Verify the role exists in the org before creating the binding.
         var roleExists = await db.Roles
             .AsNoTracking()
@@ -58,7 +59,7 @@ public sealed class CreateRoleBindingCommandHandler(
             RoleId = command.RoleId,
             TeamId = null,
             FolderId = null,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = clock.GetUtcNow(),
         };
 
         await db.RoleBindings.AddAsync(binding, cancellationToken);

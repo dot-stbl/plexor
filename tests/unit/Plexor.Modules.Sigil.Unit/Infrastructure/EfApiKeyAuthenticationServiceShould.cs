@@ -42,7 +42,7 @@ public sealed class EfApiKeyAuthenticationServiceShould
             rawSecret,
             [new PermissionScope("compute.vms.read"), new PermissionScope("iam.users.read")]);
 
-        var service = new EfApiKeyAuthenticationService(db);
+        var service = new EfApiKeyAuthenticationService(db, TimeProvider.System);
         var result = await service.AuthenticateAsync(key.Id, rawSecret);
 
         var success = result.ShouldBeOfType<ApiKeyAuthenticationResult.Success>();
@@ -66,7 +66,7 @@ public sealed class EfApiKeyAuthenticationServiceShould
     public async Task UnknownKidReturnsNotFoundAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var service = new EfApiKeyAuthenticationService(db);
+        var service = new EfApiKeyAuthenticationService(db, TimeProvider.System);
 
         var result = await service.AuthenticateAsync(Guid.NewGuid(), "anything");
 
@@ -87,7 +87,7 @@ public sealed class EfApiKeyAuthenticationServiceShould
             "correct-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             [new PermissionScope("compute.vms.read")]);
 
-        var service = new EfApiKeyAuthenticationService(db);
+        var service = new EfApiKeyAuthenticationService(db, TimeProvider.System);
         var result = await service.AuthenticateAsync(key.Id, "totally-wrong-secret-bbbbbbbbbbbb");
 
         var invalid = result.ShouldBeOfType<ApiKeyAuthenticationResult.Invalid>();
@@ -112,7 +112,7 @@ public sealed class EfApiKeyAuthenticationServiceShould
             .ExecuteUpdateAsync(
                 setters => setters.SetProperty(k => k.RevokedAt, DateTimeOffset.UtcNow));
 
-        var service = new EfApiKeyAuthenticationService(db);
+        var service = new EfApiKeyAuthenticationService(db, TimeProvider.System);
         var result = await service.AuthenticateAsync(key.Id, rawSecret);
 
         var invalid = result.ShouldBeOfType<ApiKeyAuthenticationResult.Invalid>();

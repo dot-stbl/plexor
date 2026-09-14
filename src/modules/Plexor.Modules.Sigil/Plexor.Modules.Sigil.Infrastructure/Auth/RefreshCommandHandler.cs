@@ -19,6 +19,9 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     it inside the same family, re-issues the access token against
 ///     the resolved permissions, and triggers family revocation on
 ///     replay.
+///
+///     Sprint 3 (item 1): wall-clock now read via injected
+///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
 /// </summary>
 /// <param name="refreshTokens">Refresh token store — issue / rotate / revoke.</param>
 /// <param name="tokenIssuer">Access token issuer.</param>
@@ -27,10 +30,12 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     the user's role names. Behind an interface so the handler
 ///     stays unit-testable without a real DbContext.
 /// </param>
+/// <param name="clock">Wall-clock — used to stamp the rotated refresh-token expiry.</param>
 public sealed class RefreshCommandHandler(
     IRefreshTokenStore refreshTokens,
     ITokenIssuer tokenIssuer,
-    IRefreshTokenOwnerResolver ownerResolver) : ICommandHandler<RefreshCommand, LoginResult>
+    IRefreshTokenOwnerResolver ownerResolver,
+    TimeProvider clock) : ICommandHandler<RefreshCommand, LoginResult>
 {
     /// <inheritdoc />
     public async Task<LoginResult> HandleAsync(
@@ -45,7 +50,7 @@ public sealed class RefreshCommandHandler(
         }
 
         var newRefreshRaw = TokenGenerator.Generate();
-        var newRefreshExpires = DateTimeOffset.UtcNow + LoginRefreshTokenLifetime.Value;
+        var newRefreshExpires = clock.GetUtcNow() + LoginRefreshTokenLifetime.Value;
 
         var rotation = await refreshTokens.RotateAsync(
             command.RefreshToken,

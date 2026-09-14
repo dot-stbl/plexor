@@ -2,6 +2,10 @@
 // ============================================================================
 // RoleCommandHandlers — CRUD on sigil.roles. Built-in roles are
 // immutable; the handler enforces this in every write path.
+//
+// Sprint 3 (item 1): all wall-clock reads moved from
+// DateTimeOffset.UtcNow to clock.GetUtcNow(); the TimeProvider is
+// injected via primary constructor per time-and-wire-format.md §3.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -21,15 +25,16 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 ///     protected by the (org_id, name) unique index.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="clock"></param>
 public sealed class CreateRoleCommandHandler(
-    IdentityDbContext db) : ICommandHandler<CreateRoleCommand, CreateRoleResult>
+    IdentityDbContext db,
+    TimeProvider clock) : ICommandHandler<CreateRoleCommand, CreateRoleResult>
 {
     /// <inheritdoc />
     public async Task<CreateRoleResult> HandleAsync(
         CreateRoleCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (string.IsNullOrWhiteSpace(command.Name))
         {
             throw new IdentityException(
@@ -41,6 +46,7 @@ public sealed class CreateRoleCommandHandler(
             .Select(static value => new PermissionScope(value))
             .ToArray();
 
+        var now = clock.GetUtcNow();
         var role = new Role
         {
             Id = Guid.NewGuid(),
@@ -49,8 +55,8 @@ public sealed class CreateRoleCommandHandler(
             Description = command.Description,
             Permissions = permissions,
             BuiltIn = false,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = now,
+            UpdatedAt = now,
         };
 
         await db.Roles.AddAsync(role, cancellationToken);
@@ -66,15 +72,17 @@ public sealed class CreateRoleCommandHandler(
 /// </summary>
 /// <param name="db"></param>
 /// <param name="mapper"></param>
+/// <param name="clock"></param>
 public sealed class UpdateRoleCommandHandler(
-    IdentityDbContext db, ISigilMapper mapper) : ICommandHandler<UpdateRoleCommand, RoleSummary>
+    IdentityDbContext db,
+    ISigilMapper mapper,
+    TimeProvider clock) : ICommandHandler<UpdateRoleCommand, RoleSummary>
 {
     /// <inheritdoc />
     public async Task<RoleSummary> HandleAsync(
         UpdateRoleCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (await db.Roles
                 .FirstOrDefaultAsync(r => r.Id == command.RoleId, cancellationToken)
             is not { } role)
@@ -91,6 +99,7 @@ public sealed class UpdateRoleCommandHandler(
                 "Built-in roles cannot be modified.");
         }
 
+        var now = clock.GetUtcNow();
         await db.Roles
             .Where(r => r.Id == command.RoleId)
             .ExecuteUpdateAsync(
@@ -107,7 +116,7 @@ public sealed class UpdateRoleCommandHandler(
                             .ToArray();
                         setters.SetProperty(r => r.Permissions, perms);
                     }
-                    setters.SetProperty(r => r.UpdatedAt, DateTimeOffset.UtcNow);
+                    setters.SetProperty(r => r.UpdatedAt, now);
                 },
                 cancellationToken);
 
@@ -132,7 +141,6 @@ public sealed class DeleteRoleCommandHandler(
         DeleteRoleCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (await db.Roles
                 .FirstOrDefaultAsync(r => r.Id == command.RoleId, cancellationToken)
             is not { } role)
@@ -173,7 +181,6 @@ public sealed class GetRoleQueryHandler(
         GetRoleQuery command,
         CancellationToken cancellationToken = default)
     {
-
         var summary = await db.Roles
             .AsNoTracking()
             .Where(r => r.Id == command.RoleId)

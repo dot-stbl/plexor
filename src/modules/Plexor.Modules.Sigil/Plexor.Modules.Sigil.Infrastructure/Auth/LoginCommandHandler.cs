@@ -32,6 +32,10 @@ public static class LoginRefreshTokenLifetime
 ///     Password-grant login. Validates credentials, applies lockout
 ///     state, increments failed-login counters, and issues a fresh
 ///     access + refresh pair on success.
+///
+///     Sprint 3 (item 1): wall-clock now read via injected
+///     <see cref="TimeProvider" /> per time-and-wire-format.md §3
+///     (lockout counter / expiry math).
 /// </summary>
 /// <param name="users">User lookup — by email or username.</param>
 /// <param name="passwordHasher">Password verification.</param>
@@ -39,13 +43,15 @@ public static class LoginRefreshTokenLifetime
 /// <param name="roleNames">Role name loader for the user's bindings.</param>
 /// <param name="tokenIssuer">Access token issuer.</param>
 /// <param name="accountStateGuard">Lockout / counter policy.</param>
+/// <param name="clock">Wall-clock — used to stamp the refresh-token expiry.</param>
 public sealed class LoginCommandHandler(
     IUserLookup users,
     IPasswordHasher passwordHasher,
     IRefreshTokenStore refreshTokens,
     IRoleNameLoader roleNames,
     ITokenIssuer tokenIssuer,
-    IAccountStateGuard accountStateGuard) : ICommandHandler<LoginCommand, LoginResult>
+    IAccountStateGuard accountStateGuard,
+    TimeProvider clock) : ICommandHandler<LoginCommand, LoginResult>
 {
     /// <inheritdoc />
     public async Task<LoginResult> HandleAsync(
@@ -107,7 +113,7 @@ public sealed class LoginCommandHandler(
         }
 
         var refreshRaw = TokenGenerator.Generate();
-        var refreshExpires = DateTimeOffset.UtcNow + LoginRefreshTokenLifetime.Value;
+        var refreshExpires = clock.GetUtcNow() + LoginRefreshTokenLifetime.Value;
         await refreshTokens.IssueAsync(
             user.Id, refreshRaw, refreshExpires, cancellationToken);
 

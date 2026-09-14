@@ -50,7 +50,7 @@ public sealed class JwtSigningServiceShould
                 NotAfter = null,
             });
         var revocation = Substitute.For<IUserRevocationChecker>();
-        var service = new JwtSigningService(keys, revocation);
+        var service = new JwtSigningService(keys, revocation, TimeProvider.System);
         var identity = new ClaimsIdentity(
             [
                 new Claim(IdentityClaims.UserId, Guid.NewGuid().ToString()),
@@ -82,7 +82,7 @@ public sealed class JwtSigningServiceShould
         var keys = Substitute.For<ISigningKeyRepository>();
         keys.GetActiveAsync(Arg.Any<CancellationToken>()).Returns((SigningKey?)null);
         var revocation = Substitute.For<IUserRevocationChecker>();
-        var service = new JwtSigningService(keys, revocation);
+        var service = new JwtSigningService(keys, revocation, TimeProvider.System);
 
         await Should.ThrowAsync<InvalidOperationException>(
             () => service.IssueAsync(new ClaimsPrincipal()));
@@ -120,7 +120,7 @@ public sealed class JwtSigningServiceShould
                 CreatedAt = DateTimeOffset.UtcNow,
                 NotAfter = null,
             });
-        var service = new JwtSigningService(keys, revocation);
+        var service = new JwtSigningService(keys, revocation, TimeProvider.System);
 
         var identity = new ClaimsIdentity(
             [new Claim(IdentityClaims.UserId, Guid.NewGuid().ToString())],
@@ -163,7 +163,7 @@ public sealed class JwtSigningServiceShould
                 NotAfter = null,
             });
         var revocation = Substitute.For<IUserRevocationChecker>();
-        var service = new JwtSigningService(keys, revocation);
+        var service = new JwtSigningService(keys, revocation, TimeProvider.System);
 
         var issued = await service.IssueAsync(new ClaimsPrincipal(new ClaimsIdentity()));
         var tampered = issued.CompactJwt[..^2] + "AA";
@@ -196,7 +196,7 @@ public sealed class JwtSigningServiceShould
                 NotAfter = null,
             });
         var revocation = Substitute.For<IUserRevocationChecker>();
-        var service = new JwtSigningService(keys, revocation);
+        var service = new JwtSigningService(keys, revocation, TimeProvider.System);
 
         var result = await service.VerifyAsync("not-a-jwt");
 

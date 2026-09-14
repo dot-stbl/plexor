@@ -20,9 +20,13 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     active key exists, generate an ECDSA P-256 keypair with a
 ///     kid derived from the current year + quarter, export to
 ///     PKCS#8 PEM, insert it.
+///
+/// Sprint 3 (item 1): wall-clock now read via injected
+///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
 /// </summary>
 /// <param name="keys"></param>
 /// <param name="logger"></param>
+/// <param name="clock"></param>
 /// <remarks>
 ///     <para><b>Why IHostedService (startup), not BackgroundService.</b>
 ///     This runs once on host start, then never again. No need for
@@ -39,7 +43,8 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 /// </remarks>
 public sealed class SigningKeyBootstrapper(
     ISigningKeyRepository keys,
-    ILogger<SigningKeyBootstrapper> logger) : IHostedService
+    ILogger<SigningKeyBootstrapper> logger,
+    TimeProvider clock) : IHostedService
 {
     /// <inheritdoc />
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -59,7 +64,7 @@ public sealed class SigningKeyBootstrapper(
             Algorithm = "ES256",
             PublicKeyPem = publicPem,
             PrivateKeyPem = privatePem,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = clock.GetUtcNow(),
             NotAfter = null,
         };
 
@@ -96,14 +101,15 @@ public sealed class SigningKeyBootstrapper(
         return Task.CompletedTask;
     }
 
-    private static (string Kid, string PublicPem, string PrivatePem) GenerateKeypair()
+    private (string Kid, string PublicPem, string PrivatePem) GenerateKeypair()
     {
         using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var publicPem = ecdsa.ExportSubjectPublicKeyInfoPem();
         var privatePem = ecdsa.ExportPkcs8PrivateKeyPem();
         // Quarter index (1..4) by month; written explicitly so IDE0047 + RCS1123
         // (both flag `(Month/4)+1` as either superfluous or required) agree.
-        var month = DateTime.UtcNow.Month;
+        var now = clock.GetUtcNow();
+        var month = now.Month;
         var quarter = month switch
         {
             <= 3 => 1,
@@ -111,7 +117,7 @@ public sealed class SigningKeyBootstrapper(
             <= 9 => 3,
             _ => 4,
         };
-        var kid = string.Create(CultureInfo.InvariantCulture, $"key_{DateTime.UtcNow:yyyy}_q{quarter}");
+        var kid = string.Create(CultureInfo.InvariantCulture, $"key_{now:yyyy}_q{quarter}");
         return (kid, publicPem, privatePem);
     }
 }

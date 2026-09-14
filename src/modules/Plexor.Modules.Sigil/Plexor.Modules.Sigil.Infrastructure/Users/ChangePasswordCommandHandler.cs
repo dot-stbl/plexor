@@ -27,17 +27,18 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 /// <param name="db"></param>
 /// <param name="passwordHasher"></param>
 /// <param name="refreshTokens"></param>
+/// <param name="clock"></param>
 public sealed class ChangePasswordCommandHandler(
     IdentityDbContext db,
     IPasswordHasher passwordHasher,
-    IRefreshTokenStore refreshTokens) : ICommandHandler<ChangePasswordCommand, ChangePasswordResult>
+    IRefreshTokenStore refreshTokens,
+    TimeProvider clock) : ICommandHandler<ChangePasswordCommand, ChangePasswordResult>
 {
     /// <inheritdoc />
     public async Task<ChangePasswordResult> HandleAsync(
         ChangePasswordCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (string.IsNullOrEmpty(command.CurrentPassword))
         {
             throw new IdentityException(
@@ -75,7 +76,7 @@ public sealed class ChangePasswordCommandHandler(
         }
 
         var newHash = new PasswordHash(passwordHasher.HashPassword(user, command.NewPassword));
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
 
         // Single transaction: overwrite hash, clear flag, then walk
         // every refresh-token family the user owns.

@@ -20,14 +20,18 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     ECDSA P-256 JWT signing service. Reads the active key from
 ///     <see cref="ISigningKeyRepository" />, signs with the private
 ///     key, verifies with the public key.
+///
+/// Sprint 3 (item 1): wall-clock now read via injected
+///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
 /// </summary>
 /// <param name="keys"></param>
 /// <param name="revocationChecker"></param>
+/// <param name="clock"></param>
 /// <remarks>
 ///     <para><b>Why ECDSA P-256.</b> 64-byte signatures, 32-byte
 ///     public keys — half the size of RSA-2048 with equivalent
 ///     security. JWS <c>"alg": "ES256"</c> is universally
-///     supported (jose, jsonwebtoken, Nimbus JOSE+JWT).</para>
+///     supported (jose, jsonwebtoken, Nimbus JWT).</para>
 ///     <para><b>Private key handling.</b>
 ///     <see cref="SigningKey.PrivateKeyPem" /> is loaded from the DB
 ///     (PKCS#8 PEM, plaintext in v0.1). <see cref="ECDsa" /> is
@@ -42,7 +46,8 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 /// </remarks>
 public sealed class JwtSigningService(
     ISigningKeyRepository keys,
-    IUserRevocationChecker revocationChecker) : IJwtSigningService
+    IUserRevocationChecker revocationChecker,
+    TimeProvider clock) : IJwtSigningService
 {
     /// <inheritdoc />
     public Task<IssuedAccessToken> IssueWithLifetimeAsync(
@@ -50,7 +55,6 @@ public sealed class JwtSigningService(
         TimeSpan lifetime,
         CancellationToken cancellationToken = default)
     {
-
         return IssueInternalAsync(principal, lifetime, cancellationToken);
     }
 
@@ -72,7 +76,7 @@ public sealed class JwtSigningService(
                 "No active signing key — bootstrap has not run. " +
                 "Ensure SigningKeyBootstrapper is registered as a hosted service.");
 
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         var effectiveLifetime = lifetime ?? IJwtSigningService.AccessTokenLifetime;
         var expiresAt = now.Add(effectiveLifetime);
 

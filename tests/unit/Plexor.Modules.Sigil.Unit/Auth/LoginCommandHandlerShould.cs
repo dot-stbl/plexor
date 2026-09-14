@@ -342,7 +342,7 @@ public sealed class LoginCommandHandlerShould
         var roles = Substitute.For<IRoleNameLoader>();
         var accountStateGuard = new LockoutAccountStateGuard(db, TimeProvider.System);
 
-        var sut = new LoginCommandHandler(users, hasher, refresh, roles, issuer, accountStateGuard);
+        var sut = new LoginCommandHandler(users, hasher, refresh, roles, issuer, accountStateGuard, TimeProvider.System);
         await Task.CompletedTask;
         return (sut, hasher, issuer, refresh, users);
     }
