@@ -123,24 +123,30 @@ public static class SigilInfrastructureInstaller
         services.AddScoped<IRoleResolver, EfRoleResolver>();
 
         // Phase 4.6.2a — IAuthProvider implementation for the local
-        // email+password backend. The bearer handler today bypasses
-        // this provider; the future dispatcher (4.6.2c) routes the
-        // bearer credential through it. Scoped — it depends on a
+        // email+password backend. Routed-to by the dispatcher (4.6.2c)
+        // for `iss == "plexor"` tokens. Scoped — it depends on a
         // scoped DbContext (Realm) plus the per-request IUserLookup.
+        // NOTE: kept as the `IAuthProvider` binding so callers that
+        // took a dependency on `IAuthProvider.CanAuthenticateForAsync`
+        // continue to work — `AuthProviderResolver` itself receives
+        // both concrete providers via primary ctor (see below).
         services.AddScoped<IAuthProvider, SigilAuthProvider>();
 
         // Phase 4.6.2b — external OIDC backend. Registered as a
-        // concrete type only; the existing `IAuthProvider` binding
-        // (SigilAuthProvider above) stays as-is to avoid ASP.NET's
-        // last-wins semantics on multiple IAuthProvider bindings.
-        // The future dispatcher (4.6.2c) will resolve both
-        // SigilAuthProvider and ExternalOidcAuthProvider
-        // explicitly (via a typed factory or an
-        // `IEnumerable<IAuthProvider>` variant that the Sigil
-        // installer will register when 4.6.2c lands). For now,
-        // `ExternalOidcAuthProvider` is reachable only via direct
-        // injection — the bearer handler doesn't yet consult it.
+        // concrete type only (NOT as `IAuthProvider`) to avoid ASP.NET's
+        // last-wins semantics on multiple `IAuthProvider` bindings.
+        // The resolver (4.6.2c) consumes both SigilAuthProvider and
+        // ExternalOidcAuthProvider via primary ctor — no
+        // `IEnumerable<IAuthProvider>` enumeration needed for v1.
         services.AddScoped<ExternalOidcAuthProvider>();
+
+        // Phase 4.6.2c — the auth provider resolver. Routes a raw
+        // bearer credential to the right IAuthProvider based on the
+        // JWT `iss` claim; caches the (iss → provider) map for 5
+        // minutes. Scoped (mirrors the providers it dispatches to);
+        // the IMemoryCache itself is the process-wide singleton
+        // registered a few lines below.
+        services.AddScoped<IAuthProviderResolver, AuthProviderResolver>();
 
         // Phase 4.6.2b — JWKS fetch + 1h in-memory cache. Singleton
         // because the fetcher holds no per-request state beyond the
