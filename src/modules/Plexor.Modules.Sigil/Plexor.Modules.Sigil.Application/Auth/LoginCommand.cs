@@ -26,8 +26,17 @@ namespace Plexor.Modules.Sigil.Application.Auth;
 ///     with <paramref name="Email" />.
 /// </param>
 /// <param name="Password">Plain-text password. Never logged.</param>
+/// <param name="RedirectPath">
+///     Optional operator-supplied deep-link path that the login
+///     screen wants the OIDC redirect to return to. Used by the
+///     handler to compose the <c>redirect</c> extension on the
+///     provider-mismatch response — the console forwards it to
+///     <c>POST /auth/oidc/authorize</c> as its <c>redirect</c>
+///     query param. Defaults to <c>"/console"</c> when the
+///     controller didn't surface a query parameter.</param>
 public sealed record LoginCommand(
     Guid OrgId,
     string? Email,
     string? Username,
-    string Password);
+    string Password,
+    string RedirectPath = "/console");

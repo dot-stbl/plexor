@@ -49,6 +49,9 @@ public sealed class AuthController(
     /// <returns>
     ///     200 OK with <see cref="LoginResult" /> on success; 400/401
     ///     /423 ProblemDetails on failure (via IdentityExceptionHandler).
+    ///     When the tenant is configured for external OIDC, returns
+    ///     400 with a <c>redirect</c> extension pointing at the OIDC
+    ///     authorize endpoint.
     /// </returns>
     [HttpPost("login", Name = "auth-login")]
     [EndpointSummary("Verify credentials and issue access + refresh tokens")]
@@ -63,7 +66,8 @@ public sealed class AuthController(
                 request.OrgId,
                 request.Email,
                 request.Username,
-                request.Password),
+                request.Password,
+                request.RedirectPath ?? "/console"),
             cancellationToken);
 
         return Ok(result);
@@ -144,18 +148,24 @@ public sealed class AuthController(
 
 /// <summary>
 ///     Wire shape for <c>POST /auth/login</c>. Either
-///     <see cref="Email" /> or <see cref="Username" /> must be
-///     supplied (both null → 400).
+/// <see cref="Email" /> or <see cref="Username" /> must be
+/// supplied (both null → 400).
 /// </summary>
 /// <param name="OrgId">Tenant scope.</param>
 /// <param name="Email">Email address (mutually exclusive with Username).</param>
 /// <param name="Username">Username (mutually exclusive with Email).</param>
 /// <param name="Password">Plain-text password.</param>
+/// <param name="RedirectPath">Optional deep-link path the login
+/// screen wants the OIDC redirect to return to. Surfaces as the
+/// <c>redirect</c> query param on the OIDC authorize endpoint
+/// when the tenant is OIDC-configured. Defaults to
+/// <c>"/console"</c>.</param>
 public sealed record LoginRequest(
     Guid OrgId,
     string? Email,
     string? Username,
-    string Password);
+    string Password,
+    string? RedirectPath);
 
 /// <summary>Wire shape for <c>POST /auth/refresh</c>.</summary>
 /// <param name="RefreshToken">The opaque refresh token returned at login.</param>

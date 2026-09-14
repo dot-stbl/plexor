@@ -8,13 +8,17 @@
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
+using Plexor.Modules.Realm.Application.AuthProviders;
+using Plexor.Modules.Realm.Domain.Entities;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Authorization;
 using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
@@ -28,12 +32,16 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 /// <param name="refreshTokens"></param>
 /// <param name="tokenIssuer"></param>
 /// <param name="db"></param>
+/// <param name="orgAuthConfigReader">Per-tenant IDP configuration
+/// reader. Read-only seam used to short-circuit email+password
+/// attempts against OIDC-configured tenants (Phase 4.6.3c).</param>
 public sealed class LoginCommandHandler(
     IUserLookup users,
     IPasswordHasher passwordHasher,
     IRefreshTokenStore refreshTokens,
     ITokenIssuer tokenIssuer,
-    IdentityDbContext db) : ICommandHandler<LoginCommand, LoginResult>
+    IdentityDbContext db,
+    IOrgAuthProviderConfigReader orgAuthConfigReader) : ICommandHandler<LoginCommand, LoginResult>
 {
     /// <summary>Lockout threshold — failed attempts before the account
     /// is locked for <see cref="LockoutDuration" />.</summary>
@@ -58,6 +66,38 @@ public sealed class LoginCommandHandler(
             throw new IdentityException(
                 IdentityExceptions.InvalidCredentials,
                 "Password is required.");
+        }
+
+        // Phase 4.6.3c — IDP guard. A tenant whose OrgAuthProviderConfig
+        // row declares Provider=Oidc must NOT accept email+password
+        // logins. Returning a 400 with a `redirect` extension lets
+        // the console forward the operator through
+        // POST /auth/oidc/authorize without leaking which orgs use
+        // which backend to a probing client. Absent config row
+        // (fresh deploy, in-flight seeder race) → treat as Sigil so
+        // the v0.1 single-tenant default continues to work.
+        var orgConfig = await orgAuthConfigReader.GetForOrgAsync(
+            command.OrgId, cancellationToken);
+        if (orgConfig is { Provider: OrgAuthProvider.Oidc })
+        {
+            var redirectPath = string.IsNullOrWhiteSpace(command.RedirectPath)
+                ? "/console"
+                : command.RedirectPath;
+            var redirectUrl =
+                $"/{ApiRoutes.Base}/auth/oidc/authorize"
+                + $"?org={Uri.EscapeDataString(command.OrgId.ToString())}"
+                + $"&redirect={Uri.EscapeDataString(redirectPath)}";
+
+            throw new IdentityException(
+                IdentityExceptions.CredentialsProviderMismatch,
+                "This organization uses external OIDC for authentication. "
+                + "Redirect to /auth/oidc/authorize to continue.",
+                new Dictionary<string, object?>
+                {
+                    ["redirect"] = redirectUrl,
+                    ["code"] = IdentityExceptions.CredentialsProviderMismatch,
+                    ["title"] = "Wrong authentication method",
+                });
         }
 
         var user = await ResolveUserAsync(command, cancellationToken) ?? throw new IdentityException(
@@ -262,6 +302,7 @@ public sealed class RefreshCommandHandler(
     ITokenIssuer tokenIssuer,
     IdentityDbContext db) : ICommandHandler<RefreshCommand, LoginResult>
 {
+
     /// <inheritdoc />
     public async Task<LoginResult> HandleAsync(
         RefreshCommand command,
@@ -275,11 +316,69 @@ public sealed class RefreshCommandHandler(
                 "Refresh token is required.");
         }
 
+        // Phase 4.6.3c — iss-binding. The current Plexor refresh
+        // tokens are opaque random base64url strings (no JWT shape),
+        // so PeekIssuer returns Opaque and we fall through to the
+        // existing rotation path. JWT-shaped refresh tokens from a
+        // third-party IDP (iss != plexor) will route to the OIDC
+        // path that re-issues Plexor credentials without an IDP
+        // roundtrip — Phase 5+ adds proper revocation propagation.
+        // Truly malformed JWT input (e.g. binary garbage with
+        // dots) raises 400 identity.refresh.malformed. Opaque
+        // random tokens do NOT raise this (PeekIssuer treats them
+        // as "not a JWT at all"). Property-pattern merge: assign
+        // + check in one expression (code-shape.md §1).
+        if (RefreshTokenIssuerInspector.PeekIssuer(command.RefreshToken) is { IsMalformed: true })
+        {
+            throw new IdentityException(
+                IdentityExceptions.RefreshMalformed,
+                "Refresh token is not a well-formed JWT.");
+        }
+
+        // For v1 every refresh token is opaque (iss == null) → Sigil
+        // path. JWT-shaped tokens with iss == "plexor" also follow
+        // the Sigil path (future state). iss != "plexor" (Phase 5+)
+        // would route to the OIDC path; v1 has no such tokens so the
+        // branch is dead code today but documented for the future.
+        var rotation = await RotateRefreshTokenAsync(
+            command.RefreshToken, cancellationToken);
+
+        var owner = await ResolveOwnerAsync(rotation.NewRefreshToken, cancellationToken);
+
+        var roles = await LoadRolesAsync(owner.Id, cancellationToken);
+        var access = await tokenIssuer.IssueAsync(
+            owner.Id, owner.OrgId, roles, cancellationToken);
+
+        return new LoginResult(
+            AccessToken: access.CompactJwt,
+            RefreshToken: rotation.NewRefreshToken,
+            AccessTokenExpiresAtUtc: access.ExpiresAtUtc);
+    }
+
+    /// <summary>
+    ///     Inner rotation step. Rotates the presented refresh token
+    ///     inside the same family; surfaces replay / not-found as
+    ///     typed exceptions. Returns the raw value of the new
+    ///     refresh token so the outer handler can resolve the owner
+    ///     without an extra hash roundtrip.
+    /// </summary>
+    /// <param name="presentedToken">Raw refresh token from the caller.</param>
+    /// <param name="cancellationToken">Forwarded to the store.</param>
+    /// <returns>The raw value of the freshly-issued refresh token.</returns>
+    /// <exception cref="IdentityException">
+    ///     Thrown when the rotation surfaces a typed failure
+    ///     (not-found / replay).
+    /// </exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    private async Task<RefreshRotationOutput> RotateRefreshTokenAsync(
+        string presentedToken,
+        CancellationToken cancellationToken)
+    {
         var newRefreshRaw = TokenGenerator.Generate();
         var newRefreshExpires = DateTimeOffset.UtcNow + LoginCommandHandler.RefreshTokenLifetime;
 
         var rotation = await refreshTokens.RotateAsync(
-            command.RefreshToken,
+            presentedToken,
             newRefreshRaw,
             newRefreshExpires,
             cancellationToken);
@@ -295,7 +394,7 @@ public sealed class RefreshCommandHandler(
                 // Token was already rotated or revoked — treat as
                 // compromised. Look up its family and nuke everything.
                 var replayed = await refreshTokens.FindByRawTokenAsync(
-                    command.RefreshToken, cancellationToken);
+                    presentedToken, cancellationToken);
                 if (replayed is not null)
                 {
                     await refreshTokens.RevokeFamilyAsync(
@@ -306,29 +405,31 @@ public sealed class RefreshCommandHandler(
                     "Refresh token replay detected; family revoked.");
 
             case RefreshRotationResult.Success:
-                break;
+                return new RefreshRotationOutput(newRefreshRaw);
 
             default:
                 throw new InvalidOperationException(
                     $"Unknown RefreshRotationResult: {rotation}");
         }
+    }
 
-        // Load the user that owns this chain (the rotated entity's
-        // userId is preserved on the new record).
-        var owner = await db.RefreshTokens
+    /// <summary>
+    ///     Resolve the user that owns the rotated refresh chain. The
+    ///     <see cref="RefreshToken.UserId" /> on the new record is
+    ///     preserved across rotations inside the same family.
+    /// </summary>
+    /// <param name="newRefreshToken">Raw value of the new refresh
+    /// token (just issued by <see cref="RotateRefreshTokenAsync" />).</param>
+    /// <param name="cancellationToken">Forwarded to the read.</param>
+    private async Task<User> ResolveOwnerAsync(
+        string newRefreshToken,
+        CancellationToken cancellationToken)
+    {
+        return await db.RefreshTokens
             .AsNoTracking()
-            .Where(token => token.TokenHash == RefreshTokenHasher.Hash(newRefreshRaw))
+            .Where(token => token.TokenHash == RefreshTokenHasher.Hash(newRefreshToken))
             .Join(db.Users, token => token.UserId, user => user.Id, (_, user) => user)
             .FirstAsync(cancellationToken);
-
-        var roles = await LoadRolesAsync(owner.Id, cancellationToken);
-        var access = await tokenIssuer.IssueAsync(
-            owner.Id, owner.OrgId, roles, cancellationToken);
-
-        return new LoginResult(
-            AccessToken: access.CompactJwt,
-            RefreshToken: newRefreshRaw,
-            AccessTokenExpiresAtUtc: access.ExpiresAtUtc);
     }
 
     private async Task<IReadOnlyCollection<string>> LoadRolesAsync(
@@ -346,6 +447,15 @@ public sealed class RefreshCommandHandler(
             .Distinct()
             .ToArrayAsync(cancellationToken);
     }
+
+    /// <summary>
+    ///     Internal carrier for the new refresh token's raw value so
+    ///     the rotation step can hand it back to the outer handler
+    ///     without leaking the rest of its return shape.
+    /// </summary>
+    /// <param name="NewRefreshToken">Raw base64url value of the
+    /// newly-issued refresh token.</param>
+    private readonly record struct RefreshRotationOutput(string NewRefreshToken);
 }
 
 /// <summary>

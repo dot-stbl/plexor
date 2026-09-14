@@ -55,6 +55,27 @@ public static class IdentityExceptions
 
     /// <summary>SSH key already exists in the tenant (fingerprint collision).</summary>
     public const string SshKeyFingerprintTaken = "identity.ssh_key.fingerprint_taken";
+
+    /// <summary>
+    ///     Login attempted with email+password against a tenant configured
+    ///     for external OIDC. The console surfaces the <c>redirect</c>
+    ///     extension to drive the operator through
+    ///     <c>POST /auth/oidc/authorize</c> instead.
+    /// </summary>
+    public const string CredentialsProviderMismatch = "identity.credentials.provider_mismatch";
+
+    /// <summary>Refresh token could not be decoded as a JWT (truly
+    /// malformed — not just an opaque token, which is normal).</summary>
+    public const string RefreshMalformed = "identity.refresh.malformed";
+
+    /// <summary>OIDC id_token is missing required claims (email or
+    /// preferred_username / name) needed to provision a Plexor User row.</summary>
+    public const string OidcUserMissingClaims = "oidc.user.missing_claims";
+
+    /// <summary>OIDC user provisioning failed for a non-claims reason
+    /// (DB error, schema mismatch, etc.). The inner exception is
+    /// logged but never surfaced to the response body.</summary>
+    public const string OidcUserProvisioningFailed = "oidc.user.provisioning_failed";
 }
 
 /// <summary>
@@ -73,6 +94,13 @@ public static class IdentityExceptions
 ///     the exception (not the type) lets you catch a single exception
 ///     type and dispatch on <c>ex.Code</c> without switch-on-string
 ///     typo-safety. Compare to <see cref="System.ArgumentException.ParamName" />.</para>
+///     <para><b>Extensions.</b> Some errors carry structured
+///     additional fields that must reach the client (e.g. the
+///     <c>redirect</c> URL when the login endpoint rejects an email
+///     +password attempt against an OIDC tenant — see
+///     <see cref="IdentityExceptions.CredentialsProviderMismatch" />).
+///     These are surfaced as RFC 7807 <c>extensions</c> by the
+///     exception handler.</para>
 /// </remarks>
 public sealed class IdentityException : Exception
 {
@@ -83,6 +111,13 @@ public sealed class IdentityException : Exception
     ///     error handler.
     /// </summary>
     public string Code { get; }
+
+    /// <summary>
+    ///     Optional structured payload copied into the ProblemDetails
+    ///     <c>extensions</c> dictionary by the exception handler.
+    ///     <c>null</c> when the error has no extra wire fields.
+    /// </summary>
+    public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
     /// <summary>
     ///     Constructs a domain error with a discriminator code + message.
@@ -117,6 +152,43 @@ public sealed class IdentityException : Exception
     public IdentityException(string code, string message, Exception innerException)
         : base(message, innerException)
     {
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            throw new ArgumentException(
+                "Identity exception code cannot be null or whitespace.",
+                nameof(code));
+        }
+
         Code = code;
+    }
+
+    /// <summary>
+    ///     Constructs a domain error with a discriminator code, message,
+    ///     and a structured payload that the exception handler copies
+    ///     into the ProblemDetails <c>extensions</c> dictionary. Used
+    ///     when the error carries wire fields the client must read
+    ///     (e.g. <c>redirect</c> for the provider-mismatch response).
+    /// </summary>
+    /// <param name="code">Discriminator code (see <see cref="IdentityExceptions" />).</param>
+    /// <param name="message">Human-readable description.</param>
+    /// <param name="extensions">Wire payload. Keys are extension
+    /// names; values are serialized verbatim into the response JSON.
+    /// Compiler-enforced non-null by signature; no runtime check
+    /// (project bans <c>ThrowIf*</c> — see code-shape.md §11).</param>
+    public IdentityException(
+        string code,
+        string message,
+        IReadOnlyDictionary<string, object?> extensions)
+        : base(message)
+    {
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            throw new ArgumentException(
+                "Identity exception code cannot be null or whitespace.",
+                nameof(code));
+        }
+
+        Code = code;
+        Extensions = extensions;
     }
 }
