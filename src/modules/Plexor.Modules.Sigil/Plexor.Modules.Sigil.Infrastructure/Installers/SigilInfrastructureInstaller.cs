@@ -129,6 +129,27 @@ public static class SigilInfrastructureInstaller
         // scoped DbContext (Realm) plus the per-request IUserLookup.
         services.AddScoped<IAuthProvider, SigilAuthProvider>();
 
+        // Phase 4.6.2b — external OIDC backend. Registered as a
+        // concrete type only; the existing `IAuthProvider` binding
+        // (SigilAuthProvider above) stays as-is to avoid ASP.NET's
+        // last-wins semantics on multiple IAuthProvider bindings.
+        // The future dispatcher (4.6.2c) will resolve both
+        // SigilAuthProvider and ExternalOidcAuthProvider
+        // explicitly (via a typed factory or an
+        // `IEnumerable<IAuthProvider>` variant that the Sigil
+        // installer will register when 4.6.2c lands). For now,
+        // `ExternalOidcAuthProvider` is reachable only via direct
+        // injection — the bearer handler doesn't yet consult it.
+        services.AddScoped<ExternalOidcAuthProvider>();
+
+        // Phase 4.6.2b — JWKS fetch + 1h in-memory cache. Singleton
+        // because the fetcher holds no per-request state beyond the
+        // shared IMemoryCache. The named "Plexor-OidcDiscovery"
+        // HttpClient is registered in Plexor.Host/Program.cs
+        // (10s timeout, no auth, no retries).
+        services.AddMemoryCache();
+        services.AddSingleton<IJwksFetcher, JwksFetcher>();
+
         // Revocation checker — JwtSigningService calls it after
         // signature + lifetime validation succeeds so a stolen,
         // signature-valid JWT is rejected once the user is disabled

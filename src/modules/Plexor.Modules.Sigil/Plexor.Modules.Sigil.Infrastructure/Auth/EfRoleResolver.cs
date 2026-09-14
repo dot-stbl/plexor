@@ -41,4 +41,33 @@ public sealed class EfRoleResolver(IdentityDbContext db) : IRoleResolver
             .Distinct()
             .ToArrayAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyCollection<string>> RolesByNamesForOrgAsync(
+        Guid orgId,
+        IReadOnlyCollection<string> candidateNames,
+        CancellationToken cancellationToken = default)
+    {
+        // Project the candidate set through the Roles table — keeps
+        // callers from being able to inject a role from another
+        // tenant. Single roundtrip + the underlying Provider is
+        // responsible for translating EF's string → text[] semantics
+        // (Roles.Name is a plain varchar column, no array trickery).
+        var candidates = candidateNames
+            .Where(static name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        if (candidates.Length == 0)
+        {
+            return [];
+        }
+
+        return await db.Roles
+            .AsNoTracking()
+            .Where(role => role.OrgId == orgId && candidates.Contains(role.Name))
+            .Select(static role => role.Name)
+            .Distinct()
+            .ToArrayAsync(cancellationToken);
+    }
 }

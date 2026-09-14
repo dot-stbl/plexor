@@ -56,4 +56,46 @@ public interface IRoleResolver
         Guid userId,
         Guid orgId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     Filter an externally-supplied role-name list against the
+    ///     <c>Role</c> table for a tenant and return the subset that
+    ///     matches a Plexor-side role. v0.1 trust boundary: external
+    ///     IDP roles (e.g. Keycloak <c>realm_access.roles</c>) are
+    ///     matched to Plexor <c>role.Name</c> values verbatim — the
+    ///     tenant operator configures IDP role names to match. Roles
+    ///     in the input list that don't match a Plexor role are
+    ///     dropped; the returned set is the intersection.
+    /// </summary>
+    /// <param name="orgId">Tenant scope (sigil.roles.org_id /
+    ///     realm.organizations.id).</param>
+    /// <param name="candidateNames">Role-name strings supplied by the
+    ///     external IDP. Case-sensitive (caller normalises if needed);
+    ///     empty / null entries are filtered out.</param>
+    /// <param name="cancellationToken">Forwarded to the DB query.</param>
+    /// <returns>
+    ///     A read-only collection of role-name strings. Order is
+    ///     unspecified; duplicates are removed. Empty when none of
+    ///     the candidates match a Plexor role in the tenant.
+    /// </returns>
+    /// <remarks>
+    ///     <para><b>Why a name-based lookup.</b> The OIDC provider
+    ///     (<c>ExternalOidcAuthProvider</c>, Phase 4.6.2b) needs to
+    ///     translate an external user's IDP roles into Plexor roles
+    ///     — but the OIDC path doesn't go through <c>role_bindings</c>.
+    ///     External users aren't pre-bound to Plexor roles; the
+    ///     external <c>sub</c> + IDP-claimed role names ARE the
+    ///     binding. This method projects the IDP's claimed names
+    ///     through the Plexor <c>Role</c> table and returns the
+    ///     subset that exists in the tenant.</para>
+    ///     <para><b>Forwards compatibility.</b> Phase 5+ adds a
+    ///     per-tenant role-mapping table (Keycloak role → Plexor
+    ///     role) for tenants whose IDP roles don't share Plexor's
+    ///     naming. The signature stays stable; the implementation
+    ///     gains a join through the new mapping table.</para>
+    /// </remarks>
+    public Task<IReadOnlyCollection<string>> RolesByNamesForOrgAsync(
+        Guid orgId,
+        IReadOnlyCollection<string> candidateNames,
+        CancellationToken cancellationToken = default);
 }
