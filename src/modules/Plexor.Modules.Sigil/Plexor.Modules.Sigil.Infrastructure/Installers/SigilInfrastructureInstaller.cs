@@ -66,6 +66,13 @@ public static class SigilInfrastructureInstaller
         // (see EfRefreshTokenStore.RotateAsync).
         services.AddScoped<IRefreshTokenStore, EfRefreshTokenStore>();
 
+        // Refresh-token owner + role-name lookup used by
+        // RefreshCommandHandler after a successful rotation. Scoped —
+        // walks sigil.refresh_tokens → sigil.users and
+        // sigil.role_bindings → sigil.roles. Behind an interface so
+        // the handler stays unit-testable without a real DbContext.
+        services.AddScoped<IRefreshTokenOwnerResolver, EfRefreshTokenOwnerResolver>();
+
         // Signing key repository. Scoped — DbContext is scoped.
         // JwtSigningService reads public keys; SigningKeyBootstrapper
         // writes the first keypair on startup.

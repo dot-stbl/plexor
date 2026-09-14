@@ -101,6 +101,14 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
             return RefreshRotationResult.Replayed;
         }
 
+        // Expiry check AFTER revocation — a revoked token whose
+        // expiry is also past must still be reported as Replayed
+        // (we want the family-revocation side effect to fire).
+        if (old.ExpiresAt <= DateTimeOffset.UtcNow)
+        {
+            return RefreshRotationResult.Expired;
+        }
+
         var newEntity = new RefreshToken
         {
             Id = Guid.NewGuid(),
