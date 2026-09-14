@@ -21,13 +21,13 @@
 
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Plexor.Host.Models;
 using Plexor.Host.Validation;
 using Plexor.Modules.Realm.Domain.Entities;
+using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Authorization;
@@ -84,16 +84,12 @@ file static class OrgAuthProviderDefaults
 /// <param name="currentUser">
 /// Scoped <see cref="ICurrentUser" /> — supplies the caller's
 /// <c>TenantId</c> for the tenant-scope check.</param>
-/// <param name="dataProtectionProvider">
-/// Singleton <see cref="IDataProtectionProvider" /> — minted
-/// from the host's data-protection keyring. The controller
-/// creates a purpose-bound <see cref="IDataProtector" /> per
-/// request via
-/// <see cref="IDataProtectionProvider.CreateProtector(string)" />;
-/// the purpose string
-/// <see cref="OrgAuthProviderSecretProtector.Purpose" /> names
-/// this protector so a different-purpose protector elsewhere
-/// can't decrypt the same ciphertext.</param>
+/// <param name="secretProtector">
+/// Singleton <see cref="OrgAuthProviderSecretProtector" /> —
+/// purpose-bound wrapper around the host's
+/// <c>Microsoft.AspNetCore.DataProtection.IDataProtectionProvider</c>.
+/// Encapsulates the purpose string so a different-purpose
+/// protector elsewhere can't decrypt the same ciphertext.</param>
 /// <param name="httpClientFactory">
 /// Scoped <see cref="IHttpClientFactory" /> — used by the
 /// <c>/test</c> endpoint to fetch the OIDC discovery
@@ -106,7 +102,7 @@ file static class OrgAuthProviderDefaults
 public sealed class OrgAuthProvidersController(
     RealmDbContext db,
     ICurrentUser currentUser,
-    IDataProtectionProvider dataProtectionProvider,
+    OrgAuthProviderSecretProtector secretProtector,
     IHttpClientFactory httpClientFactory,
     ILogger<OrgAuthProvidersController> logger) : ControllerBase
 {
@@ -200,8 +196,6 @@ public sealed class OrgAuthProvidersController(
         }
 
         var now = DateTimeOffset.UtcNow;
-        var protector = dataProtectionProvider.CreateProtector(
-            OrgAuthProviderSecretProtector.Purpose);
 
         if (provider == OrgAuthProvider.Sigil)
         {
@@ -237,7 +231,7 @@ public sealed class OrgAuthProvidersController(
                         {
                             setters.SetProperty(
                                 config => config.OidcClientSecretProtected,
-                                protector.Protect(request.OidcClientSecret));
+                                secretProtector.Encrypt(request.OidcClientSecret));
                         }
 
                         if (request.OidcScopes is not null)
@@ -310,14 +304,12 @@ public sealed class OrgAuthProvidersController(
         // in memory only for the duration of the HTTP call; it is
         // never logged, never returned in the response, never
         // persisted in plaintext.
-        var testProtector = dataProtectionProvider.CreateProtector(
-            OrgAuthProviderSecretProtector.Purpose);
         string? plaintextSecret = null;
         if (!string.IsNullOrEmpty(row.OidcClientSecretProtected))
         {
             try
             {
-                plaintextSecret = testProtector.Unprotect(row.OidcClientSecretProtected);
+                plaintextSecret = secretProtector.Decrypt(row.OidcClientSecretProtected);
             }
             catch (Exception ex)
             {
@@ -352,20 +344,4 @@ public sealed class OrgAuthProvidersController(
 
         return Ok(result);
     }
-}
-
-/// <summary>
-///     Stable purpose string used to mint a purpose-bound
-///     <see cref="IDataProtector" /> for the OIDC client secret.
-///     Different-purpose protectors elsewhere cannot decrypt the
-///     same ciphertext — defense in depth against a misconfigured
-///     DI registration that mints a "default" protector for the
-///     whole app.
-/// </summary>
-internal static class OrgAuthProviderSecretProtector
-{
-    /// <summary>Purpose discriminator for the
-    /// <see cref="OrgAuthProvidersController" />'s
-    /// <see cref="IDataProtector" />.</summary>
-    public const string Purpose = "OrgAuthProviderConfig.OidcClientSecret";
 }

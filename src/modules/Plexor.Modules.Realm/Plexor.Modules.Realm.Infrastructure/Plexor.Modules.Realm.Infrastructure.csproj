@@ -8,6 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!--
+      Phase 4.6.3a — OrgAuthProviderSecretProtector needs
+      IDataProtectionProvider (Microsoft.AspNetCore.DataProtection).
+      The framework shared framework ships DataProtection; the
+      FrameworkReference adds the assembly to the build.
+    -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj" />
     <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
