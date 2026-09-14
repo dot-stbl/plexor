@@ -23,23 +23,29 @@ namespace Plexor.NodeAgent.Composition;
 ///     <see cref="ICommandExecutor" /> by the wire type, executes it,
 ///     and wraps the outcome in a <see cref="CommandResult" />. Singleton
 ///     in DI — the dispatch table is built once at startup.
+///
+///     Sprint 3 (item 1): wall-clock now read via injected
+///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
 /// </summary>
 internal sealed class CommandDispatcher
 {
     private readonly Dictionary<string, ICommandExecutor> executors;
     private readonly ILogger<CommandDispatcher> logger;
+    private readonly TimeProvider clock;
 
     /// <summary>
     ///     Build a dispatcher from a set of registered
-    ///     executors. Duplicate <see cref="ICommandExecutor.Type" />
+    /// executors. Duplicate <see cref="ICommandExecutor.Type" />
     ///     values throw at startup — the dispatch table must be a
     ///     function from type to executor.
     /// </summary>
     /// <param name="executors"></param>
     /// <param name="logger"></param>
+    /// <param name="clock"></param>
     public CommandDispatcher(
         IEnumerable<ICommandExecutor> executors,
-        ILogger<CommandDispatcher> logger)
+        ILogger<CommandDispatcher> logger,
+        TimeProvider clock)
     {
         var byType = new Dictionary<string, ICommandExecutor>(StringComparer.Ordinal);
 
@@ -56,6 +62,7 @@ internal sealed class CommandDispatcher
 
         this.executors = byType;
         this.logger = logger;
+        this.clock = clock;
     }
 
     /// <summary>
@@ -90,7 +97,7 @@ internal sealed class CommandDispatcher
                 result.Status,
                 result.ErrorMessage,
                 result.LocalId,
-                DateTimeOffset.UtcNow);
+                clock.GetUtcNow());
         }
         catch (Exception ex)
         {
@@ -111,7 +118,7 @@ internal sealed class CommandDispatcher
     /// </summary>
     /// <param name="envelope"></param>
     /// <param name="error"></param>
-    private static CommandResult Failed(CommandEnvelope envelope, string error)
+    private CommandResult Failed(CommandEnvelope envelope, string error)
     {
         return new CommandResult(
             envelope.CommandId,
@@ -119,6 +126,6 @@ internal sealed class CommandDispatcher
             CommandResultStatus.Failed,
             error,
             null,
-            DateTimeOffset.UtcNow);
+            clock.GetUtcNow());
     }
 }

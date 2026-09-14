@@ -57,7 +57,8 @@ internal sealed class IdentityBootstrapper(
     IPasswordHasher passwordHasher,
     IConfiguration configuration,
     IHostApplicationLifetime lifetime,
-    ILogger<IdentityBootstrapper> logger) : IHostedService
+    ILogger<IdentityBootstrapper> logger,
+    TimeProvider clock) : IHostedService
 {
     /// <summary>
     ///     Email address baked into the bootstrap admin user. The
@@ -120,7 +121,7 @@ internal sealed class IdentityBootstrapper(
             var adminRoleId = Guid.NewGuid();
             var viewerRoleId = Guid.NewGuid();
             var bindingId = Guid.NewGuid();
-            var now = DateTimeOffset.UtcNow;
+            var now = clock.GetUtcNow();
 
             // Built-in roles. Permissions stored as PermissionScope
             // (the value-object form, not raw strings) so the

@@ -35,6 +35,9 @@ namespace Plexor.NodeAgent.Providers;
 /// <summary>
 ///     <see cref="IWorkloadProvider" /> for KVM VMs via libvirt. v0.1
 ///     uses the <c>virsh</c> CLI; future v0.2+ uses LibvirtClient.
+///
+///     Sprint 3 (item 1): wall-clock now read via injected
+///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
 /// </summary>
 /// <param name="volumes">
 ///     Storage backend — provides the disk image the domain
@@ -46,20 +49,22 @@ namespace Plexor.NodeAgent.Providers;
 ///     domain's NIC attaches to.
 /// </param>
 /// <param name="logger"></param>
+/// <param name="clock"></param>
 public sealed class LibvirtKvmProvider(
     IVolumeBackend volumes,
     INetworkBackend networks,
-    ILogger<LibvirtKvmProvider> logger) : IWorkloadProvider
+    ILogger<LibvirtKvmProvider> logger,
+    TimeProvider clock) : IWorkloadProvider
 {
     /// <summary>
     ///     The libvirt URI for KVM/QEMU on the local
-    ///     system. v0.1 hardcodes this; v0.2+ reads it from
+    ///     system. v0.1 hardcodes this; v2.2+ reads it from
     ///     configuration so the agent can target remote libvirt
     ///     hosts.
     /// </summary>
     public static readonly Uri LibvirtUri = new("qemu:///system");
 
-    private readonly WorkloadIdMap workloads = new();
+    private readonly WorkloadIdMap workloads = new(clock);
 
     /// <inheritdoc />
     public WorkloadKind Kind => new WorkloadKind.Vm();
@@ -147,14 +152,15 @@ public sealed class LibvirtKvmProvider(
             }
         }
 
+        var now = clock.GetUtcNow();
         workloads.Register(id, spec.Name, Kind, volumeHandle, networkHandle);
         return new LocalWorkload(
             id,
             spec.Name,
             Kind,
             WorkloadState.Running,
-            DateTimeOffset.UtcNow,
-            DateTimeOffset.UtcNow);
+            now,
+            now);
     }
 
     /// <inheritdoc />
@@ -163,7 +169,7 @@ public sealed class LibvirtKvmProvider(
         var entry = workloads.GetOrThrow(id);
         await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Running);
-        return Snapshot(id, DateTimeOffset.UtcNow);
+        return Snapshot(id, clock.GetUtcNow());
     }
 
     /// <inheritdoc />
@@ -205,7 +211,7 @@ public sealed class LibvirtKvmProvider(
             entry.DomainName,
             entry.Kind,
             WorkloadState.Stopped,
-            DateTimeOffset.UtcNow,
+            clock.GetUtcNow(),
             null);
     }
 
@@ -234,7 +240,7 @@ public sealed class LibvirtKvmProvider(
             entry.DomainName,
             entry.Kind,
             entry.State,
-            DateTimeOffset.UtcNow,
+            clock.GetUtcNow(),
             startedAt);
     }
 }
