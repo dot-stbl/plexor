@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="../../../src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Application/Plexor.Modules.Sigil.Application.csproj"/>
     <ProjectReference Include="../../../src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Infrastructure/Plexor.Modules.Sigil.Infrastructure.csproj"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9"/>
   </ItemGroup>
 
 </Project>

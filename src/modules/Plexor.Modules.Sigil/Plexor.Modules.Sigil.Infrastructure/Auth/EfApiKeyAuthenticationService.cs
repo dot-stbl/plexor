@@ -34,18 +34,24 @@ public sealed class EfApiKeyAuthenticationService(
         CancellationToken cancellationToken = default)
     {
 
-        var key = await db.ApiKeys
+        // Load the row first, then build the snapshot in memory.
+        // The collection projection (Permissions.Select(p => p.Value))
+        // is provider-specific (Postgres text[]); materialising here
+        // lets every provider compose the snapshot through the value
+        // converter without an extra SQL projection step.
+        var entity = await db.ApiKeys
             .AsNoTracking()
-            .Where(k => k.Id == keyId)
-            .Select(k => new ApiKeySnapshot(
-                k.Id,
-                k.OrgId,
-                k.UserId,
-                k.SecretHash,
-                k.Permissions.Select(static p => p.Value).ToArray(),
-                k.ExpiresAt,
-                k.RevokedAt))
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(k => k.Id == keyId, cancellationToken);
+        var key = entity is null
+            ? null
+            : new ApiKeySnapshot(
+                entity.Id,
+                entity.OrgId,
+                entity.UserId,
+                entity.SecretHash,
+                entity.Permissions.Select(static p => p.Value).ToArray(),
+                entity.ExpiresAt,
+                entity.RevokedAt);
 
         if (key is null)
         {
