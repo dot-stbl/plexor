@@ -126,23 +126,15 @@ internal static class LibvirtLxcXmlBuilder
     ///     Parse the provider-specific JSON config, falling back to
     ///     defaults on a missing / malformed payload so the agent
     ///     stays functional even with empty <see cref="WorkloadSpec.Config" />.
+    ///     Delegates to the shared <see cref="LibvirtConfigDeserializer" />
+    ///     so the byte-identical "missing config ⇒ defaults" path lives
+    ///     in one place.
     /// </summary>
     /// <param name="config">Raw JSON from the control plane.</param>
     /// <param name="result">Resolved config (defaults if parse failed).</param>
     public static bool TryDeserializeConfig(JsonElement config, out LibvirtLxcConfig result)
     {
-        try
-        {
-            result = config.Deserialize<LibvirtLxcConfig>()
-                     ?? new LibvirtLxcConfig();
-
-            return true;
-        }
-        catch
-        {
-            result = new LibvirtLxcConfig();
-            return false;
-        }
+        return LibvirtConfigDeserializer.TryDeserialize(config, () => new LibvirtLxcConfig(), out result);
     }
 }
 
@@ -163,4 +155,16 @@ internal static class LibvirtLxcXmlBuilder
 public sealed record LibvirtLxcConfig(
     long RamBytes = 1L * 1024 * 1024 * 1024,
     int CpuCores = 2,
-    string Init = "/sbin/init");
+    string Init = "/sbin/init")
+{
+    /// <summary>
+    ///     Public parameterless constructor — required by
+    ///     <see cref="LibvirtConfigDeserializer.TryDeserialize{T}" />.
+    /// </summary>
+    public LibvirtLxcConfig()
+        : this(RamBytes: 1L * 1024 * 1024 * 1024,
+               CpuCores: 2,
+               Init: "/sbin/init")
+    {
+    }
+}

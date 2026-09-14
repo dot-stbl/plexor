@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// LibvirtQemuXmlBuilder — file-static pure-function XML builder for
-// the QEMU (no-KVM) provider. Lives in its own file per
+// LibvirtKvmXmlBuilder — file-static pure-function XML builder for
+// the KVM provider. Lives in its own file per
 // class-decomposition.md (helpers without DI → file-static class,
-// not private method on the backend). Tier 3.5: extracted
-// from LibvirtQemuProvider when that file crossed 300 lines.
+// not private method on the backend).
+//
+// Extracted in Sprint 3 (item 6) — the original LibvirtKvmProvider
+// had BuildDomainXml + TryDeserializeConfig + LibvirtKvmConfig as
+// private members; KVM was the last provider to follow the
+// builder-file pattern that QEMU + LXC already use.
 // ==========================================================================
 
 using System.Globalization;
@@ -15,27 +19,30 @@ using Plexor.Shared.NodeApi;
 
 namespace Plexor.NodeAgent.Providers;
 
-internal static class LibvirtQemuXmlBuilder
+internal static class LibvirtKvmXmlBuilder
 {
     /// <summary>
-    ///     Build a QEMU domain XML. Same shape as the KVM
-    ///     provider's output except:
-    ///     - <c>type="qemu"</c> (not "kvm") — libvirt skips the
-    ///     KVM acceleration path.
-    ///     - <c>machine="pc"</c> — generic PC, not the KVM-optimized
-    ///     <c>pc-i440fx</c>. Compatible with the broadest set of
-    ///     guests; v0.2+ takes this from spec.Config.
+    ///     Build a KVM domain XML. v0.1: one disk, one network
+    ///     interface, no balloon device. Real impl reads additional
+    ///     config from <see cref="WorkloadSpec.Config" /> (opaque
+    ///     JSON the provider owns).
     /// </summary>
-    /// <param name="spec">Operator-supplied workload spec (config carries RAM / vCPU / machine type).</param>
+    /// <param name="spec">Operator-supplied spec (config carries RAM / vCPU / network name / base image ref).</param>
     /// <param name="id">Agent-assigned local id for the new VM.</param>
     /// <param name="volumePath">Disk image path on the host filesystem. Comes from <c>VolumeHandle.Reference</c>.</param>
     /// <param name="networkBridge">Bridge name to attach the VM's NIC to. Comes from <c>NetworkInterfaceHandle.Reference</c>.</param>
-    public static string BuildDomainXml(WorkloadSpec spec, Guid id, string volumePath, string networkBridge)
+    public static string BuildDomainXml(
+        WorkloadSpec spec,
+        Guid id,
+        string volumePath,
+        string networkBridge)
     {
-        var config = TryDeserializeConfig(spec.Config, out var c)
+        var config = LibvirtConfigDeserializer.TryDeserialize(spec.Config, () => new LibvirtKvmConfig(), out var c)
                 ? c
-                : new LibvirtQemuConfig();
+                : new LibvirtKvmConfig();
 
+        // v0.1: defaults if Config is missing fields. Future:
+        // the control plane passes these explicitly.
         var ramKiB = config.RamBytes / 1024;
         var vcpu = config.CpuCores;
 
@@ -50,17 +57,31 @@ internal static class LibvirtQemuXmlBuilder
         using (var writer = XmlWriter.Create(sb, settings))
         {
             writer.WriteStartElement("domain");
-            writer.WriteAttributeString("type", "qemu");
+            writer.WriteAttributeString("type", "kvm");
             writer.WriteElementString("name", spec.Name);
             writer.WriteElementString("uuid", id.ToString());
             writer.WriteElementString("memory", Convert.ToString(ramKiB, CultureInfo.InvariantCulture));
             writer.WriteElementString("vcpu", Convert.ToString(vcpu, CultureInfo.InvariantCulture));
+
             writer.WriteStartElement("os");
             writer.WriteElementString("type", "hvm");
-            writer.WriteElementString("machine", config.Machine);
+            writer.WriteElementString("boot", "dev", "hd");
             writer.WriteEndElement(); // os
 
+            writer.WriteStartElement("features");
+            writer.WriteElementString("acpi", "");
+            writer.WriteElementString("apic", "");
+            writer.WriteEndElement(); // features
+
+            writer.WriteStartElement("clock");
+            writer.WriteAttributeString("offset", "utc");
+            writer.WriteEndElement(); // clock
+
             writer.WriteStartElement("devices");
+            writer.WriteStartElement("emulator");
+            writer.WriteString("/dev/kvm");
+            writer.WriteEndElement(); // emulator
+
             writer.WriteStartElement("disk");
             writer.WriteAttributeString("type", "file");
             writer.WriteAttributeString("device", "disk");
@@ -77,8 +98,6 @@ internal static class LibvirtQemuXmlBuilder
             writer.WriteEndElement(); // target
             writer.WriteEndElement(); // disk
 
-            // Tier 3.5: bridge comes from INetworkBackend (typically
-            // LinuxBridgeBackend returning a name like "br-prod-vpc").
             writer.WriteStartElement("interface");
             writer.WriteAttributeString("type", "bridge");
             writer.WriteStartElement("source");
@@ -86,26 +105,27 @@ internal static class LibvirtQemuXmlBuilder
             writer.WriteEndElement(); // source
             writer.WriteEndElement(); // interface
 
+            writer.WriteStartElement("serial");
+            writer.WriteAttributeString("type", "pty");
+            writer.WriteStartElement("target");
+            writer.WriteAttributeString("type", "isa-serial");
+            writer.WriteAttributeString("port", "0");
+            writer.WriteEndElement(); // target
+            writer.WriteEndElement(); // serial
+
+            writer.WriteStartElement("console");
+            writer.WriteAttributeString("type", "pty");
+            writer.WriteStartElement("target");
+            writer.WriteAttributeString("type", "serial");
+            writer.WriteAttributeString("port", "0");
+            writer.WriteEndElement(); // target
+            writer.WriteEndElement(); // console
+
             writer.WriteEndElement(); // devices
             writer.WriteEndElement(); // domain
         }
 
         return sb.ToString();
-    }
-
-    /// <summary>
-    ///     Parse the provider-specific JSON config, falling back to
-    ///     defaults on a missing / malformed payload so the agent
-    ///     stays functional even with empty <see cref="WorkloadSpec.Config" />.
-    ///     Delegates to the shared <see cref="LibvirtConfigDeserializer" />
-    ///     so the byte-identical "missing config ⇒ defaults" path lives
-    ///     in one place.
-    /// </summary>
-    /// <param name="config">Raw JSON from the control plane.</param>
-    /// <param name="result">Resolved config (defaults if parse failed).</param>
-    public static bool TryDeserializeConfig(JsonElement config, out LibvirtQemuConfig result)
-    {
-        return LibvirtConfigDeserializer.TryDeserialize(config, () => new LibvirtQemuConfig(), out result);
     }
 }
 
@@ -115,22 +135,30 @@ internal static class LibvirtQemuXmlBuilder
 ///     control plane doesn't supply a value, so the agent stays
 ///     functional even with empty Config.
 /// </summary>
-/// <param name="RamBytes"></param>
-/// <param name="CpuCores"></param>
-/// <param name="Machine"></param>
-public sealed record LibvirtQemuConfig(
+/// <param name="RamBytes">RAM allocation in bytes.</param>
+/// <param name="CpuCores">Number of vCPUs.</param>
+/// <param name="NetworkName">Logical network name (matches libvirt network name).</param>
+/// <param name="BaseImageRef">Operator-facing image ref resolved via <c>IImageRegistry</c>.</param>
+public sealed record LibvirtKvmConfig(
     long RamBytes = 1L * 1024 * 1024 * 1024,
     int CpuCores = 2,
-    string Machine = "pc")
+    string NetworkName = "default",
+    string? BaseImageRef = null)
 {
     /// <summary>
     ///     Public parameterless constructor — required by
-    ///     <see cref="LibvirtConfigDeserializer.TryDeserialize{T}" />.
+    ///     <see cref="LibvirtConfigDeserializer.TryDeserialize{T}" />
+    ///     which falls back to <c>new T()</c> on a null or
+    ///     unparseable payload. The compiler synthesises one
+    ///     for records with all-default primary-ctor params, but
+    ///     only as a private/internal member; we re-declare it
+    ///     public so the generic constraint is satisfied.
     /// </summary>
-    public LibvirtQemuConfig()
+    public LibvirtKvmConfig()
         : this(RamBytes: 1L * 1024 * 1024 * 1024,
                CpuCores: 2,
-               Machine: "pc")
+               NetworkName: "default",
+               BaseImageRef: null)
     {
     }
 }

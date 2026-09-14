@@ -19,12 +19,12 @@
 // generated at create-time and tracked in WorkloadIdMap so
 // the agent's start/stop/delete calls resolve to the right
 // domain.
+//
+// Domain XML generation + provider config deserialisation live
+// in LibvirtKvmXmlBuilder + LibvirtConfigDeserializer (Sprint 3
+// item 6 — extracted from this provider's private helpers).
 // ==========================================================================
 
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using System.Xml;
 using Plexor.NodeAgent.Providers.Common;
 using Plexor.Shared.Compute;
 using Plexor.Shared.NodeApi;
@@ -67,7 +67,7 @@ public sealed class LibvirtKvmProvider(
     /// <inheritdoc />
     public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken cancellationToken)
     {
-        var config = TryDeserializeConfig(spec.Config, out var c)
+        var config = LibvirtConfigDeserializer.TryDeserialize(spec.Config, () => new LibvirtKvmConfig(), out var c)
                 ? c
                 : new LibvirtKvmConfig();
 
@@ -87,7 +87,7 @@ public sealed class LibvirtKvmProvider(
             Kind: NetworkKind.LinuxBridge);
         var networkHandle = await networks.AttachAsync(networkSpec, cancellationToken);
 
-        var xml = BuildDomainXml(spec, id, volumeHandle.Reference, networkHandle.Reference);
+        var xml = LibvirtKvmXmlBuilder.BuildDomainXml(spec, id, volumeHandle.Reference, networkHandle.Reference);
         var xmlPath = $"/tmp/plexor-{id}.xml";
 
         try
@@ -219,9 +219,10 @@ public sealed class LibvirtKvmProvider(
     /// <summary>
     ///     Build a <see cref="LocalWorkload" /> snapshot for
     ///     the given id with the given startedAt timestamp. Helper
-    ///     used by start/stop/delete to return a value to the agent.
-    ///     Stays on the provider (not file-static) because it reads
-    ///     from the <see cref="WorkloadIdMap" /> instance state.
+    ///     used by start/stop/delete to return a value to the
+    ///     agent. Stays on the provider (not file-static) because
+    ///     it reads from the <see cref="WorkloadIdMap" /> instance
+    ///     state.
     /// </summary>
     /// <param name="id"></param>
     /// <param name="startedAt"></param>
@@ -236,144 +237,4 @@ public sealed class LibvirtKvmProvider(
             DateTimeOffset.UtcNow,
             startedAt);
     }
-
-    /// <summary>
-    ///     Build a libvirt domain XML for the given
-    ///     spec. v0.1: one disk, one network interface, no balloon
-    ///     device. Real impl reads additional config from
-    ///     <see cref="WorkloadSpec.Config" /> (opaque JSON the
-    ///     provider owns).
-    /// </summary>
-    /// <param name="spec">Operator-supplied spec (config carries RAM / vCPU / network name / base image ref).</param>
-    /// <param name="id">Agent-assigned local id for the new VM.</param>
-    /// <param name="volumePath">Disk image path on the host filesystem. Comes from <c>VolumeHandle.Reference</c>.</param>
-    /// <param name="networkBridge">Bridge name to attach the VM's NIC to. Comes from <c>NetworkInterfaceHandle.Reference</c>.</param>
-    private static string BuildDomainXml(
-        WorkloadSpec spec,
-        Guid id,
-        string volumePath,
-        string networkBridge)
-    {
-        var config = TryDeserializeConfig(spec.Config, out var c)
-                ? c
-                : new LibvirtKvmConfig();
-
-        // v0.1: defaults if Config is missing fields. Future:
-        // the control plane passes these explicitly.
-        var ramKiB = config.RamBytes / 1024;
-        var vcpu = config.CpuCores;
-
-        var settings = new XmlWriterSettings
-        {
-            Indent = true,
-            OmitXmlDeclaration = true
-        };
-
-        var sb = new StringBuilder();
-
-        using (var writer = XmlWriter.Create(sb, settings))
-        {
-            writer.WriteStartElement("domain");
-            writer.WriteAttributeString("type", "kvm");
-            writer.WriteElementString("name", spec.Name);
-            writer.WriteElementString("uuid", id.ToString());
-            writer.WriteElementString("memory", Convert.ToString(ramKiB, CultureInfo.InvariantCulture));
-            writer.WriteElementString("vcpu", Convert.ToString(vcpu, CultureInfo.InvariantCulture));
-
-            writer.WriteStartElement("os");
-            writer.WriteElementString("type", "hvm");
-            writer.WriteElementString("boot", "dev", "hd");
-            writer.WriteEndElement(); // os
-
-            writer.WriteStartElement("features");
-            writer.WriteElementString("acpi", "");
-            writer.WriteElementString("apic", "");
-            writer.WriteEndElement(); // features
-
-            writer.WriteStartElement("clock");
-            writer.WriteAttributeString("offset", "utc");
-            writer.WriteEndElement(); // clock
-
-            writer.WriteStartElement("devices");
-            writer.WriteStartElement("emulator");
-            writer.WriteString("/dev/kvm");
-            writer.WriteEndElement(); // emulator
-
-            writer.WriteStartElement("disk");
-            writer.WriteAttributeString("type", "file");
-            writer.WriteAttributeString("device", "disk");
-            writer.WriteStartElement("driver");
-            writer.WriteAttributeString("name", "qemu");
-            writer.WriteAttributeString("type", "qcow2");
-            writer.WriteEndElement(); // driver
-            writer.WriteStartElement("source");
-            writer.WriteAttributeString("file", volumePath);
-            writer.WriteEndElement(); // source
-            writer.WriteStartElement("target");
-            writer.WriteAttributeString("dev", "vda");
-            writer.WriteAttributeString("bus", "virtio");
-            writer.WriteEndElement(); // target
-            writer.WriteEndElement(); // disk
-
-            writer.WriteStartElement("interface");
-            writer.WriteAttributeString("type", "bridge");
-            writer.WriteStartElement("source");
-            writer.WriteAttributeString("bridge", networkBridge);
-            writer.WriteEndElement(); // source
-            writer.WriteEndElement(); // interface
-
-            writer.WriteStartElement("serial");
-            writer.WriteAttributeString("type", "pty");
-            writer.WriteStartElement("target");
-            writer.WriteAttributeString("type", "isa-serial");
-            writer.WriteAttributeString("port", "0");
-            writer.WriteEndElement(); // target
-            writer.WriteEndElement(); // serial
-
-            writer.WriteStartElement("console");
-            writer.WriteAttributeString("type", "pty");
-            writer.WriteStartElement("target");
-            writer.WriteAttributeString("type", "serial");
-            writer.WriteAttributeString("port", "0");
-            writer.WriteEndElement(); // target
-            writer.WriteEndElement(); // console
-
-            writer.WriteEndElement(); // devices
-            writer.WriteEndElement(); // domain
-        }
-
-        return sb.ToString();
-    }
-
-    private static bool TryDeserializeConfig(JsonElement config, out LibvirtKvmConfig result)
-    {
-        try
-        {
-            result = config.Deserialize<LibvirtKvmConfig>()
-                     ?? new LibvirtKvmConfig();
-
-            return true;
-        }
-        catch
-        {
-            result = new LibvirtKvmConfig();
-            return false;
-        }
-    }
-
-    /// <summary>
-    ///     Provider-specific config schema (consumed from
-    ///     <see cref="WorkloadSpec.Config" />). v0.1: defaults if the
-    ///     control plane doesn't supply a value, so the agent stays
-    ///     functional even with empty Config.
-    /// </summary>
-    /// <param name="RamBytes">RAM allocation in bytes.</param>
-    /// <param name="CpuCores">Number of vCPUs.</param>
-    /// <param name="NetworkName">Logical network name (matches libvirt network name).</param>
-    /// <param name="BaseImageRef">Operator-facing image ref resolved via <c>IImageRegistry</c>.</param>
-    private sealed record LibvirtKvmConfig(
-        long RamBytes = 1L * 1024 * 1024 * 1024,
-        int CpuCores = 2,
-        string NetworkName = "default",
-        string? BaseImageRef = null);
 }
