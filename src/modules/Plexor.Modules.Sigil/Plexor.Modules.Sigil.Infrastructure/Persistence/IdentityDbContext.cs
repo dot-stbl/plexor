@@ -24,8 +24,17 @@ namespace Plexor.Modules.Sigil.Infrastructure.Persistence;
 ///     and signing_keys in the 'sigil' PostgreSQL schema (schema-per-
 ///     module convention per .agents/STATE.md).
 /// </summary>
-/// <param name="options"></param>
-public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : PlexorDbContext(options)
+/// <param name="options">EF Core options bag.</param>
+/// <param name="onModelCreatingHook">
+///     Optional hook invoked after the entity configurations run
+///     and before the base <c>DbContext.OnModelCreating</c>. Used
+///     by unit tests that need to remap PostgreSQL-specific column
+///     types (e.g. <c>text[]</c>) for the InMemory provider.
+///     Production wiring passes <c>null</c>.
+/// </param>
+public sealed class IdentityDbContext(
+    DbContextOptions<IdentityDbContext> options,
+    Action<ModelBuilder>? onModelCreatingHook = null) : PlexorDbContext(options, onModelCreatingHook)
 {
     /// <summary>Users (sigil.users) — operator accounts with email + password.</summary>
     public DbSet<User> Users => Set<User>();

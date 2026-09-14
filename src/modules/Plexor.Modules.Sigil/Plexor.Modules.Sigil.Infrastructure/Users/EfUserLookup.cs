@@ -6,6 +6,7 @@
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Domain.Entities;
+using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Users;
@@ -24,28 +25,36 @@ public sealed class EfUserLookup(IdentityDbContext db) : IUserLookup
         string email,
         CancellationToken cancellationToken = default)
     {
+        // Compare against the Email value object — EF translates
+        // the equality through the value converter to a column
+        // comparison.
+        var emailValue = new Email(email);
         return db.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(
-                user => user.OrgId == orgId && user.Email.Value == email,
+                user => user.OrgId == orgId && user.Email == emailValue,
                 cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<User?> FindByUsernameAsync(
+    public async Task<User?> FindByUsernameAsync(
         Guid orgId,
         string username,
         CancellationToken cancellationToken = default)
     {
-        // Username = email local-part. EF Core translates StartsWith
-        // with a literal '@' as a LIKE predicate against the email
-        // column — but email is stored validated + lowercased, so a
-        // direct prefix match works without culture-sensitive tricks.
-        return db.Users
+        // Username = email local-part. EF Core can't project the
+        // value-object property + StartsWith combo through the
+        // Email value converter on every provider, so filter
+        // org-scoped users first and resolve the prefix in memory.
+        // The org-scoped query is indexed (ix_sigil_users_org_id_*)
+        // so the working set is small.
+        var orgUsers = await db.Users
             .AsNoTracking()
-            .FirstOrDefaultAsync(
-                user => user.OrgId == orgId && user.Email.Value.StartsWith(username + "@"),
-                cancellationToken);
+            .Where(user => user.OrgId == orgId)
+            .ToListAsync(cancellationToken);
+        return orgUsers
+            .FirstOrDefault(user => user.Email.Value
+                .StartsWith(username + "@", StringComparison.Ordinal));
     }
 
     /// <inheritdoc />
