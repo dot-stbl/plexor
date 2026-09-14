@@ -101,9 +101,9 @@ public sealed class WorkloadActionExecutor(
 
     private static readonly Dictionary<string, string> ActionMap = new()
     {
-        [WireCommandTypes.WorkloadStart] = "start",
-        [WireCommandTypes.WorkloadStop] = "stop",
-        [WireCommandTypes.WorkloadDelete] = "delete",
+        [CommandType.WorkloadStart.Instance.Name] = "start",
+        [CommandType.WorkloadStop.Instance.Name] = "stop",
+        [CommandType.WorkloadDelete.Instance.Name] = "delete",
     };
 
     private static bool TryPickAction(string envelopeType, out string action)
