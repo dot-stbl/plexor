@@ -14,6 +14,11 @@ using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Modules.Sigil.Api.Controllers;
 
+// AuthController now depends on ICommandHandler<TCommand, TResult> rather than
+// the concrete handler types (LoginCommandHandler, …) so the controller is
+// unit-testable with NSubstitute. Concrete handlers implement the same
+// interface (see PlexorSigilApiServiceCollectionExtensions for DI binding).
+
 /// <summary>
 ///     Authentication endpoints for the Sigil module. Sits under
 ///     <c>/api/v1/auth/*</c> via <see cref="ApiRoutes.Base" />.
@@ -35,10 +40,10 @@ namespace Plexor.Modules.Sigil.Api.Controllers;
 [Tags(["auth"])]
 [Produces("application/json")]
 public sealed class AuthController(
-    LoginCommandHandler loginHandler,
-    RefreshCommandHandler refreshHandler,
-    LogoutCommandHandler logoutHandler,
-    MeQueryHandler meHandler) : ControllerBase
+    ICommandHandler<LoginCommand, LoginResult> loginHandler,
+    ICommandHandler<RefreshCommand, LoginResult> refreshHandler,
+    ICommandHandler<LogoutCommand, LogoutResult> logoutHandler,
+    ICommandHandler<MeQuery, MeResult> meHandler) : ControllerBase
 {
     /// <summary>
     ///     <c>POST /auth/login</c> — verify credentials, issue
