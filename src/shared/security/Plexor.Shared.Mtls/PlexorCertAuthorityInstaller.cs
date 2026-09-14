@@ -43,6 +43,11 @@ public static class PlexorCertAuthorityInstaller
             new PlexorCaFileStore(
                 sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<CertAuthorityOptions>>().Value));
 
+        // TimeProvider.System — canonical pattern (di-lifetimes.md
+        // §1 / time-and-wire-format.md §3). Required by
+        // RevokedCertCache for unit-testable TTL semantics.
+        services.AddSingleton(TimeProvider.System);
+
         services.AddSingleton<PlexorCaRoot>();
         services.AddSingleton<RevokedCertCache>();
         services.AddSingleton<ICertificateAuthority, PlexorCertificateIssuer>();

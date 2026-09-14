@@ -25,9 +25,14 @@ namespace Plexor.Shared.Mtls;
 ///     <see cref="RevokedCertsDbContext" /> for periodic refresh.
 ///     Thread-safe for concurrent reads + occasional writes.
 /// </summary>
+/// <param name="timeProvider">
+///     Clock injected so the TTL behaviour is unit-testable without
+///     real-time waits (see <c>time-and-wire-format.md</c> §3).
+/// </param>
 /// <param name="services"></param>
 /// <param name="logger"></param>
 public sealed class RevokedCertCache(
+    TimeProvider timeProvider,
     IServiceProvider services,
     ILogger<RevokedCertCache> logger)
 {
@@ -48,7 +53,7 @@ public sealed class RevokedCertCache(
             return true;
         }
 
-        if (DateTimeOffset.UtcNow - cacheLoadedAt < cacheTtl)
+        if (timeProvider.GetUtcNow() - cacheLoadedAt < cacheTtl)
         {
             return false;
         }
@@ -65,7 +70,7 @@ public sealed class RevokedCertCache(
     /// <param name="serialHex"></param>
     public void MarkRevoked(string serialHex)
     {
-        cache[serialHex] = DateTimeOffset.UtcNow;
+        cache[serialHex] = timeProvider.GetUtcNow();
     }
 
     /// <summary>
@@ -89,9 +94,9 @@ public sealed class RevokedCertCache(
             cache.Clear();
             foreach (var serial in revoked)
             {
-                cache[serial] = DateTimeOffset.UtcNow;
+                cache[serial] = timeProvider.GetUtcNow();
             }
-            cacheLoadedAt = DateTimeOffset.UtcNow;
+            cacheLoadedAt = timeProvider.GetUtcNow();
         }
         catch (Exception ex)
         {
