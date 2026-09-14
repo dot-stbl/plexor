@@ -47,4 +47,38 @@ public interface IPermissionResolver
         Guid userId,
         Guid orgId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     Compute the union of permissions for a caller-supplied
+    ///     role-name list within a tenant. v0.1 trust boundary: the
+    ///     caller already filtered the names through
+    ///     <see cref="IRoleResolver.RolesByNamesForOrgAsync" /> (or
+    ///     otherwise established the names map to existing
+    ///     <c>Role</c> rows). Names that don't match a Plexor role
+    ///     in the tenant are silently dropped.
+    /// </summary>
+    /// <param name="orgId">Tenant scope (sigil.roles.org_id /
+    ///     realm.organizations.id).</param>
+    /// <param name="roleNames">Role-name strings to project into
+    ///     permissions. Empty / null entries are filtered out.</param>
+    /// <param name="cancellationToken">Forwarded to the DB query.</param>
+    /// <returns>
+    ///     A read-only collection of permission strings (lowercase, no
+    ///     duplicates). Empty when no supplied name matches a Plexor
+    ///     role, or when no role carries permissions.
+    /// </returns>
+    /// <remarks>
+    ///     <para><b>Why a name-based projection.</b> Mirrors
+    ///     <see cref="IRoleResolver.RolesByNamesForOrgAsync" />:
+    ///     the OIDC path doesn't go through <c>role_bindings</c>.
+    ///     Instead of user → role_bindings → roles → permissions,
+    ///     the OIDC provider already holds the role-name list
+    ///     (from the IDP claims) and just needs the union of
+    ///     permissions those names carry. Single DB roundtrip with
+    ///     <c>WHERE role.Name IN (...)</c> + select-many.</para>
+    /// </remarks>
+    public Task<IReadOnlyCollection<string>> PermissionsForRolesAsync(
+        Guid orgId,
+        IReadOnlyCollection<string> roleNames,
+        CancellationToken cancellationToken = default);
 }

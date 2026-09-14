@@ -41,4 +41,33 @@ public sealed class PermissionResolver(IdentityDbContext db) : IPermissionResolv
             .Distinct()
             .ToArrayAsync(cancellationToken);
     }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyCollection<string>> PermissionsForRolesAsync(
+        Guid orgId,
+        IReadOnlyCollection<string> roleNames,
+        CancellationToken cancellationToken = default)
+    {
+        // Filter null / empty / whitespace before sending the list
+        // to SQL. EF Core's Contains() against a primitive list pushes
+        // to a parameterised WHERE ... IN (...), so the roundtrip is
+        // one query regardless of the role-count.
+        var candidates = roleNames
+            .Where(static name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        if (candidates.Length == 0)
+        {
+            return [];
+        }
+
+        return await db.Roles
+            .AsNoTracking()
+            .Where(role => role.OrgId == orgId && candidates.Contains(role.Name))
+            .SelectMany(static role => role.Permissions)
+            .Select(static scope => scope.Value)
+            .Distinct()
+            .ToArrayAsync(cancellationToken);
+    }
 }
