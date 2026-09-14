@@ -363,3 +363,45 @@ permissions are the union of every bound role's permissions.
 - `PrivateKeyPem : string?` — PKCS#8 PEM; null on rotated keys.
 - `CreatedAt : DateTimeOffset`.
 - `NotAfter : DateTimeOffset?` — null = still active signer.
+
+## Auth-providers additive requirements (Phase 4.6)
+
+The following requirements are added by the Phase 4.6 change
+(`openspec/changes/phase-4-6-auth-providers/`) and live here
+because they apply to the identity capability's permission
+catalog and tenant-isolation contract. They don't replace any
+existing identity requirement.
+
+### Requirement: `org.auth.read` permission
+
+The system SHALL expose a new permission string `org.auth.read`
+in the role permission catalog
+(`Plexor.Modules.Sigil.Domain.Entities.Role.Permissions`).
+The permission SHALL be granted to the built-in `admin` role
+by default — the built-in `admin` role already carries the `*`
+wildcard minted by `Plexor.Migrator/IdentityBootstrapper`,
+which covers every permission (including `org.auth.read`).
+v0.1 does not grant `org.auth.read` to the built-in `viewer`
+role.
+
+`org.auth.read` SHALL gate the read endpoint in the
+auth-providers module
+(`GET /api/v1/iam/orgs/{orgId}/auth-provider`).
+
+Missing permission on the auth-providers read endpoint SHALL
+return HTTP 403 with `code = "identity.permission.denied"`.
+
+### Requirement: `org.auth.update` permission
+
+The system SHALL expose a new permission string
+`org.auth.update` in the role permission catalog. The
+permission SHALL be granted to the built-in `admin` role by
+default (the built-in `admin` role's `*` wildcard covers it).
+
+`org.auth.update` SHALL gate the write endpoints in the
+auth-providers module
+(`PUT /api/v1/iam/orgs/{orgId}/auth-provider` and
+`POST /api/v1/iam/orgs/{orgId}/auth-provider/test`).
+
+Missing permission on the auth-providers write endpoints SHALL
+return HTTP 403 with `code = "identity.permission.denied"`.
