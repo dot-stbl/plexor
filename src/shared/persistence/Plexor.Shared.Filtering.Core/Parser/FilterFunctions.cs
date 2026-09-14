@@ -143,31 +143,44 @@ public static class FilterFunctions
             value = -value;
         }
 
-        var offset = unit switch
-        {
-            's' => TimeSpan.FromSeconds(value),
-            'm' => TimeSpan.FromMinutes(value),
-            'h' => TimeSpan.FromHours(value),
-            'd' => TimeSpan.FromDays(value),
-            'w' => TimeSpan.FromDays(value * 7),
-            _ => throw new FilterParseException(
-                $"Unknown duration unit '{unit}' in '{text}' (allowed: s, m, h, d, w)",
-                position)
-        };
-
-        // Defensive range check: DateTimeOffset +/- TimeSpan must stay representable.
-        // UtcNow +/- ~10000 days is far outside any realistic filter; reject anything
-        // that would throw at evaluation time so the client sees 400, not 500.
+        // TimeSpan.FromDays(int.MaxValue) throws OverflowException at the
+        // long-tick multiplication; the other FromXxx calls succeed but
+        // the resulting TimeSpan is huge enough that adding it to UtcNow
+        // would throw ArgumentOutOfRangeException. Catch both here so
+        // a pathological `now(int.MaxValue)<unit>` surfaces as a 400
+        // instead of a 500.
+        TimeSpan offset;
         try
         {
-            _ = DateTimeOffset.UtcNow + offset;
+            offset = unit switch
+            {
+                's' => TimeSpan.FromSeconds(value),
+                'm' => TimeSpan.FromMinutes(value),
+                'h' => TimeSpan.FromHours(value),
+                'd' => TimeSpan.FromDays(value),
+                'w' => TimeSpan.FromDays(value * 7),
+                _ => throw new FilterParseException(
+                    $"Unknown duration unit '{unit}' in '{text}' (allowed: s, m, h, d, w)",
+                    position)
+            };
         }
-        catch (ArgumentOutOfRangeException ex)
+        catch (OverflowException ex)
         {
             throw new FilterParseException(
                 $"Duration '{text}' is out of representable range",
                 position,
                 ex);
+        }
+
+        // Magnitude check: realistic filters stay within a few years
+        // either way; anything beyond ~10000 days (~27 years) would
+        // overflow DateTimeOffset arithmetic at evaluation time, so
+        // reject here with a clear 400.
+        if (offset.TotalDays is > 10000d or < -10000d)
+        {
+            throw new FilterParseException(
+                $"Duration '{text}' is out of representable range",
+                position);
         }
 
         return offset;
