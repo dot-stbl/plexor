@@ -58,10 +58,30 @@ import './index.css';
         link.setAttribute('href', boot.brand.faviconUrl);
       }
     }
-  } catch {
+  } catch (_) {
     // Boot config unavailable — the default favicon (set in index.html)
     // stays in place.
   }
+})();
+
+// Operator custom CSS escape hatch — probe HEAD /custom.css and enable
+// the placeholder link in index.html when the file exists. The
+// cache-busting ?v=Date.now() suffix forces a fresh fetch on every
+// reload so theme changes in custom.css are picked up at the next
+// page load. Async; failure is silent (404 = no custom.css = no link).
+(function enableCustomCssAsync() {
+  var link = document.getElementById('custom-css-link');
+  if (link === null) return;
+  fetch('/custom.css', { method: 'HEAD' })
+    .then(function (response) {
+      if (!response.ok) return;
+      if (link === null) return;
+      link.setAttribute('href', '/custom.css?v=' + Date.now());
+      link.removeAttribute('disabled');
+    })
+    .catch(function () {
+      // Network error — leave the link disabled (no-op).
+    });
 })();
 
 const queryClient = new QueryClient({

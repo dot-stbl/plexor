@@ -42,6 +42,18 @@
     <!-- PWA manifest -->
     <link rel="manifest" href="/manifest.json" />
 
+    <!-- Operator-supplied custom CSS escape hatch. Disabled by
+         default; main.tsx probes HEAD /custom.css and enables the
+         link (with a cache-busting ?v=Date.now()) when the operator
+         has shipped a file. Applied AFTER the runtime theme tokens
+         so it can override any token. -->
+    <link
+      id="custom-css-link"
+      rel="stylesheet"
+      href=""
+      disabled
+    />
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="plexor" />

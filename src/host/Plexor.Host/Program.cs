@@ -28,6 +28,8 @@ using Plexor.Host.Filters;
 using Plexor.Host.Installers;
 using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
+using Plexor.Modules.Branding.Api;
+using Plexor.Modules.Branding.Api.Endpoints;
 using Plexor.Modules.Branding.Api.Installers;
 using Plexor.Modules.Branding.Application.Installers;
 using Plexor.Modules.Branding.Infrastructure.Installers;
@@ -210,6 +212,12 @@ builder.Services.AddExceptionHandler<QuotaExceptionHandler>();
 builder.Services.AddBrandingApplicationCore(builder.Configuration);
 builder.Services.AddBrandingInfrastructureCore();
 builder.Services.AddBrandingApiCore();
+// Bind BrandingOptions so the /custom.css endpoint knows where to
+// find the operator's escape-hatch CSS file. Same pattern as the
+// CertAuthorityOptions binding for the CA bootstrap.
+builder.Services
+    .AddOptions<BrandingOptions>()
+    .Bind(builder.Configuration.GetSection(BrandingOptions.SectionName));
 
 // OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
 // to seed. The Quotas module does not depend on Realm — we supply the
@@ -306,5 +314,10 @@ app.UseStatusCodePages();
 app.UseMiddleware<MtlsAuthMiddleware>();
 
 app.MapControllers();
+
+// Custom CSS endpoint — serves the operator's custom.css escape
+// hatch (commit 5). Mounted before MapControllers so it takes
+// priority over any controller route with the same path.
+app.MapCustomCssEndpoint();
 
 app.Run();
