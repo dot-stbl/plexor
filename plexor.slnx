@@ -36,7 +36,8 @@
     </Folder>
     <Folder Name="/src/shared/persistence/">
         <Project Path="src/shared/persistence/Plexor.Shared.Persistence/Plexor.Shared.Persistence.csproj" />
-        <Project Path="src/shared/persistence/Plexor.Shared.Filtering/Plexor.Shared.Filtering.csproj" />
+        <Project Path="src/shared/persistence/Plexor.Shared.Filtering.Core/Plexor.Shared.Filtering.Core.csproj" />
+        <Project Path="src/shared/persistence/Plexor.Shared.Filtering.Web/Plexor.Shared.Filtering.Web.csproj" />
     </Folder>
     <Folder Name="/src/shared/security/">
         <Project Path="src/shared/security/Plexor.Shared.Authorization/Plexor.Shared.Authorization.csproj" />

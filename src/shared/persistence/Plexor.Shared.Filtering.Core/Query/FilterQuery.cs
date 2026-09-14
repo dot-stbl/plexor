@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using Plexor.Shared.Filtering.Parser;
 using Plexor.Shared.Filtering.Registry;
 
@@ -89,7 +88,14 @@ namespace Plexor.Shared.Filtering.Query;
 public sealed record FilterQuery
 {
     /// <summary>Filter expression in DSL form. <c>null</c> or whitespace = no filter.</summary>
-    [FromQuery(Name = "filter")]
+    /// <remarks>
+    ///     No <c>[FromQuery(Name = "filter")]</c> attribute — this type is
+    ///     pure-BCL (lives in <c>Plexor.Shared.Filtering.Core</c>, no
+    ///     <c>Microsoft.AspNetCore.Mvc</c> reference). The ASP.NET Core model
+    ///     binder binds the query string <c>?filter=...</c> to this property
+    ///     by name when an endpoint accepts <c>[FromQuery] FilterQuery query</c>.
+    ///     Property name = wire name (both lowercase); no rename needed.
+    /// </remarks>
     public string? Filter { get; init; }
 
     /// <summary>
@@ -97,15 +103,12 @@ public sealed record FilterQuery
     ///     <c>asc</c> or <c>desc</c> (case-insensitive). Unknown field falls back to
     ///     the entity's default sort.
     /// </summary>
-    [FromQuery(Name = "sort")]
     public string? Sort { get; init; }
 
     /// <summary>Page number, 1-based. Must be ≥ 1.</summary>
-    [FromQuery(Name = "page")]
     public int Page { get; init; } = 1;
 
     /// <summary>Items per page. Clamped to [1, 100] by the handler.</summary>
-    [FromQuery(Name = "pageSize")]
     public int PageSize { get; init; } = 25;
 
     /// <summary>Normalizes pagination bounds. Filter/Sort pass through unchanged.</summary>

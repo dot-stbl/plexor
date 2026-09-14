@@ -1,13 +1,13 @@
 using System.Collections.Concurrent;
-using Plexor.Shared.Filtering.Schema;
 
 namespace Plexor.Shared.Filtering.Registry;
 
 /// <summary>
 ///     Registry of <see cref="IFilterableEntity" /> types, indexed by their
 ///     CLR full name. Entities are added via <c>AddFilterableEntity&lt;T&gt;</c>
-///     at startup; the <see cref="FilterableSchemaTransformer" /> reads them
-///     from DI on every schema-emission pass.
+///     at startup; the <c>FilterableSchemaTransformer</c> in
+///     <c>Plexor.Shared.Filtering.Web</c> reads them from DI on every
+///     schema-emission pass.
 /// </summary>
 /// <remarks>
 ///     <para>

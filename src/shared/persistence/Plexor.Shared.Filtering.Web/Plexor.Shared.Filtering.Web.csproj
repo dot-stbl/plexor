@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Plexor.Shared.Filtering</RootNamespace>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <!--
+    Plexor.Shared.Filtering.Web — ASP.NET Core + OpenAPI wiring for the
+    Plexor filter DSL. Holds the IOpenApiSchemaTransformer implementations
+    (FilterableSchemaTransformer, PlexorTypeSchemaTransformer) and the
+    AddFiltering() composition extension.
+
+    Depends on Plexor.Shared.Filtering.Core (parser, registry, operators).
+    The Core project has zero ASP.NET Core dependency — that's the
+    architectural boundary enforced by Plexor.ArchitectureTests
+    DomainIsolationShould: domain modules reference ONLY Core, never Web.
+
+    Only composition roots (Plexor.Host, *.Api projects that actually emit
+    schemas) reference this project. Domain/Application/Infrastructure do not.
+
+    Targets Microsoft.OpenApi 2.4.1 (the version Microsoft.AspNetCore.OpenApi
+    10.0.9 transitively pins). See .planning/BACKEND-ISSUES.md.
+  -->
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.4.1" />
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Plexor.Shared.Filtering.Core\Plexor.Shared.Filtering.Core.csproj" />
+  </ItemGroup>
+
+</Project>

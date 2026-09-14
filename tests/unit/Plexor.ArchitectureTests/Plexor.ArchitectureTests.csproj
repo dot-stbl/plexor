@@ -33,9 +33,20 @@
     <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
+  <!--
+    Architecture tests document themselves via [Fact(DisplayName = "...")].
+    CS1591 wants XML doc on every public method — test method names are
+    self-documenting, so we suppress it (matches Plexor.Shared.Filtering.Unit).
+  -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
     <ProjectReference Include="..\..\..\src\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
+    <ProjectReference Include="..\..\..\src\shared\persistence\Plexor.Shared.Filtering.Core\Plexor.Shared.Filtering.Core.csproj"/>
+    <ProjectReference Include="..\..\..\src\shared\persistence\Plexor.Shared.Filtering.Web\Plexor.Shared.Filtering.Web.csproj"/>
     <ProjectReference Include="..\..\..\src\host\Plexor.Host\Plexor.Host.csproj"/>
     <ProjectReference Include="..\..\..\src\installer\Plexor.Installer.Cli\Plexor.Installer.Cli.csproj"/>
     <!-- All modules: -->
@@ -45,6 +56,9 @@
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Domain\Plexor.Modules.Realm.Domain.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj"/>
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj"/>
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Clusters\Plexor.Modules.Clusters.Domain\Plexor.Modules.Clusters.Domain.csproj"/>
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Clusters\Plexor.Modules.Clusters.Application\Plexor.Modules.Clusters.Application.csproj"/>
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Clusters\Plexor.Modules.Clusters.Infrastructure\Plexor.Modules.Clusters.Infrastructure.csproj"/>
   </ItemGroup>
 
 </Project>
