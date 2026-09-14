@@ -1,3 +1,4 @@
+using Plexor.Modules.Sigil.Domain;
 using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Realm.Domain.Entities;
@@ -31,7 +32,7 @@ public sealed class Organization : ICreatedAt
 
     /// <summary>Organization status. <c>"active"</c> by default;
     /// transitions to <c>"suspended"</c> on admin action.</summary>
-    public string Status { get; init; } = "active";
+    public string Status { get; init; } = UserStatusValues.Active;
 
     /// <summary>Creation time (UTC). See
     /// <see cref="Plexor.Shared.Kernel.Common.ICreatedAt" />.</summary>

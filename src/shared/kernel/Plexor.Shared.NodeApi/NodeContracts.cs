@@ -181,28 +181,28 @@ public abstract record CommandType
     public sealed record WorkloadCreate : CommandType
     {
         /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
-        public override string Name => "workload.create";
+        public override string Name => WireCommandTypes.WorkloadCreate;
     }
 
     /// <summary><c>workload.start</c> — boot a previously provisioned workload.</summary>
     public sealed record WorkloadStart : CommandType
     {
         /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
-        public override string Name => "workload.start";
+        public override string Name => WireCommandTypes.WorkloadStart;
     }
 
     /// <summary><c>workload.stop</c> — gracefully shut down a running workload.</summary>
     public sealed record WorkloadStop : CommandType
     {
         /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
-        public override string Name => "workload.stop";
+        public override string Name => WireCommandTypes.WorkloadStop;
     }
 
     /// <summary><c>workload.delete</c> — remove a workload and its backing storage.</summary>
     public sealed record WorkloadDelete : CommandType
     {
         /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
-        public override string Name => "workload.delete";
+        public override string Name => WireCommandTypes.WorkloadDelete;
     }
 }
 

@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

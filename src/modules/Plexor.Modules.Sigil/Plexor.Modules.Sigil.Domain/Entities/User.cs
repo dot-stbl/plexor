@@ -40,7 +40,7 @@ public sealed class User : IFilterableEntity, ICreatedAt, IUpdatedAt
 
     /// <summary>User status. <c>"active"</c> by default after admin
     /// provisioning; transitions to <c>"suspended"</c> on admin action.</summary>
-    public string Status { get; init; } = "active";
+    public string Status { get; init; } = UserStatusValues.Active;
 
     /// <summary>Bcrypt password hash, or <c>null</c> for OAuth-only users
     /// (Phase 2; the column is nullable in <c>sigil.users</c>).</summary>

@@ -12,6 +12,7 @@ using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Authorization;
 using Plexor.Modules.Sigil.Application.Users;
+using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
@@ -142,7 +143,7 @@ public sealed class LoginCommandHandler(
 
     private static void EnsureActive(User user)
     {
-        if (!string.Equals(user.Status, "active", StringComparison.Ordinal))
+        if (!string.Equals(user.Status, UserStatusValues.Active, StringComparison.Ordinal))
         {
             throw new IdentityException(
                 IdentityExceptions.AccountSuspended,
