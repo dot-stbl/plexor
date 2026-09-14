@@ -50,6 +50,7 @@
         <Project Path="src/shared/infra/Plexor.Shared.Telemetry/Plexor.Shared.Telemetry.csproj" />
         <Project Path="src/shared/infra/Plexor.Shared.Composition/Plexor.Shared.Composition.csproj" />
         <Project Path="src/shared/infra/Plexor.Shared.Console/Plexor.Shared.Console.csproj" />
+        <Project Path="src/shared/infra/Plexor.Shared.IntegrationEvents/Plexor.Shared.IntegrationEvents.csproj" />
     </Folder>
 
     <!-- ============ Modules (Domain / Application / Infrastructure) ========== -->
@@ -119,6 +120,7 @@
     <Project Path="tests/unit/Plexor.Shared.Authorization.Unit/Plexor.Shared.Authorization.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Identifiers.Unit/Plexor.Shared.Identifiers.Unit.csproj" />
         <Project Path="tests/unit/Plexor.NodeAgent.Unit/Plexor.NodeAgent.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Shared.IntegrationEvents.Unit/Plexor.Shared.IntegrationEvents.Unit.csproj" />
     </Folder>
 
     <!-- ============ Benchmarks =================================================== -->
