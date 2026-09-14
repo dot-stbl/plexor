@@ -57,6 +57,18 @@ public sealed class IdentityExceptionHandler(ILogger<IdentityExceptionHandler> l
             Instance = httpContext.Request.Path,
         };
 
+        // Extensions — copy the structured payload (e.g. the OIDC
+        // `redirect` URL on a provider-mismatch response) into the
+        // ProblemDetails body verbatim. Null/empty → no extensions
+        // are emitted (RFC 7807 leaves extensions optional).
+        if (identityEx.Extensions is { Count: > 0 })
+        {
+            foreach (var kvp in identityEx.Extensions)
+            {
+                problem.Extensions[kvp.Key] = kvp.Value;
+            }
+        }
+
         logger.LogDebug(
             "Identity exception {Code} mapped to HTTP {Status} for {Path}.",
             identityEx.Code,
@@ -88,6 +100,10 @@ public sealed class IdentityExceptionHandler(ILogger<IdentityExceptionHandler> l
             IdentityExceptions.InvalidPermission => StatusCodes.Status400BadRequest,
             IdentityExceptions.ApiKeyPermissionsExceedOwner => StatusCodes.Status400BadRequest,
             IdentityExceptions.SshKeyFingerprintTaken => StatusCodes.Status409Conflict,
+            IdentityExceptions.CredentialsProviderMismatch => StatusCodes.Status400BadRequest,
+            IdentityExceptions.RefreshMalformed => StatusCodes.Status400BadRequest,
+            IdentityExceptions.OidcUserMissingClaims => StatusCodes.Status400BadRequest,
+            IdentityExceptions.OidcUserProvisioningFailed => StatusCodes.Status500InternalServerError,
             IdentityExceptions.Unknown => StatusCodes.Status400BadRequest,
             _ => StatusCodes.Status400BadRequest,
         };

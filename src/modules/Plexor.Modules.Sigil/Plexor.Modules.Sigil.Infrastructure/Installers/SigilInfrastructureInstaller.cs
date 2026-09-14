@@ -176,6 +176,17 @@ public static class SigilInfrastructureInstaller
         // one-shot read+remove).
         services.AddSingleton<IOidcFlowStateStore, OidcFlowStateStore>();
 
+        // Phase 4.6.3c — id_token validator for the OIDC callback
+        // leg. Scoped — same shape as ExternalOidcAuthProvider (the
+        // validator and the bearer-side provider share the
+        // ExternalOidcAuthProviderHelpers primitives).
+        services.AddScoped<IOidcIdTokenValidator, EfOidcIdTokenValidator>();
+
+        // Phase 4.6.3c — find-or-create the Plexor User row + a
+        // default viewer-role binding for a freshly-onboarded OIDC
+        // user. Scoped — IdentityDbContext is per-request.
+        services.AddScoped<IOidcUserProvisioner, EfOidcUserProvisioner>();
+
         // Revocation checker — JwtSigningService calls it after
         // signature + lifetime validation succeeds so a stolen,
         // signature-valid JWT is rejected once the user is disabled
