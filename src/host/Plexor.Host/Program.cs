@@ -21,18 +21,17 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
-using FluentValidation;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Logging.Abstractions;
-using Plexor.Host.Controllers;
 using Plexor.Host.Filters;
 using Plexor.Host.Installers;
-using Plexor.Host.Models;
 using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
-using Plexor.Host.Validation;
+using Plexor.Modules.Branding.Api.Installers;
+using Plexor.Modules.Branding.Application.Installers;
+using Plexor.Modules.Branding.Infrastructure.Installers;
+using Plexor.Modules.Branding.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Quotas.Api.Errors;
@@ -40,7 +39,6 @@ using Plexor.Modules.Quotas.Api.Installers;
 using Plexor.Modules.Quotas.Application.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Persistence;
-using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Api;
 using Plexor.Modules.Sigil.Application.Installers;
@@ -86,25 +84,6 @@ PlexorCaBootstrap.EnsureCertificates(
 builder.Services.AddPlexorCertAuthority(builder.Configuration);
 builder.Services.AddHostedService<PlexorCaStartup>();
 
-// ----------------------------------------------------------------------------
-// Data Protection (4.6.1) — encrypts the OIDC client secret at rest in
-// realm.org_auth_provider_configs.oidc_client_secret_protected. The
-// keyring lives on disk under the OS-conventional per-user data
-// directory (PlexorPaths.DefaultDataRoot); the host-only purpose
-// string is namespaced so the OIDC secret cannot be decrypted by a
-// purpose-bound protector minted elsewhere. The same keyring is
-// shared by every host in a multi-pod deployment only when the
-// data root is mounted as a shared volume — for self-host (single
-// pod) the default location is the right shape.
-// ----------------------------------------------------------------------------
-var dataProtectionDir = Path.Combine(
-    Plexor.Shared.Mtls.PlexorPaths.DefaultDataRoot(),
-    "dataprotection-keys");
-Directory.CreateDirectory(dataProtectionDir);
-builder.Services
-    .AddDataProtection(static options => options.ApplicationDiscriminator = "plexor-host")
-    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionDir));
-
 // OpenAPI — Microsoft.AspNetCore.OpenApi source-gen document provider.
 // ProblemDetailsResponsesTransformer injects the standard RFC 7807
 // error responses (400/401/403/404/409/500) into every operation so
@@ -138,7 +117,11 @@ builder.Services
         // 4.5.g.2 — QuotasController (GET /api/v1/quotas/*) lives in
         // the Quotas.Api assembly; AddApplicationPart makes it
         // discoverable alongside the Sigil controllers above.
-        .AddApplicationPart(typeof(Plexor.Modules.Quotas.Api.Controllers.QuotasController).Assembly);
+        .AddApplicationPart(typeof(Plexor.Modules.Quotas.Api.Controllers.QuotasController).Assembly)
+        // BrandingController (GET /api/v1/branding/*) lives in the
+        // Branding.Api assembly; AddApplicationPart makes it
+        // discoverable alongside the Quotas controllers above.
+        .AddApplicationPart(typeof(Plexor.Modules.Branding.Api.Controllers.BrandingController).Assembly);
 
 // Persistence — single shared NpgsqlDataSource + schema-per-module DbContexts.
 // All PlexorDbContext subclasses in Plexor.Modules.*.Infrastructure assemblies
@@ -167,7 +150,8 @@ builder.Services.AddModuleDbContext<IdentityDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<ClusterDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
-var contextCount = 5;
+builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
+var contextCount = 6;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -209,28 +193,6 @@ builder.Services.AddQuotasInfrastructureCore();
 // Api-layer DI registrations. Mirrors AddPlexorSigilApi for the
 // Sigil module.
 builder.Services.AddQuotasApiCore();
-
-// Realm auth-providers (4.6.1) — wires the IOrgAuthProviderSeeder
-// implementation + the first-boot hosted service that ensures every
-// org has a default Sigil row in realm.org_auth_provider_configs.
-// Idempotent on re-run. The OrgAuthProvidersController lives in
-// this assembly (Plexor.Host/Controllers/) and is discovered by
-// AddControllers() automatically.
-builder.Services.AddRealmAuthProviders();
-
-// Realm auth-providers (4.6.1) — purpose-bound IDataProtector for
-// the OIDC client secret. The controller resolves the
-// purpose-scoped protector via IDataProtectionProvider.CreateProtector
-// at the call site so each action carries the right purpose.
-builder.Services.AddScoped<IValidator<UpsertOrgAuthProviderRequest>, UpsertOrgAuthProviderRequestValidator>();
-// Named HttpClient for the OIDC discovery-document fetch. A
-// separate client keeps the default request policy (no auth, no
-// retries) out of the controller's discovery fetch.
-builder.Services.AddHttpClient("Plexor-OidcDiscovery", static client =>
-{
-    client.Timeout = TimeSpan.FromSeconds(10);
-    client.DefaultRequestHeaders.UserAgent.ParseAdd("Plexor-Host/0.1");
-});
 // QuotaExceptionHandler (4.5.g.1) — maps QuotaExceededException
 // thrown by resource-create handlers (4.5.c Compute.CreateCluster /
 // CreateWorkload, 4.5.d Storage / Network) to an HTTP 429
@@ -239,6 +201,15 @@ builder.Services.AddHttpClient("Plexor-OidcDiscovery", static client =>
 // that hit a capacity wall. Sits next to IdentityExceptionHandler +
 // ClustersExceptionHandler; 4.5.g.2 adds the QuotasController.
 builder.Services.AddExceptionHandler<QuotaExceptionHandler>();
+
+// Branding module — operator-global + per-org branding.
+// Application installs the BrandingGlobalSeederHostedService; the
+// Infrastructure installer wires the EF-backed IBrandingService;
+// the API installer registers the FluentValidation validators.
+// Mirrors the Quotas trio above (Application + Infrastructure + Api).
+builder.Services.AddBrandingApplicationCore(builder.Configuration);
+builder.Services.AddBrandingInfrastructureCore();
+builder.Services.AddBrandingApiCore();
 
 // OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
 // to seed. The Quotas module does not depend on Realm — we supply the

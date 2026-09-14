@@ -17,10 +17,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Plexor.Migrator;
+using Plexor.Modules.Branding.Infrastructure.Installers;
+using Plexor.Modules.Branding.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Quotas.Infrastructure.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Persistence;
-using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
@@ -71,6 +72,7 @@ builder.Services.AddModuleDbContext<IdentityDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<ClusterDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
 
 builder.Services.AddSigilInfrastructureCore();
 
@@ -83,14 +85,10 @@ builder.Services.AddSigilInfrastructureCore();
 // one-shot migrate cycle (no hourly sweep boundary falls inside).
 builder.Services.AddQuotasInfrastructureCore();
 
-// Realm auth-providers (4.6.1) — wires the IOrgAuthProviderSeeder
-// EF implementation + the first-boot hosted service so the migrator
-// seeds a default Sigil row for every existing org right after the
-// InitAuthProviders migration applies. Idempotent on re-run. The
-// RealmApplication layer isn't needed here — the installer only
-// registers Application-layer + Infrastructure-layer services that
-// can be resolved against the Migrator's service collection.
-builder.Services.AddRealmAuthProviders();
+// Branding infrastructure — needed for BrandingGlobalSeederHostedService
+// and its IBrandingService dependency. The singleton seeder runs on
+// startup to ensure the global_theme_config row exists.
+builder.Services.AddBrandingInfrastructureCore();
 
 // OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
 // to seed. Same pattern as Plexor.Host — singleton delegate opens a
@@ -116,6 +114,7 @@ builder.Services.AddSingleton<Func<CancellationToken, Task<IReadOnlyCollection<G
 builder.Services.AddHostedService<MigrationRunner>();
 builder.Services.AddHostedService<IdentityBootstrapper>();
 builder.Services.AddHostedService<QuotaDefinitionSeeder>();
+builder.Services.AddHostedService<Plexor.Modules.Branding.Application.Branding.BrandingGlobalSeederHostedService>();
 
 var app = builder.Build();
 app.Run();
