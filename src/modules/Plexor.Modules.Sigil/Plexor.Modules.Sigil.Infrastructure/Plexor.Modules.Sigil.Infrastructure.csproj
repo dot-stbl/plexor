@@ -14,6 +14,15 @@
   <ItemGroup>
     <ProjectReference Include="..\Plexor.Modules.Sigil.Application\Plexor.Modules.Sigil.Application.csproj" />
     <ProjectReference Include="..\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />
+    <!--
+      Phase 4.6.2a — SigilAuthProvider reads OrgAuthProviderConfig (Phase
+      4.6.1) to decide whether this tenant is still served by Sigil. The
+      cross-module reference is necessary for the per-tenant routing
+      decision; an architecture-test backlog entry should record this as
+      a permitted exception.
+    -->
+    <ProjectReference Include="..\..\Plexor.Modules.Realm\Plexor.Modules.Realm.Domain\Plexor.Modules.Realm.Domain.csproj" />
+    <ProjectReference Include="..\..\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Authorization\Plexor.Shared.Authorization.csproj" />
     <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
