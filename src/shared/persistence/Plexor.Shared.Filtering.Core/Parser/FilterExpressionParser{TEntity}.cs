@@ -89,9 +89,7 @@ public static class FilterExpression
         string source,
         FilterableFieldSet<TEntity>? fields)
     {
-        var node = FilterParser.Parse(source);
-
-        if (node is null)
+        if (FilterParser.Parse(source) is not { } node)
         {
             return null;
         }

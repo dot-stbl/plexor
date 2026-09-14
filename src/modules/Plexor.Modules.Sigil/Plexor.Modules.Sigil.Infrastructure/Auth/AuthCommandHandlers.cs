@@ -285,9 +285,8 @@ public sealed class RefreshCommandHandler(
             case RefreshRotationResult.Replayed:
                 // Token was already rotated or revoked — treat as
                 // compromised. Look up its family and nuke everything.
-                var replayed = await refreshTokens.FindByRawTokenAsync(
-                    command.RefreshToken, cancellationToken);
-                if (replayed is not null)
+                if (await refreshTokens.FindByRawTokenAsync(
+                        command.RefreshToken, cancellationToken) is { } replayed)
                 {
                     await refreshTokens.RevokeFamilyAsync(
                         replayed.FamilyId, cancellationToken);

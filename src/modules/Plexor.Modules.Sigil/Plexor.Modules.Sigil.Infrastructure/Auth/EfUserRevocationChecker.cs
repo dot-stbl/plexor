@@ -27,15 +27,13 @@ public sealed class EfUserRevocationChecker(IdentityDbContext db) : IUserRevocat
         CancellationToken cancellationToken = default)
     {
 
-        var snapshot = await db.Users
-            .AsNoTracking()
-            .Where(u => u.Id == userId)
-            .Select(u => new UserRevocationSnapshot(
-                u.Status,
-                u.PasswordChangedAt))
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (snapshot is null)
+        if (await db.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => new UserRevocationSnapshot(
+                    u.Status,
+                    u.PasswordChangedAt))
+                .FirstOrDefaultAsync(cancellationToken) is not { } snapshot)
         {
             return new RevocationCheckResult.UserDisabled("User not found.");
         }

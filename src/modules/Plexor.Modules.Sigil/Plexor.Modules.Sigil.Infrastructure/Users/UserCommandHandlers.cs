@@ -53,12 +53,11 @@ public sealed class CreateUserCommandHandler(
         }
 
         var email = new Email(command.Email);
-        var existing = await db.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(
-                user => user.OrgId == command.OrgId && user.Email.Value == email.Value,
-                cancellationToken);
-        if (existing is not null)
+        if (await db.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    user => user.OrgId == command.OrgId && user.Email.Value == email.Value,
+                    cancellationToken) is not null)
         {
             throw new IdentityException(
                 IdentityExceptions.InvalidEmail,
