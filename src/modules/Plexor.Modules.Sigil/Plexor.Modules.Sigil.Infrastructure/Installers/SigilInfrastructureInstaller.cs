@@ -18,6 +18,7 @@ using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.AuthProviders;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
 using Plexor.Shared.Authorization;
+using Plexor.Shared.Kernel.AuthProviders;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Installers;
 
@@ -155,6 +156,17 @@ public static class SigilInfrastructureInstaller
         // (10s timeout, no auth, no retries).
         services.AddMemoryCache();
         services.AddSingleton<IJwksFetcher, JwksFetcher>();
+
+        // Phase 4.6.3a — PKCE generator (RFC 7636). Singleton;
+        // depends only on the OS CSPRNG, no per-request state.
+        services.AddSingleton<IPkceGenerator, PkceGenerator>();
+
+        // Phase 4.6.3a — outbound token-exchange client for the OIDC
+        // authorization-code flow (RFC 6749 §4.1.3). Singleton — the
+        // IHttpClientFactory, IOrgAuthProviderConfigReader, and
+        // OrgAuthProviderSecretProtector dependencies are all
+        // singleton-or-shared; the client holds no per-request state.
+        services.AddSingleton<IOidcTokenClient, OidcTokenClient>();
 
         // Revocation checker — JwtSigningService calls it after
         // signature + lifetime validation succeeds so a stolen,

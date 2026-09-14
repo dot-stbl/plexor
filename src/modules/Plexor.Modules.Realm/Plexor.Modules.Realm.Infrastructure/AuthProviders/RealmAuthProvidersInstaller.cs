@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
 // RealmAuthProvidersInstaller — registration entry for the
-// auth-providers seam (4.6.1). Hosts compose it as
+// auth-providers seam (4.6.1 + 4.6.3a). Hosts compose it as
 //   builder.Services.AddRealmAuthProviders();
 // after AddRealmApplicationCore. Wires the first-boot
 // IHostedService that ensures every org has a default Sigil row
-// in realm.org_auth_provider_configs.
+// in realm.org_auth_provider_configs, plus the Phase 4.6.3a
+// read seam + the data-protection secret wrapper.
 // ============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
@@ -31,14 +32,25 @@ namespace Plexor.Modules.Realm.Infrastructure.AuthProviders;
 ///     <see cref="OrgAuthProviderSeeder" /> lives in Application
 ///     so the migrator can call it without taking an
 ///     Infrastructure dependency on Realm.</para>
+///     <para><b>Phase 4.6.3a additions.</b> The
+///     <see cref="IOrgAuthProviderConfigReader" /> seam lets the
+///     OIDC token client (Sigil.Infrastructure) read the per-
+///     tenant config without a direct dependency on
+///     <see cref="Persistence.RealmDbContext" />. The
+///     <see cref="OrgAuthProviderSecretProtector" /> wraps the
+///     <c>Microsoft.AspNetCore.DataProtection.IDataProtectionProvider</c>
+///     registered in <c>Plexor.Host/Program.cs</c> so the
+///     secret-protect / secret-unprotect logic lives in one
+///     place.</para>
 /// </remarks>
 public static class RealmAuthProvidersInstaller
 {
     /// <summary>
     ///     Register the realm auth-providers seam: the EF
-    ///     implementation + the first-boot hosted service.
-    ///     Idempotent on re-run; the underlying seeder skips orgs
-    ///     that already have a config row.
+    ///     implementation + the first-boot hosted service, plus
+    ///     the Phase 4.6.3a read seam + secret protector. The
+    ///     underlying seeder is idempotent on re-run (skips orgs
+    ///     that already have a config row).
     /// </summary>
     /// <param name="services">The host's service collection.</param>
     /// <returns>The same <paramref name="services" /> for chaining.</returns>
@@ -52,6 +64,16 @@ public static class RealmAuthProvidersInstaller
         // The seeder opens its own scope on StartAsync so the
         // scoped IOrgAuthProviderSeeder is resolved correctly.
         services.AddHostedService<OrgAuthProviderSeeder>();
+
+        // Phase 4.6.3a — read seam for callers outside the Realm
+        // module (today: the OIDC token client in Sigil.Infrastructure).
+        // Scoped — AsNoTracking() reads share the per-request scope.
+        services.AddScoped<IOrgAuthProviderConfigReader, EfOrgAuthProviderConfigReader>();
+
+        // Phase 4.6.3a — purpose-bound IDataProtector wrapper for the
+        // OIDC client secret. Singleton — the underlying IDataProtector
+        // is thread-safe and the wrapper holds no per-request state.
+        services.AddSingleton<OrgAuthProviderSecretProtector>();
 
         return services;
     }
