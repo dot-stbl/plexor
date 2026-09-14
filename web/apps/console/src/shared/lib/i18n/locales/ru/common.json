@@ -94,7 +94,11 @@
     "kafkaTitle": "Kafka",
     "kafkaDesc": "Стриминг",
     "registryTitle": "Container Registry",
-    "registryDesc": "Образы контейнеров"
+    "registryDesc": "Образы контейнеров",
+    "adminTitle": "Админка",
+    "adminCaption": "Только для оператора",
+    "brandingTitle": "Брендинг",
+    "brandingDesc": "Тема + бренд-обёртка"
   },
   "shell": {
     "appName": "Plexor",
@@ -719,7 +723,7 @@
       "visualSettingsDescription": "Тема, акцентный цвет, размер текста"
     }
   },
-  "table": {
+"table": {
     "name": "Имя",
     "id": "ID",
     "status": "Статус",
@@ -741,7 +745,7 @@
     "cni": "CNI",
     "fleet": "Fleet",
     "endpoint": "Endpoint",
-    "os": "OS",
+    "os": "ОС",
     "arch": "Arch",
     "size": "Размер",
     "minDisk": "Мин. диск",
@@ -764,5 +768,41 @@
       "zone": "Копировать зону"
     },
     "openRow": "Открыть {{name}}"
+  },
+  "admin": {
+    "branding": {
+      "title": "Брендинг",
+      "description": "Тема и бренд-обёртка под управлением оператора. Сохраняется в Plexor.Host, изменения видны после перезагрузки страницы.",
+      "globalTitle": "Операторские умолчания",
+      "globalDescription": "Применяются ко всем организациям, если не переопределены. Видны после следующей перезагрузки.",
+      "presetLabel": "Пресет темы",
+      "accentLabel": "Произвольный акцент (OKLCH)",
+      "accentHelp": "Перекрывает акцент пресета. Пусто — используется значение пресета.",
+      "accentPlaceholder": "oklch(0.65 0.18 250)",
+      "brandNameLabel": "Название бренда",
+      "brandNameHelp": "Показывается в шапке сайдбара, заголовке страницы и alt-тексте фавикона.",
+      "logoLabel": "URL логотипа",
+      "logoHelp": "Заменяет стандартный SVG-значок. Пусто — используется стандартный.",
+      "faviconLabel": "URL фавикона",
+      "faviconHelp": "Загружается при старте. Пусто — используется стандартный.",
+      "save": "Сохранить умолчания",
+      "saving": "Сохраняю…",
+      "saved": "Сохранено — перезагружаю…",
+      "savedToast": "Операторские умолчания сохранены",
+      "resetToDefaults": "Сбросить на умолчания",
+      "savedError": "Не удалось сохранить",
+      "perOrgTitle": "Переопределения по организациям",
+      "perOrgDescription": "Каждая организация может переопределить операторские умолчания. Пустые поля наследуют значение.",
+      "overrideLabel": "Переопределить для организации",
+      "overrideEnable": "Переопределить для этой организации",
+      "overrideDisable": "Использовать умолчания",
+      "clearOverride": "Очистить переопределение",
+      "currentOrgLabel": "Текущая организация",
+      "noOrgSelected": "Выберите организацию",
+      "livePreview": "Предпросмотр",
+      "livePreviewHelp": "Обновляется по мере ввода — показывает результат операторских + per-org настроек.",
+      "livePreviewBrandName": "Plexor",
+      "livePreviewAccent": "Акцент"
+    }
   }
 }

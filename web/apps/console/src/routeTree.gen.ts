@@ -13,6 +13,7 @@ import { Route as NetworksRouteImport } from './routes/networks'
 import { Route as ImagesRouteImport } from './routes/images'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AuditRouteImport } from './routes/audit'
+import { Route as AdminBrandingRouteImport } from './routes/admin/branding'
 import { Route as VmsRouteRouteImport } from './routes/vms/route'
 import { Route as ManagedRouteRouteImport } from './routes/managed/route'
 import { Route as LxcRouteRouteImport } from './routes/lxc/route'
@@ -53,6 +54,11 @@ const BillingRoute = BillingRouteImport.update({
 const AuditRoute = AuditRouteImport.update({
   id: '/audit',
   path: '/audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBrandingRoute = AdminBrandingRouteImport.update({
+  id: '/admin/branding',
+  path: '/admin/branding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VmsRouteRoute = VmsRouteRouteImport.update({
@@ -163,6 +169,7 @@ const ClustersIdRoute = ClustersIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin/branding': typeof AdminBrandingRoute
   '/clusters': typeof ClustersRouteRouteWithChildren
   '/k8s': typeof K8sRouteRouteWithChildren
   '/lxc': typeof LxcRouteRouteWithChildren
@@ -190,6 +197,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin/branding': typeof AdminBrandingRoute
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
   '/images': typeof ImagesRoute
@@ -213,6 +221,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin/branding': typeof AdminBrandingRoute
   '/clusters': typeof ClustersRouteRouteWithChildren
   '/k8s': typeof K8sRouteRouteWithChildren
   '/lxc': typeof LxcRouteRouteWithChildren
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin/branding'
     | '/clusters'
     | '/k8s'
     | '/lxc'
@@ -269,6 +279,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin/branding'
     | '/audit'
     | '/billing'
     | '/images'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin/branding'
     | '/clusters'
     | '/k8s'
     | '/lxc'
@@ -319,6 +331,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminBrandingRoute: typeof AdminBrandingRoute
   ClustersRouteRoute: typeof ClustersRouteRouteWithChildren
   K8sRouteRoute: typeof K8sRouteRouteWithChildren
   LxcRouteRoute: typeof LxcRouteRouteWithChildren
@@ -358,6 +371,13 @@ declare module '@tanstack/react-router' {
       path: '/audit'
       fullPath: '/audit'
       preLoaderRoute: typeof AuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/branding': {
+      id: '/admin/branding'
+      path: '/admin/branding'
+      fullPath: '/admin/branding'
+      preLoaderRoute: typeof AdminBrandingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/vms': {
@@ -592,6 +612,7 @@ const VmsRouteRouteWithChildren = VmsRouteRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminBrandingRoute: AdminBrandingRoute,
   ClustersRouteRoute: ClustersRouteRouteWithChildren,
   K8sRouteRoute: K8sRouteRouteWithChildren,
   LxcRouteRoute: LxcRouteRouteWithChildren,
