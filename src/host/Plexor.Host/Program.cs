@@ -26,6 +26,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Plexor.Host.Installers;
 using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
+using Plexor.Modules.Audit.Infrastructure.Installers;
+using Plexor.Modules.Audit.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
@@ -122,9 +124,10 @@ var postgresConnection = builder.Configuration.GetConnectionString("Postgres")
 // Explicit DbContext registration — same set + order as the migrator.
 builder.Services.AddModuleDbContext<RealmDbContext>(postgresConnection);
 builder.Services.AddModuleDbContext<IdentityDbContext>(postgresConnection);
+builder.Services.AddModuleDbContext<AuditDbContext>(postgresConnection);
 builder.Services.AddModuleDbContext<ClusterDbContext>(postgresConnection);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(postgresConnection);
-var contextCount = 4;
+var contextCount = 5;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -149,6 +152,11 @@ builder.Services.AddPlexorSigilApi();
 // NodeAgent join/heartbeat endpoints). Phase 5.
 builder.Services.AddClustersInfrastructureCore();
 builder.Services.AddExceptionHandler<Plexor.Modules.Clusters.Infrastructure.Errors.ClustersExceptionHandler>();
+
+// Audit module — append-only audit log (atlas.audit_entries).
+// Wires IAuditStore -> EfAuditStore (Scoped). AuditDbContext is
+// registered above alongside the other module contexts.
+builder.Services.AddAuditModule();
 
 // Strip our own IHostedService implementations when the host is being
 // launched by the build-time OpenAPI document generator. Without this,

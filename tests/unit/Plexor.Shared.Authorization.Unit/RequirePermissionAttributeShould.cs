@@ -71,7 +71,7 @@ public sealed class RequirePermissionAttributeShould
             typeof(AttributeUsageAttribute));
 
         usage.ShouldNotBeNull();
-        usage!.AllowMultiple.ShouldBeTrue();
+        usage.AllowMultiple.ShouldBeTrue();
         ((int)(usage.ValidOn & AttributeTargets.Class)).ShouldNotBe(0);
         ((int)(usage.ValidOn & AttributeTargets.Method)).ShouldNotBe(0);
     }

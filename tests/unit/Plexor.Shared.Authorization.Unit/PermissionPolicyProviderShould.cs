@@ -43,7 +43,7 @@ public sealed class PermissionPolicyProviderShould
         var policy = await provider.GetPolicyAsync("permission:vms.read");
 
         policy.ShouldNotBeNull();
-        var requirement = policy!.Requirements.OfType<PermissionRequirement>().Single();
+        var requirement = policy.Requirements.OfType<PermissionRequirement>().Single();
         requirement.Permission.ShouldBe("vms.read");
     }
 
@@ -57,7 +57,7 @@ public sealed class PermissionPolicyProviderShould
         var policy = await provider.GetPolicyAsync("permission:vms.read,vms.write");
 
         policy.ShouldNotBeNull();
-        var requirements = policy!.Requirements.OfType<PermissionRequirement>().ToList();
+        var requirements = policy.Requirements.OfType<PermissionRequirement>().ToList();
         requirements.Count.ShouldBe(2);
         requirements.Select(static r => r.Permission).ShouldBe(TwoPermissions);
     }
@@ -101,7 +101,7 @@ public sealed class PermissionPolicyProviderShould
         var policy = await provider.GetDefaultPolicyAsync();
 
         policy.ShouldNotBeNull();
-        policy!.Requirements.Count.ShouldBeGreaterThan(0);
+        policy.Requirements.Count.ShouldBeGreaterThan(0);
     }
 
     private static readonly string[] TwoPermissions =
