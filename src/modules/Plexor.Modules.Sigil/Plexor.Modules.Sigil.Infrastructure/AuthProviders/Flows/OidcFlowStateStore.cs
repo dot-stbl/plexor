@@ -23,7 +23,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Plexor.Shared.Kernel.AuthProviders;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Flows;
 
 /// <summary>
 ///     <see cref="IOidcFlowStateStore" /> implementation backed by

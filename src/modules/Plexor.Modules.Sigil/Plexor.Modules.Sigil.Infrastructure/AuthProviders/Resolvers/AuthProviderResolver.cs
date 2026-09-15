@@ -36,8 +36,9 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.AuthProviders;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
 
 /// <summary>
 ///     <see cref="IAuthProviderResolver" /> implementation. Routes a

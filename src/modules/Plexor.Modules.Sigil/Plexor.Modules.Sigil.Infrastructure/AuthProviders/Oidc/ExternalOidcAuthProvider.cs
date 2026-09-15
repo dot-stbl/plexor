@@ -45,7 +45,7 @@ using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.AuthProviders;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 
 /// <summary>
 ///     <see cref="IAuthProvider" /> implementation for the external
@@ -56,7 +56,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
 /// </summary>
 /// <remarks>
 ///     <para><b>Cross-module reference.</b> Same shape as
-///     <see cref="SigilAuthProvider" /> — this class consumes
+///     <see cref="Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers.SigilAuthProvider" /> — this class consumes
 ///     <see cref="RealmDbContext" /> to read
 ///     <see cref="OrgAuthProviderConfig" />. The reference is
 ///     necessary because the OIDC provider is the only place that
@@ -73,7 +73,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
 ///     JwtSecurityTokenHandler does an inbound legacy mapping to
 ///     <c>ClaimTypes.*</c> that we don't want here.</para>
 ///     <para><b>Why re-resolve roles + permissions on every call.</b>
-///     Same shape as <see cref="SigilAuthProvider" />: the OIDC
+///     Same shape as <see cref="Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers.SigilAuthProvider" />: the OIDC
 ///     provider is the source of truth for which Plexor roles +
 ///     permissions an external user holds. Two small roundtrips on
 ///     every authenticated request; the dispatcher (4.6.2c) caches

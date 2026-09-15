@@ -23,7 +23,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 
 /// <summary>
 ///     <see cref="Application.AuthProviders.IJwksFetcher" />

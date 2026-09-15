@@ -28,9 +28,10 @@ using Plexor.Modules.Sigil.Application.AuthProviders;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Provisioners;
 
 /// <summary>
 ///     <see cref="IOidcUserProvisioner" /> implementation. Reads

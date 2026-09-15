@@ -16,7 +16,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Plexor.Modules.Sigil.Application.AuthProviders;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 
 /// <summary>
 ///     Pure helpers for extracting the OIDC user-identity claims
@@ -55,7 +55,7 @@ internal static class IdTokenClaimsExtractor
     /// <summary>
     ///     Lift the OIDC identity claims off a validated JWT. The
     ///     <see cref="JsonWebToken" /> comes from
-    ///     <see cref="ExternalOidcAuthProviderHelpers.ReadToken" />
+    ///     <see cref="Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc.ExternalOidcAuthProviderHelpers.ReadToken" />
     ///     after the validator's signature + lifetime checks pass.
     /// </summary>
     /// <param name="token">The validated JWT.</param>

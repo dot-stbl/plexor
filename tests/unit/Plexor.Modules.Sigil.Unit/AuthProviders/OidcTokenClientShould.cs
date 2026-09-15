@@ -26,7 +26,7 @@ using NSubstitute;
 using Plexor.Modules.Realm.Application.AuthProviders;
 using Plexor.Modules.Realm.Domain.Entities;
 using Plexor.Modules.Realm.Infrastructure.AuthProviders;
-using Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 using Shouldly;
 using Xunit;
 

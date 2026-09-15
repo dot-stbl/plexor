@@ -9,7 +9,7 @@
 
 using System.Security.Cryptography;
 using System.Text;
-using Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 using Shouldly;
 using Xunit;
 

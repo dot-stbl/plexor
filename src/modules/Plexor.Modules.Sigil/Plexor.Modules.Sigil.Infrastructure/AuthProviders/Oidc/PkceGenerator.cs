@@ -11,7 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Plexor.Shared.Kernel.AuthProviders;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 
 /// <summary>
 ///     Stateless <see cref="IPkceGenerator" /> implementation.
