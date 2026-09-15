@@ -6,7 +6,7 @@
 // (per anti-patterns.md §2 — no positional records on wire shapes).
 // ============================================================================
 
-namespace Plexor.Modules.Branding.Api.Models;
+namespace Plexor.Modules.Branding.Api.Models.Responses;
 
 /// <summary>
 ///     Wire shape for the operator-global branding row.

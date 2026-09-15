@@ -6,7 +6,7 @@
 // ============================================================================
 
 using FluentValidation.TestHelper;
-using Plexor.Modules.Branding.Api.Models;
+using Plexor.Modules.Branding.Api.Models.Requests;
 using Plexor.Modules.Branding.Api.Validation;
 using Shouldly;
 using Xunit;

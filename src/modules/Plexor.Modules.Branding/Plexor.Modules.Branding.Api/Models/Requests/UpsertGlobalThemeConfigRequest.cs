@@ -3,7 +3,7 @@
 // UpsertGlobalThemeConfigRequest — wire shape for PUT /api/v1/branding/global.
 // ============================================================================
 
-namespace Plexor.Modules.Branding.Api.Models;
+namespace Plexor.Modules.Branding.Api.Models.Requests;
 
 /// <summary>
 ///     Wire shape for the operator-global branding upsert body.

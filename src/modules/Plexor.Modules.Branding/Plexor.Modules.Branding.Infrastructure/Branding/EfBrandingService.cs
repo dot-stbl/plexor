@@ -38,7 +38,7 @@ public sealed class EfBrandingService(BrandingDbContext db, TimeProvider clock)
         CancellationToken cancellationToken = default)
     {
         return await EfBrandingServiceHelpers.GetGlobalInternalAsync(
-            db, clock, cancellationToken);
+            db, cancellationToken);
     }
 
     /// <inheritdoc />
