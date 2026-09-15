@@ -26,7 +26,6 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Logging.Abstractions;
-using Plexor.Host.Controllers;
 using Plexor.Host.Filters;
 using Plexor.Host.Installers;
 using Plexor.Host.Models;
@@ -35,6 +34,7 @@ using Plexor.Host.OpenApi;
 using Plexor.Host.Validation;
 using Plexor.Modules.Audit.Api.Endpoints;
 using Plexor.Modules.Audit.Api.Installers;
+using Plexor.Modules.Audit.Application.Audit;
 using Plexor.Modules.Audit.Application.Installers;
 using Plexor.Modules.Audit.Domain.Entities;
 using Plexor.Modules.Audit.Infrastructure.Installers;
@@ -111,7 +111,7 @@ builder.Services.AddHostedService<PlexorCaStartup>();
 // pod) the default location is the right shape.
 // ----------------------------------------------------------------------------
 var dataProtectionDir = Path.Combine(
-    Plexor.Shared.Mtls.PlexorPaths.DefaultDataRoot(),
+    PlexorPaths.DefaultDataRoot(),
     "dataprotection-keys");
 Directory.CreateDirectory(dataProtectionDir);
 builder.Services
@@ -288,6 +288,16 @@ builder.Services
 builder.Services.AddAuditApplicationCore(builder.Configuration);
 builder.Services.AddAuditInfrastructureCore();
 builder.Services.AddAuditApiCore();
+// Audit retention (Phase 5.3) — bind AuditOptions so the daily
+// sweep BackgroundService picks up RetentionDays / CleanupInterval /
+// BatchSize / SweepHourUtc. ValidateDataAnnotations + ValidateOnStart
+// fail the host startup on an out-of-range value rather than the
+// first sweep. Mirrors the BrandingOptions binding above.
+builder.Services
+    .AddOptions<AuditOptions>()
+    .Bind(builder.Configuration.GetSection(AuditOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 // OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
 // to seed. The Quotas module does not depend on Realm — we supply the

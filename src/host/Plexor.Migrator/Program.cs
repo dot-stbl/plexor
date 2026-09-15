@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Plexor.Migrator;
+using Plexor.Modules.Audit.Application.Audit;
 using Plexor.Modules.Audit.Infrastructure.Persistence;
 using Plexor.Modules.Branding.Infrastructure.Installers;
 using Plexor.Modules.Branding.Infrastructure.Persistence;
@@ -79,6 +80,16 @@ builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
 
 builder.Services.AddSigilInfrastructureCore();
 
+// Audit retention (Phase 5.3) — bind AuditOptions so any future
+// sweep kicked off by the migrator's short lifetime honors the
+// configured retention window. ValidateOnStart enforces the
+// Range attributes (1..3650 retention, etc.) at startup.
+builder.Services
+    .AddOptions<AuditOptions>()
+    .Bind(builder.Configuration.GetSection(AuditOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
 // Quotas infrastructure — needed for the OrgSeederHostedService (4.5.f)
 // and its IOrgSeeder dependency. Other Quotas services registered by
 // this installer (catalog / scope resolver / enforcer / rate limiter /
@@ -113,14 +124,14 @@ builder.Services.AddBrandingInfrastructureCore();
 // seed an org yet — that's a Phase 2 concern); the hosted service
 // no-ops gracefully in that case.
 builder.Services.AddSingleton<Func<CancellationToken, Task<IReadOnlyCollection<Guid>>>>(
-    static sp => cancellationToken =>
+    static sp => async cancellationToken =>
     {
-        using var scope = sp.CreateAsyncScope();
+        await using var scope = sp.CreateAsyncScope();
         var realm = scope.ServiceProvider.GetRequiredService<RealmDbContext>();
         var ids = realm.Organizations
             .Select(static organization => organization.Id)
             .ToList();
-        return Task.FromResult<IReadOnlyCollection<Guid>>(ids);
+        return await Task.FromResult<IReadOnlyCollection<Guid>>(ids);
     });
 
 builder.Services.AddHostedService<MigrationRunner>();
