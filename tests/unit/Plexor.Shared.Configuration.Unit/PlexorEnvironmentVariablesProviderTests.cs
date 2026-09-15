@@ -14,21 +14,6 @@ namespace Plexor.Shared.Configuration.Unit;
 /// </summary>
 public sealed class PlexorEnvironmentVariablesProviderTests
 {
-    /// <summary>
-    ///     Test double — overrides the env-var source so we can
-    ///     inject a fixed dictionary. Without this every test
-    ///     would have to set real process env vars (race-prone
-    ///     in parallel xUnit runs).
-    /// </summary>
-    /// <param name="entries"></param>
-    private sealed class TestableEnvProvider(System.Collections.IDictionary entries) : PlexorEnvironmentVariablesProvider
-    {
-        protected override System.Collections.IDictionary ReadEnvironmentVariables()
-        {
-            return entries;
-        }
-    }
-
     private static IConfigurationRoot BuildWithEnv(IDictionary<string, string?> memory)
     {
         var dict = new System.Collections.Hashtable();
@@ -37,7 +22,10 @@ public sealed class PlexorEnvironmentVariablesProviderTests
             dict[kvp.Key] = kvp.Value;
         }
 
-        var provider = new TestableEnvProvider(dict);
+        // Inject the fixed dictionary via the constructor instead of
+        // subclassing — the provider is sealed, and reading process
+        // env from every test would race in parallel xUnit runs.
+        var provider = new PlexorEnvironmentVariablesProvider(dict);
         return new ConfigurationBuilder()
             .Add(new PlexorEnvironmentVariablesSource(provider))
             .Build();
