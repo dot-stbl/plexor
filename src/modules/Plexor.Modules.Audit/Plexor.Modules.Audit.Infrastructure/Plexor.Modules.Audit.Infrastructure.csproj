@@ -29,4 +29,8 @@
     <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Plexor.Modules.Audit.Unit" />
+  </ItemGroup>
+
 </Project>

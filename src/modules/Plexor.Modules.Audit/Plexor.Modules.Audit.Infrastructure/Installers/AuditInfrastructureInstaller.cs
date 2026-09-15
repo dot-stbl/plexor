@@ -41,6 +41,15 @@ public static class AuditInfrastructureInstaller
         // triggered it.
         services.AddScoped<IAuditEmitter, DbAuditEmitter>();
 
+        // AuditRetentionService — singleton hosted service. Opens its
+        // own scope per sweep (DbContext is scoped per request, not
+        // per host). Mirrors the Quotas RateLimitCleanupService
+        // pattern; the AuditOptions binding lives in the composition
+        // root (Plexor.Host / Plexor.Migrator Program.cs) so the
+        // IConfiguration access stays where every other Options
+        // binding lives (BrandingOptions, CertAuthorityOptions, ...).
+        services.AddHostedService<AuditRetentionService>();
+
         return services;
     }
 }
