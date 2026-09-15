@@ -77,6 +77,7 @@ builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
+builder.Services.AddScoped<IAuditDbContext>(sp => sp.GetRequiredService<AuditDbContext>());
 
 builder.Services.AddSigilInfrastructureCore();
 

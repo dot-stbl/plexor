@@ -22,17 +22,8 @@ namespace Plexor.Modules.Audit.Infrastructure.Persistence;
 ///     <c>Configurations/</c>.
 /// </summary>
 /// <param name="options">EF Core options bag.</param>
-/// <remarks>
-///     <b>Not sealed.</b> Left open specifically so the unit-test
-///     project can subclass with a <c>SaveChangesAsync</c> override
-///     that throws — exercising the DbAuditEmitter's swallow-on-
-///     exception contract without needing a real Postgres instance
-///     or NSubstitute-on-sealed-class gymnastics. Documented
-///     extension point per <c>class-layout-and-tooling.md</c> §1a.
-///     Production code never subclasses it.
-/// </remarks>
-public class AuditDbContext(DbContextOptions<AuditDbContext> options)
-    : PlexorDbContext(options)
+public sealed class AuditDbContext(DbContextOptions<AuditDbContext> options)
+    : PlexorDbContext(options), IAuditDbContext
 {
     /// <summary>AuditEntries (atlas.audit_entries) — one row per
     /// audited action.</summary>
