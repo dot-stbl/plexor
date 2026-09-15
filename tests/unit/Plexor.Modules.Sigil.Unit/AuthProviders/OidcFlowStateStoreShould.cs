@@ -11,7 +11,7 @@
 // ============================================================================
 
 using Microsoft.Extensions.Caching.Memory;
-using Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Flows;
 using Plexor.Shared.Kernel.AuthProviders;
 using Shouldly;
 using Xunit;

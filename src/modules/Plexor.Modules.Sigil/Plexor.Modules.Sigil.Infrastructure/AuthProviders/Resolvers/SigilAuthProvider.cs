@@ -29,7 +29,7 @@ using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.AuthProviders;
 using Plexor.Modules.Sigil.Application.Users;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
 
 /// <summary>
 ///     <see cref="IAuthProvider" /> implementation for the Sigil

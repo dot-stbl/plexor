@@ -35,7 +35,7 @@
 
 using Plexor.Modules.Sigil.Application.AuthProviders;
 using Plexor.Modules.Sigil.Domain.Errors;
-using Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Provisioners;
 using Shouldly;
 using Xunit;
 

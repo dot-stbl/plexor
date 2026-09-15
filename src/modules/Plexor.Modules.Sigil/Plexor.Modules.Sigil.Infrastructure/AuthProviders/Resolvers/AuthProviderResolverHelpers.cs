@@ -8,7 +8,7 @@
 
 using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
 
 /// <summary>
 ///     Static helpers for <see cref="AuthProviderResolver" />. No
@@ -31,7 +31,7 @@ internal static class AuthProviderResolverHelpers
     ///     its own key material. A signature-mismatch failure in the
     ///     provider surfaces as <c>null</c> at the resolver level.</para>
     ///     <para><b>Why <see cref="JsonWebTokenHandler" />.</b>
-    ///     Mirrors <see cref="ExternalOidcAuthProviderHelpers.ReadToken" />:
+    ///     Mirrors <see cref="Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc.ExternalOidcAuthProviderHelpers.ReadToken" />:
     ///     modern Microsoft pipeline, raw claim names preserved
     ///     (<c>iss</c> rather than the
     ///     <see cref="System.Security.Claims.ClaimTypes" /> mapping that

@@ -24,7 +24,7 @@
 
 using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Flows;
 
 /// <summary>
 ///     Outcome of peeking the <c>iss</c> claim off a refresh token

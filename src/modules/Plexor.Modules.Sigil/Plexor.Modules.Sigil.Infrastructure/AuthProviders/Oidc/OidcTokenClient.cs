@@ -38,7 +38,7 @@ using Plexor.Modules.Realm.Domain.Entities;
 using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Shared.Kernel.AuthProviders;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 
 /// <summary>
 ///     <see cref="IOidcTokenClient" /> implementation. Calls the
