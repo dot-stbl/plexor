@@ -21,13 +21,21 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
+using FluentValidation;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 using Microsoft.Extensions.Logging.Abstractions;
+using Plexor.Host.Controllers;
 using Plexor.Host.Filters;
 using Plexor.Host.Installers;
+using Plexor.Host.Models;
 using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
+using Plexor.Host.Validation;
+using Plexor.Modules.Audit.Application.Installers;
+using Plexor.Modules.Audit.Infrastructure.Installers;
+using Plexor.Modules.Audit.Infrastructure.Persistence;
 using Plexor.Modules.Branding.Api;
 using Plexor.Modules.Branding.Api.Endpoints;
 using Plexor.Modules.Branding.Api.Installers;
@@ -41,6 +49,7 @@ using Plexor.Modules.Quotas.Api.Installers;
 using Plexor.Modules.Quotas.Application.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Persistence;
+using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Api;
 using Plexor.Modules.Sigil.Api.Endpoints;
@@ -86,6 +95,25 @@ PlexorCaBootstrap.EnsureCertificates(
 
 builder.Services.AddPlexorCertAuthority(builder.Configuration);
 builder.Services.AddHostedService<PlexorCaStartup>();
+
+// ----------------------------------------------------------------------------
+// Data Protection (4.6.1) — encrypts the OIDC client secret at rest in
+// realm.org_auth_provider_configs.oidc_client_secret_protected. The
+// keyring lives on disk under the OS-conventional per-user data
+// directory (PlexorPaths.DefaultDataRoot); the host-only purpose
+// string is namespaced so the OIDC secret cannot be decrypted by a
+// purpose-bound protector minted elsewhere. The same keyring is
+// shared by every host in a multi-pod deployment only when the
+// data root is mounted as a shared volume — for self-host (single
+// pod) the default location is the right shape.
+// ----------------------------------------------------------------------------
+var dataProtectionDir = Path.Combine(
+    Plexor.Shared.Mtls.PlexorPaths.DefaultDataRoot(),
+    "dataprotection-keys");
+Directory.CreateDirectory(dataProtectionDir);
+builder.Services
+    .AddDataProtection(static options => options.ApplicationDiscriminator = "plexor-host")
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionDir));
 
 // OpenAPI — Microsoft.AspNetCore.OpenApi source-gen document provider.
 // ProblemDetailsResponsesTransformer injects the standard RFC 7807
@@ -154,7 +182,8 @@ builder.Services.AddModuleDbContext<ClusterDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
-var contextCount = 6;
+builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
+var contextCount = 7;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -196,6 +225,28 @@ builder.Services.AddQuotasInfrastructureCore();
 // Api-layer DI registrations. Mirrors AddPlexorSigilApi for the
 // Sigil module.
 builder.Services.AddQuotasApiCore();
+
+// Realm auth-providers (4.6.1) — wires the IOrgAuthProviderSeeder
+// implementation + the first-boot hosted service that ensures every
+// org has a default Sigil row in realm.org_auth_provider_configs.
+// Idempotent on re-run. The OrgAuthProvidersController lives in
+// this assembly (Plexor.Host/Controllers/) and is discovered by
+// AddControllers() automatically.
+builder.Services.AddRealmAuthProviders();
+
+// Realm auth-providers (4.6.1) — purpose-bound IDataProtector for
+// the OIDC client secret. The controller resolves the
+// purpose-scoped protector via IDataProtectionProvider.CreateProtector
+// at the call site so each action carries the right purpose.
+builder.Services.AddScoped<IValidator<UpsertOrgAuthProviderRequest>, UpsertOrgAuthProviderRequestValidator>();
+// Named HttpClient for the OIDC discovery-document fetch. A
+// separate client keeps the default request policy (no auth, no
+// retries) out of the controller's discovery fetch.
+builder.Services.AddHttpClient("Plexor-OidcDiscovery", static client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("Plexor-Host/0.1");
+});
 // QuotaExceptionHandler (4.5.g.1) — maps QuotaExceededException
 // thrown by resource-create handlers (4.5.c Compute.CreateCluster /
 // CreateWorkload, 4.5.d Storage / Network) to an HTTP 429
@@ -219,6 +270,14 @@ builder.Services.AddBrandingApiCore();
 builder.Services
     .AddOptions<BrandingOptions>()
     .Bind(builder.Configuration.GetSection(BrandingOptions.SectionName));
+
+// Audit module (Phase 5.1) — emits generic IAuditEmitter events
+// from quota + future auth-provider controllers. Application layer
+// is empty in 5.1 (the audit read endpoint lands in 5.2); the
+// Infrastructure installer wires the EF-backed DbAuditEmitter.
+// Mirrors the Quotas/Branding Application + Infrastructure pair.
+builder.Services.AddAuditApplicationCore(builder.Configuration);
+builder.Services.AddAuditInfrastructureCore();
 
 // OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
 // to seed. The Quotas module does not depend on Realm — we supply the

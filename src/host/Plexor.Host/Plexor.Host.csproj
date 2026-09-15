@@ -49,6 +49,11 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Branding\Plexor.Modules.Branding.Application\Plexor.Modules.Branding.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Branding\Plexor.Modules.Branding.Infrastructure\Plexor.Modules.Branding.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Branding\Plexor.Modules.Branding.Api\Plexor.Modules.Branding.Api.csproj" />
+    <!-- Phase 5.1 — audit module. Application hosts the read endpoint
+         (5.2); Infrastructure hosts the IAuditEmitter (DbAuditEmitter)
+         + AuditDbContext. The Api project ships in 5.2. -->
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Application\Plexor.Modules.Audit.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
