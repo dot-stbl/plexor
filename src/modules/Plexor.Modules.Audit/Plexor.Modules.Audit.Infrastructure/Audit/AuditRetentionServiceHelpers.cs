@@ -108,9 +108,10 @@ internal static class AuditRetentionServiceHelpers
     ///     return an empty batch. Stopping saves a redundant
     ///     SELECT/DELETE round-trip.</para>
     /// </remarks>
-    /// <param name="db">Resolved <see cref="AuditDbContext" /> —
+    /// <param name="db">Resolved <see cref="IAuditDbContext" /> —
     /// production code passes one opened by the BackgroundService;
-    /// unit tests pass an in-memory instance.</param>
+    /// unit tests pass an in-memory instance or an NSubstitute that
+    /// throws on <c>SaveChangesAsync</c>.</param>
     /// <param name="clock">Injected <see cref="TimeProvider" /> for
     /// the cutoff computation.</param>
     /// <param name="options">Bound audit options — drives the
@@ -118,7 +119,7 @@ internal static class AuditRetentionServiceHelpers
     /// <param name="logger">Structured logger for the rowcount.</param>
     /// <param name="cancellationToken">Cooperative cancellation.</param>
     public static async Task<int> SweepAsync(
-        AuditDbContext db,
+        IAuditDbContext db,
         TimeProvider clock,
         AuditOptions options,
         ILogger logger,
