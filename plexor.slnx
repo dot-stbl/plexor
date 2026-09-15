@@ -90,6 +90,7 @@
         <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Domain/Plexor.Modules.Audit.Domain.csproj" />
         <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Application/Plexor.Modules.Audit.Application.csproj" />
         <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Infrastructure/Plexor.Modules.Audit.Infrastructure.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Api/Plexor.Modules.Audit.Api.csproj" />
     </Folder>
 
     <!-- ============ Hosts (entry points) =================================== -->
