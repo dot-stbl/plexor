@@ -214,6 +214,7 @@ public sealed class LoginCommandHandlerShould
             refreshTokens,
             tokenIssuer,
             identity,
+            TimeProvider.System,
             configReader);
 
         return (handler, realm);
