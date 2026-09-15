@@ -47,9 +47,13 @@ import './index.css';
 })();
 
 // Operator-controlled brand — swap the boot favicon in if the host
-// shipped one. Done synchronously before React mounts so the first paint
-// already has the operator's icon (no flash from default → custom).
-(function applyBootFavicon() {
+// shipped one, and override --accent from `branding.global.customAccent`
+// when the operator picked a non-default accent. Both are synchronous
+// window-state mutations done before React mounts so the first paint
+// already has the operator's icon + accent (no flash from default →
+// custom). The accent override is on top of whatever the user later
+// picks in PreferencesProvider — operator default, user override wins.
+(function applyBootBranding() {
   try {
     var boot = getBootConfig();
     if (boot.brand.faviconUrl) {
@@ -58,9 +62,14 @@ import './index.css';
         link.setAttribute('href', boot.brand.faviconUrl);
       }
     }
+    var customAccent = boot.branding && boot.branding.global && boot.branding.global.customAccent;
+    if (customAccent) {
+      document.documentElement.style.setProperty('--accent', customAccent);
+    }
   } catch (_) {
     // Boot config unavailable — the default favicon (set in index.html)
-    // stays in place.
+    // and the default accent (from index.css / the active preset) stay
+    // in place.
   }
 })();
 
@@ -116,7 +125,28 @@ async function enableMocking() {
   await worker.start({ onUnhandledRequest: 'bypass' });
 }
 
-void enableMocking().then(() => {
+// Apply operator-configured theme preset before first render. The default
+// preset (`plexor-default-light`) is already in :root from index.css, so
+// only non-default operators see this work — and they tolerate a brief
+// flash since they opted in. Dynamic imports break what would otherwise
+// be a static edge between this file and the theme registry; the
+// registry pulls in presets.ts, which only main.tsx ever imports.
+async function applyBootPreset() {
+  const presetId = getBootConfig().theme.defaultPresetId;
+  if (!presetId || presetId === 'plexor-default-light') return;
+  try {
+    const { getPreset } = await import('@/shared/lib/themes/registry');
+    const { applyPreset } = await import('@/shared/lib/themes/apply-tokens');
+    const preset = getPreset(presetId);
+    if (preset) {
+      applyPreset(preset);
+    }
+  } catch (err) {
+    console.warn('boot: failed to apply theme preset', presetId, err);
+  }
+}
+
+void Promise.all([enableMocking(), applyBootPreset()]).then(() => {
   createRoot(rootElement).render(
     <StrictMode>
       <ThemeProvider defaultTheme="system" storageKey="plexor-preferences">
