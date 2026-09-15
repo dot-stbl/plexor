@@ -5,7 +5,8 @@
 // convention (class-layout-and-tooling.md §1a / §9.4 — Controller /
 // minimal API endpoint). The controller is a thin orchestration
 // layer; entity → response projection, ProblemDetails construction,
-// and the OIDC discovery-document fetch + parse live here.
+// the OIDC discovery-document fetch + parse, and the Phase 5.2
+// audit-emit payload composition live here.
 // ============================================================================
 
 using System.Net.Http.Json;
@@ -13,6 +14,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Plexor.Host.Models;
 using Plexor.Modules.Realm.Domain.Entities;
+using Plexor.Shared.Kernel.Audit;
 
 namespace Plexor.Host.Controllers;
 
@@ -236,5 +238,81 @@ internal static class OrgAuthProviderControllerHelpers
         /// <summary>Scopes the authority advertises.</summary>
         [JsonPropertyName("scopes_supported")]
         public IReadOnlyList<string>? ScopesSupported { get; init; }
+    }
+
+    /// <summary>
+    ///     Compose the <c>org.auth_provider.changed</c> audit
+    ///     payload from a before/after snapshot of the
+    ///     <see cref="OrgAuthProviderConfig" /> row and emit it
+    ///     through <paramref name="auditEmitter" />.
+    ///     <see cref="AuditActions.OrgAuthProviderChanged" />'s
+    ///     documented payload keys (<c>old_provider</c>,
+    ///     <c>new_provider</c>, <c>old_oidc_authority</c>,
+    ///     <c>new_oidc_authority</c>, <c>old_oidc_client_id</c>,
+    ///     <c>new_oidc_client_id</c>) are the union of fields an
+    ///     admin would want to see when looking back at a
+    ///     provider switch.
+    /// </summary>
+    /// <param name="auditEmitter">
+    /// Scoped <see cref="IAuditEmitter" /> resolved from the
+    /// request scope. Fire-and-forget — emits never throw.
+    /// </param>
+    /// <param name="orgId">Tenant the row belongs to
+    /// (= <see cref="OrgAuthProviderConfig.OrgId" />; passed
+    /// explicitly so a null <paramref name="oldConfig" /> still
+    /// produces a correctly-scoped row).</param>
+    /// <param name="actorUserId">
+    /// Id of the user that triggered the PUT
+    /// (<c>ICurrentUser.UserId</c>).
+    /// </param>
+    /// <param name="oldConfig">
+    /// Snapshot BEFORE the upsert. <c>null</c> when the
+    /// controller takes the first-time-setup branch (a manual DB
+    /// delete left the row absent); the payload then carries
+    /// <c>null</c> on every <c>old_*</c> key — a visible
+    /// "first provisioning" signal for the admin UI timeline.
+    /// </param>
+    /// <param name="newConfig">
+    /// Snapshot AFTER the upsert. Always populated.
+    /// </param>
+    /// <param name="cancellationToken">Cooperative cancellation.</param>
+    /// <returns>
+    /// A completed <see cref="Task" />. The IAuditEmitter
+    /// contract swallows emit failures.
+    /// </returns>
+    public static Task EmitAuthProviderChangedAsync(
+        IAuditEmitter auditEmitter,
+        Guid orgId,
+        Guid actorUserId,
+        OrgAuthProviderConfig? oldConfig,
+        OrgAuthProviderConfig newConfig,
+        CancellationToken cancellationToken)
+    {
+
+        // Phase 5.2 wire name — stable dot.case per AuditActions. The
+        // payload key set is documented on the constant and consumed
+        // by the future admin UI (5.3) to render the diff column.
+        // The OIDC client secret is intentionally NOT carried in
+        // the payload — a leaked audit log would expose the
+        // credential.
+        var payload = new Dictionary<string, object?>
+        {
+            ["old_provider"] = oldConfig?.Provider.ToString(),
+            ["new_provider"] = newConfig.Provider.ToString(),
+            ["old_oidc_authority"] = oldConfig?.OidcAuthority,
+            ["new_oidc_authority"] = newConfig.OidcAuthority,
+            ["old_oidc_client_id"] = oldConfig?.OidcClientId,
+            ["new_oidc_client_id"] = newConfig.OidcClientId,
+        };
+
+        return auditEmitter.EmitAsync(
+            AuditActions.OrgAuthProviderChanged,
+            new AuditContext(
+                OrgId: orgId,
+                ActorUserId: actorUserId,
+                TargetKind: "org_auth_provider_config",
+                TargetId: newConfig.OrgId,
+                Payload: payload),
+            cancellationToken);
     }
 }

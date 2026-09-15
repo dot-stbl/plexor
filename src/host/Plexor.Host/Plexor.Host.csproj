@@ -15,6 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Plexor.Host.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- ============ Composition + shared ============ -->
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
@@ -51,9 +55,11 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Branding\Plexor.Modules.Branding.Api\Plexor.Modules.Branding.Api.csproj" />
     <!-- Phase 5.1 — audit module. Application hosts the read endpoint
          (5.2); Infrastructure hosts the IAuditEmitter (DbAuditEmitter)
-         + AuditDbContext. The Api project ships in 5.2. -->
+         + AuditDbContext. Api hosts the GET /api/v1/audit endpoint
+         (5.2) and the future admin UI surface (5.3). -->
     <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Application\Plexor.Modules.Audit.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Api\Plexor.Modules.Audit.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

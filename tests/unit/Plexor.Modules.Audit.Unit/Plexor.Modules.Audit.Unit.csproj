@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <NoWarn>$(NoWarn);CS1591;CS0436</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Api\Plexor.Modules.Audit.Api.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Application\Plexor.Modules.Audit.Application.csproj" />
     <ProjectReference Include="..\..\..\src\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Domain\Plexor.Modules.Audit.Domain.csproj" />
