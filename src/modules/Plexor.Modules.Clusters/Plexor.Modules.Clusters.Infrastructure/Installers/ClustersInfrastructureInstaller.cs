@@ -20,6 +20,7 @@ using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Clusters.Infrastructure.Placement;
 using Plexor.Shared.Contracts.Pagination;
 using Plexor.Shared.Filtering.Registry;
 using Plexor.Shared.Persistence;
@@ -66,6 +67,19 @@ public static class ClustersInfrastructureInstaller
         // reaches Acked or Failed. v0.2+ switches to async-fire-and-
         // forget + heartbeat-driven state.
         services.AddScoped<ICommandHandler<WorkloadActionCommand, WorkloadActionResult>, WorkloadActionCommandHandler>();
+
+        // Placement scheduler — picks a node for a new workload.
+        // v0.1 = ManualPlacementScheduler (operator pins the node
+        // through WorkloadSpec.TargetNodeId; otherwise stays
+        // unassigned). Scoped to match the handler lifetime — a
+        // future stateful scheduler that tracks per-node capacity
+        // may move to Singleton once its state is concurrency-safe.
+        services.AddScoped<IPlacementScheduler, ManualPlacementScheduler>();
+
+        // PlacementCandidateLoader projects ClusterDbContext rows into
+        // the scheduler's NodeCandidate shape. Scoped — shares the
+        // DbContext with the calling handler.
+        services.AddScoped<PlacementCandidateLoader>();
 
         // Read repositories — base class from Shared.Persistence; per-module
         // subclass wires the typed DbSet. Scoped lifetime matches DbContext.

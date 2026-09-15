@@ -15,6 +15,7 @@
     <ProjectReference Include="..\Plexor.Modules.Clusters.Application\Plexor.Modules.Clusters.Application.csproj" />
     <ProjectReference Include="..\Plexor.Modules.Clusters.Domain\Plexor.Modules.Clusters.Domain.csproj" />
     <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Filtering.Core\Plexor.Shared.Filtering.Core.csproj" />
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Identifiers\Plexor.Shared.Identifiers.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj" />

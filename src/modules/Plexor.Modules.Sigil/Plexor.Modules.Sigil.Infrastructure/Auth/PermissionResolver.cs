@@ -27,18 +27,26 @@ public sealed class PermissionResolver(IdentityDbContext db) : IPermissionResolv
         Guid orgId,
         CancellationToken cancellationToken = default)
     {
-
-        return await db.RoleBindings
+        // Materialise the role rows eagerly then flatten the
+        // permissions collection in memory. Postgres can flatten
+        // text[] in SQL; SQLite (and other providers without native
+        // array types) can't translate SelectMany over the value
+        // converter. The binding table is org-scoped so the
+        // working set is small.
+        var bindings = await db.RoleBindings
             .AsNoTracking()
             .Where(binding => binding.UserId == userId && binding.OrgId == orgId)
             .Join(
                 db.Roles.AsNoTracking(),
                 binding => binding.RoleId,
                 role => role.Id,
-                (_, role) => role.Permissions)
-            .SelectMany(static perms => perms)
+                (_, role) => role)
+            .ToListAsync(cancellationToken);
+
+        return bindings
+            .SelectMany(static role => role.Permissions)
             .Select(static scope => scope.Value)
             .Distinct()
-            .ToArrayAsync(cancellationToken);
+            .ToArray();
     }
 }

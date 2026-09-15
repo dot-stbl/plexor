@@ -36,7 +36,8 @@
     </Folder>
     <Folder Name="/src/shared/persistence/">
         <Project Path="src/shared/persistence/Plexor.Shared.Persistence/Plexor.Shared.Persistence.csproj" />
-        <Project Path="src/shared/persistence/Plexor.Shared.Filtering/Plexor.Shared.Filtering.csproj" />
+        <Project Path="src/shared/persistence/Plexor.Shared.Filtering.Core/Plexor.Shared.Filtering.Core.csproj" />
+        <Project Path="src/shared/persistence/Plexor.Shared.Filtering.Web/Plexor.Shared.Filtering.Web.csproj" />
     </Folder>
     <Folder Name="/src/shared/security/">
         <Project Path="src/shared/security/Plexor.Shared.Authorization/Plexor.Shared.Authorization.csproj" />
@@ -50,6 +51,7 @@
         <Project Path="src/shared/infra/Plexor.Shared.Telemetry/Plexor.Shared.Telemetry.csproj" />
         <Project Path="src/shared/infra/Plexor.Shared.Composition/Plexor.Shared.Composition.csproj" />
         <Project Path="src/shared/infra/Plexor.Shared.Console/Plexor.Shared.Console.csproj" />
+        <Project Path="src/shared/infra/Plexor.Shared.IntegrationEvents/Plexor.Shared.IntegrationEvents.csproj" />
     </Folder>
 
     <!-- ============ Modules (Domain / Application / Infrastructure) ========== -->
@@ -57,6 +59,10 @@
     <!-- <Folder Name="...Plexor.Modules.X/"> contains the three project    -->
     <!-- layers (Domain/Application/Infrastructure). Matches console.x.      -->
     <Folder Name="/src/modules/" />
+    <Folder Name="/src/modules/Plexor.Modules.Audit/">
+        <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Application/Plexor.Modules.Audit.Application.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Infrastructure/Plexor.Modules.Audit.Infrastructure.csproj" />
+    </Folder>
     <Folder Name="/src/modules/Plexor.Modules.Sigil/">
         <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Domain/Plexor.Modules.Sigil.Domain.csproj" />
         <Project Path="src/modules/Plexor.Modules.Sigil/Plexor.Modules.Sigil.Application/Plexor.Modules.Sigil.Application.csproj" />
@@ -98,6 +104,7 @@
     <Folder Name="/tests/unit/">
         <Project Path="tests/unit/Plexor.ArchitectureTests/Plexor.ArchitectureTests.csproj" />
         <Project Path="tests/unit/Plexor.Host.UnitTests/Plexor.Host.UnitTests.csproj" />
+        <Project Path="tests/unit/Plexor.Modules.Audit.Unit/Plexor.Modules.Audit.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Clusters.Unit/Plexor.Modules.Clusters.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Realm.Unit/Plexor.Modules.Realm.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Sigil.Unit/Plexor.Modules.Sigil.Unit.csproj" />
@@ -114,6 +121,7 @@
     <Project Path="tests/unit/Plexor.Shared.Authorization.Unit/Plexor.Shared.Authorization.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Identifiers.Unit/Plexor.Shared.Identifiers.Unit.csproj" />
         <Project Path="tests/unit/Plexor.NodeAgent.Unit/Plexor.NodeAgent.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Shared.IntegrationEvents.Unit/Plexor.Shared.IntegrationEvents.Unit.csproj" />
     </Folder>
 
     <!-- ============ Benchmarks =================================================== -->

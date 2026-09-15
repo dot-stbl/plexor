@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Plexor.Migrator;
+using Plexor.Modules.Audit.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
@@ -51,11 +52,14 @@ var migrationConnection =
 // adding a call here — the compiler will not silently miss it.
 //
 // FK-dependency order: Realm (organizations referenced by sigil.users)
-// → Identity (users referenced by clusters.nodes) → Clusters
-// (FKs to sigil.users + realm.organizations) → Mtls RevokedCerts
-// (no FKs, kept last; shares forge schema with Clusters).
+// → Identity (users referenced by clusters.nodes) → Audit (FKs to
+// realm.organizations + sigil.users, but enforced at the application
+// layer, not the DB) → Clusters (FKs to sigil.users +
+// realm.organizations) → Mtls RevokedCerts (no FKs, kept last;
+// shares forge schema with Clusters).
 builder.Services.AddModuleDbContext<RealmDbContext>(migrationConnection);
 builder.Services.AddModuleDbContext<IdentityDbContext>(migrationConnection);
+builder.Services.AddModuleDbContext<AuditDbContext>(migrationConnection);
 builder.Services.AddModuleDbContext<ClusterDbContext>(migrationConnection);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(migrationConnection);
 

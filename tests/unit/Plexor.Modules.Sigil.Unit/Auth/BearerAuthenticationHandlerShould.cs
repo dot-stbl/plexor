@@ -176,7 +176,7 @@ public sealed class BearerAuthenticationHandlerShould
 
         result.Succeeded.ShouldBeTrue();
         result.Properties.ShouldNotBeNull();
-        result.Properties!.IssuedUtc.ShouldBe(DateTimeOffset.FromUnixTimeSeconds(issuedEpoch));
+        result.Properties.IssuedUtc.ShouldBe(DateTimeOffset.FromUnixTimeSeconds(issuedEpoch));
         result.Properties.ExpiresUtc.ShouldBe(DateTimeOffset.FromUnixTimeSeconds(expiresEpoch));
     }
 

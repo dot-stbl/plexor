@@ -37,9 +37,11 @@ public sealed class PlexorCertificateIssuer(
     /// <inheritdoc />
     public bool VerifyClientCert(X509Certificate2 candidate)
     {
+        var caCert = caRoot.GetCertificate();
+
         // 1. Chain build under our CA.
         var chain = new X509Chain();
-        chain.ChainPolicy.ExtraStore.Add(caRoot.GetCertificate());
+        chain.ChainPolicy.ExtraStore.Add(caCert);
         chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
         chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
 
@@ -48,13 +50,31 @@ public sealed class PlexorCertificateIssuer(
             return false;
         }
 
-        // 2. Revocation check (cached).
+        // 2. SECURITY: with AllowUnknownCertificateAuthority, chain.Build
+        //    returns true for any foreign-CA-signed chain. Verify the
+        //    chain actually terminates at OUR CA root — not just any CA —
+        //    by comparing RawData of the final chain element.
+        //    Without this check, an attacker with any CA could register a
+        //    node with Plexor if they produced a cert with CN starting
+        //    "node_" (Guid format) and not in the revocation list.
+        if (chain.ChainElements.Count == 0)
+        {
+            return false;
+        }
+
+        var chainRoot = chain.ChainElements[^1].Certificate;
+        if (!chainRoot.RawData.SequenceEqual(caCert.RawData))
+        {
+            return false;
+        }
+
+        // 3. Revocation check (cached).
         if (revokedCache.IsRevoked(candidate.SerialNumber))
         {
             return false;
         }
 
-        // 3. CN must be a node_ prefixed Plexor NodeId — defence in
+        // 4. CN must be a node_ prefixed Plexor NodeId — defence in
         // depth: the middleware also dispatches by CN prefix, but
         // refuse anything that isn't a Plexor node cert here too.
         var cn = ExtractCn(candidate.SubjectName.Name);

@@ -102,6 +102,11 @@ public sealed class JwtSigningService(
         CancellationToken cancellationToken = default)
     {
         var handler = new JwtSecurityTokenHandler();
+        // Disable the default inbound claim-type mapping
+        // (sub → ClaimTypes.NameIdentifier, etc.) so the
+        // canonical IdentityClaims keys survive the round-trip
+        // and FindFirstValue reads back what we issued.
+        handler.InboundClaimTypeMap.Clear();
         var validation = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -134,6 +139,12 @@ public sealed class JwtSigningService(
         {
             var result = await handler.ValidateTokenAsync(
                 compactJwt, validation);
+            if (!result.IsValid || result.ClaimsIdentity is null)
+            {
+                return new VerifyResult.Invalid(
+                    result.Exception?.Message ?? "Token validation failed.");
+            }
+
             var principal = new ClaimsPrincipal(result.ClaimsIdentity);
 
             // Post-verify: was this token issued before a password

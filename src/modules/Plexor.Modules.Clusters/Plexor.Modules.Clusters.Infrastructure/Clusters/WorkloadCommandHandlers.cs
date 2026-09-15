@@ -13,7 +13,9 @@ using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Clusters.Infrastructure.Placement;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.NodeApi;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 
@@ -28,9 +30,23 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 /// </summary>
 /// <param name="db">EF Core context for the write.</param>
 /// <param name="mapper">Entity → DTO mapper (Mapperly-generated).</param>
+/// <param name="scheduler">
+///     Placement port. Picks a node (or returns null when the
+///     scheduler can't place this workload). v0.1 = manual pin via
+///     <see cref="CreateWorkloadCommand.TargetNodeId" />.
+/// </param>
+/// <param name="candidateLoader">
+///     Loads Ready nodes in the cluster and projects them into the
+///     scheduler's <see cref="NodeCandidate" /> shape. Lives in
+///     <see cref="PlacementCandidateLoader" /> so the handler stays
+///     orchestration-only (no private business logic — see
+///     <c>code-shape.md §9</c>).
+/// </param>
 public sealed class CreateWorkloadCommandHandler(
     ClusterDbContext db,
-    IWorkloadMapper mapper) : ICommandHandler<CreateWorkloadCommand, WorkloadSummary>
+    IWorkloadMapper mapper,
+    IPlacementScheduler scheduler,
+    PlacementCandidateLoader candidateLoader) : ICommandHandler<CreateWorkloadCommand, WorkloadSummary>
 {
     /// <inheritdoc />
     public async Task<WorkloadSummary> HandleAsync(
@@ -60,12 +76,28 @@ public sealed class CreateWorkloadCommandHandler(
                 $"A workload named '{command.Name}' already exists in this cluster.");
         }
 
+        var candidates = await candidateLoader.LoadAsync(
+            command.ClusterId,
+            cancellationToken);
+
+        var spec = new Plexor.Modules.Clusters.Application.Abstractions.WorkloadSpec(
+            ClusterId: command.ClusterId,
+            Name: command.Name,
+            Kind: command.Kind,
+            TargetNodeId: command.TargetNodeId,
+            RequiredCapabilities: command.RequiredCapabilities ?? []);
+
+        var assignedNodeId = await scheduler.SelectNodeAsync(
+            spec,
+            candidates,
+            cancellationToken);
+
         var now = DateTimeOffset.UtcNow;
         var workload = new Workload
         {
             Id = IdGenerator.NewWorkloadId(),
             ClusterId = command.ClusterId,
-            AssignedNodeId = null,
+            AssignedNodeId = assignedNodeId,
             LocalId = null,
             Name = command.Name,
             Kind = command.Kind,
@@ -79,6 +111,14 @@ public sealed class CreateWorkloadCommandHandler(
 
         await db.Workloads.AddAsync(workload, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+
+        // Notify the scheduler AFTER persistence so a transient DB
+        // failure doesn't leave the scheduler thinking a workload
+        // is pinned to a node that doesn't have a row.
+        if (assignedNodeId is { } nodeId)
+        {
+            await scheduler.MarkAssignedAsync(workload.Id, nodeId, cancellationToken);
+        }
 
         return mapper.ToSummary(workload);
     }
@@ -170,9 +210,9 @@ public sealed class WorkloadActionCommandHandler(
 
         var commandType = command.Action switch
         {
-            WorkloadAction.Start => "workload.start",
-            WorkloadAction.Stop => "workload.stop",
-            WorkloadAction.Restart => "workload.start",  // restart = start after stop; the agent handles the pair
+            WorkloadAction.Start => WireCommandTypes.WorkloadStart,
+            WorkloadAction.Stop => WireCommandTypes.WorkloadStop,
+            WorkloadAction.Restart => WireCommandTypes.WorkloadStart,  // restart = start after stop; the agent handles the pair
             _ => throw new ArgumentOutOfRangeException(nameof(command), command.Action, null)
         };
 
@@ -184,7 +224,7 @@ public sealed class WorkloadActionCommandHandler(
 #pragma warning disable VSTHRD103 // Sync serialize — no I/O on a small string payload.
         var payloadJson = System.Text.Json.JsonSerializer.Serialize(
             new Plexor.Shared.NodeApi.WorkloadActionPayload(
-                LocalId: workload.LocalId!));
+                LocalId: workload.LocalId));
 #pragma warning restore VSTHRD103
 
         var now = DateTimeOffset.UtcNow;

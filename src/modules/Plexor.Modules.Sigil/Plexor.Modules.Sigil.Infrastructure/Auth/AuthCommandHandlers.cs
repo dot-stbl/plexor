@@ -12,6 +12,7 @@ using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Authorization;
 using Plexor.Modules.Sigil.Application.Users;
+using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
@@ -26,12 +27,14 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 /// <param name="users"></param>
 /// <param name="passwordHasher"></param>
 /// <param name="refreshTokens"></param>
+/// <param name="roleNames"></param>
 /// <param name="tokenIssuer"></param>
 /// <param name="db"></param>
 public sealed class LoginCommandHandler(
     IUserLookup users,
     IPasswordHasher passwordHasher,
     IRefreshTokenStore refreshTokens,
+    IRoleNameLoader roleNames,
     ITokenIssuer tokenIssuer,
     IdentityDbContext db) : ICommandHandler<LoginCommand, LoginResult>
 {
@@ -82,7 +85,7 @@ public sealed class LoginCommandHandler(
 
         await RegisterSuccessfulLoginAsync(user.Id, cancellationToken);
 
-        var roles = await LoadRolesAsync(user.Id, cancellationToken);
+        var roles = await roleNames.LoadAsync(user.Id, cancellationToken);
 
         // First-login password rotation: issue a short-lived token
         // whose only permission is iam.users.change-own-password, and
@@ -140,7 +143,7 @@ public sealed class LoginCommandHandler(
 
     private static void EnsureActive(User user)
     {
-        if (!string.Equals(user.Status, "active", StringComparison.Ordinal))
+        if (!string.Equals(user.Status, UserStatusValues.Active, StringComparison.Ordinal))
         {
             throw new IdentityException(
                 IdentityExceptions.AccountSuspended,
@@ -230,22 +233,6 @@ public sealed class LoginCommandHandler(
                     .SetProperty(u => u.LastLoginAt, (DateTimeOffset?)now),
                 cancellationToken);
     }
-
-    private async Task<IReadOnlyCollection<string>> LoadRolesAsync(
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        return await db.RoleBindings
-            .AsNoTracking()
-            .Where(binding => binding.UserId == userId)
-            .Join(
-                db.Roles.AsNoTracking(),
-                binding => binding.RoleId,
-                role => role.Id,
-                (_, role) => role.Name)
-            .Distinct()
-            .ToArrayAsync(cancellationToken);
-    }
 }
 
 /// <summary>
@@ -256,11 +243,15 @@ public sealed class LoginCommandHandler(
 /// </summary>
 /// <param name="refreshTokens"></param>
 /// <param name="tokenIssuer"></param>
-/// <param name="db"></param>
+/// <param name="ownerResolver">
+///     Resolves the user that owns the rotated refresh token, plus
+///     the user's role names. Behind an interface so the handler
+///     stays unit-testable without a real DbContext.
+/// </param>
 public sealed class RefreshCommandHandler(
     IRefreshTokenStore refreshTokens,
     ITokenIssuer tokenIssuer,
-    IdentityDbContext db) : ICommandHandler<RefreshCommand, LoginResult>
+    IRefreshTokenOwnerResolver ownerResolver) : ICommandHandler<RefreshCommand, LoginResult>
 {
     /// <inheritdoc />
     public async Task<LoginResult> HandleAsync(
@@ -305,6 +296,14 @@ public sealed class RefreshCommandHandler(
                     IdentityExceptions.RefreshTokenReplayed,
                     "Refresh token replay detected; family revoked.");
 
+            case RefreshRotationResult.Expired:
+                // Token is past its expiry — caller must log in again.
+                // We do NOT revoke the family here: an expired token
+                // is a normal lifecycle event, not a compromise signal.
+                throw new IdentityException(
+                    IdentityExceptions.RefreshTokenExpired,
+                    "Refresh token has expired.");
+
             case RefreshRotationResult.Success:
                 break;
 
@@ -313,15 +312,19 @@ public sealed class RefreshCommandHandler(
                     $"Unknown RefreshRotationResult: {rotation}");
         }
 
-        // Load the user that owns this chain (the rotated entity's
-        // userId is preserved on the new record).
-        var owner = await db.RefreshTokens
-            .AsNoTracking()
-            .Where(token => token.TokenHash == RefreshTokenHasher.Hash(newRefreshRaw))
-            .Join(db.Users, token => token.UserId, user => user.Id, (_, user) => user)
-            .FirstAsync(cancellationToken);
+        // Resolve the user that owns the rotated chain. If the user
+        // has been deleted between issue and refresh the resolver
+        // returns null — surface as InvalidCredentials so the client
+        // gets the same generic 401 as for any other auth failure
+        // (no information leakage about whether the user existed).
+        var owner = await ownerResolver.ResolveByTokenHashAsync(
+            RefreshTokenHasher.Hash(newRefreshRaw), cancellationToken)
+            ?? throw new IdentityException(
+                IdentityExceptions.InvalidCredentials,
+                "Refresh token owner not found.");
 
-        var roles = await LoadRolesAsync(owner.Id, cancellationToken);
+        var roles = await ownerResolver.LoadRoleNamesAsync(
+            owner.Id, cancellationToken);
         var access = await tokenIssuer.IssueAsync(
             owner.Id, owner.OrgId, roles, cancellationToken);
 
@@ -329,22 +332,6 @@ public sealed class RefreshCommandHandler(
             AccessToken: access.CompactJwt,
             RefreshToken: newRefreshRaw,
             AccessTokenExpiresAtUtc: access.ExpiresAtUtc);
-    }
-
-    private async Task<IReadOnlyCollection<string>> LoadRolesAsync(
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        return await db.RoleBindings
-            .AsNoTracking()
-            .Where(binding => binding.UserId == userId)
-            .Join(
-                db.Roles.AsNoTracking(),
-                binding => binding.RoleId,
-                role => role.Id,
-                (_, role) => role.Name)
-            .Distinct()
-            .ToArrayAsync(cancellationToken);
     }
 }
 

@@ -127,4 +127,11 @@ public enum RefreshRotationResult
     ///     user account.
     /// </summary>
     Replayed = 2,
+
+    /// <summary>
+    ///     The token's <c>expires_at</c> is in the past. Caller
+    ///     surfaces 401 + <c>identity.refresh_token.expired</c>
+    ///     — the user must log in again.
+    /// </summary>
+    Expired = 3,
 }

@@ -62,8 +62,18 @@ public sealed class PermissionScope : IEquatable<PermissionScope>
 
     /// <summary>True when <paramref name="raw" /> matches the permission
     /// format (<c>&lt;service&gt;.&lt;resource&gt;.&lt;action&gt;[.&lt;qualifier&gt;]</c>
-    ///     or the literal <c>*</c>).</summary>
+    /// or the literal <c>*</c>).</summary>
     /// <param name="raw">Candidate permission string.</param>
+    /// <remarks>
+    ///     Validation runs on the case-preserving input — uppercase
+    ///     letters are rejected so a mixed-case token never silently
+    ///     passes the boundary. Wildcards other than the exact
+    ///     <c>*</c> literal are rejected (<c>**</c>, <c>*.*</c>,
+    ///     <c>compute.*.read</c>); otherwise an attacker could
+    ///     craft a token that the JWT signer accepts but the
+    ///     authorization handler short-circuits as a wild-card
+    ///     grant.
+    /// </remarks>
     public static bool IsWellFormed(string raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
@@ -71,21 +81,48 @@ public sealed class PermissionScope : IEquatable<PermissionScope>
             return false;
         }
 
-        var trimmed = raw.Trim().ToLowerInvariant();
+        var trimmed = raw.Trim();
+
         if (StringComparer.Ordinal.Equals(trimmed, SuperAdmin))
         {
             return true;
         }
 
-        // At least one dot; no whitespace; chars in [a-z0-9._*]
+        // No wildcards outside the superadmin literal form
+        if (trimmed.Contains('*', StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        // At least one dot
         if (!trimmed.Contains('.', StringComparison.Ordinal))
         {
             return false;
         }
 
+        // Structural rules — empty segments / malformed sequences
+        if (trimmed[0] == '.')
+        {
+            return false;
+        }
+
+        if (trimmed[^1] == '.')
+        {
+            return false;
+        }
+
+        if (trimmed.Contains("..", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        // Chars must be lowercase alphanumeric + . + _
         foreach (var ch in trimmed)
         {
-            if (!char.IsLetterOrDigit(ch) && ch is not '.' and not '_' and not '*')
+            if (ch is not (>= 'a' and <= 'z')
+                and not (>= '0' and <= '9')
+                and not '.'
+                and not '_')
             {
                 return false;
             }

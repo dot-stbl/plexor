@@ -36,11 +36,17 @@ public sealed class EfSigningKeyRepository(IdentityDbContext db) : ISigningKeyRe
     public async Task<SigningKey?> GetActiveAsync(
         CancellationToken cancellationToken = default)
     {
-        return await db.SigningKeys
+        // Filter in SQL, sort in memory. Postgres + SQLite both
+        // support DateTimeOffset filtering but only Postgres
+        // supports ORDER BY on DateTimeOffset. The active-key set
+        // is small (v0.1: 1-2 rows; Phase 2: a handful during
+        // rotation windows) so client-side ordering is fine.
+        var rows = await db.SigningKeys
             .AsNoTracking()
             .Where(key => key.NotAfter == null)
-            .OrderByDescending(key => key.CreatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+        return rows.OrderByDescending(static key => key.CreatedAt)
+            .FirstOrDefault();
     }
 
     /// <inheritdoc />
@@ -57,12 +63,17 @@ public sealed class EfSigningKeyRepository(IdentityDbContext db) : ISigningKeyRe
     public async Task<IReadOnlyList<SigningKey>> ListActiveAsync(
         CancellationToken cancellationToken = default)
     {
-        var now = DateTimeOffset.UtcNow;
-        return await db.SigningKeys
+        // Filter in memory. The row count is tiny (rotation
+        // window) and SQLite can't translate a DateTimeOffset
+        // comparison with a captured local.
+        var rows = await db.SigningKeys
             .AsNoTracking()
-            .Where(key => key.NotAfter == null || key.NotAfter > now)
-            .OrderByDescending(key => key.CreatedAt)
-            .ToArrayAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+        return rows
+            .Where(key => key.NotAfter is null || key.NotAfter > now)
+            .OrderByDescending(static key => key.CreatedAt)
+            .ToArray();
     }
 
     /// <inheritdoc />

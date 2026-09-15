@@ -36,7 +36,7 @@ public sealed class WorkloadActionExecutor(
     ILogger<WorkloadActionExecutor> logger) : ICommandExecutor
 {
     /// <inheritdoc />
-    public string Type => "workload.action";
+    public string Type => WireCommandTypes.WorkloadAction;
 
     /// <summary>
     ///     Dispatch on the envelope's actual type. The
@@ -99,23 +99,16 @@ public sealed class WorkloadActionExecutor(
         }
     }
 
+    private static readonly Dictionary<string, string> ActionMap = new()
+    {
+        [WireCommandTypes.WorkloadStart] = "start",
+        [WireCommandTypes.WorkloadStop] = "stop",
+        [WireCommandTypes.WorkloadDelete] = "delete",
+    };
+
     private static bool TryPickAction(string envelopeType, out string action)
     {
-        switch (envelopeType)
-        {
-            case "workload.start":
-                action = "start";
-                return true;
-            case "workload.stop":
-                action = "stop";
-                return true;
-            case "workload.delete":
-                action = "delete";
-                return true;
-            default:
-                action = string.Empty;
-                return false;
-        }
+        return ActionMap.TryGetValue(envelopeType, out action!);
     }
 
     private async Task<ExecutorResult> ExecuteStartAsync(

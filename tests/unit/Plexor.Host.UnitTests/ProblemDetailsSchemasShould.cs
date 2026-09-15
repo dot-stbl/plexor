@@ -30,7 +30,7 @@ public sealed class ProblemDetailsSchemasShould
 
         schema.Type.ShouldBe(JsonSchemaType.Object);
         schema.Properties.ShouldNotBeNull();
-        schema.Properties!.Keys.ShouldContain("type");
+        schema.Properties.Keys.ShouldContain("type");
         schema.Properties.Keys.ShouldContain("title");
         schema.Properties.Keys.ShouldContain("status");
         schema.Properties.Keys.ShouldContain("detail");

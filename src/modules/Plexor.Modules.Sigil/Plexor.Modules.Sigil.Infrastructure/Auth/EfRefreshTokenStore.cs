@@ -81,7 +81,12 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
             await db.Database.BeginTransactionAsync(cancellationToken);
 
         var hash = RefreshTokenHasher.Hash(rawToken);
+        // AsNoTracking — ExecuteUpdate bypasses the change tracker,
+        // so a tracked read here would observe stale RevokedAt after
+        // a prior rotation. The rotation flow never mutates the
+        // loaded entity directly, so no tracking is needed.
         var old = await db.RefreshTokens
+            .AsNoTracking()
             .FirstOrDefaultAsync(token => token.TokenHash == hash, cancellationToken);
 
         if (old is null)
@@ -94,6 +99,14 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
             // Already rotated or revoked. Caller MUST treat this as
             // a replay attempt and nuke the family.
             return RefreshRotationResult.Replayed;
+        }
+
+        // Expiry check AFTER revocation — a revoked token whose
+        // expiry is also past must still be reported as Replayed
+        // (we want the family-revocation side effect to fire).
+        if (old.ExpiresAt <= DateTimeOffset.UtcNow)
+        {
+            return RefreshRotationResult.Expired;
         }
 
         var newEntity = new RefreshToken
@@ -109,6 +122,11 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
         };
 
         await db.RefreshTokens.AddAsync(newEntity, cancellationToken);
+
+        // Flush the new entity so the back-pointer below has an id
+        // to point at. ExecuteUpdate bypasses the change tracker and
+        // does not save pending Added entries on its own.
+        await db.SaveChangesAsync(cancellationToken);
 
         // Mark the old one consumed. Keep ReplacedBy as a
         // back-pointer for audit / chain traversal. Use raw

@@ -6,6 +6,8 @@
 // here; those are covered by integration tests against real Postgres.
 // ==========================================================================
 
+using NSubstitute;
+using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
@@ -13,6 +15,7 @@ using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Clusters.Infrastructure.Placement;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Workloads;
 using Shouldly;
@@ -27,7 +30,10 @@ public sealed class CreateWorkloadCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper());
+        var scheduler = Substitute.For<IPlacementScheduler>();
+        scheduler.SelectNodeAsync(Arg.Any<WorkloadSpec>(), Arg.Any<IReadOnlyList<NodeCandidate>>(), Arg.Any<CancellationToken>())
+            .Returns((NodeId?)null);
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
 
         var result = await sut.HandleAsync(
             new CreateWorkloadCommand(cluster.Id, "web-1", "vm", /*lang=json,strict*/ """{"image":"nginx:latest"}"""));
@@ -44,6 +50,52 @@ public sealed class CreateWorkloadCommandHandlerShould
         persisted.ShouldNotBeNull();
         persisted!.SpecJson.ShouldBe(/*lang=json,strict*/ """{"image":"nginx:latest"}""");
         persisted.LastReportedAt.ShouldBeNull();
+        // Scheduler returned null → MarkAssignedAsync must NOT be called.
+        await scheduler.DidNotReceive().MarkAssignedAsync(
+            Arg.Any<WorkloadId>(), Arg.Any<NodeId>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact(DisplayName = "Given scheduler returns a node, when CreateWorkload, then AssignedNodeId is set + MarkAssignedAsync called")]
+    public async Task CreateWorkloadAssignsSchedulerNodeAsync()
+    {
+        await using var db = await TestDb.CreateAsync();
+        var cluster = await SeedClusterAsync(db);
+        var assignedNode = IdGenerator.NewNodeId();
+        var scheduler = Substitute.For<IPlacementScheduler>();
+        scheduler.SelectNodeAsync(Arg.Any<WorkloadSpec>(), Arg.Any<IReadOnlyList<NodeCandidate>>(), Arg.Any<CancellationToken>())
+            .Returns(assignedNode);
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
+
+        var result = await sut.HandleAsync(
+            new CreateWorkloadCommand(cluster.Id, "web-1", "vm", "{}"));
+
+        result.AssignedNodeId.ShouldBe(assignedNode);
+
+        var persisted = await db.Workloads.FindAsync(result.Id);
+        persisted!.AssignedNodeId.ShouldBe(assignedNode);
+
+        await scheduler.Received(1).MarkAssignedAsync(
+            Arg.Is<WorkloadId>(id => id == result.Id),
+            Arg.Is<NodeId>(nodeId => nodeId == assignedNode),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact(DisplayName = "Given scheduler returns null, when CreateWorkload, then AssignedNodeId stays null")]
+    public async Task CreateWorkloadLeavesAssignedNodeIdNullWhenSchedulerReturnsNullAsync()
+    {
+        await using var db = await TestDb.CreateAsync();
+        var cluster = await SeedClusterAsync(db);
+        var scheduler = Substitute.For<IPlacementScheduler>();
+        scheduler.SelectNodeAsync(Arg.Any<WorkloadSpec>(), Arg.Any<IReadOnlyList<NodeCandidate>>(), Arg.Any<CancellationToken>())
+            .Returns((NodeId?)null);
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
+
+        var result = await sut.HandleAsync(
+            new CreateWorkloadCommand(cluster.Id, "web-1", "vm", "{}"));
+
+        result.AssignedNodeId.ShouldBeNull();
+        var persisted = await db.Workloads.FindAsync(result.Id);
+        persisted!.AssignedNodeId.ShouldBeNull();
     }
 
     [Fact(DisplayName = "Given empty name, when CreateWorkload, then throws InvalidWorkloadSpec")]
@@ -51,12 +103,16 @@ public sealed class CreateWorkloadCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper());
+        var scheduler = Substitute.For<IPlacementScheduler>();
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "", "vm", "{}")));
 
         ex.Code.ShouldBe(ClustersExceptions.InvalidWorkloadSpec);
+        // Validation runs before the scheduler; it must never be called.
+        await scheduler.DidNotReceive().SelectNodeAsync(
+            Arg.Any<WorkloadSpec>(), Arg.Any<IReadOnlyList<NodeCandidate>>(), Arg.Any<CancellationToken>());
     }
 
     [Fact(DisplayName = "Given empty kind, when CreateWorkload, then throws InvalidWorkloadSpec")]
@@ -64,7 +120,8 @@ public sealed class CreateWorkloadCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper());
+        var scheduler = Substitute.For<IPlacementScheduler>();
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "web-1", "", "{}")));
@@ -90,7 +147,8 @@ public sealed class CreateWorkloadCommandHandlerShould
             UpdatedAt = now,
         });
         await db.SaveChangesAsync();
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper());
+        var scheduler = Substitute.For<IPlacementScheduler>();
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "web-1", "vm", "{}")));

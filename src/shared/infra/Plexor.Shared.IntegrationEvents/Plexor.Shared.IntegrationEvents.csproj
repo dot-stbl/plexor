@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- =================================================================== -->
+  <!-- Integration-events bus contract.                                      -->
+  <!--                                                                       -->
+  <!-- Producer-agnostic envelope + publisher/subscriber ports. The same     -->
+  <!-- surface is implemented by the In-process adapter (single-node mode,    -->
+  <!-- default for v0.1) and — in Phase 3 — by a NATS / Kafka adapter for   -->
+  <!-- multi-host mode. Modules depend only on this contract; the concrete -->
+  <!-- transport is wired at the host.                                       -->
+  <!--                                                                       -->
+  <!-- Pure abstractions + the in-process adapter only; no EF / ASP.NET       -->
+  <!-- dependencies. Hosts that need the bus wire both this project and    -->
+  <!-- (Phase 3) the transport project, then call the transport extension. -->
+  <!-- =================================================================== -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
+</Project>

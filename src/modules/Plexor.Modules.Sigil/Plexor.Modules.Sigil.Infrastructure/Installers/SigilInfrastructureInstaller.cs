@@ -66,6 +66,13 @@ public static class SigilInfrastructureInstaller
         // (see EfRefreshTokenStore.RotateAsync).
         services.AddScoped<IRefreshTokenStore, EfRefreshTokenStore>();
 
+        // Refresh-token owner + role-name lookup used by
+        // RefreshCommandHandler after a successful rotation. Scoped —
+        // walks sigil.refresh_tokens → sigil.users and
+        // sigil.role_bindings → sigil.roles. Behind an interface so
+        // the handler stays unit-testable without a real DbContext.
+        services.AddScoped<IRefreshTokenOwnerResolver, EfRefreshTokenOwnerResolver>();
+
         // Signing key repository. Scoped — DbContext is scoped.
         // JwtSigningService reads public keys; SigningKeyBootstrapper
         // writes the first keypair on startup.
@@ -113,6 +120,14 @@ public static class SigilInfrastructureInstaller
         // and the JWT signing service so callers don't have to.
         services.AddScoped<IPermissionResolver, PermissionResolver>();
         services.AddSingleton<ITokenIssuer, TokenIssuer>();
+
+        // Role-name loader — used by Login + Refresh handlers to read
+        // the set of role names assigned to the caller so the issued
+        // JWT can carry one `role` claim per name. Scoped (DbContext
+        // reuse). Split out of the handlers as the byte-identical
+        // `LoadRolesAsync` body lived in two places; one port, one
+        // implementation.
+        services.AddScoped<IRoleNameLoader, EfRoleNameLoader>();
 
         // Revocation checker — JwtSigningService calls it after
         // signature + lifetime validation succeeds so a stolen,

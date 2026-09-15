@@ -9,6 +9,7 @@
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Users;
+using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
@@ -70,7 +71,7 @@ public sealed class CreateUserCommandHandler(
             OrgId = command.OrgId,
             Email = email,
             DisplayName = command.DisplayName,
-            Status = "active",
+            Status = UserStatusValues.Active,
             PasswordHash = new PasswordHash(passwordHasher.HashPassword(
                 new User { Id = Guid.NewGuid() }, command.Password)),
             FailedLoginCount = 0,
@@ -113,11 +114,11 @@ public sealed class UpdateUserCommandHandler(
                 "User not found.");
         }
 
-        if (command.Status is { } newStatus && newStatus is not "active" and not "suspended")
+        if (command.Status is { } newStatus && newStatus is not UserStatusValues.Active and not UserStatusValues.Suspended)
         {
             throw new IdentityException(
                 IdentityExceptions.InvalidCredentials,
-                $"Unknown status '{command.Status}'; expected 'active' or 'suspended'.");
+                $"Unknown status '{command.Status}'; expected '{UserStatusValues.Active}' or '{UserStatusValues.Suspended}'.");
         }
 
         await db.Users
@@ -177,7 +178,7 @@ public sealed class DisableUserCommandHandler(
             .Where(u => u.Id == command.UserId)
             .ExecuteUpdateAsync(
                 setters => setters
-                    .SetProperty(u => u.Status, "suspended")
+                    .SetProperty(u => u.Status, UserStatusValues.Suspended)
                     .SetProperty(u => u.UpdatedAt, DateTimeOffset.UtcNow),
                 cancellationToken);
 

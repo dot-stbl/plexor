@@ -10,7 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
     <ProjectReference Include="..\..\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj"/>
-    <ProjectReference Include="..\Plexor.Shared.Filtering\Plexor.Shared.Filtering.csproj"/>
+    <ProjectReference Include="..\Plexor.Shared.Filtering.Core\Plexor.Shared.Filtering.Core.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

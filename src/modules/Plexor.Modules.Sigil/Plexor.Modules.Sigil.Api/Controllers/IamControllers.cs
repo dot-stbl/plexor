@@ -9,11 +9,17 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Plexor.Modules.Sigil.Application.Users;
+using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Users;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Modules.Sigil.Api.Controllers;
+
+// Role + role-binding + credential controllers in this file depend on
+// ICommandHandler<TCommand, TResult> rather than concrete handlers, matching
+// the AuthController / IamController refactor. Concrete handlers implement
+// the same interface; see PlexorSigilApiServiceCollectionExtensions for DI.
 
 /// <summary>
 /// Route names — referenced by [HttpGet/Post/Patch/Delete(..., Name = ...)]
@@ -85,11 +91,11 @@ file static class IamCredentialsRouteNames
 [Tags(["iam", "roles"])]
 [Authorize]
 public sealed class IamRolesController(
-    CreateRoleCommandHandler createHandler,
-    UpdateRoleCommandHandler updateHandler,
-    DeleteRoleCommandHandler deleteHandler,
-    GetRoleQueryHandler getHandler,
-    ListRolesQueryHandler listHandler) : ControllerBase
+    ICommandHandler<CreateRoleCommand, CreateRoleResult> createHandler,
+    ICommandHandler<UpdateRoleCommand, RoleSummary> updateHandler,
+    ICommandHandler<DeleteRoleCommand, DeleteRoleResult> deleteHandler,
+    ICommandHandler<GetRoleQuery, RoleSummary> getHandler,
+    ICommandHandler<ListRolesQuery, IReadOnlyCollection<RoleSummary>> listHandler) : ControllerBase
 {
     /// <summary>
     ///     <c>POST /iam/roles</c> — create a custom role.
@@ -215,9 +221,9 @@ public sealed record UpdateRoleRequest(string? Description, IReadOnlyCollection<
 [Tags(["iam", "role-bindings"])]
 [Authorize]
 public sealed class IamBindingsController(
-    CreateRoleBindingCommandHandler createHandler,
-    DeleteRoleBindingCommandHandler deleteHandler,
-    ListRoleBindingsQueryHandler listHandler) : ControllerBase
+    ICommandHandler<CreateRoleBindingCommand, CreateRoleBindingResult> createHandler,
+    ICommandHandler<DeleteRoleBindingCommand, DeleteRoleBindingResult> deleteHandler,
+    ICommandHandler<ListRoleBindingsQuery, IReadOnlyCollection<RoleBindingSummary>> listHandler) : ControllerBase
 {
     /// <summary>
     ///     <c>POST /iam/role-bindings</c> — bind a user to a role
@@ -291,9 +297,9 @@ public sealed record CreateRoleBindingRequest(Guid OrgId, Guid UserId, Guid Role
 [Route($"{ApiRoutes.Base}/iam/users/{{userId:guid}}/api-keys")]
 [Tags(["iam", "api-keys"])]
 public sealed class IamApiKeysController(
-    IssueApiKeyCommandHandler issueHandler,
-    RevokeApiKeyCommandHandler revokeHandler,
-    ListApiKeysQueryHandler listHandler) : ControllerBase
+    ICommandHandler<IssueApiKeyCommand, IssueApiKeyResult> issueHandler,
+    ICommandHandler<RevokeApiKeyCommand, RevokeApiKeyResult> revokeHandler,
+    ICommandHandler<ListApiKeysQuery, IReadOnlyCollection<ApiKeySummary>> listHandler) : ControllerBase
 {
     /// <summary>
     ///     <c>POST /iam/users/{userId}/api-keys</c> — issue a new
@@ -375,9 +381,9 @@ public sealed record IssueApiKeyRequest(
 [Route($"{ApiRoutes.Base}/iam/users/{{userId:guid}}/ssh-keys")]
 [Tags(["iam", "ssh-keys"])]
 public sealed class IamSshKeysController(
-    AddSshKeyCommandHandler addHandler,
-    RevokeSshKeyCommandHandler revokeHandler,
-    ListSshKeysQueryHandler listHandler) : ControllerBase
+    ICommandHandler<AddSshKeyCommand, SshKeySummary> addHandler,
+    ICommandHandler<RevokeSshKeyCommand, RevokeSshKeyResult> revokeHandler,
+    ICommandHandler<ListSshKeysQuery, IReadOnlyCollection<SshKeySummary>> listHandler) : ControllerBase
 {
     /// <summary>
     ///     <c>POST /iam/users/{userId}/ssh-keys</c> — register an SSH
