@@ -9,13 +9,13 @@
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Users;
-using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Mappers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Users;
 
@@ -53,12 +53,11 @@ public sealed class CreateUserCommandHandler(
         }
 
         var email = new Email(command.Email);
-        var existing = await db.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(
-                user => user.OrgId == command.OrgId && user.Email.Value == email.Value,
-                cancellationToken);
-        if (existing is not null)
+        if (await db.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    user => user.OrgId == command.OrgId && user.Email.Value == email.Value,
+                    cancellationToken) is not null)
         {
             throw new IdentityException(
                 IdentityExceptions.InvalidEmail,
@@ -71,7 +70,7 @@ public sealed class CreateUserCommandHandler(
             OrgId = command.OrgId,
             Email = email,
             DisplayName = command.DisplayName,
-            Status = UserStatusValues.Active,
+            Status = UserStatuses.Active,
             PasswordHash = new PasswordHash(passwordHasher.HashPassword(
                 new User { Id = Guid.NewGuid() }, command.Password)),
             FailedLoginCount = 0,
@@ -114,11 +113,11 @@ public sealed class UpdateUserCommandHandler(
                 "User not found.");
         }
 
-        if (command.Status is { } newStatus && newStatus is not UserStatusValues.Active and not UserStatusValues.Suspended)
+        if (command.Status is { } newStatus && newStatus is not UserStatuses.Active and not UserStatuses.Suspended)
         {
             throw new IdentityException(
                 IdentityExceptions.InvalidCredentials,
-                $"Unknown status '{command.Status}'; expected '{UserStatusValues.Active}' or '{UserStatusValues.Suspended}'.");
+                $"Unknown status '{command.Status}'; expected '{UserStatuses.Active}' or '{UserStatuses.Suspended}'.");
         }
 
         await db.Users
@@ -178,7 +177,7 @@ public sealed class DisableUserCommandHandler(
             .Where(u => u.Id == command.UserId)
             .ExecuteUpdateAsync(
                 setters => setters
-                    .SetProperty(u => u.Status, UserStatusValues.Suspended)
+                    .SetProperty(u => u.Status, UserStatuses.Suspended)
                     .SetProperty(u => u.UpdatedAt, DateTimeOffset.UtcNow),
                 cancellationToken);
 

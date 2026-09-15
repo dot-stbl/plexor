@@ -85,11 +85,9 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
         // so a tracked read here would observe stale RevokedAt after
         // a prior rotation. The rotation flow never mutates the
         // loaded entity directly, so no tracking is needed.
-        var old = await db.RefreshTokens
-            .AsNoTracking()
-            .FirstOrDefaultAsync(token => token.TokenHash == hash, cancellationToken);
-
-        if (old is null)
+        if (await db.RefreshTokens
+                .AsNoTracking()
+                .FirstOrDefaultAsync(token => token.TokenHash == hash, cancellationToken) is not { } old)
         {
             return RefreshRotationResult.NotFound;
         }

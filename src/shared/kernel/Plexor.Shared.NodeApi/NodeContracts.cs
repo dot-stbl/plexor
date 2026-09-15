@@ -180,6 +180,9 @@ public abstract record CommandType
     /// <summary><c>workload.create</c> — provision a new workload of the specified kind.</summary>
     public sealed record WorkloadCreate : CommandType
     {
+        /// <summary>Singleton — records are reference-only and carry no state.</summary>
+        public static WorkloadCreate Instance { get; } = new();
+
         /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
         public override string Name => WireCommandTypes.WorkloadCreate;
     }
@@ -187,6 +190,9 @@ public abstract record CommandType
     /// <summary><c>workload.start</c> — boot a previously provisioned workload.</summary>
     public sealed record WorkloadStart : CommandType
     {
+        /// <summary>Singleton — records are reference-only and carry no state.</summary>
+        public static WorkloadStart Instance { get; } = new();
+
         /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
         public override string Name => WireCommandTypes.WorkloadStart;
     }
@@ -194,6 +200,9 @@ public abstract record CommandType
     /// <summary><c>workload.stop</c> — gracefully shut down a running workload.</summary>
     public sealed record WorkloadStop : CommandType
     {
+        /// <summary>Singleton — records are reference-only and carry no state.</summary>
+        public static WorkloadStop Instance { get; } = new();
+
         /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
         public override string Name => WireCommandTypes.WorkloadStop;
     }
@@ -201,6 +210,9 @@ public abstract record CommandType
     /// <summary><c>workload.delete</c> — remove a workload and its backing storage.</summary>
     public sealed record WorkloadDelete : CommandType
     {
+        /// <summary>Singleton — records are reference-only and carry no state.</summary>
+        public static WorkloadDelete Instance { get; } = new();
+
         /// <summary>Wire name (see <see cref="CommandType.Name" />).</summary>
         public override string Name => WireCommandTypes.WorkloadDelete;
     }

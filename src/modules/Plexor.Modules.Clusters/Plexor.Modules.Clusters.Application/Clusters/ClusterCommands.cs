@@ -119,7 +119,7 @@ public sealed class ClusterSummary
     public string RuntimeId { get; init; } = ClusterRuntimeIds.Default;
 
     /// <summary>Aggregated node counts by status.</summary>
-    public NodeCounts NodeCounts { get; init; } = new();
+    public NodeCounts NodeCounts { get; init; } = new(Total: 0, Ready: 0, Pending: 0, Offline: 0, Draining: 0);
 
     /// <summary>Cluster creation time (UTC).</summary>
     public DateTimeOffset CreatedAt { get; init; }

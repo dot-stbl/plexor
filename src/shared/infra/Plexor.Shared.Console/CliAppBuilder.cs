@@ -267,7 +267,7 @@ public sealed class PlexorCliBuilder
         Func<CommandContext, int> handler)
     {
         Content.RegisteredCommands.Add(new CommandSpec(icon, name, description));
-        Content.PendingConfigurations.Add(c => _ = c.AddDelegate(name, handler).WithDescription(description));
+        Content.PendingConfigurations.Add(c => c.AddDelegate(name, handler).WithDescription(description));
 
         return this;
     }
@@ -290,7 +290,7 @@ public sealed class PlexorCliBuilder
             // Aliases hang off the returned IBranchConfigurator.
             foreach (var alias in branch.Content.Aliases)
             {
-                _ = branchConfigurator.WithAlias(alias);
+                branchConfigurator.WithAlias(alias);
             }
         });
 
@@ -314,15 +314,15 @@ public sealed class PlexorCliBuilder
             {
                 if (Content.ToolName is not null)
                 {
-                    _ = c.SetApplicationName(Content.ToolName);
+                    c.SetApplicationName(Content.ToolName);
                 }
 
                 if (Content.ToolVersion is not null)
                 {
-                    _ = c.SetApplicationVersion(Content.ToolVersion);
+                    c.SetApplicationVersion(Content.ToolVersion);
                 }
 
-                _ = c.SetExceptionHandler((ex, _) =>
+                c.SetExceptionHandler((ex, _) =>
                 {
                     AnsiConsole.MarkupLine(ErrorFormatter.Error(ex.GetType().Name, ex.Message));
                     return -1;
@@ -533,7 +533,7 @@ public sealed class PlexorBranchBuilder
 
             foreach (var alias in nested.Content.Aliases)
             {
-                _ = branchConfigurator.WithAlias(alias);
+                branchConfigurator.WithAlias(alias);
             }
         });
 

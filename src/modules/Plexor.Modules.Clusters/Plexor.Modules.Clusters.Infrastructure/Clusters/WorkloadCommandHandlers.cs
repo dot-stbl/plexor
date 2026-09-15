@@ -210,9 +210,9 @@ public sealed class WorkloadActionCommandHandler(
 
         var commandType = command.Action switch
         {
-            WorkloadAction.Start => WireCommandTypes.WorkloadStart,
-            WorkloadAction.Stop => WireCommandTypes.WorkloadStop,
-            WorkloadAction.Restart => WireCommandTypes.WorkloadStart,  // restart = start after stop; the agent handles the pair
+            WorkloadAction.Start => CommandType.WorkloadStart.Instance.Name,
+            WorkloadAction.Stop => CommandType.WorkloadStop.Instance.Name,
+            WorkloadAction.Restart => CommandType.WorkloadStart.Instance.Name,  // restart = start after stop; the agent handles the pair
             _ => throw new ArgumentOutOfRangeException(nameof(command), command.Action, null)
         };
 

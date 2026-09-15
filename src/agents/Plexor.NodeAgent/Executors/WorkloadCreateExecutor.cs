@@ -34,7 +34,7 @@ public sealed class WorkloadCreateExecutor(
     ILogger<WorkloadCreateExecutor> logger) : ICommandExecutor
 {
     /// <inheritdoc />
-    public string Type => WireCommandTypes.WorkloadCreate;
+    public string Type => CommandType.WorkloadCreate.Instance.Name;
 
     /// <inheritdoc />
     public async Task<ExecutorResult> ExecuteAsync(

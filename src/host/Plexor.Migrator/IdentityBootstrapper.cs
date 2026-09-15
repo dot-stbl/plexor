@@ -11,10 +11,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Plexor.Modules.Sigil.Application.Auth;
-using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Migrator;
 
@@ -162,7 +162,7 @@ internal sealed class IdentityBootstrapper(
                 OrgId = orgId,
                 Email = new Email(InitialAdminEmail),
                 DisplayName = InitialAdminDisplayName,
-                Status = UserStatusValues.Active,
+                Status = UserStatuses.Active,
                 PasswordHash = new PasswordHash(
                     passwordHasher.HashPassword(
                         new User { Id = adminId }, password)),

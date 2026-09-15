@@ -122,41 +122,15 @@ public sealed record NodeSpec(
     /// <param name="nodes">Nodes to aggregate.</param>
     public static NodeCounts Aggregate(IReadOnlyList<Node> nodes)
     {
-        var c = new NodeCounts();
-        foreach (var n in nodes)
-        {
-            c.Total++;
-            switch (n.Status)
-            {
-                case NodeStatus.Ready: c.Ready++; break;
-                case NodeStatus.Pending: c.Pending++; break;
-                case NodeStatus.Gone: c.Offline++; break;
-                case NodeStatus.Draining: c.Draining++; break;
-            }
-        }
-        return c;
+        var byStatus = nodes
+            .GroupBy(static node => node.Status)
+            .ToDictionary(static group => group.Key, static group => group.Count());
+
+        return new NodeCounts(
+            Total: nodes.Count,
+            Ready: byStatus.GetValueOrDefault(NodeStatus.Ready),
+            Pending: byStatus.GetValueOrDefault(NodeStatus.Pending),
+            Offline: byStatus.GetValueOrDefault(NodeStatus.Gone),
+            Draining: byStatus.GetValueOrDefault(NodeStatus.Draining));
     }
-}
-
-/// <summary>
-///     Aggregated counts of nodes by lifecycle status — used by
-/// cluster-detail / cluster-list pages and by the Plexor.Host
-/// dashboard.
-/// </summary>
-public sealed class NodeCounts
-{
-    /// <summary>Total number of nodes across all statuses.</summary>
-    public int Total { get; set; }
-
-    /// <summary>Nodes in <see cref="NodeStatus.Ready" />.</summary>
-    public int Ready { get; set; }
-
-    /// <summary>Nodes in <see cref="NodeStatus.Pending" />.</summary>
-    public int Pending { get; set; }
-
-    /// <summary>Nodes in <see cref="NodeStatus.Gone" />.</summary>
-    public int Offline { get; set; }
-
-    /// <summary>Nodes in <see cref="NodeStatus.Draining" />.</summary>
-    public int Draining { get; set; }
 }
