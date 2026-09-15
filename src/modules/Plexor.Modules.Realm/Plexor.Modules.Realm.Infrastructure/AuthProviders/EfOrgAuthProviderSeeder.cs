@@ -21,7 +21,10 @@ namespace Plexor.Modules.Realm.Infrastructure.AuthProviders;
 ///     <see cref="OrgAuthProvider.Sigil" /> row per missing org.
 /// </summary>
 /// <param name="db">Scoped <see cref="RealmDbContext" />.</param>
-internal sealed class EfOrgAuthProviderSeeder(RealmDbContext db) : IOrgAuthProviderSeeder
+/// <param name="clock">Injected <see cref="TimeProvider" /> for the
+/// <c>created_at</c> / <c>updated_at</c> stamps (per
+/// <c>time-and-wire-format.md</c> §3).</param>
+internal sealed class EfOrgAuthProviderSeeder(RealmDbContext db, TimeProvider clock) : IOrgAuthProviderSeeder
 {
     /// <inheritdoc />
     public async Task<int> SeedAllOrgsAsync(CancellationToken cancellationToken)
@@ -42,7 +45,7 @@ internal sealed class EfOrgAuthProviderSeeder(RealmDbContext db) : IOrgAuthProvi
             .ToListAsync(cancellationToken);
 
         var existingSet = existingConfigOrgIds.ToHashSet();
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         var inserted = 0;
 
         foreach (var orgId in orgIds)

@@ -25,6 +25,15 @@ namespace Plexor.Modules.Branding.Application.Branding;
 /// is scoped per request, so each startup sweep opens a fresh
 /// scope.</param>
 /// <param name="logger">Structured logger for the seeded rowcount.</param>
+/// <remarks>
+///     <para><b>Failure mode.</b> Any exception from the seed path is
+///     logged at <see cref="LogLevel.Critical" /> and rethrown so a
+///     transient DB / config error surfaces at startup instead of
+///     silently leaving the singleton row missing. The host then
+///     aborts startup; the operator sees a failed boot instead of a
+///     half-initialised branding surface. The next restart re-attempts
+///     the seed (idempotent).</para>
+/// </remarks>
 public sealed class BrandingGlobalSeederHostedService(
     IServiceScopeFactory scopeFactory,
     ILogger<BrandingGlobalSeederHostedService> logger) : IHostedService
@@ -63,9 +72,10 @@ public sealed class BrandingGlobalSeederHostedService(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(
+            logger.LogCritical(
                 ex,
-                "BrandingGlobalSeeder: could not ensure singleton row; continuing startup.");
+                "BrandingGlobalSeeder: could not ensure singleton row; aborting startup.");
+            throw;
         }
     }
 

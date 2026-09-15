@@ -18,7 +18,7 @@ using Plexor.Modules.Realm.Domain.Entities;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.AuthProviders;
-using Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 using Plexor.Modules.Sigil.Unit.Realm;
 using Shouldly;
 using Xunit;

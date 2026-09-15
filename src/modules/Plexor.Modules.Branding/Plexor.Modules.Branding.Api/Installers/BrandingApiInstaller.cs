@@ -7,7 +7,7 @@
 
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using Plexor.Modules.Branding.Api.Models;
+using Plexor.Modules.Branding.Api.Models.Requests;
 using Plexor.Modules.Branding.Api.Validation;
 
 namespace Plexor.Modules.Branding.Api.Installers;

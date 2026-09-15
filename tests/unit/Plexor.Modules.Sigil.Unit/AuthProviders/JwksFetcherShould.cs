@@ -12,14 +12,14 @@ using System.Text;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
-using Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 using Shouldly;
 using Xunit;
 
 namespace Plexor.Modules.Sigil.Unit.AuthProviders;
 
 /// <summary>
-///     Behavioural tests for <see cref="Plexor.Modules.Sigil.Infrastructure.AuthProviders.JwksFetcher" />.
+///     Behavioural tests for <see cref="Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc.JwksFetcher" />.
 /// </summary>
 public sealed class JwksFetcherShould
 {

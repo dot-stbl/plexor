@@ -43,7 +43,10 @@ namespace Plexor.Modules.Audit.Infrastructure.Audit;
 ///     DbContext's <c>SaveChangesAsync</c> batch, not a separate
 ///     commit).
 /// </summary>
-/// <param name="db">Scoped <see cref="AuditDbContext" />.</param>
+/// <param name="db">Scoped <see cref="IAuditDbContext" /> —
+/// production code resolves the concrete <see cref="AuditDbContext" />;
+/// the narrow interface keeps the emitter unit-testable via NSubstitute
+/// without unsealing the DbContext.</param>
 /// <param name="clock">
 ///     Injected <see cref="TimeProvider" /> for the
 ///     <c>occurred_at</c> stamp — keeps the timestamp unit-testable
@@ -74,7 +77,7 @@ namespace Plexor.Modules.Audit.Infrastructure.Audit;
 ///     at call sites (<c>anti-patterns.md</c> §6).</para>
 /// </remarks>
 public sealed class DbAuditEmitter(
-    AuditDbContext db,
+    IAuditDbContext db,
     TimeProvider clock,
     ILogger<DbAuditEmitter> logger) : IAuditEmitter
 {

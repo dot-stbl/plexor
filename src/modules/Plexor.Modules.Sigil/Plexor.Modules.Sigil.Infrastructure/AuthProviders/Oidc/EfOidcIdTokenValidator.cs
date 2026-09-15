@@ -18,7 +18,7 @@
 using Microsoft.Extensions.Logging;
 using Plexor.Modules.Sigil.Application.AuthProviders;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 
 /// <summary>
 ///     <see cref="IOidcIdTokenValidator" /> implementation.

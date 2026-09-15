@@ -28,9 +28,10 @@ using Plexor.Modules.Sigil.Application.AuthProviders;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 
-namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Provisioners;
 
 /// <summary>
 ///     <see cref="IOidcUserProvisioner" /> implementation. Reads
@@ -39,7 +40,10 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders;
 /// </summary>
 /// <param name="db">Identity module DbContext — owns the User,
 /// Role, and RoleBinding tables.</param>
-public sealed class EfOidcUserProvisioner(IdentityDbContext db) : IOidcUserProvisioner
+/// <param name="clock">Injected <see cref="TimeProvider" /> for the
+/// <c>created_at</c> / <c>updated_at</c> / <c>password_changed_at</c>
+/// stamps (per <c>time-and-wire-format.md</c> §3).</param>
+public sealed class EfOidcUserProvisioner(IdentityDbContext db, TimeProvider clock) : IOidcUserProvisioner
 {
     /// <summary>Default non-admin role name granted to a freshly
     /// provisioned OIDC user. The Migrator seeds this role per
@@ -83,7 +87,7 @@ public sealed class EfOidcUserProvisioner(IdentityDbContext db) : IOidcUserProvi
         User persisted;
         try
         {
-            var now = DateTimeOffset.UtcNow;
+            var now = clock.GetUtcNow();
             var newUser = new User
             {
                 Id = deterministicId,

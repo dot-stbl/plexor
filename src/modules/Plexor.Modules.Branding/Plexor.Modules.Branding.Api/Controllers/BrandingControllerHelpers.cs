@@ -10,7 +10,8 @@
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Plexor.Modules.Branding.Api.Models;
+using Plexor.Modules.Branding.Api.Models.Requests;
+using Plexor.Modules.Branding.Api.Models.Responses;
 using Plexor.Modules.Branding.Domain.Entities;
 
 namespace Plexor.Modules.Branding.Api.Controllers;

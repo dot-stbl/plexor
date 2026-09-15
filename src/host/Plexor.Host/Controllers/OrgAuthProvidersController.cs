@@ -96,11 +96,14 @@ file static class OrgAuthProviderDefaults
 /// <c>/test</c> endpoint to fetch the OIDC discovery
 /// document.</param>
 /// <param name="auditEmitter">
-/// Scoped <see cref="IAuditEmitter" /> — emits the
-/// <c>org.auth_provider.changed</c> event on every successful
-/// PUT (Phase 5.2). Fire-and-forget: an emit failure is logged
-/// at <see cref="LogLevel.Critical" /> inside the emitter and
-/// never breaks the user request.</param>
+///     Scoped <see cref="IAuditEmitter" /> — emits the
+///     <c>org.auth_provider.changed</c> event on every successful
+///     PUT (Phase 5.2). Fire-and-forget: an emit failure is logged
+///     at <see cref="LogLevel.Critical" /> inside the emitter and
+///     never breaks the user request.</param>
+/// <param name="clock">Injected <see cref="TimeProvider" /> for the
+/// <c>updated_at</c> stamps on PUT (per <c>time-and-wire-format.md</c>
+/// §3).</param>
 /// <param name="logger">Structured logger.</param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/iam/orgs/{{orgId:guid}}/auth-provider")]
@@ -112,6 +115,7 @@ public sealed class OrgAuthProvidersController(
     OrgAuthProviderSecretProtector secretProtector,
     IHttpClientFactory httpClientFactory,
     IAuditEmitter auditEmitter,
+    TimeProvider clock,
     ILogger<OrgAuthProvidersController> logger) : ControllerBase
 {
     /// <summary>
@@ -206,7 +210,7 @@ public sealed class OrgAuthProvidersController(
             return OrgAuthProviderControllerHelpers.ConfigNotFound(orgId, HttpContext.Request.Path);
         }
 
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
 
         if (provider == OrgAuthProvider.Sigil)
         {

@@ -1,21 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// UpsertOrgThemeConfigRequest — wire shape for PUT /api/v1/branding/org/{orgId}.
+// OrgThemeConfigResponse — wire shape for GET /api/v1/branding/org/{orgId}
+// + the same shape returned by PUT. Init-property class.
 // ============================================================================
 
-namespace Plexor.Modules.Branding.Api.Models;
+namespace Plexor.Modules.Branding.Api.Models.Responses;
 
 /// <summary>
-///     Wire shape for the per-org branding override upsert body.
-///     All fields except <c>OrgId</c> are nullable — a null value
-///     means "inherit the operator global default". The path
-///     parameter is the authoritative orgId; the body's
-///     <see cref="OrgId" /> is ignored.
+///     Wire shape for the per-org branding override row. Null fields
+///     mean "inherit the operator global default" — the frontend
+///     merges the two rows at boot time via IBrandingService.ResolveForOrgAsync.
 /// </summary>
-public sealed class UpsertOrgThemeConfigRequest
+public sealed class OrgThemeConfigResponse
 {
-    /// <summary>Tenant scope — copied from the route; ignored when
-    /// the caller passes a different value (path is authoritative).</summary>
+    /// <summary>Tenant scope.</summary>
     public Guid OrgId { get; init; }
 
     /// <summary>Per-org theme preset override. Null = inherit.</summary>
@@ -32,4 +30,7 @@ public sealed class UpsertOrgThemeConfigRequest
 
     /// <summary>Per-org favicon URL. Null = inherit.</summary>
     public string? BrandFaviconUrl { get; init; }
+
+    /// <summary>Last update time (UTC).</summary>
+    public DateTimeOffset UpdatedAt { get; init; }
 }

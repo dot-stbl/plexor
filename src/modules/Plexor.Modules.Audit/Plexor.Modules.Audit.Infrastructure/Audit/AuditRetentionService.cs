@@ -82,7 +82,7 @@ public sealed class AuditRetentionService(
             try
             {
                 await using var scope = scopeFactory.CreateAsyncScope();
-                var db = scope.ServiceProvider.GetRequiredService<Persistence.AuditDbContext>();
+                var db = scope.ServiceProvider.GetRequiredService<Persistence.IAuditDbContext>();
                 await AuditRetentionServiceHelpers.SweepAsync(
                     db,
                     clock,

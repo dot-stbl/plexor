@@ -37,7 +37,7 @@ public sealed class EfOrgAuthProviderSeederShould
     {
         await using var db = await RealmTestDb.CreateAsync();
 
-        var sut = new EfOrgAuthProviderSeeder(db);
+        var sut = new EfOrgAuthProviderSeeder(db, TimeProvider.System);
 
         var inserted = await sut.SeedAllOrgsAsync(CancellationToken.None);
 
@@ -58,7 +58,7 @@ public sealed class EfOrgAuthProviderSeederShould
         await SeedOrgAsync(db, orgA);
         await SeedOrgAsync(db, orgB);
 
-        var sut = new EfOrgAuthProviderSeeder(db);
+        var sut = new EfOrgAuthProviderSeeder(db, TimeProvider.System);
 
         var inserted = await sut.SeedAllOrgsAsync(CancellationToken.None);
 
@@ -88,7 +88,7 @@ public sealed class EfOrgAuthProviderSeederShould
         await using var db = await RealmTestDb.CreateAsync();
         await SeedOrgAsync(db, orgA);
         await SeedOrgAsync(db, orgB);
-        var sut = new EfOrgAuthProviderSeeder(db);
+        var sut = new EfOrgAuthProviderSeeder(db, TimeProvider.System);
         var firstPass = await sut.SeedAllOrgsAsync(CancellationToken.None);
         firstPass.ShouldBe(2);
 
@@ -111,7 +111,7 @@ public sealed class EfOrgAuthProviderSeederShould
         await using var db = await RealmTestDb.CreateAsync();
         await SeedOrgAsync(db, orgConfigured);
         await SeedOrgAsync(db, orgMissing);
-        var sut = new EfOrgAuthProviderSeeder(db);
+        var sut = new EfOrgAuthProviderSeeder(db, TimeProvider.System);
 
         // Pre-seed the first org's config (e.g. an admin flipped it
         // to OIDC manually before the seeder's first run).

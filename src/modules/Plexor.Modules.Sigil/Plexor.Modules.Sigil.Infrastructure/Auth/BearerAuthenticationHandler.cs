@@ -33,7 +33,8 @@ using Microsoft.Extensions.Options;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.AuthProviders;
-using Plexor.Modules.Sigil.Infrastructure.AuthProviders;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
@@ -60,7 +61,8 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     <list type="bullet">
 ///       <item>JWT: three base64url segments separated by dots —
 ///       routed to <see cref="IAuthProviderResolver.ResolveAsync" />
-///       which dispatches to <see cref="SigilAuthProvider" /> or
+///       which dispatches to
+///       <see cref="Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers.SigilAuthProvider" /> or
 ///       <see cref="ExternalOidcAuthProvider" /> based on the
 ///       <c>iss</c> claim.</item>
 ///       <item>API key: <c>kid_&lt;uuid&gt;.&lt;base64url-secret&gt;</c>

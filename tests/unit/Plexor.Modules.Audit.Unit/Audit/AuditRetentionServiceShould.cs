@@ -13,19 +13,23 @@
 //   3. An empty table is a no-op (no exception, zero rowcount).
 //   4. A table larger than BatchSize is processed in chunks (no
 //      single batch exceeds BatchSize; total deleted equals seeded).
-//   5. A sweep that throws propagates the exception out of the
-//      helper — pins the helper-side contract that the
+//   5. A sweep that throws propagates the exception out of
+//      the helper — pins the helper-side contract that the
 //      BackgroundService's try/catch is actually load-bearing. The
 //      BackgroundService itself is a thin schedule wrapper around
 //      the helper and is verified by code review.
 //
 // Uses the in-memory AuditDbContext for the data-path tests (1-4) +
-// a substitute AuditDbContext that throws on SaveChangesAsync for
-// the failure-recovery test (5).
+// a substitute IAuditDbContext that throws on SaveChangesAsync for
+// the failure-recovery test (5). Substituting the narrow interface
+// (instead of the sealed AuditDbContext concrete) lets NSubstitute
+// intercept every member the helper calls without unsealing the
+// DbContext class.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
 using Plexor.Modules.Audit.Application.Audit;
 using Plexor.Modules.Audit.Infrastructure.Audit;
 using Plexor.Modules.Audit.Infrastructure.Persistence;
@@ -197,59 +201,36 @@ public sealed class AuditRetentionServiceShould
     {
         var clock = new FakeClock(Anchor);
         var options = new AuditOptions { RetentionDays = 90 };
-        var throwingContext = new ThrowingAuditDbContext();
 
-        // Seed at least one aged row so the helper actually attempts
-        // a save (empty table → early break, no exception).
-        await throwingContext.AuditEntries.AddAsync(
+        // Build a substitute IAuditDbContext. SaveChangesAsync is the
+        // seam the helper calls into; the substitute throws on every
+        // call to exercise the helper-side propagation contract. The
+        // AuditEntries getter points at a real in-memory DbSet so the
+        // helper's SELECT path returns a real aged row (an empty
+        // batch would exit the loop early before SaveChanges is
+        // reached). Substituting the narrow interface (instead of
+        // the sealed AuditDbContext concrete) lets NSubstitute
+        // intercept every member the helper calls.
+        var substitute = Substitute.For<IAuditDbContext>();
+        substitute.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<int>(new InvalidOperationException("synthetic DbContext failure")));
+
+        await using var realDb = await AuditTestDb.CreateAsync();
+        await realDb.AuditEntries.AddAsync(
             AuditRetentionServiceHelpers.BuildRow(
                 Anchor.AddDays(-100),
                 Guid.NewGuid()));
-        await throwingContext.SaveChangesAsync();
+        await realDb.SaveChangesAsync();
+        substitute.AuditEntries.Returns(realDb.AuditEntries);
 
-        // The InMemory provider accepts the inserts on its OWN
-        // SaveChangesAsync path — but our override throws on every
-        // call, so the first sweep iteration that tries to delete
-        // will throw. The BackgroundService catches that exception
-        // and logs at Warning; this test asserts that the exception
-        // actually surfaces (and is therefore catchable).
         var exception = await Should.ThrowAsync<InvalidOperationException>(
             async () => await AuditRetentionServiceHelpers.SweepAsync(
-                throwingContext,
+                substitute,
                 clock,
                 options,
                 NullLogger.Instance,
                 CancellationToken.None));
 
         exception.Message.ShouldBe("synthetic DbContext failure");
-    }
-
-    /// <summary>
-    ///     Test-only <see cref="AuditDbContext" /> subclass that
-    ///     throws on the second-and-later <c>SaveChangesAsync</c>.
-    ///     The first save (seeding) is allowed so the test can insert
-    ///     an aged row; subsequent saves (the sweep's batched
-    ///     delete) throw — exercising the BackgroundService's catch
-    ///     path. Production code never subclasses
-    ///     <see cref="AuditDbContext" />.
-    /// </summary>
-    private sealed class ThrowingAuditDbContext : AuditDbContext
-    {
-        private int saveCount;
-
-        public ThrowingAuditDbContext()
-            : base(new DbContextOptionsBuilder<AuditDbContext>()
-                .UseInMemoryDatabase($"audit-throw-{Guid.NewGuid():N}")
-                .Options)
-        {
-        }
-
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            saveCount++;
-            return saveCount >= 2
-                ? throw new InvalidOperationException("synthetic DbContext failure")
-                : base.SaveChangesAsync(cancellationToken);
-        }
     }
 }

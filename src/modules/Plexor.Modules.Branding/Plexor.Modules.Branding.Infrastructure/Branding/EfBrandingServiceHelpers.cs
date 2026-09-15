@@ -37,12 +37,18 @@ internal static class EfBrandingServiceHelpers
     ///     exist yet (first boot before the seeder ran) — the
     ///     controller returns 200 with the defaults instead of 404.
     /// </summary>
+    /// <remarks>
+    ///     The sentinel's <c>UpdatedAt</c> uses <see cref="DateTimeOffset.UtcNow" />
+    ///     rather than a <see cref="TimeProvider" />: the read path doesn't
+    ///     take a clock (no need to thread it just for the never-realistic
+    ///     "row missing" fallback), and the seeder
+    ///     (<c>BrandingGlobalSeederHostedService</c>) inserts the real row
+    ///     on first boot before any HTTP request lands.
+    /// </remarks>
     public static async Task<GlobalThemeConfig> GetGlobalInternalAsync(
         BrandingDbContext db,
-        TimeProvider clock,
         CancellationToken cancellationToken)
     {
-        _ = clock; // — signature mirrors the full write path; reads don't need it.
         return await db.GlobalThemeConfig
             .AsNoTracking()
             .FirstOrDefaultAsync(cancellationToken)

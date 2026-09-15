@@ -12,8 +12,9 @@
 //      (the IAuditEmitter contract is fire-and-forget).
 //
 // Uses the in-memory AuditDbContext for happy-path tests; the
-// "must not throw" test substitutes a logger and breaks the context
-// with a stub that throws on SaveChangesAsync.
+// "must not throw" test substitutes an IAuditDbContext whose
+// SaveChangesAsync throws on every call — no subclassing of the
+// sealed AuditDbContext.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -186,11 +187,15 @@ public sealed class DbAuditEmitterShould
         var clock = new FakeClock(DateTimeOffset.UtcNow);
         var logger = Substitute.For<ILogger<DbAuditEmitter>>();
 
-        // Subclass of AuditDbContext that always throws on save —
-        // exercises the swallow path without a real Postgres
-        // instance. AuditDbContext is documented as non-sealed for
-        // this exact test extension point.
-        var brokenDb = new ThrowingAuditDbContext();
+        // Substitute IAuditDbContext (the narrow interface the
+        // emitter actually depends on) — NSubstitute intercepts
+        // SaveChangesAsync and returns a faulted Task, exercising
+        // the swallow path without a real Postgres instance and
+        // without subclassing the sealed AuditDbContext.
+        var brokenDb = Substitute.For<IAuditDbContext>();
+        brokenDb.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<int>(new InvalidOperationException("synthetic DbContext failure")));
+
         var sut = new DbAuditEmitter(brokenDb, clock, logger);
 
         // Should not throw — audit emission failure is swallowed.
@@ -211,27 +216,5 @@ public sealed class DbAuditEmitterShould
             Arg.Any<object?>(),
             Arg.Any<Exception>(),
             Arg.Any<Func<object?, Exception?, string>>());
-    }
-
-    /// <summary>
-    ///     Test-only subclass that overrides the
-    ///     <c>SaveChangesAsync(CancellationToken)</c> override so the
-    ///     "must not throw" test can exercise the swallow path.
-    ///     Lives in the test project; production code never
-    ///     subclasses <see cref="AuditDbContext" />.
-    /// </summary>
-    private sealed class ThrowingAuditDbContext : AuditDbContext
-    {
-        public ThrowingAuditDbContext()
-            : base(new DbContextOptionsBuilder<AuditDbContext>()
-                .UseInMemoryDatabase($"audit-throwing-{Guid.NewGuid():N}")
-                .Options)
-        {
-        }
-
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            throw new InvalidOperationException("synthetic DbContext failure");
-        }
     }
 }
