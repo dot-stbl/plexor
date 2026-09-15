@@ -66,9 +66,7 @@ public static class FilterValueConverter
         // constructor that takes the raw string verbatim. Without this
         // fallback the DSL can't deserialize custom types until the caller
         // explicitly opts in via Register<T>.
-        var stringCtor = underlying.GetConstructor([typeof(string)]);
-
-        if (stringCtor is not null)
+        if (underlying.GetConstructor([typeof(string)]) is { } stringCtor)
         {
             return stringCtor.Invoke([text]);
         }

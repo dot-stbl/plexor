@@ -7,8 +7,8 @@
 
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Sigil.Application.Auth;
-using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
@@ -27,20 +27,18 @@ public sealed class EfUserRevocationChecker(IdentityDbContext db) : IUserRevocat
         CancellationToken cancellationToken = default)
     {
 
-        var snapshot = await db.Users
-            .AsNoTracking()
-            .Where(u => u.Id == userId)
-            .Select(u => new UserRevocationSnapshot(
-                u.Status,
-                u.PasswordChangedAt))
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (snapshot is null)
+        if (await db.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => new UserRevocationSnapshot(
+                    u.Status,
+                    u.PasswordChangedAt))
+                .FirstOrDefaultAsync(cancellationToken) is not { } snapshot)
         {
             return new RevocationCheckResult.UserDisabled("User not found.");
         }
 
-        if (!string.Equals(snapshot.Status, UserStatusValues.Active, StringComparison.Ordinal))
+        if (!string.Equals(snapshot.Status, UserStatuses.Active, StringComparison.Ordinal))
         {
             return new RevocationCheckResult.UserDisabled(
                 $"User status is '{snapshot.Status}'.");

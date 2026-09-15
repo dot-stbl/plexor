@@ -13,11 +13,18 @@ using Plexor.Modules.Sigil.Infrastructure.Persistence;
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
 /// <summary>
+/// <para>
 ///     EF Core implementation of <see cref="ISigningKeyRepository" />.
 ///     All reads are <c>AsNoTracking</c> — these rows are
 ///     append-only and the verifier doesn't mutate them.
+/// </para>
+/// <para>
+///     Sprint 3 (item 1): wall-clock now read via injected
+///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 /// <param name="db"></param>
+/// <param name="clock"></param>
 /// <remarks>
 ///     <para><b>Why no caching here.</b> v0.1 has at most a handful
 ///     of active keys; a per-request DB hit is cheap. The verifier
@@ -30,7 +37,9 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     lifetime (15 min) elapses, so the verifier can still
 ///     confirm in-flight tokens.</para>
 /// </remarks>
-public sealed class EfSigningKeyRepository(IdentityDbContext db) : ISigningKeyRepository
+public sealed class EfSigningKeyRepository(
+    IdentityDbContext db,
+    TimeProvider clock) : ISigningKeyRepository
 {
     /// <inheritdoc />
     public async Task<SigningKey?> GetActiveAsync(
@@ -69,7 +78,7 @@ public sealed class EfSigningKeyRepository(IdentityDbContext db) : ISigningKeyRe
         var rows = await db.SigningKeys
             .AsNoTracking()
             .ToListAsync(cancellationToken);
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         return rows
             .Where(key => key.NotAfter is null || key.NotAfter > now)
             .OrderByDescending(static key => key.CreatedAt)

@@ -54,7 +54,7 @@ public sealed class NodeHeartbeatCommandHandlerShould
         await db.Workloads.AddAsync(workload);
         await db.SaveChangesAsync();
 
-        var sut = new NodeHeartbeatCommandHandler(db);
+        var sut = new NodeHeartbeatCommandHandler(db, TimeProvider.System);
 
         var result = await sut.HandleAsync(new NodeHeartbeatCommand(
             node.Id,
@@ -92,7 +92,7 @@ public sealed class NodeHeartbeatCommandHandlerShould
         // mutating tracked.
         var (cluster, node) = await SeedClusterAndNodeAsync(db, status: NodeStatus.Gone);
 
-        var sut = new NodeHeartbeatCommandHandler(db);
+        var sut = new NodeHeartbeatCommandHandler(db, TimeProvider.System);
         var result = await sut.HandleAsync(new NodeHeartbeatCommand(
             node.Id,
             cluster.Id,
@@ -112,7 +112,7 @@ public sealed class NodeHeartbeatCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var (cluster, node) = await SeedClusterAndNodeAsync(db);
-        var sut = new NodeHeartbeatCommandHandler(db);
+        var sut = new NodeHeartbeatCommandHandler(db, TimeProvider.System);
 
         var bogusReport = new WorkloadReport(
             WorkloadId: IdGenerator.NewWorkloadId().Value,

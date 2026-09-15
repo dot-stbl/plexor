@@ -52,9 +52,9 @@ public sealed class TableBuilder
     /// </summary>
     public TableBuilder()
     {
-        _ = table.Border(TableBorder.Rounded);
-        _ = table.BorderColor(ColorPalette.Muted);
-        _ = table.Expand();
+        table.Border(TableBorder.Rounded);
+        table.BorderColor(ColorPalette.Muted);
+        table.Expand();
     }
 
     /// <summary>
@@ -75,7 +75,7 @@ public sealed class TableBuilder
             _ => Justify.Left
         });
 
-        _ = table.AddColumn(col);
+        table.AddColumn(col);
         return this;
     }
 

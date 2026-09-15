@@ -38,9 +38,9 @@ public sealed class ChangePasswordCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var hasher = new PlexorPasswordHasher(new Microsoft.AspNetCore.Identity.PasswordHasher<User>());
-        var store = new EfRefreshTokenStore(db);
+        var store = new EfRefreshTokenStore(db, TimeProvider.System);
         var user = await SeedUserWithPasswordAsync(db, hasher, CurrentPassword);
-        var sut = new ChangePasswordCommandHandler(db, hasher, store);
+        var sut = new ChangePasswordCommandHandler(db, hasher, store, TimeProvider.System);
 
         var result = await sut.HandleAsync(
             new ChangePasswordCommand(user.Id, CurrentPassword, NewPassword));
@@ -65,9 +65,9 @@ public sealed class ChangePasswordCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var hasher = new PlexorPasswordHasher(new Microsoft.AspNetCore.Identity.PasswordHasher<User>());
-        var store = new EfRefreshTokenStore(db);
+        var store = new EfRefreshTokenStore(db, TimeProvider.System);
         var user = await SeedUserWithPasswordAsync(db, hasher, CurrentPassword);
-        var sut = new ChangePasswordCommandHandler(db, hasher, store);
+        var sut = new ChangePasswordCommandHandler(db, hasher, store, TimeProvider.System);
 
         var ex = await Should.ThrowAsync<IdentityException>(
             () => sut.HandleAsync(
@@ -84,9 +84,9 @@ public sealed class ChangePasswordCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var hasher = new PlexorPasswordHasher(new Microsoft.AspNetCore.Identity.PasswordHasher<User>());
-        var store = new EfRefreshTokenStore(db);
+        var store = new EfRefreshTokenStore(db, TimeProvider.System);
         var user = await SeedUserWithPasswordAsync(db, hasher, CurrentPassword);
-        var sut = new ChangePasswordCommandHandler(db, hasher, store);
+        var sut = new ChangePasswordCommandHandler(db, hasher, store, TimeProvider.System);
 
         var ex = await Should.ThrowAsync<IdentityException>(
             () => sut.HandleAsync(
@@ -103,12 +103,12 @@ public sealed class ChangePasswordCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var hasher = new PlexorPasswordHasher(new Microsoft.AspNetCore.Identity.PasswordHasher<User>());
-        var store = new EfRefreshTokenStore(db);
+        var store = new EfRefreshTokenStore(db, TimeProvider.System);
         var user = await SeedUserWithPasswordAsync(db, hasher, CurrentPassword);
         // Seed two active families for this user.
         await store.IssueAsync(user.Id, "raw-token-aaaaaaaaaaaaaaaaaaaaaaaaaaaa", DateTimeOffset.UtcNow.AddDays(30));
         await store.IssueAsync(user.Id, "raw-token-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", DateTimeOffset.UtcNow.AddDays(30));
-        var sut = new ChangePasswordCommandHandler(db, hasher, store);
+        var sut = new ChangePasswordCommandHandler(db, hasher, store, TimeProvider.System);
 
         var result = await sut.HandleAsync(
             new ChangePasswordCommand(user.Id, CurrentPassword, NewPassword));

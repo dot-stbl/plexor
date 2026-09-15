@@ -28,7 +28,7 @@ public sealed class EfRefreshTokenStoreShould
     public async Task IssueAsyncStoresHashWithFreshFamilyAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var store = new EfRefreshTokenStore(db);
+        var store = new EfRefreshTokenStore(db, TimeProvider.System);
         var userId = Guid.NewGuid();
         const string rawToken = "raw-token-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         var expiresAt = DateTimeOffset.UtcNow.AddDays(30);
@@ -52,7 +52,7 @@ public sealed class EfRefreshTokenStoreShould
     public async Task FindByRawTokenAsyncReturnsNullForUnknownAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var store = new EfRefreshTokenStore(db);
+        var store = new EfRefreshTokenStore(db, TimeProvider.System);
         var userId = Guid.NewGuid();
         await store.IssueAsync(userId, "raw-token-aaa", DateTimeOffset.UtcNow.AddDays(1));
 
@@ -73,7 +73,7 @@ public sealed class EfRefreshTokenStoreShould
     public async Task RotateAsyncAdvancesChainAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var store = new EfRefreshTokenStore(db);
+        var store = new EfRefreshTokenStore(db, TimeProvider.System);
         var userId = Guid.NewGuid();
         const string oldRaw = "old-raw-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         const string newRaw = "new-raw-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
@@ -103,7 +103,7 @@ public sealed class EfRefreshTokenStoreShould
     public async Task RotateAsyncReturnsReplayedForAlreadyRevokedAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var store = new EfRefreshTokenStore(db);
+        var store = new EfRefreshTokenStore(db, TimeProvider.System);
         var userId = Guid.NewGuid();
         const string raw = "replay-raw-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         await store.IssueAsync(userId, raw, DateTimeOffset.UtcNow.AddDays(30));
@@ -125,7 +125,7 @@ public sealed class EfRefreshTokenStoreShould
     public async Task RotateAsyncReturnsNotFoundForUnknownAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var store = new EfRefreshTokenStore(db);
+        var store = new EfRefreshTokenStore(db, TimeProvider.System);
 
         var result = await store.RotateAsync(
             "never-seen-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

@@ -5,6 +5,10 @@
 // because every handler depends on the same ClusterDbContext and the
 // bodies are < 80 lines each. Pattern mirrors the Sigil module's
 // UserCommandHandlers.
+//
+// Sprint 3 (item 1): all wall-clock reads moved from
+// DateTimeOffset.UtcNow to clock.GetUtcNow(); the TimeProvider is
+// injected via primary constructor per time-and-wire-format.md §3.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -26,15 +30,16 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 ///     page.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="clock"></param>
 public sealed class CreateClusterCommandHandler(
-    ClusterDbContext db) : ICommandHandler<CreateClusterCommand, JoinTokenResult>
+    ClusterDbContext db,
+    TimeProvider clock) : ICommandHandler<CreateClusterCommand, JoinTokenResult>
 {
     /// <inheritdoc />
     public async Task<JoinTokenResult> HandleAsync(
         CreateClusterCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (string.IsNullOrWhiteSpace(command.Name))
         {
             throw new ClustersException(
@@ -59,7 +64,7 @@ public sealed class CreateClusterCommandHandler(
                 $"Cluster name '{command.Name}' is already taken in this org.");
         }
 
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         var clusterId = IdGenerator.NewClusterId();
         var cluster = new Cluster
         {
@@ -108,16 +113,17 @@ public sealed class CreateClusterCommandHandler(
 /// </summary>
 /// <param name="db"></param>
 /// <param name="mapper"></param>
+/// <param name="clock"></param>
 public sealed class UpdateClusterCommandHandler(
     ClusterDbContext db,
-    IClusterMapper mapper) : ICommandHandler<UpdateClusterCommand, ClusterSummary>
+    IClusterMapper mapper,
+    TimeProvider clock) : ICommandHandler<UpdateClusterCommand, ClusterSummary>
 {
     /// <inheritdoc />
     public async Task<ClusterSummary> HandleAsync(
         UpdateClusterCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (command.Name is { } newName)
         {
             // Load the target cluster to know its org (the rename
@@ -146,6 +152,7 @@ public sealed class UpdateClusterCommandHandler(
             }
         }
 
+        var now = clock.GetUtcNow();
         var updated = await db.Clusters
             .Where(cluster => cluster.Id == command.ClusterId)
             .ExecuteUpdateAsync(
@@ -159,7 +166,7 @@ public sealed class UpdateClusterCommandHandler(
                     {
                         setters.SetProperty(cluster => cluster.Region, command.Region);
                     }
-                    setters.SetProperty(cluster => cluster.UpdatedAt, DateTimeOffset.UtcNow);
+                    setters.SetProperty(cluster => cluster.UpdatedAt, now);
                 },
                 cancellationToken);
         if (updated == 0)
@@ -183,15 +190,16 @@ public sealed class UpdateClusterCommandHandler(
 ///     integrity; no hard delete in v0.1.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="clock"></param>
 public sealed class DeleteClusterCommandHandler(
-    ClusterDbContext db) : ICommandHandler<DeleteClusterCommand, Unit>
+    ClusterDbContext db,
+    TimeProvider clock) : ICommandHandler<DeleteClusterCommand, Unit>
 {
     /// <inheritdoc />
     public async Task<Unit> HandleAsync(
         DeleteClusterCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (await db.Clusters.FirstOrDefaultAsync(
                 cluster => cluster.Id == command.ClusterId,
                 cancellationToken) is not { } cluster)
@@ -201,7 +209,7 @@ public sealed class DeleteClusterCommandHandler(
                 $"Cluster '{command.ClusterId}' not found.");
         }
 
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         db.Entry(cluster).Property(static c => c.Status).CurrentValue = ClusterStatus.Offline;
         db.Entry(cluster).Property(static c => c.UpdatedAt).CurrentValue = now;
 
@@ -225,15 +233,16 @@ public sealed class DeleteClusterCommandHandler(
 ///     landing page in the console.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="clock"></param>
 public sealed class RotateJoinTokenCommandHandler(
-    ClusterDbContext db) : ICommandHandler<RotateJoinTokenCommand, JoinTokenResult>
+    ClusterDbContext db,
+    TimeProvider clock) : ICommandHandler<RotateJoinTokenCommand, JoinTokenResult>
 {
     /// <inheritdoc />
     public async Task<JoinTokenResult> HandleAsync(
         RotateJoinTokenCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (await db.Clusters
             .AsNoTracking()
             .Where(cluster => cluster.Id == command.ClusterId)
@@ -251,7 +260,7 @@ public sealed class RotateJoinTokenCommandHandler(
                 setters => setters.SetProperty(token => token.Status, TokenStatus.Revoked),
                 cancellationToken);
 
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         var tokenSecret = TokenHasher.NewSecret();
         var tokenHash = await TokenHasher.HashAsync(tokenSecret, cancellationToken);
         var joinToken = new JoinToken

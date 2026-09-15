@@ -1,4 +1,3 @@
-using Plexor.Modules.Sigil.Domain;
 using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Realm.Domain.Entities;
@@ -34,7 +33,7 @@ public sealed class Team : ICreatedAt
     public string Slug { get; init; } = string.Empty;
 
     /// <summary>Team status. <c>"active"</c> by default.</summary>
-    public string Status { get; init; } = UserStatusValues.Active;
+    public string Status { get; init; } = UserStatuses.Active;
 
     /// <summary>Creation time (UTC). See
     /// <see cref="Plexor.Shared.Kernel.Common.ICreatedAt" />.</summary>

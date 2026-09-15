@@ -44,7 +44,7 @@ public sealed class RefreshCommandHandlerShould
         var ownerResolver = Substitute.For<IRefreshTokenOwnerResolver>();
         WireSuccessfulRotation(store, issuer, ownerResolver, user);
 
-        var sut = new RefreshCommandHandler(store, issuer, ownerResolver);
+        var sut = new RefreshCommandHandler(store, issuer, ownerResolver, TimeProvider.System);
 
         var result = await sut.HandleAsync(new RefreshCommand("presented-refresh-token"));
 
@@ -71,7 +71,7 @@ public sealed class RefreshCommandHandlerShould
         var issuer = Substitute.For<ITokenIssuer>();
         var ownerResolver = Substitute.For<IRefreshTokenOwnerResolver>();
 
-        var sut = new RefreshCommandHandler(store, issuer, ownerResolver);
+        var sut = new RefreshCommandHandler(store, issuer, ownerResolver, TimeProvider.System);
 
         var ex = await Should.ThrowAsync<IdentityException>(
             () => sut.HandleAsync(new RefreshCommand("never-issued-token")));
@@ -112,7 +112,7 @@ public sealed class RefreshCommandHandlerShould
         var issuer = Substitute.For<ITokenIssuer>();
         var ownerResolver = Substitute.For<IRefreshTokenOwnerResolver>();
 
-        var sut = new RefreshCommandHandler(store, issuer, ownerResolver);
+        var sut = new RefreshCommandHandler(store, issuer, ownerResolver, TimeProvider.System);
 
         var ex = await Should.ThrowAsync<IdentityException>(
             () => sut.HandleAsync(new RefreshCommand("replayed-token")));
@@ -139,7 +139,7 @@ public sealed class RefreshCommandHandlerShould
         var issuer = Substitute.For<ITokenIssuer>();
         var ownerResolver = Substitute.For<IRefreshTokenOwnerResolver>();
 
-        var sut = new RefreshCommandHandler(store, issuer, ownerResolver);
+        var sut = new RefreshCommandHandler(store, issuer, ownerResolver, TimeProvider.System);
 
         var ex = await Should.ThrowAsync<IdentityException>(
             () => sut.HandleAsync(new RefreshCommand("orphan-token-from-revoked-family")));
@@ -165,7 +165,7 @@ public sealed class RefreshCommandHandlerShould
         var issuer = Substitute.For<ITokenIssuer>();
         var ownerResolver = Substitute.For<IRefreshTokenOwnerResolver>();
 
-        var sut = new RefreshCommandHandler(store, issuer, ownerResolver);
+        var sut = new RefreshCommandHandler(store, issuer, ownerResolver, TimeProvider.System);
 
         var ex = await Should.ThrowAsync<IdentityException>(
             () => sut.HandleAsync(new RefreshCommand("expired-token")));
@@ -196,7 +196,7 @@ public sealed class RefreshCommandHandlerShould
         ownerResolver.ResolveByTokenHashAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((User?)null);
 
-        var sut = new RefreshCommandHandler(store, issuer, ownerResolver);
+        var sut = new RefreshCommandHandler(store, issuer, ownerResolver, TimeProvider.System);
 
         var ex = await Should.ThrowAsync<IdentityException>(
             () => sut.HandleAsync(new RefreshCommand("orphan-refresh-token")));

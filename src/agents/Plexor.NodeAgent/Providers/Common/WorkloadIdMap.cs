@@ -28,9 +28,15 @@ namespace Plexor.NodeAgent.Providers.Common;
 ///     virsh command) and the current
 ///     <see cref="WorkloadState" />.
 /// </summary>
-public sealed class WorkloadIdMap
+/// <remarks>
+///     Constructor.
+/// </remarks>
+/// <param name="clock">Wall-clock source — used to stamp the
+///     <see cref="Snapshot" /> result.</param>
+public sealed class WorkloadIdMap(TimeProvider clock)
 {
     private readonly ConcurrentDictionary<Guid, WorkloadIdMapEntry> entries = new();
+    private readonly TimeProvider clock = clock;
 
     /// <summary>
     ///     Register a new workload. Throws if the local id
@@ -121,7 +127,7 @@ public sealed class WorkloadIdMap
     /// </summary>
     public IReadOnlyList<LocalWorkload> Snapshot()
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         return [.. entries
                 .Select(kvp => new LocalWorkload(
                     kvp.Key,

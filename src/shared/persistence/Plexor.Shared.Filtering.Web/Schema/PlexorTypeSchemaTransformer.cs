@@ -36,12 +36,11 @@ public sealed class PlexorTypeSchemaTransformer : IOpenApiSchemaTransformer
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
     {
         // OpenApiSchemaTransformerContext doesn't expose the CLR type directly
-        // in 2.4.1 — schema.Name is the schema's component name (e.g. "TenantRecord"),
-        // and SchemaType info isn't on the context. The preferred path is
-        // for callers to add the extension via controller-level metadata
-        // (TypeOpenApiExtender) before schema generation runs. Keeping this
-        // transformer as a no-op stub until we have a clean way to expose
-        // CLR type names from Microsoft.AspNetCore.OpenApi 10.0.9.
+        // in 2.4.1 — the preferred path is for callers to add the extension
+        // via controller-level metadata (TypeOpenApiExtender) before schema
+        // generation runs. Keeping this transformer as a no-op stub until we
+        // have a clean way to expose CLR type names from
+        // Microsoft.AspNetCore.OpenApi 10.0.9.
         _ = schema;
         _ = context;
         return Task.CompletedTask;

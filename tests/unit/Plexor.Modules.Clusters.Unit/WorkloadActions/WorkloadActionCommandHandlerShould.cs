@@ -50,7 +50,7 @@ public sealed class WorkloadActionCommandHandlerShould
         // Simulate the agent processing the command by flipping
         // the row's status to Acked after a small delay. The
         // handler short-polls every 500ms with a 30s timeout.
-        var sut = new WorkloadActionCommandHandler(db);
+        var sut = new WorkloadActionCommandHandler(db, TimeProvider.System);
         var handlerTask = sut.HandleAsync(
             new WorkloadActionCommand(cluster.Id, workloadId, WorkloadAction.Start),
             CancellationToken.None);
@@ -89,7 +89,7 @@ public sealed class WorkloadActionCommandHandlerShould
     {
         await using var db = await TestDb.CreateAsync();
         var (cluster, _) = await SeedClusterAndNodeAsync(db);
-        var sut = new WorkloadActionCommandHandler(db);
+        var sut = new WorkloadActionCommandHandler(db, TimeProvider.System);
 
         await Should.ThrowAsync<ClustersException>(() =>
             sut.HandleAsync(
@@ -119,7 +119,7 @@ public sealed class WorkloadActionCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new WorkloadActionCommandHandler(db);
+        var sut = new WorkloadActionCommandHandler(db, TimeProvider.System);
         var ex = await Should.ThrowAsync<ClustersException>(() =>
             sut.HandleAsync(
                 new WorkloadActionCommand(cluster.Id, workloadId, WorkloadAction.Start),
@@ -150,7 +150,7 @@ public sealed class WorkloadActionCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new WorkloadActionCommandHandler(db);
+        var sut = new WorkloadActionCommandHandler(db, TimeProvider.System);
         var ex = await Should.ThrowAsync<ClustersException>(() =>
             sut.HandleAsync(
                 new WorkloadActionCommand(cluster.Id, workloadId, WorkloadAction.Start),

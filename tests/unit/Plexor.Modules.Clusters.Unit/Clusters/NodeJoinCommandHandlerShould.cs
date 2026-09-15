@@ -50,7 +50,8 @@ public sealed class NodeJoinCommandHandlerShould
         var sut = new NodeJoinCommandHandler(
             db,
             new JoinTokenRepository(db),
-            new InMemoryCertificateAuthority());
+            new InMemoryCertificateAuthority(),
+            TimeProvider.System);
         var result = await sut.HandleAsync(new NodeJoinCommand(
             tokenSecret,
             "node-1",
@@ -104,7 +105,8 @@ public sealed class NodeJoinCommandHandlerShould
         var sut = new NodeJoinCommandHandler(
             db,
             new JoinTokenRepository(db),
-            new InMemoryCertificateAuthority());
+            new InMemoryCertificateAuthority(),
+            TimeProvider.System);
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new NodeJoinCommand(
                 tokenSecret, "node-1", NodeRole.Compute, new NodeSpec(8, 32, 200, []))));
@@ -149,7 +151,8 @@ public sealed class NodeJoinCommandHandlerShould
         var sut = new NodeJoinCommandHandler(
             db,
             new JoinTokenRepository(db),
-            ca);
+            ca,
+            TimeProvider.System);
         var result = await sut.HandleAsync(new NodeJoinCommand(
             tokenSecret,
             "node-cert-host",
@@ -219,7 +222,8 @@ public sealed class NodeJoinCommandHandlerShould
         var sut = new NodeJoinCommandHandler(
             db,
             new JoinTokenRepository(db),
-            new InMemoryCertificateAuthority());
+            new InMemoryCertificateAuthority(),
+            TimeProvider.System);
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new NodeJoinCommand(
                 tokenSecret, "node-1", NodeRole.Compute, new NodeSpec(8, 32, 200, []))));

@@ -7,6 +7,7 @@
 // ============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
+using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Infrastructure.Auth;

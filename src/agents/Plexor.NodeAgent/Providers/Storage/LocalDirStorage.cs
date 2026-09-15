@@ -100,10 +100,8 @@ public sealed class LocalDirStorage(
     ///     init process populates on first boot.
     /// </summary>
     /// <param name="volumeSpec"></param>
-    /// <param name="cancellationToken"></param>
-    private VolumeHandle CreateDirectory(VolumeSpec volumeSpec, CancellationToken cancellationToken)
+    private VolumeHandle CreateDirectory(VolumeSpec volumeSpec, CancellationToken _)
     {
-        _ = cancellationToken; // captured for interface contract; Directory.CreateDirectory is sync
         var path = Path.Combine(root, $"{volumeSpec.Name}.dir");
 
         // Pre-populate from the base image (if any) BEFORE the
