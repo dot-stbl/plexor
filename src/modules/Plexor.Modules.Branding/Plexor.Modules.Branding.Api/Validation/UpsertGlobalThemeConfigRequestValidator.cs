@@ -7,7 +7,7 @@
 // ============================================================================
 
 using FluentValidation;
-using Plexor.Modules.Branding.Api.Models;
+using Plexor.Modules.Branding.Api.Models.Requests;
 
 namespace Plexor.Modules.Branding.Api.Validation;
 
