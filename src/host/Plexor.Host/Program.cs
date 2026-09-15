@@ -33,7 +33,10 @@ using Plexor.Host.Models;
 using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
 using Plexor.Host.Validation;
+using Plexor.Modules.Audit.Api.Endpoints;
+using Plexor.Modules.Audit.Api.Installers;
 using Plexor.Modules.Audit.Application.Installers;
+using Plexor.Modules.Audit.Domain.Entities;
 using Plexor.Modules.Audit.Infrastructure.Installers;
 using Plexor.Modules.Audit.Infrastructure.Persistence;
 using Plexor.Modules.Branding.Api;
@@ -189,11 +192,13 @@ var contextCount = 7;
 // AddFilterableEntity<T> marks the entity's properties for the filter
 // DSL: the OpenAPI schema transformer emits x-filterable + x-sortable on
 // the matching schema, and the kubb plugin generates a typed filter
-// builder per entity. No entity is registered yet — Sigil's User / Role
-// list endpoints (Phase 4) will register here. The registry is wired so
-// the transformer can run today; without it, every schema is non-
-// filterable.
-builder.Services.AddFiltering();
+// builder per entity. Phase 5.2 registers AuditEntry — the
+// GET /api/v1/audit endpoint is the first consumer; future 5.3 admin
+// UI endpoints (filter by org + action + actor) reuse the same
+// registration. Sigil's User / Role list endpoints (Phase 4) register
+// here in a follow-up.
+builder.Services.AddFiltering()
+    .AddFilterableEntity<AuditEntry>();
 
 // Sigil module — auth contracts + impls. Phase 3.2-3.5 wires the
 // PBKDF2 password hasher + the per-request ICurrentUser reader.
@@ -276,8 +281,13 @@ builder.Services
 // is empty in 5.1 (the audit read endpoint lands in 5.2); the
 // Infrastructure installer wires the EF-backed DbAuditEmitter.
 // Mirrors the Quotas/Branding Application + Infrastructure pair.
+// 5.2 — AuditApiInstaller adds the empty wiring point for the
+// GET /api/v1/audit endpoint (no per-request DI surface yet, but
+// the slot stays so the Program.cs chain stays stable as 5.3
+// retention options land).
 builder.Services.AddAuditApplicationCore(builder.Configuration);
 builder.Services.AddAuditInfrastructureCore();
+builder.Services.AddAuditApiCore();
 
 // OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
 // to seed. The Quotas module does not depend on Realm — we supply the
@@ -390,5 +400,15 @@ app.MapCustomCssEndpoint();
 app.MapOidcAuthorize();
 app.MapOidcCallback();
 app.MapOidcLogout();
+
+// Audit query endpoint (Phase 5.2) — GET /api/v1/audit. Tenant-
+// scoped, paginated read surface for the append-only audit log;
+// backed by the IAuditEmitter writes that DbAuditEmitter +
+// OrgAuthProvidersController produce. The endpoint is a minimal
+// API (MapGet, not a controller) and is mapped explicitly here
+// rather than discovered via AddApplicationPart. Mounted after
+// MapControllers so the controllers' generic fall-through routes
+// (catch-all 404 handlers, etc.) take priority on collision.
+app.MapAuditQuery();
 
 app.Run();

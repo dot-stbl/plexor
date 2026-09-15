@@ -32,6 +32,7 @@ using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
+using Plexor.Shared.Kernel.Audit;
 using Plexor.Shared.Kernel.AuthProviders;
 
 namespace Plexor.Host.Controllers;
@@ -94,6 +95,12 @@ file static class OrgAuthProviderDefaults
 /// Scoped <see cref="IHttpClientFactory" /> — used by the
 /// <c>/test</c> endpoint to fetch the OIDC discovery
 /// document.</param>
+/// <param name="auditEmitter">
+/// Scoped <see cref="IAuditEmitter" /> — emits the
+/// <c>org.auth_provider.changed</c> event on every successful
+/// PUT (Phase 5.2). Fire-and-forget: an emit failure is logged
+/// at <see cref="LogLevel.Critical" /> inside the emitter and
+/// never breaks the user request.</param>
 /// <param name="logger">Structured logger.</param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/iam/orgs/{{orgId:guid}}/auth-provider")]
@@ -104,6 +111,7 @@ public sealed class OrgAuthProvidersController(
     ICurrentUser currentUser,
     OrgAuthProviderSecretProtector secretProtector,
     IHttpClientFactory httpClientFactory,
+    IAuditEmitter auditEmitter,
     ILogger<OrgAuthProvidersController> logger) : ControllerBase
 {
     /// <summary>
@@ -184,13 +192,16 @@ public sealed class OrgAuthProvidersController(
             ? OrgAuthProvider.Oidc
             : OrgAuthProvider.Sigil;
 
-        // Existence check — the seeder guarantees a row exists for
-        // every org; a manual DB delete is the only way this can miss,
-        // and the right shape is a 404.
-        var exists = await db.OrgAuthProviderConfigs
+        // Snapshot BEFORE the upsert so the audit event carries
+        // the previous provider / authority / client-id alongside
+        // the new values. FirstOrDefaultAsync (was AnyAsync in 4.6.1)
+        // so a torn-write 404 path is preserved — null oldConfig
+        // then flows through to EmitAuthProviderChangedAsync with
+        // every old_* key null, the "first provisioning" signal.
+        var oldConfig = await db.OrgAuthProviderConfigs
             .AsNoTracking()
-            .AnyAsync(config => config.OrgId == orgId, cancellationToken);
-        if (!exists)
+            .FirstOrDefaultAsync(config => config.OrgId == orgId, cancellationToken);
+        if (oldConfig is null)
         {
             return OrgAuthProviderControllerHelpers.ConfigNotFound(orgId, HttpContext.Request.Path);
         }
@@ -256,6 +267,17 @@ public sealed class OrgAuthProvidersController(
         var refreshed = await db.OrgAuthProviderConfigs
             .AsNoTracking()
             .FirstAsync(config => config.OrgId == orgId, cancellationToken);
+
+        // Phase 5.2 — emit org.auth_provider.changed with a
+        // before/after diff so the admin UI timeline can render
+        // the change. Fire-and-forget: EmitAsync never throws.
+        await OrgAuthProviderControllerHelpers.EmitAuthProviderChangedAsync(
+            auditEmitter,
+            orgId,
+            currentUser.UserId,
+            oldConfig,
+            refreshed,
+            cancellationToken);
 
         return Ok(OrgAuthProviderControllerHelpers.MapToResponse(refreshed));
     }
