@@ -32,6 +32,9 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 /// <param name="refreshTokens"></param>
 /// <param name="tokenIssuer"></param>
 /// <param name="db"></param>
+/// <param name="clock">Injected <see cref="TimeProvider" /> for the
+/// lockout-expiry + refresh-token-expiry stamps (per
+/// <c>time-and-wire-format.md</c> §3).</param>
 /// <param name="orgAuthConfigReader">Per-tenant IDP configuration
 /// reader. Read-only seam used to short-circuit email+password
 /// attempts against OIDC-configured tenants (Phase 4.6.3c).</param>
@@ -41,6 +44,7 @@ public sealed class LoginCommandHandler(
     IRefreshTokenStore refreshTokens,
     ITokenIssuer tokenIssuer,
     IdentityDbContext db,
+    TimeProvider clock,
     IOrgAuthProviderConfigReader orgAuthConfigReader) : ICommandHandler<LoginCommand, LoginResult>
 {
     /// <summary>Lockout threshold — failed attempts before the account
@@ -146,7 +150,7 @@ public sealed class LoginCommandHandler(
         }
 
         var refreshRaw = TokenGenerator.Generate();
-        var refreshExpires = DateTimeOffset.UtcNow + RefreshTokenLifetime;
+        var refreshExpires = clock.GetUtcNow() + RefreshTokenLifetime;
         await refreshTokens.IssueAsync(
             user.Id, refreshRaw, refreshExpires, cancellationToken);
 
@@ -205,7 +209,7 @@ public sealed class LoginCommandHandler(
         User user,
         CancellationToken cancellationToken)
     {
-        if (user.LockedUntil is { } until && until > DateTimeOffset.UtcNow)
+        if (user.LockedUntil is { } until && until > clock.GetUtcNow())
         {
             throw new IdentityException(
                 IdentityExceptions.AccountLocked,
@@ -247,7 +251,7 @@ public sealed class LoginCommandHandler(
 
         if (current >= FailedLoginLockoutThreshold)
         {
-            var lockoutUntil = DateTimeOffset.UtcNow + LockoutDuration;
+            var lockoutUntil = clock.GetUtcNow() + LockoutDuration;
             await db.Users
                 .Where(u => u.Id == userId)
                 .ExecuteUpdateAsync(
@@ -260,7 +264,7 @@ public sealed class LoginCommandHandler(
         Guid userId,
         CancellationToken cancellationToken)
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         await db.Users
             .Where(u => u.Id == userId)
             .ExecuteUpdateAsync(
@@ -297,10 +301,13 @@ public sealed class LoginCommandHandler(
 /// <param name="refreshTokens"></param>
 /// <param name="tokenIssuer"></param>
 /// <param name="db"></param>
+/// <param name="clock">Injected <see cref="TimeProvider" /> for the
+/// rotated refresh-token expiry stamp.</param>
 public sealed class RefreshCommandHandler(
     IRefreshTokenStore refreshTokens,
     ITokenIssuer tokenIssuer,
-    IdentityDbContext db) : ICommandHandler<RefreshCommand, LoginResult>
+    IdentityDbContext db,
+    TimeProvider clock) : ICommandHandler<RefreshCommand, LoginResult>
 {
 
     /// <inheritdoc />
@@ -375,7 +382,7 @@ public sealed class RefreshCommandHandler(
         CancellationToken cancellationToken)
     {
         var newRefreshRaw = TokenGenerator.Generate();
-        var newRefreshExpires = DateTimeOffset.UtcNow + LoginCommandHandler.RefreshTokenLifetime;
+        var newRefreshExpires = clock.GetUtcNow() + LoginCommandHandler.RefreshTokenLifetime;
 
         var rotation = await refreshTokens.RotateAsync(
             presentedToken,

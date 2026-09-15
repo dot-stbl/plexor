@@ -175,7 +175,8 @@ public sealed class RefreshCommandHandlerShould
         var handler = new RefreshCommandHandler(
             mocks.RefreshTokens,
             mocks.TokenIssuer,
-            identity);
+            identity,
+            TimeProvider.System);
 
         return (handler, mocks);
     }

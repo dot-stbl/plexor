@@ -65,7 +65,7 @@ public sealed class EfOidcUserProvisionerShould
     public async Task ProvisionAsync_WithMissingEmail_FailsWithOidcUserMissingClaimsErrorAsync()
     {
         await using var identity = await IdentityTestDb.CreateAsync();
-        var provisioner = new EfOidcUserProvisioner(identity);
+        var provisioner = new EfOidcUserProvisioner(identity, TimeProvider.System);
 
         var config = new OidcTenantConfig(
             OrgId: Guid.NewGuid(),
@@ -98,7 +98,7 @@ public sealed class EfOidcUserProvisionerShould
     public async Task ProvisionAsync_WithValidEmail_DoesNotThrowBeforeSchemaAsync()
     {
         await using var identity = await IdentityTestDb.CreateAsync();
-        var provisioner = new EfOidcUserProvisioner(identity);
+        var provisioner = new EfOidcUserProvisioner(identity, TimeProvider.System);
 
         var config = new OidcTenantConfig(
             OrgId: Guid.NewGuid(),
