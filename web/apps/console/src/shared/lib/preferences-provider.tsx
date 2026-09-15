@@ -14,10 +14,11 @@ import { getPreset, DEFAULT_PRESET_ID as REGISTRY_DEFAULT_PRESET_ID } from '@/sh
  *
  * Theme presets (v1 of the registry): the `theme` picker maps to one of
  * the two default presets in `themes/presets.ts`. The boot config's
- * `theme.defaultPresetId` is read on mount but only consumed by the
- * future preset-picker UI (next commit); in v1 the picker is the only
- * way to switch themes and it always resolves to `plexor-default-light`
- * or `plexor-default-dark`.
+ * `theme.defaultPresetId` is consumed in `main.tsx` (the
+ * `applyBootPreset` async fn runs before first render and applies the
+ * operator-configured preset). The picker itself still always
+ * resolves to `plexor-default-light` or `plexor-default-dark` —
+ * surfacing the full preset list to the user is a follow-up.
  *
  * Language: also persisted here (NOT only in i18next's own 'plexor-lang'
  * key). This is the single source of truth — i18n is synced via
@@ -99,9 +100,9 @@ function loadFromStorage(): Preferences {
  *
  * v1 ships three presets (`plexor-default-light`, `plexor-default-dark`,
  * `plexor-noir`); only the first two are reachable through the picker.
- * The boot config's `theme.defaultPresetId` is consumed by
- * `getBootConfig()` (called from `main.tsx`'s favicon IIFE) and will
- * become the seed for the preset picker UI added in the next commit.
+ * The boot config's `theme.defaultPresetId` is the active consumer at
+ * boot time — see `main.tsx`'s `applyBootPreset` async fn — and will
+ * become the seed for the preset picker UI added in a follow-up.
  */
 function presetIdForMode(theme: Theme, systemPrefersDark: boolean): string {
   if (theme === 'system') {
