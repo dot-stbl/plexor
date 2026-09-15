@@ -33,6 +33,9 @@ using Plexor.Host.Models;
 using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
 using Plexor.Host.Validation;
+using Plexor.Modules.Audit.Application.Installers;
+using Plexor.Modules.Audit.Infrastructure.Installers;
+using Plexor.Modules.Audit.Infrastructure.Persistence;
 using Plexor.Modules.Branding.Api;
 using Plexor.Modules.Branding.Api.Endpoints;
 using Plexor.Modules.Branding.Api.Installers;
@@ -179,7 +182,8 @@ builder.Services.AddModuleDbContext<ClusterDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
-var contextCount = 6;
+builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
+var contextCount = 7;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -266,6 +270,14 @@ builder.Services.AddBrandingApiCore();
 builder.Services
     .AddOptions<BrandingOptions>()
     .Bind(builder.Configuration.GetSection(BrandingOptions.SectionName));
+
+// Audit module (Phase 5.1) — emits generic IAuditEmitter events
+// from quota + future auth-provider controllers. Application layer
+// is empty in 5.1 (the audit read endpoint lands in 5.2); the
+// Infrastructure installer wires the EF-backed DbAuditEmitter.
+// Mirrors the Quotas/Branding Application + Infrastructure pair.
+builder.Services.AddAuditApplicationCore(builder.Configuration);
+builder.Services.AddAuditInfrastructureCore();
 
 // OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
 // to seed. The Quotas module does not depend on Realm — we supply the

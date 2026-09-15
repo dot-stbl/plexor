@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Plexor.Migrator;
+using Plexor.Modules.Audit.Infrastructure.Persistence;
 using Plexor.Modules.Branding.Infrastructure.Installers;
 using Plexor.Modules.Branding.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
@@ -74,6 +75,7 @@ builder.Services.AddModuleDbContext<ClusterDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
 
 builder.Services.AddSigilInfrastructureCore();
 
