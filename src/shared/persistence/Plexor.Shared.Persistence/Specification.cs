@@ -29,6 +29,14 @@ namespace Plexor.Shared.Persistence;
 ///     <see cref="SpecificationFactory.Identity{T}" /> factory methods; subclass ctors
 ///     pass the projection explicitly.
 /// </remarks>
+// Intentionally NOT `sealed` — this is the documented extension-point
+// exception per naming-and-types.md §2.2. Specification is the
+// fluent-composition base class for query criteria; each per-entity
+// spec file (OrderSpecs.cs, ClusterSpecs.cs, WorkloadSpecifications.cs,
+// etc.) declares concrete subclasses that wrap the baseline filter +
+// projection for the entity. Sealing this base would prevent the
+// per-entity spec files from existing at all. Every concrete
+// subclass is itself `sealed` per the same rule.
 public class Specification<T, TResult>(Expression<Func<T, TResult>>? projection) : ISpecification<T, TResult>
     where T : class
 {

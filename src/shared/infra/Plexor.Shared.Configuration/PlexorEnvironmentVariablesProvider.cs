@@ -33,10 +33,8 @@ namespace Plexor.Shared.Configuration;
 ///     <c>Database:Pool_Max_Size</c>; multi-word properties still
 ///     need a flat Option name like <c>PoolMaxSize</c>).
 /// </summary>
-// Note: not sealed — test double in Plexor.Shared.Configuration.Unit
-// subclasses this to inject a fixed dictionary instead of reading
-// the process env.
-public class PlexorEnvironmentVariablesProvider : ConfigurationProvider
+public sealed class PlexorEnvironmentVariablesProvider(
+    System.Collections.IDictionary? envSource = null) : ConfigurationProvider
 {
     /// <summary>The required prefix. Override only for tests.</summary>
     public const string Prefix = "PLX_";
@@ -46,8 +44,9 @@ public class PlexorEnvironmentVariablesProvider : ConfigurationProvider
     {
         Data = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var entry in ReadEnvironmentVariables()
-                     .Cast<System.Collections.DictionaryEntry>())
+        var source = envSource ?? Environment.GetEnvironmentVariables();
+
+        foreach (var entry in source.Cast<System.Collections.DictionaryEntry>())
         {
             if (entry.Key?.ToString() is not { } rawName ||
                 !rawName.StartsWith(Prefix, StringComparison.Ordinal))
@@ -63,17 +62,6 @@ public class PlexorEnvironmentVariablesProvider : ConfigurationProvider
 
             Data[configKey] = entry.Value?.ToString();
         }
-    }
-
-    /// <summary>
-    ///     Read-only view of the environment for this provider.
-    ///     Overridden in tests to inject a fixed dictionary
-    ///     (avoiding parallel-test interference on the process
-    ///     env).
-    /// </summary>
-    protected virtual System.Collections.IDictionary ReadEnvironmentVariables()
-    {
-        return Environment.GetEnvironmentVariables();
     }
 
     /// <summary>
