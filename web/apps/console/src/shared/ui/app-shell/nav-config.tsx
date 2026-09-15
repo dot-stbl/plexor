@@ -35,7 +35,8 @@ export type AppRoute =
   | '/networks'
   | '/audit'
   | '/clusters'
-  | '/admin/branding';
+  | '/admin/branding'
+  | '/admin/audit';
 
 export type NavPage = {
   /** i18n key for the title (resolved at render time with t()). */
@@ -134,6 +135,7 @@ export const SECTIONS: Section[] = [
     icon: Settings,
     pages: [
       { title: 'nav.brandingTitle', description: 'nav.brandingDesc', icon: Settings, to: '/admin/branding' },
+      { title: 'nav.auditTitle', description: 'nav.auditDesc', icon: History, to: '/admin/audit' },
     ],
   },
   {
