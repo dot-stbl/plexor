@@ -3,6 +3,10 @@
 // EfRefreshTokenStore — IRefreshTokenStore bound to IdentityDbContext.
 // All rotation logic is in this single transaction; the auth
 // service never needs to peek at token state itself.
+//
+// Sprint 3 (item 1): all wall-clock reads moved from
+// DateTimeOffset.UtcNow to clock.GetUtcNow(); the TimeProvider is
+// injected via primary constructor per time-and-wire-format.md §3.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +23,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     never persisted.
 /// </summary>
 /// <param name="db"></param>
+/// <param name="clock"></param>
 /// <remarks>
 ///     <para><b>Rotation is atomic.</b>
 ///     <see cref="RotateAsync" /> wraps the read + write + insert
@@ -33,7 +38,9 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 ///     <see cref="RevokeFamilyAsync" /> to nuke every token in the
 ///     compromised family.</para>
 /// </remarks>
-public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenStore
+public sealed class EfRefreshTokenStore(
+    IdentityDbContext db,
+    TimeProvider clock) : IRefreshTokenStore
 {
     /// <inheritdoc />
     public async Task<RefreshToken> IssueAsync(
@@ -51,7 +58,7 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
             ExpiresAt = expiresAtUtc,
             RevokedAt = null,
             ReplacedBy = null,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = clock.GetUtcNow(),
         };
 
         await db.RefreshTokens.AddAsync(entity, cancellationToken);
@@ -99,10 +106,12 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
             return RefreshRotationResult.Replayed;
         }
 
+        var now = clock.GetUtcNow();
+
         // Expiry check AFTER revocation — a revoked token whose
         // expiry is also past must still be reported as Replayed
         // (we want the family-revocation side effect to fire).
-        if (old.ExpiresAt <= DateTimeOffset.UtcNow)
+        if (old.ExpiresAt <= now)
         {
             return RefreshRotationResult.Expired;
         }
@@ -116,7 +125,7 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
             ExpiresAt = newExpiresAtUtc,
             RevokedAt = null,
             ReplacedBy = null,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = now,
         };
 
         await db.RefreshTokens.AddAsync(newEntity, cancellationToken);
@@ -134,7 +143,7 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
             .Where(token => token.Id == old.Id)
             .ExecuteUpdateAsync(
                 setters => setters
-                    .SetProperty(token => token.RevokedAt, DateTimeOffset.UtcNow)
+                    .SetProperty(token => token.RevokedAt, now)
                     .SetProperty(token => token.ReplacedBy, (Guid?)newEntity.Id),
                 cancellationToken);
 
@@ -152,7 +161,7 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
             .Where(token => token.TokenHash == hash && token.RevokedAt == null)
             .ExecuteUpdateAsync(
                 setters => setters
-                    .SetProperty(token => token.RevokedAt, DateTimeOffset.UtcNow),
+                    .SetProperty(token => token.RevokedAt, clock.GetUtcNow()),
                 cancellationToken);
         return rows > 0;
     }
@@ -162,7 +171,7 @@ public sealed class EfRefreshTokenStore(IdentityDbContext db) : IRefreshTokenSto
         Guid familyId,
         CancellationToken cancellationToken = default)
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         return await db.RefreshTokens
             .Where(token => token.FamilyId == familyId && token.RevokedAt == null)
             .ExecuteUpdateAsync(

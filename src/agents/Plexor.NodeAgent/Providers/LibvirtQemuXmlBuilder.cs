@@ -97,23 +97,15 @@ internal static class LibvirtQemuXmlBuilder
     ///     Parse the provider-specific JSON config, falling back to
     ///     defaults on a missing / malformed payload so the agent
     ///     stays functional even with empty <see cref="WorkloadSpec.Config" />.
+    ///     Delegates to the shared <see cref="LibvirtConfigDeserializer" />
+    ///     so the byte-identical "missing config ⇒ defaults" path lives
+    ///     in one place.
     /// </summary>
     /// <param name="config">Raw JSON from the control plane.</param>
     /// <param name="result">Resolved config (defaults if parse failed).</param>
     public static bool TryDeserializeConfig(JsonElement config, out LibvirtQemuConfig result)
     {
-        try
-        {
-            result = config.Deserialize<LibvirtQemuConfig>()
-                     ?? new LibvirtQemuConfig();
-
-            return true;
-        }
-        catch
-        {
-            result = new LibvirtQemuConfig();
-            return false;
-        }
+        return LibvirtConfigDeserializer.TryDeserialize(config, static () => new LibvirtQemuConfig(), out result);
     }
 }
 
@@ -129,4 +121,16 @@ internal static class LibvirtQemuXmlBuilder
 public sealed record LibvirtQemuConfig(
     long RamBytes = 1L * 1024 * 1024 * 1024,
     int CpuCores = 2,
-    string Machine = "pc");
+    string Machine = "pc")
+{
+    /// <summary>
+    ///     Public parameterless constructor — required by
+    ///     <see cref="LibvirtConfigDeserializer.TryDeserialize{T}" />.
+    /// </summary>
+    public LibvirtQemuConfig()
+        : this(RamBytes: 1L * 1024 * 1024 * 1024,
+               CpuCores: 2,
+               Machine: "pc")
+    {
+    }
+}

@@ -33,7 +33,7 @@ public sealed class EfSigningKeyRepositoryShould
         await SeedSigningKeyAsync(db, kid: "key_old", createdAt: DateTimeOffset.UtcNow.AddDays(-30), notAfter: null);
         await SeedSigningKeyAsync(db, kid: "key_new", createdAt: DateTimeOffset.UtcNow, notAfter: null);
 
-        var repository = new EfSigningKeyRepository(db);
+        var repository = new EfSigningKeyRepository(db, TimeProvider.System);
         var active = await repository.GetActiveAsync();
 
         active.ShouldNotBeNull();
@@ -47,7 +47,7 @@ public sealed class EfSigningKeyRepositoryShould
     public async Task GetActiveAsyncReturnsNullWhenEmptyAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var repository = new EfSigningKeyRepository(db);
+        var repository = new EfSigningKeyRepository(db, TimeProvider.System);
 
         var active = await repository.GetActiveAsync();
 
@@ -74,7 +74,7 @@ public sealed class EfSigningKeyRepositoryShould
             db, kid: "key_current", createdAt: DateTimeOffset.UtcNow,
             notAfter: null);
 
-        var repository = new EfSigningKeyRepository(db);
+        var repository = new EfSigningKeyRepository(db, TimeProvider.System);
         var active = await repository.ListActiveAsync();
 
         active.Select(static key => key.Kid).ShouldBe(

@@ -29,14 +29,21 @@ using Plexor.Shared.Workloads;
 namespace Plexor.NodeAgent.Providers;
 
 /// <summary>
-///     <see cref="IWorkloadProvider" /> for LXC system containers via
+///     <para>
+/// <see cref="IWorkloadProvider" /> for LXC system containers via
 ///     libvirt. Different <see cref="WorkloadKind" /> from KVM (the
 ///     agent's dispatcher routes by Kind), so the agent runs the
 ///     same commands against fundamentally different technology.
+/// </para>
+/// <para>
+///     Sprint 3 (item 1): wall-clock now read via injected
+///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 /// <param name="volumes"></param>
 /// <param name="networks"></param>
 /// <param name="logger"></param>
+/// <param name="clock"></param>
 /// <remarks>
 ///     Build a provider that talks to the local libvirt
 ///     LXC driver.
@@ -44,7 +51,8 @@ namespace Plexor.NodeAgent.Providers;
 public sealed class LibvirtLxcProvider(
     IVolumeBackend volumes,
     INetworkBackend networks,
-    ILogger<LibvirtLxcProvider> logger) : IWorkloadProvider
+    ILogger<LibvirtLxcProvider> logger,
+    TimeProvider clock) : IWorkloadProvider
 {
     /// <summary>
     ///     The libvirt URI for the local LXC driver. v0.1
@@ -52,7 +60,7 @@ public sealed class LibvirtLxcProvider(
     /// </summary>
     public static readonly Uri LibvirtUri = new("lxc:///system");
 
-    private readonly WorkloadIdMap workloads = new();
+    private readonly WorkloadIdMap workloads = new(clock);
 
     /// <inheritdoc />
     public WorkloadKind Kind => new WorkloadKind.Lxc();
@@ -126,13 +134,14 @@ public sealed class LibvirtLxcProvider(
             // recorded so the entry is valid.
             new VolumeHandle("legacy", spec.Name),
             new NetworkInterfaceHandle("legacy", "default"));
+        var now = clock.GetUtcNow();
         return new LocalWorkload(
             id,
             spec.Name,
             Kind,
             WorkloadState.Running,
-            DateTimeOffset.UtcNow,
-            DateTimeOffset.UtcNow);
+            now,
+            now);
     }
 
     /// <inheritdoc />
@@ -141,7 +150,7 @@ public sealed class LibvirtLxcProvider(
         var entry = workloads.GetOrThrow(id);
         await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Running);
-        return Snapshot(id, DateTimeOffset.UtcNow);
+        return Snapshot(id, clock.GetUtcNow());
     }
 
     /// <inheritdoc />
@@ -193,7 +202,7 @@ public sealed class LibvirtLxcProvider(
             entry.DomainName,
             entry.Kind,
             WorkloadState.Stopped,
-            DateTimeOffset.UtcNow,
+            clock.GetUtcNow(),
             null);
     }
 
@@ -218,7 +227,7 @@ public sealed class LibvirtLxcProvider(
             entry.DomainName,
             entry.Kind,
             entry.State,
-            DateTimeOffset.UtcNow,
+            clock.GetUtcNow(),
             startedAt);
     }
 }

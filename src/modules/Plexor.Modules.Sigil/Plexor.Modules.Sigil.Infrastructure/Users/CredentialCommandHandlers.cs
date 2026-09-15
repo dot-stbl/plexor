@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
 // CredentialCommandHandlers — issue/revoke/list API keys + SSH keys.
+//
+// Sprint 3 (item 1): all wall-clock reads moved from
+// DateTimeOffset.UtcNow to clock.GetUtcNow(); the TimeProvider is
+// injected via primary constructor per time-and-wire-format.md §3.
 // ============================================================================
 
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Domain.Entities;
@@ -24,16 +29,17 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 /// </summary>
 /// <param name="db"></param>
 /// <param name="permissions"></param>
+/// <param name="clock"></param>
 public sealed class IssueApiKeyCommandHandler(
     IdentityDbContext db,
-    IPermissionResolver permissions) : ICommandHandler<IssueApiKeyCommand, IssueApiKeyResult>
+    IPermissionResolver permissions,
+    TimeProvider clock) : ICommandHandler<IssueApiKeyCommand, IssueApiKeyResult>
 {
     /// <inheritdoc />
     public async Task<IssueApiKeyResult> HandleAsync(
         IssueApiKeyCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (string.IsNullOrWhiteSpace(command.Name))
         {
             throw new IdentityException(
@@ -84,7 +90,7 @@ public sealed class IssueApiKeyCommandHandler(
             ExpiresAt = command.ExpiresAtUtc,
             LastUsedAt = null,
             RevokedAt = null,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = clock.GetUtcNow(),
         };
 
         await db.ApiKeys.AddAsync(apiKey, cancellationToken);
@@ -93,21 +99,22 @@ public sealed class IssueApiKeyCommandHandler(
     }
 }
 
-/// <summary>Revoke an API key. Sets <c>RevokedAt = UtcNow</c>.</summary>
+/// <summary>Revoke an API key. Sets <c>RevokedAt = clock.GetUtcNow()</c>.</summary>
 /// <param name="db"></param>
+/// <param name="clock"></param>
 public sealed class RevokeApiKeyCommandHandler(
-    IdentityDbContext db) : ICommandHandler<RevokeApiKeyCommand, RevokeApiKeyResult>
+    IdentityDbContext db,
+    TimeProvider clock) : ICommandHandler<RevokeApiKeyCommand, RevokeApiKeyResult>
 {
     /// <inheritdoc />
     public async Task<RevokeApiKeyResult> HandleAsync(
         RevokeApiKeyCommand command,
         CancellationToken cancellationToken = default)
     {
-
         var rows = await db.ApiKeys
             .Where(key => key.Id == command.KeyId && key.UserId == command.OwnerId && key.RevokedAt == null)
             .ExecuteUpdateAsync(
-                setters => setters.SetProperty(key => key.RevokedAt, DateTimeOffset.UtcNow),
+                setters => setters.SetProperty(key => key.RevokedAt, clock.GetUtcNow()),
                 cancellationToken);
         if (rows == 0)
         {
@@ -152,16 +159,17 @@ public sealed class ListApiKeysQueryHandler(
 /// </summary>
 /// <param name="db"></param>
 /// <param name="mapper"></param>
+/// <param name="clock"></param>
 public sealed class AddSshKeyCommandHandler(
     IdentityDbContext db,
-    ISigilMapper mapper) : ICommandHandler<AddSshKeyCommand, SshKeySummary>
+    ISigilMapper mapper,
+    TimeProvider clock) : ICommandHandler<AddSshKeyCommand, SshKeySummary>
 {
     /// <inheritdoc />
     public async Task<SshKeySummary> HandleAsync(
         AddSshKeyCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (string.IsNullOrWhiteSpace(command.PublicKey))
         {
             throw new IdentityException(
@@ -203,7 +211,7 @@ public sealed class AddSshKeyCommandHandler(
             PublicKey = command.PublicKey,
             LastUsedAt = null,
             RevokedAt = null,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = clock.GetUtcNow(),
         };
 
         await db.SshKeys.AddAsync(sshKey, cancellationToken);
@@ -228,19 +236,20 @@ public sealed class AddSshKeyCommandHandler(
 
 /// <summary>Revoke an SSH key.</summary>
 /// <param name="db"></param>
+/// <param name="clock"></param>
 public sealed class RevokeSshKeyCommandHandler(
-    IdentityDbContext db) : ICommandHandler<RevokeSshKeyCommand, RevokeSshKeyResult>
+    IdentityDbContext db,
+    TimeProvider clock) : ICommandHandler<RevokeSshKeyCommand, RevokeSshKeyResult>
 {
     /// <inheritdoc />
     public async Task<RevokeSshKeyResult> HandleAsync(
         RevokeSshKeyCommand command,
         CancellationToken cancellationToken = default)
     {
-
         var rows = await db.SshKeys
             .Where(key => key.Id == command.KeyId && key.UserId == command.OwnerId && key.RevokedAt == null)
             .ExecuteUpdateAsync(
-                setters => setters.SetProperty(key => key.RevokedAt, DateTimeOffset.UtcNow),
+                setters => setters.SetProperty(key => key.RevokedAt, clock.GetUtcNow()),
                 cancellationToken);
         if (rows == 0)
         {

@@ -53,7 +53,7 @@ public sealed class DeleteClusterCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new DeleteClusterCommandHandler(db);
+        var sut = new DeleteClusterCommandHandler(db, TimeProvider.System);
         await sut.HandleAsync(new DeleteClusterCommand(clusterId));
 
         var cluster = await db.Clusters.AsNoTracking().SingleAsync();
@@ -68,7 +68,7 @@ public sealed class DeleteClusterCommandHandlerShould
     public async Task DeleteClusterThrowsForMissingAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new DeleteClusterCommandHandler(db);
+        var sut = new DeleteClusterCommandHandler(db, TimeProvider.System);
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new DeleteClusterCommand(IdGenerator.NewClusterId())));

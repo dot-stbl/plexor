@@ -27,7 +27,8 @@ public sealed class NodeCapabilityAggregatorTests
     {
         var aggregator = new NodeCapabilityAggregator(
             [],
-            NullLogger<NodeCapabilityAggregator>.Instance);
+            NullLogger<NodeCapabilityAggregator>.Instance,
+            TimeProvider.System);
 
         var report = await aggregator.AggregateAsync();
 
@@ -42,7 +43,8 @@ public sealed class NodeCapabilityAggregatorTests
     {
         var aggregator = new NodeCapabilityAggregator(
             [new FixedProbe("docker", ["docker-runtime", "host-bridge"])],
-            NullLogger<NodeCapabilityAggregator>.Instance);
+            NullLogger<NodeCapabilityAggregator>.Instance,
+            TimeProvider.System);
 
         var report = await aggregator.AggregateAsync();
 
@@ -66,7 +68,8 @@ public sealed class NodeCapabilityAggregatorTests
                 new FixedProbe("docker", ["docker-runtime", "host-bridge"]),
                 new FixedProbe("ovs", ["ovs-overlay", "host-bridge"]),
             ],
-            NullLogger<NodeCapabilityAggregator>.Instance);
+            NullLogger<NodeCapabilityAggregator>.Instance,
+            TimeProvider.System);
 
         var report = await aggregator.AggregateAsync();
 
@@ -92,7 +95,8 @@ public sealed class NodeCapabilityAggregatorTests
                 new FixedProbe("docker", ["docker-runtime"]),
                 new ThrowingProbe("kvm", "permission denied on /dev/kvm"),
             ],
-            NullLogger<NodeCapabilityAggregator>.Instance);
+            NullLogger<NodeCapabilityAggregator>.Instance,
+            TimeProvider.System);
 
         var report = await aggregator.AggregateAsync();
 
@@ -111,7 +115,8 @@ public sealed class NodeCapabilityAggregatorTests
     {
         var aggregator = new NodeCapabilityAggregator(
             [new HostBridgeCapabilityProbe()],
-            NullLogger<NodeCapabilityAggregator>.Instance);
+            NullLogger<NodeCapabilityAggregator>.Instance,
+            TimeProvider.System);
 
         var report = await aggregator.AggregateAsync();
 
@@ -128,7 +133,8 @@ public sealed class NodeCapabilityAggregatorTests
         var before = DateTimeOffset.UtcNow.AddSeconds(-1);
         var aggregator = new NodeCapabilityAggregator(
             [new HostBridgeCapabilityProbe()],
-            NullLogger<NodeCapabilityAggregator>.Instance);
+            NullLogger<NodeCapabilityAggregator>.Instance,
+            TimeProvider.System);
 
         var report = await aggregator.AggregateAsync();
         var after = DateTimeOffset.UtcNow.AddSeconds(1);
@@ -147,7 +153,8 @@ public sealed class NodeCapabilityAggregatorTests
     {
         var aggregator = new NodeCapabilityAggregator(
             [new FixedProbe("docker", ["docker-runtime", "host-bridge"])],
-            NullLogger<NodeCapabilityAggregator>.Instance);
+            NullLogger<NodeCapabilityAggregator>.Instance,
+            TimeProvider.System);
 
         var report = await aggregator.AggregateAsync();
 

@@ -4,18 +4,22 @@
 // GetUser / ListUsers. Co-located in one file because every handler
 // depends on the same IdentityDbContext + password hasher + refresh
 // store and they're < 80 lines each.
+//
+// Sprint 3 (item 1): all wall-clock reads moved from
+// DateTimeOffset.UtcNow to clock.GetUtcNow(); the TimeProvider is
+// injected via primary constructor per time-and-wire-format.md §3.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
+using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Users;
+using Plexor.Modules.Sigil.Domain;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
-using Plexor.Modules.Sigil.Infrastructure.Auth;
 using Plexor.Modules.Sigil.Infrastructure.Mappers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
-using Plexor.Shared.Kernel.Common;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Users;
 
@@ -28,16 +32,17 @@ namespace Plexor.Modules.Sigil.Infrastructure.Users;
 /// </summary>
 /// <param name="db"></param>
 /// <param name="passwordHasher"></param>
+/// <param name="clock"></param>
 public sealed class CreateUserCommandHandler(
     IdentityDbContext db,
-    IPasswordHasher passwordHasher) : ICommandHandler<CreateUserCommand, CreateUserResult>
+    IPasswordHasher passwordHasher,
+    TimeProvider clock) : ICommandHandler<CreateUserCommand, CreateUserResult>
 {
     /// <inheritdoc />
     public async Task<CreateUserResult> HandleAsync(
         CreateUserCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (string.IsNullOrWhiteSpace(command.Email) || !command.Email.Contains('@', StringComparison.Ordinal))
         {
             throw new IdentityException(
@@ -53,31 +58,33 @@ public sealed class CreateUserCommandHandler(
         }
 
         var email = new Email(command.Email);
-        if (await db.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(
-                    user => user.OrgId == command.OrgId && user.Email.Value == email.Value,
-                    cancellationToken) is not null)
+        var existing = await db.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                user => user.OrgId == command.OrgId && user.Email.Value == email.Value,
+                cancellationToken);
+        if (existing is not null)
         {
             throw new IdentityException(
                 IdentityExceptions.InvalidEmail,
                 "Email is already in use within this org.");
         }
 
+        var now = clock.GetUtcNow();
         var user = new User
         {
             Id = Guid.NewGuid(),
             OrgId = command.OrgId,
             Email = email,
             DisplayName = command.DisplayName,
-            Status = UserStatuses.Active,
+            Status = UserStatusValues.Active,
             PasswordHash = new PasswordHash(passwordHasher.HashPassword(
                 new User { Id = Guid.NewGuid() }, command.Password)),
             FailedLoginCount = 0,
             LockedUntil = null,
             LastLoginAt = null,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = now,
+            UpdatedAt = now,
         };
 
         await db.Users.AddAsync(user, cancellationToken);
@@ -93,16 +100,17 @@ public sealed class CreateUserCommandHandler(
 /// </summary>
 /// <param name="db"></param>
 /// <param name="mapper"></param>
+/// <param name="clock"></param>
 public sealed class UpdateUserCommandHandler(
     IdentityDbContext db,
-    ISigilMapper mapper) : ICommandHandler<UpdateUserCommand, UserSummary>
+    ISigilMapper mapper,
+    TimeProvider clock) : ICommandHandler<UpdateUserCommand, UserSummary>
 {
     /// <inheritdoc />
     public async Task<UserSummary> HandleAsync(
         UpdateUserCommand command,
         CancellationToken cancellationToken = default)
     {
-
         var exists = await db.Users
             .AsNoTracking()
             .AnyAsync(u => u.Id == command.UserId, cancellationToken);
@@ -113,13 +121,14 @@ public sealed class UpdateUserCommandHandler(
                 "User not found.");
         }
 
-        if (command.Status is { } newStatus && newStatus is not UserStatuses.Active and not UserStatuses.Suspended)
+        if (command.Status is { } newStatus && newStatus is not UserStatusValues.Active and not UserStatusValues.Suspended)
         {
             throw new IdentityException(
                 IdentityExceptions.InvalidCredentials,
-                $"Unknown status '{command.Status}'; expected '{UserStatuses.Active}' or '{UserStatuses.Suspended}'.");
+                $"Unknown status '{command.Status}'; expected '{UserStatusValues.Active}' or '{UserStatusValues.Suspended}'.");
         }
 
+        var now = clock.GetUtcNow();
         await db.Users
             .Where(u => u.Id == command.UserId)
             .ExecuteUpdateAsync(
@@ -133,7 +142,7 @@ public sealed class UpdateUserCommandHandler(
                     {
                         setters.SetProperty(u => u.Status, command.Status);
                     }
-                    setters.SetProperty(u => u.UpdatedAt, DateTimeOffset.UtcNow);
+                    setters.SetProperty(u => u.UpdatedAt, now);
                 },
                 cancellationToken);
 
@@ -152,21 +161,21 @@ public sealed class UpdateUserCommandHandler(
 /// <param name="db"></param>
 /// <param name="refreshTokens"></param>
 /// <param name="mapper"></param>
+/// <param name="clock"></param>
 public sealed class DisableUserCommandHandler(
     IdentityDbContext db,
     IRefreshTokenStore refreshTokens,
-    ISigilMapper mapper) : ICommandHandler<DisableUserCommand, UserSummary>
+    ISigilMapper mapper,
+    TimeProvider clock) : ICommandHandler<DisableUserCommand, UserSummary>
 {
     /// <inheritdoc />
     public async Task<UserSummary> HandleAsync(
         DisableUserCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (!await db.Users
                 .AsNoTracking()
-                .AnyAsync(u => u.Id == command.UserId, cancellationToken)
-)
+                .AnyAsync(u => u.Id == command.UserId, cancellationToken))
         {
             throw new IdentityException(
                 IdentityExceptions.InvalidCredentials,
@@ -177,8 +186,8 @@ public sealed class DisableUserCommandHandler(
             .Where(u => u.Id == command.UserId)
             .ExecuteUpdateAsync(
                 setters => setters
-                    .SetProperty(u => u.Status, UserStatuses.Suspended)
-                    .SetProperty(u => u.UpdatedAt, DateTimeOffset.UtcNow),
+                    .SetProperty(u => u.Status, UserStatusValues.Suspended)
+                    .SetProperty(u => u.UpdatedAt, clock.GetUtcNow()),
                 cancellationToken);
 
         // Revoke every refresh token the user owns. Done by walking
@@ -216,7 +225,6 @@ public sealed class GetUserQueryHandler(
         GetUserQuery command,
         CancellationToken cancellationToken = default)
     {
-
         var summary = await db.Users
             .AsNoTracking()
             .Where(u => u.Id == command.UserId)
@@ -238,8 +246,7 @@ public sealed class GetUserQueryHandler(
 public sealed class ListUsersQueryHandler(
     IdentityDbContext db, ISigilMapper mapper) : ICommandHandler<ListUsersQuery, UserPage>
 {
-    /// <summary>Hard cap on page size — protects against accidental
-    /// full-table dumps.</summary>
+    /// <summary>Hard cap on page size — protects against accidental full-table dumps.</summary>
     private const int MaxPageSize = 200;
 
     /// <inheritdoc />
@@ -247,7 +254,6 @@ public sealed class ListUsersQueryHandler(
         ListUsersQuery command,
         CancellationToken cancellationToken = default)
     {
-
         var pageSize = Math.Clamp(command.PageSize, 1, MaxPageSize);
         var page = Math.Max(1, command.Page);
 

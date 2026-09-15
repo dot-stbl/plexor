@@ -4,6 +4,10 @@
 // because every handler depends on the same ClusterDbContext, the
 // IWorkloadMapper, and the bodies are < 80 lines each. Pattern
 // mirrors ClusterCommandHandlers.
+//
+// Sprint 3 (item 1): all wall-clock reads moved from
+// DateTimeOffset.UtcNow to clock.GetUtcNow(); the TimeProvider is
+// injected via primary constructor per time-and-wire-format.md §3.
 // ==========================================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -42,11 +46,13 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 ///     orchestration-only (no private business logic — see
 ///     <c>code-shape.md §9</c>).
 /// </param>
+/// <param name="clock"></param>
 public sealed class CreateWorkloadCommandHandler(
     ClusterDbContext db,
     IWorkloadMapper mapper,
     IPlacementScheduler scheduler,
-    PlacementCandidateLoader candidateLoader) : ICommandHandler<CreateWorkloadCommand, WorkloadSummary>
+    PlacementCandidateLoader candidateLoader,
+    TimeProvider clock) : ICommandHandler<CreateWorkloadCommand, WorkloadSummary>
 {
     /// <inheritdoc />
     public async Task<WorkloadSummary> HandleAsync(
@@ -92,7 +98,7 @@ public sealed class CreateWorkloadCommandHandler(
             candidates,
             cancellationToken);
 
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         var workload = new Workload
         {
             Id = IdGenerator.NewWorkloadId(),
@@ -162,8 +168,10 @@ public sealed class DeleteWorkloadCommandHandler(
 ///     unreachable nodes).
 /// </summary>
 /// <param name="db">EF Core context for the write + read.</param>
+/// <param name="clock"></param>
 public sealed class WorkloadActionCommandHandler(
-    ClusterDbContext db) : ICommandHandler<WorkloadActionCommand, WorkloadActionResult>
+    ClusterDbContext db,
+    TimeProvider clock) : ICommandHandler<WorkloadActionCommand, WorkloadActionResult>
 {
     /// <summary>Total wait for the agent to acknowledge the action before failing fast.</summary>
     private static readonly TimeSpan AckTimeout = TimeSpan.FromSeconds(30);
@@ -227,7 +235,7 @@ public sealed class WorkloadActionCommandHandler(
                 LocalId: workload.LocalId));
 #pragma warning restore VSTHRD103
 
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         var nodeCommand = new Domain.Entities.NodeCommand(
             Id: Guid.NewGuid(),
             NodeId: workload.AssignedNodeId.Value,
@@ -246,8 +254,8 @@ public sealed class WorkloadActionCommandHandler(
         // a long-poll via the agent's existing transport — for
         // MVP we just spin on the local DB which gives the agent
         // enough time (its 5s long-poll) to pick the command up.
-        var deadline = DateTimeOffset.UtcNow + AckTimeout;
-        while (DateTimeOffset.UtcNow < deadline)
+        var deadline = clock.GetUtcNow() + AckTimeout;
+        while (clock.GetUtcNow() < deadline)
         {
             await Task.Delay(PollInterval, cancellationToken);
 

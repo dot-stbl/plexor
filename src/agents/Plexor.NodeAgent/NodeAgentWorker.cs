@@ -41,6 +41,7 @@ namespace Plexor.NodeAgent;
 /// <param name="logger"></param>
 /// <param name="config"></param>
 /// <param name="nodeOptions"></param>
+/// <param name="clock"></param>
 /// <remarks>
 ///     Build the worker. Hardware and control-plane URL
 ///     come from configuration (Plexor:Node:* keys).
@@ -50,7 +51,8 @@ internal sealed class NodeAgentWorker(
     CommandDispatcher dispatcher,
     ILogger<NodeAgentWorker> logger,
     NodeAgentWorker.NodeConfig config,
-    NodeAgentOptions nodeOptions) : BackgroundService
+    NodeAgentOptions nodeOptions,
+    TimeProvider clock) : BackgroundService
 {
     private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
@@ -185,7 +187,7 @@ internal sealed class NodeAgentWorker(
                 await transport.HeartbeatAsync(
                     new HeartbeatRequest(
                         current.NodeId,
-                        DateTimeOffset.UtcNow,
+                        clock.GetUtcNow(),
                         hardware,
                         0,
                         // Tier 4 wiring — Reports list drives

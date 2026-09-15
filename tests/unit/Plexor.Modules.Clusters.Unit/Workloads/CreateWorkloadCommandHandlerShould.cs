@@ -33,7 +33,7 @@ public sealed class CreateWorkloadCommandHandlerShould
         var scheduler = Substitute.For<IPlacementScheduler>();
         scheduler.SelectNodeAsync(Arg.Any<WorkloadSpec>(), Arg.Any<IReadOnlyList<NodeCandidate>>(), Arg.Any<CancellationToken>())
             .Returns((NodeId?)null);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db), TimeProvider.System);
 
         var result = await sut.HandleAsync(
             new CreateWorkloadCommand(cluster.Id, "web-1", "vm", /*lang=json,strict*/ """{"image":"nginx:latest"}"""));
@@ -64,7 +64,7 @@ public sealed class CreateWorkloadCommandHandlerShould
         var scheduler = Substitute.For<IPlacementScheduler>();
         scheduler.SelectNodeAsync(Arg.Any<WorkloadSpec>(), Arg.Any<IReadOnlyList<NodeCandidate>>(), Arg.Any<CancellationToken>())
             .Returns(assignedNode);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db), TimeProvider.System);
 
         var result = await sut.HandleAsync(
             new CreateWorkloadCommand(cluster.Id, "web-1", "vm", "{}"));
@@ -88,7 +88,7 @@ public sealed class CreateWorkloadCommandHandlerShould
         var scheduler = Substitute.For<IPlacementScheduler>();
         scheduler.SelectNodeAsync(Arg.Any<WorkloadSpec>(), Arg.Any<IReadOnlyList<NodeCandidate>>(), Arg.Any<CancellationToken>())
             .Returns((NodeId?)null);
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db), TimeProvider.System);
 
         var result = await sut.HandleAsync(
             new CreateWorkloadCommand(cluster.Id, "web-1", "vm", "{}"));
@@ -104,7 +104,7 @@ public sealed class CreateWorkloadCommandHandlerShould
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
         var scheduler = Substitute.For<IPlacementScheduler>();
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db), TimeProvider.System);
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "", "vm", "{}")));
@@ -121,7 +121,7 @@ public sealed class CreateWorkloadCommandHandlerShould
         await using var db = await TestDb.CreateAsync();
         var cluster = await SeedClusterAsync(db);
         var scheduler = Substitute.For<IPlacementScheduler>();
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db), TimeProvider.System);
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "web-1", "", "{}")));
@@ -148,7 +148,7 @@ public sealed class CreateWorkloadCommandHandlerShould
         });
         await db.SaveChangesAsync();
         var scheduler = Substitute.For<IPlacementScheduler>();
-        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db));
+        var sut = new CreateWorkloadCommandHandler(db, new WorkloadMapper(), scheduler, new PlacementCandidateLoader(db), TimeProvider.System);
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateWorkloadCommand(cluster.Id, "web-1", "vm", "{}")));

@@ -31,20 +31,28 @@ using Plexor.Shared.Workloads;
 namespace Plexor.NodeAgent.Providers;
 
 /// <summary>
-///     <see cref="IWorkloadProvider" /> for QEMU VMs without KVM
+///     <para>
+/// <see cref="IWorkloadProvider" /> for QEMU VMs without KVM
 ///     acceleration. Same wire format as <see cref="LibvirtKvmProvider" />
 ///     (same XML builder, just a different <c>type</c> +
 ///     <c>machine</c> attribute) but a different
 ///     <see cref="WorkloadKind" /> so the agent's dispatcher routes
 ///     the right commands to the right backend.
+/// </para>
+/// <para>
+///     Sprint 3 (item 1): wall-clock now read via injected
+///     <see cref="TimeProvider" /> per time-and-wire-format.md §3.
+/// </para>
 /// </summary>
 /// <param name="volumes">Storage backend — supplies the qcow2 disk image the VM boots from.</param>
 /// <param name="networks">Network topology backend — supplies the bridge the VM's NIC attaches to.</param>
 /// <param name="logger"></param>
+/// <param name="clock"></param>
 public sealed class LibvirtQemuProvider(
     IVolumeBackend volumes,
     INetworkBackend networks,
-    ILogger<LibvirtQemuProvider> logger) : IWorkloadProvider
+    ILogger<LibvirtQemuProvider> logger,
+    TimeProvider clock) : IWorkloadProvider
 {
     /// <summary>
     ///     The libvirt URI for QEMU on the local system.
@@ -54,7 +62,7 @@ public sealed class LibvirtQemuProvider(
     /// </summary>
     public static readonly Uri LibvirtUri = new("qemu:///system");
 
-    private readonly WorkloadIdMap workloads = new();
+    private readonly WorkloadIdMap workloads = new(clock);
 
     /// <inheritdoc />
     public WorkloadKind Kind => new WorkloadKind.Qemu();
@@ -131,14 +139,15 @@ public sealed class LibvirtQemuProvider(
             }
         }
 
+        var now = clock.GetUtcNow();
         workloads.Register(id, spec.Name, Kind, volumeHandle, networkHandle);
         return new LocalWorkload(
             id,
             spec.Name,
             Kind,
             WorkloadState.Running,
-            DateTimeOffset.UtcNow,
-            DateTimeOffset.UtcNow);
+            now,
+            now);
     }
 
     /// <inheritdoc />
@@ -147,7 +156,7 @@ public sealed class LibvirtQemuProvider(
         var entry = workloads.GetOrThrow(id);
         await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Running);
-        return Snapshot(id, DateTimeOffset.UtcNow);
+        return Snapshot(id, clock.GetUtcNow());
     }
 
     /// <inheritdoc />
@@ -196,7 +205,7 @@ public sealed class LibvirtQemuProvider(
             entry.DomainName,
             entry.Kind,
             WorkloadState.Stopped,
-            DateTimeOffset.UtcNow,
+            clock.GetUtcNow(),
             null);
     }
 
@@ -215,7 +224,7 @@ public sealed class LibvirtQemuProvider(
             entry.DomainName,
             entry.Kind,
             entry.State,
-            DateTimeOffset.UtcNow,
+            clock.GetUtcNow(),
             startedAt);
     }
 }

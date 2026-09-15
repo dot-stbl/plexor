@@ -4,6 +4,10 @@
 // NodeAgent-facing surface. NodeJoin is the only endpoint that runs
 // without a node-bearer token (it authenticates via the one-time join
 // token); the others require a valid node-bearer token.
+//
+// Sprint 3 (item 1): all wall-clock reads moved from
+// DateTimeOffset.UtcNow to clock.GetUtcNow(); the TimeProvider is
+// injected via primary constructor per time-and-wire-format.md §3.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -29,17 +33,18 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 /// <param name="db">ClusterDbContext for writes + cluster lookup.</param>
 /// <param name="tokenRepo">Read surface for token-by-hash lookup.</param>
 /// <param name="caAuthority"></param>
+/// <param name="clock"></param>
 public sealed class NodeJoinCommandHandler(
     ClusterDbContext db,
     Repository<JoinToken> tokenRepo,
-    ICertificateAuthority caAuthority) : ICommandHandler<NodeJoinCommand, NodeJoinResult>
+    ICertificateAuthority caAuthority,
+    TimeProvider clock) : ICommandHandler<NodeJoinCommand, NodeJoinResult>
 {
     /// <inheritdoc />
     public async Task<NodeJoinResult> HandleAsync(
         NodeJoinCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (string.IsNullOrWhiteSpace(command.JoinToken))
         {
             throw new ClustersException(
@@ -62,7 +67,7 @@ public sealed class NodeJoinCommandHandler(
                 "Join token is invalid, revoked, or expired.");
         }
 
-        if (token.ExpiresAt < DateTimeOffset.UtcNow)
+        if (token.ExpiresAt < clock.GetUtcNow())
         {
             throw new ClustersException(
                 ClustersExceptions.InvalidJoinToken,
@@ -96,7 +101,7 @@ public sealed class NodeJoinCommandHandler(
                 $"Hostname '{command.Hostname}' is already taken in this cluster.");
         }
 
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         var nodeId = IdGenerator.NewNodeId();
         var node = new Node
         {
@@ -172,15 +177,16 @@ public sealed class NodeJoinCommandHandler(
 ///     <see cref="ListNodesQueryHandler" /> for Repository pattern).
 /// </summary>
 /// <param name="db"></param>
+/// <param name="clock"></param>
 public sealed class NodeHeartbeatCommandHandler(
-    ClusterDbContext db) : ICommandHandler<NodeHeartbeatCommand, NodeHeartbeatResult>
+    ClusterDbContext db,
+    TimeProvider clock) : ICommandHandler<NodeHeartbeatCommand, NodeHeartbeatResult>
 {
     /// <inheritdoc />
     public async Task<NodeHeartbeatResult> HandleAsync(
         NodeHeartbeatCommand command,
         CancellationToken cancellationToken = default)
     {
-
         if (await db.Clusters
             .AsNoTracking()
             .Where(cluster => cluster.Id == command.ClusterId)
@@ -201,7 +207,7 @@ public sealed class NodeHeartbeatCommandHandler(
                 $"Node '{command.NodeId}' in cluster '{command.ClusterId}' not found.");
         }
 
-        var now = DateTimeOffset.UtcNow;
+        var now = clock.GetUtcNow();
         db.Entry(node).Property(static n => n.LastHeartbeatAt).CurrentValue = now;
         // Don't flip a draining node back to Ready mid-drain — operators
         // want the drain to complete cleanly. Likewise an Offline cluster
@@ -235,7 +241,7 @@ public sealed class NodeHeartbeatCommandHandler(
 
         await db.SaveChangesAsync(cancellationToken);
 
-        return new NodeHeartbeatResult(command.NodeId, clusterStatus, DateTimeOffset.UtcNow);
+        return new NodeHeartbeatResult(command.NodeId, clusterStatus, clock.GetUtcNow());
     }
 
     /// <summary>

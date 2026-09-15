@@ -15,7 +15,7 @@ public sealed class CreateClusterCommandHandlerShould
     public async Task CreateClusterPersistsClusterAndReturnsTokenAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, TimeProvider.System);
         var command = new CreateClusterCommand(
             Guid.NewGuid(),
             "prod-eu-1",
@@ -57,7 +57,7 @@ public sealed class CreateClusterCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, TimeProvider.System);
         var command = new CreateClusterCommand(orgId, "prod-eu-1", "eu-west-1", NodeRole.Control);
 
         var ex = await Should.ThrowAsync<ClustersException>(() => sut.HandleAsync(command));
@@ -68,7 +68,7 @@ public sealed class CreateClusterCommandHandlerShould
     public async Task CreateClusterRejectsEmptyNameAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, TimeProvider.System);
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateClusterCommand(Guid.NewGuid(), "", "eu-central-1", NodeRole.Control)));
@@ -84,7 +84,7 @@ public sealed class CreateClusterCommandHandlerShould
     public async Task CreateClusterRejectsInvalidRuntimeIdAsync(string? runtimeId)
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, TimeProvider.System);
 
         var ex = await Should.ThrowAsync<ClustersException>(() =>
             sut.HandleAsync(new CreateClusterCommand(
@@ -103,7 +103,7 @@ public sealed class CreateClusterCommandHandlerShould
     public async Task CreateClusterPersistsSupportedRuntimeIdAsync(string runtimeId)
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, TimeProvider.System);
         var name = $"cluster-{Guid.NewGuid().ToString("N")[..8]}";
 
         await sut.HandleAsync(new CreateClusterCommand(
@@ -121,7 +121,7 @@ public sealed class CreateClusterCommandHandlerShould
     public async Task CreateClusterDefaultsRuntimeIdAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, TimeProvider.System);
         var name = $"cluster-{Guid.NewGuid().ToString("N")[..8]}";
 
         await sut.HandleAsync(new CreateClusterCommand(

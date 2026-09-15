@@ -23,9 +23,11 @@ namespace Plexor.Shared.Capabilities;
 /// </summary>
 /// <param name="probes"></param>
 /// <param name="logger"></param>
+/// <param name="clock"></param>
 public sealed class NodeCapabilityAggregator(
     IEnumerable<ICapabilityProbe> probes,
-    ILogger<NodeCapabilityAggregator> logger)
+    ILogger<NodeCapabilityAggregator> logger,
+    TimeProvider clock)
 {
     /// <summary>
     ///     Run every probe, collect capabilities, return a sorted
@@ -48,7 +50,7 @@ public sealed class NodeCapabilityAggregator(
         }
 
         await Task.WhenAll(tasks);
-        return new NodeCapabilityReport(union, DateTimeOffset.UtcNow);
+        return new NodeCapabilityReport(union, clock.GetUtcNow());
     }
 
     private async Task RunOneAsync(

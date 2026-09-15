@@ -46,7 +46,7 @@ public sealed class RotateJoinTokenCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new RotateJoinTokenCommandHandler(db);
+        var sut = new RotateJoinTokenCommandHandler(db, TimeProvider.System);
         var result = await sut.HandleAsync(new RotateJoinTokenCommand(clusterId));
 
         result.ClusterId.ShouldBe(clusterId);
@@ -84,7 +84,7 @@ public sealed class RotateJoinTokenCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new RotateJoinTokenCommandHandler(db);
+        var sut = new RotateJoinTokenCommandHandler(db, TimeProvider.System);
         var result = await sut.HandleAsync(new RotateJoinTokenCommand(clusterId));
 
         result.Token.ShouldNotBeNullOrWhiteSpace();
@@ -134,7 +134,7 @@ public sealed class RotateJoinTokenCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var rotater = new RotateJoinTokenCommandHandler(db);
+        var rotater = new RotateJoinTokenCommandHandler(db, TimeProvider.System);
         await rotater.HandleAsync(new RotateJoinTokenCommand(clusterId));
 
         // ExecuteUpdate bypasses the change tracker; the tracker still
@@ -147,7 +147,8 @@ public sealed class RotateJoinTokenCommandHandlerShould
         var joiner = new NodeJoinCommandHandler(
             db,
             new JoinTokenRepository(db),
-            new InMemoryCertificateAuthority());
+            new InMemoryCertificateAuthority(),
+            TimeProvider.System);
         var ex = await Should.ThrowAsync<ClustersException>(() =>
             joiner.HandleAsync(new NodeJoinCommand(
                 oldSecret,
@@ -192,13 +193,14 @@ public sealed class RotateJoinTokenCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var rotater = new RotateJoinTokenCommandHandler(db);
+        var rotater = new RotateJoinTokenCommandHandler(db, TimeProvider.System);
         var rotateResult = await rotater.HandleAsync(new RotateJoinTokenCommand(clusterId));
 
         var joiner = new NodeJoinCommandHandler(
             db,
             new JoinTokenRepository(db),
-            new InMemoryCertificateAuthority());
+            new InMemoryCertificateAuthority(),
+            TimeProvider.System);
         var joinResult = await joiner.HandleAsync(new NodeJoinCommand(
             rotateResult.Token,
             "node-rotated",
