@@ -13,6 +13,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Plexor.Modules.Quotas.Application.Quotas;
+using Plexor.Modules.Quotas.Infrastructure.Audit;
 using Plexor.Modules.Quotas.Infrastructure.Persistence;
 using Plexor.Modules.Quotas.Infrastructure.Quotas;
 using Plexor.Shared.Kernel.Quotas;
@@ -102,15 +103,17 @@ public static class QuotasInfrastructureInstaller
         // the assignment repo.
         services.AddScoped<IQuotaUsageReader, EfQuotaUsageReader>();
 
-        // IQuotaAuditEmitter — 4.5.h. v1 writes one structured log
-        // line per quota audit event (UsageExceeded + LimitApproaching
-        // from the enforcer; AssignmentChanged + AssignmentRemoved from
-        // the controller). Phase 5+ swaps the implementation for an
-        // atlas.audit_entries insert behind the same interface.
-        // Scoped — the enforcer + the controller share the per-request
-        // lifetime so the emit can carry request-scoped enrichments
-        // via the logger scope.
-        services.AddScoped<IQuotaAuditEmitter, LoggingQuotaAuditEmitter>();
+        // IQuotaAuditEmitter — 4.5.h. Replaced the v1 LoggingQuotaAuditEmitter
+        // with DelegatingQuotaAuditEmitter that adapts the quota-
+        // specific QuotaAuditContext to the generic IAuditEmitter
+        // contract (Phase 5.1). The inner IAuditEmitter is bound in
+        // Plexor.Modules.Audit.Infrastructure.Installers and writes
+        // to atlas.audit_entries — call sites in EfQuotaEnforcer +
+        // QuotasController stay unchanged. Scoped — the enforcer +
+        // the controller share the per-request lifetime so the emit
+        // rides the same transaction boundary as the action that
+        // triggered it.
+        services.AddScoped<IQuotaAuditEmitter, DelegatingQuotaAuditEmitter>();
 
         // RateLimitCleanupService — singleton hosted service. The
         // BackgroundService opens its own scope per sweep (DbContext
