@@ -27,9 +27,9 @@
  * sidebar / favicon script (commit db0de5c).
  */
 import type {
-  GlobalBrandingConfig,
-  OrgBrandingConfig,
-} from '@/features/branding/branding-types';
+  GlobalThemeConfigResponse,
+  OrgBrandingConfigResponse,
+} from '@/shared/api';
 
 export interface PlexorBootConfig {
   readonly brand: {
@@ -47,8 +47,8 @@ export interface PlexorBootConfig {
    * the host hasn't shipped a branding section yet (dev / older host).
    */
   readonly branding?: {
-    readonly global: GlobalBrandingConfig;
-    readonly org: OrgBrandingConfig | null;
+    readonly global: GlobalThemeConfigResponse;
+    readonly org: OrgBrandingConfigResponse | null;
   };
 }
 
