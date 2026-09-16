@@ -18,7 +18,7 @@ import {
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { routeHead } from '@/shared/lib/route-head';
 import { useAudit } from '@/features/audit/use-audit';
-import type { AuditEntry, AuditQueryParams } from '@/features/audit/audit-types';
+import type { AuditQueryResponse, GetAuditQueryParams } from '@/shared/api';
 
 /**
  * AdminAuditPage — tenant-scoped admin read surface for the
@@ -61,12 +61,12 @@ const EMPTY_FILTERS: FilterState = {
   since: '',
 };
 
-function toParams(filters: FilterState, before: string | null): AuditQueryParams {
+function toParams(filters: FilterState, before: string | null): GetAuditQueryParams {
   return {
-    action: filters.action.trim() ? filters.action.trim() : null,
-    actorUserId: filters.actorUserId.trim() ? filters.actorUserId.trim() : null,
-    since: filters.since.trim() ? `${filters.since.trim()}T00:00:00Z` : null,
-    before,
+    action: filters.action.trim() || undefined,
+    actorUserId: filters.actorUserId.trim() || undefined,
+    since: filters.since.trim() ? `${filters.since.trim()}T00:00:00Z` : undefined,
+    before: before ?? undefined,
     limit: PAGE_SIZE,
   };
 }
@@ -86,7 +86,7 @@ function AdminAuditPage() {
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [beforeCursor, setBeforeCursor] = useState<string | null>(null);
-  const [rows, setRows] = useState<AuditEntry[]>([]);
+  const [rows, setRows] = useState<AuditQueryResponse[]>([]);
 
   const auditQuery = useAudit(toParams(appliedFilters, beforeCursor));
 
