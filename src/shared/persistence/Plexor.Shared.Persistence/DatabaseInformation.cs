@@ -139,6 +139,15 @@ public static class DatabaseInformation
         /// <summary>Clusters module — one row per joined NodeAgent node.</summary>
         public const string Nodes = "nodes";
 
+        /// <summary>
+        ///     Outpost module — host-side view of every joined
+        ///     Plexor.NodeAgent. outpost schema, snake_case
+        ///     <c>node_records</c> table. Extracted from forge.nodes
+        ///     as part of the Outpost module split; Clusters no longer
+        ///     owns the node-tracking read surface.
+        /// </summary>
+        public const string NodeRecords = "node_records";
+
         /// <summary>Clusters module — one-time join tokens issued by the
         /// control plane and redeemed by NodeAgent on first connect.</summary>
         public const string JoinTokens = "join_tokens";
