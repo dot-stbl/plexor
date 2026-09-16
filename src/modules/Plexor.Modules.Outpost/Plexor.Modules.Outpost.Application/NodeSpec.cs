@@ -9,6 +9,8 @@
 // a schema migration.
 // ============================================================================
 
+using Plexor.Modules.Clusters.Domain;
+
 namespace Plexor.Modules.Outpost.Application;
 
 /// <summary>
