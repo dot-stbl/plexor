@@ -18,6 +18,16 @@ tags:
     description: Virtual machines
   - name: nodes
     description: Compute nodes (Plexor.NodeAgent hosts)
+  - name: quotas
+    description: Quota definitions, assignments, usage and effective rollups
+  - name: branding
+    description: Operator-global + per-org branding (theme tokens, logos, brand name)
+  - name: audit
+    description: Tenant-scoped audit timeline (append-only, query-only)
+  - name: auth-providers
+    description: Per-org identity provider configuration (OIDC, LDAP, ...)
+  - name: oidc
+    description: OIDC sign-in flow (anonymous, browser-driven)
 
 paths:
   /vms:
@@ -231,6 +241,514 @@ paths:
         '400':
           $ref: '#/components/responses/Problem'
 
+  # ───────────────────────── quotas ─────────────────────────
+  /quotas/definitions:
+    get:
+      operationId: getQuotaDefinitions
+      tags: [quotas]
+      summary: List all quota definitions
+      description: >
+        Returns every quota definition registered in the platform.
+        Definitions are global (org-independent) — they describe the
+        metric + ceiling; assignments are how they're scoped to orgs,
+        teams, and folders. The result is read-only for callers;
+        definitions are seeded by the host on boot.
+      responses:
+        '200':
+          description: List of quota definitions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/QuotaDefinitionSummary' }
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /quotas/assignments:
+    parameters:
+      - name: scope
+        in: query
+        required: false
+        description: Filter to a single scope tier ('org', 'team', or 'folder').
+        schema: { type: string, enum: [org, team, folder] }
+      - name: id
+        in: query
+        required: false
+        description: Filter to the resource with this id (orgId/teamId/folderId depending on scope).
+        schema: { type: string, format: uuid }
+    get:
+      operationId: listQuotaAssignments
+      tags: [quotas]
+      summary: List quota assignments
+      description: >
+        Returns every quota assignment that targets the given scope
+        (or the caller's org when no filter is supplied). An
+        assignment binds one definition to one scope (org, team, or
+        folder) with an explicit ceiling; the effective rollup
+        (GET /quotas/effective) merges assignments with parent scopes.
+      responses:
+        '200':
+          description: List of quota assignments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/QuotaAssignmentSummary' }
+        default:
+          $ref: '#/components/responses/Problem'
+    put:
+      operationId: upsertQuotaAssignment
+      tags: [quotas]
+      summary: Upsert a quota assignment
+      description: >
+        Creates or updates a quota assignment. The (definitionId,
+        scope, scopeId) tuple is the natural key — replays against
+        the same triple overwrite the existing row's ceiling. The
+        audit log records both the create and the update events.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpsertQuotaAssignmentRequest' }
+      responses:
+        '200':
+          description: The upserted assignment.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QuotaAssignmentSummary' }
+        '400':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /quotas/assignments/{assignmentId}:
+    parameters:
+      - name: assignmentId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    delete:
+      operationId: deleteQuotaAssignment
+      tags: [quotas]
+      summary: Delete a quota assignment
+      description: >
+        Removes the assignment row. The next read of the affected
+        scope (org/team/folder) reverts to the parent scope's
+        effective ceiling (or the platform default if no parent
+        scope has an override). 404 when no row matches.
+      responses:
+        '204':
+          description: Deleted.
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /quotas/usage:
+    parameters:
+      - name: scope
+        in: query
+        required: false
+        schema: { type: string, enum: [org, team, folder] }
+      - name: id
+        in: query
+        required: false
+        schema: { type: string, format: uuid }
+    get:
+      operationId: listQuotaUsage
+      tags: [quotas]
+      summary: Current quota usage per definition
+      description: >
+        Returns the live usage for every definition the scope is
+        bound to. The metric is whatever the definition measures
+        (vCPUs, GB of RAM, etc.) — the row's `metric` field is the
+        human-readable name (e.g. `vcpu`, `ramGb`); `used` is the
+        observed value, `limit` is the effective ceiling (after
+        merging parent overrides).
+      responses:
+        '200':
+          description: Per-definition usage rows.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/QuotaUsageEntry' }
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /quotas/effective:
+    parameters:
+      - name: scope
+        in: query
+        required: false
+        schema: { type: string, enum: [org, team, folder] }
+      - name: id
+        in: query
+        required: false
+        schema: { type: string, format: uuid }
+    get:
+      operationId: listEffectiveQuotas
+      tags: [quotas]
+      summary: Effective quotas after scope merging
+      description: >
+        Same shape as `usage`, but `limit` is the merged ceiling
+        after walking up the scope tree (folder → team → org →
+        platform default). Useful for the admin UI's "what limits
+        apply to this scope?" pane.
+      responses:
+        '200':
+          description: Effective rollup rows.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EffectiveQuotaEntry' }
+        default:
+          $ref: '#/components/responses/Problem'
+
+  # ───────────────────────── branding ─────────────────────────
+  /branding/global:
+    get:
+      operationId: getBrandingGlobal
+      tags: [branding]
+      summary: Read the operator-global branding row
+      description: >
+        The seeder inserts a default row on first boot; the API
+        returns 200 with the defaults even before the seeder runs
+        (defensive). `branding.read` permission.
+      responses:
+        '200':
+          description: Global branding configuration.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GlobalThemeConfigResponse' }
+        default:
+          $ref: '#/components/responses/Problem'
+    put:
+      operationId: updateBrandingGlobal
+      tags: [branding]
+      summary: Upsert the operator-global branding row
+      description: >
+        Replaces the global row. The boot config endpoint
+        (GET /branding/boot) merges this row with the caller's
+        per-org override; null fields here fall back to the preset
+        defaults. `branding.update` permission (admin-only).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpsertGlobalThemeConfigRequest' }
+      responses:
+        '200':
+          description: The upserted global row.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GlobalThemeConfigResponse' }
+        '400':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /branding/boot:
+    get:
+      operationId: getBrandingBoot
+      tags: [branding]
+      summary: Resolved boot config for the caller
+      description: >
+        Merges the operator-global row + the caller's per-org
+        override into a single flat object suitable for the boot
+        script (writes to `window.__PLEXOR_CONFIG__` server-side).
+        Null fields in the org override fall back to the global
+        value; missing fields in the global row fall back to the
+        preset defaults.
+      responses:
+        '200':
+          description: Resolved branding for the caller.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BrandingBootConfig' }
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /branding/org/{orgId}:
+    parameters:
+      - name: orgId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: getBrandingOrg
+      tags: [branding]
+      summary: Read the per-org branding override
+      description: >
+        Returns 404 when no override exists for the org (the org
+        inherits the operator-global row). The override is the
+        per-tenant view; null fields inherit.
+      responses:
+        '200':
+          description: Org-specific override.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrgBrandingConfigResponse' }
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+    put:
+      operationId: updateBrandingOrg
+      tags: [branding]
+      summary: Upsert the per-org branding override
+      description: >
+        Null fields mean "inherit the operator-global default". The
+        first write creates the override row; subsequent writes
+        update in place.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpsertOrgBrandingRequest' }
+      responses:
+        '200':
+          description: The upserted override row.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrgBrandingConfigResponse' }
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+    delete:
+      operationId: deleteBrandingOrg
+      tags: [branding]
+      summary: Reset the per-org override
+      description: >
+        Idempotent — a missing row is a no-op. After the delete
+        the org reverts to the operator-global defaults; the next
+        call to /branding/boot returns the global values verbatim
+        for that org.
+      responses:
+        '204':
+          description: Reset (or already absent).
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  # ───────────────────────── audit ─────────────────────────
+  /audit:
+    get:
+      operationId: getAudit
+      tags: [audit]
+      summary: Tenant-scoped audit timeline
+      description: >
+        Returns rows in `occurredAt` DESC order. The host forces
+        `orgId = caller.tenant_id` so a caller in Org X cannot
+        enumerate Org Y's rows. Pagination is offset-based via
+        the `before` cursor (pass the oldest row's `occurredAt`
+        from the previous page); `limit` is clamped to [1, 500]
+        by the host (default 100).
+      parameters:
+        - name: action
+          in: query
+          required: false
+          description: Filter to a single action wire name.
+          schema: { type: string }
+        - name: orgId
+          in: query
+          required: false
+          description: Override the caller's tenant scope. Restricted to platform admins.
+          schema: { type: string, format: uuid }
+        - name: actorUserId
+          in: query
+          required: false
+          description: Filter to a single actor (user or API-key owner).
+          schema: { type: string, format: uuid }
+        - name: since
+          in: query
+          required: false
+          description: ISO timestamp — only events fired at-or-after this boundary.
+          schema: { type: string, format: date-time }
+        - name: before
+          in: query
+          required: false
+          description: ISO timestamp — only events fired strictly before this boundary (offset cursor).
+          schema: { type: string, format: date-time }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 500, default: 100 }
+      responses:
+        '200':
+          description: Audit rows.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AuditQueryResponse' }
+        default:
+          $ref: '#/components/responses/Problem'
+
+  # ─────────────────── auth providers (per org) ───────────────────
+  /iam/orgs/{orgId}/auth-provider:
+    parameters:
+      - name: orgId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      operationId: getOrgAuthProvider
+      tags: [auth-providers]
+      summary: Read the org's identity-provider configuration
+      description: >
+        Returns the active provider (OIDC, LDAP, or local-only) +
+        the operator-controlled knobs. 404 when the org hasn't
+        picked a provider yet — the platform default (local) is
+        implied until then. Sensitive fields (client secrets,
+        bind passwords) are write-only; the GET response carries
+        a sentinel (`"***"`) instead of the real value.
+      responses:
+        '200':
+          description: The org's auth-provider config.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrgAuthProviderConfigResponse' }
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+    put:
+      operationId: updateOrgAuthProvider
+      tags: [auth-providers]
+      summary: Upsert the org's identity-provider configuration
+      description: >
+        Replaces the provider config atomically. To rotate a
+        secret without changing other fields, read the existing
+        row, copy the unchanged fields, and re-PUT — secrets are
+        write-only and a missing secret field preserves the
+        stored value. The /test endpoint exists to validate the
+        new config without committing to it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpsertOrgAuthProviderRequest' }
+      responses:
+        '200':
+          description: The upserted config (secrets returned as sentinels).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrgAuthProviderConfigResponse' }
+        '400':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /iam/orgs/{orgId}/auth-provider/test:
+    parameters:
+      - name: orgId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      operationId: testOrgAuthProvider
+      tags: [auth-providers]
+      summary: Validate the org's identity-provider configuration
+      description: >
+        Round-trips against the configured provider without
+        touching the session. Returns the result plus a
+        diagnostic message; the test never persists side effects.
+        Useful for the "Test connection" button on the auth
+        admin page.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpsertOrgAuthProviderRequest' }
+      responses:
+        '200':
+          description: Test result.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrgAuthProviderTestResult' }
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  # ───────────────────────── OIDC flow (anonymous) ─────────────────────────
+  /auth/oidc/authorize:
+    get:
+      operationId: getOidcAuthorize
+      tags: [oidc]
+      summary: Begin the OIDC sign-in flow
+      description: >
+        Anonymous. Browser-driven — the server returns a 302 to
+        the configured IdP's authorization endpoint. The
+        generated hook is here for completeness; in practice the
+        browser navigates directly via `<a href>` or
+        `window.location.assign`.
+      security: []
+      parameters:
+        - name: org
+          in: query
+          required: true
+          description: Tenant scope for the resulting session.
+          schema: { type: string, format: uuid }
+        - name: redirect
+          in: query
+          required: false
+          description: Post-login redirect target (path only, must be on this origin).
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirect to the IdP's authorization endpoint.
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /auth/oidc/callback:
+    get:
+      operationId: getOidcCallback
+      tags: [oidc]
+      summary: Handle the OIDC callback from the IdP
+      description: >
+        Anonymous. Exchanges the authorization code for tokens,
+        sets the session cookie, and 302s to the original `redirect`
+        target (or `/` if none).
+      security: []
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema: { type: string }
+        - name: state
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirect to the post-login target with a session cookie set.
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /auth/oidc/logout:
+    post:
+      operationId: postOidcLogout
+      tags: [oidc]
+      summary: Sign out and clear the session
+      description: >
+        Anonymous. Clears the session cookie and 302s to the IdP's
+        end-session endpoint (if configured), otherwise to `/`.
+      security: []
+      responses:
+        '204':
+          description: Signed out.
+        default:
+          $ref: '#/components/responses/Problem'
+
 components:
   parameters:
     VmId:
@@ -438,3 +956,375 @@ components:
           nullable: true
           description: Required when status is 'failed'; null otherwise.
         completedAt: { type: string, format: date-time }
+
+    # ───────────────────────── quotas ─────────────────────────
+    QuotaDefinitionSummary:
+      type: object
+      description: A registered quota definition (metric + unit + platform default ceiling).
+      required: [id, key, displayName, metric, unit, defaultCeiling]
+      properties:
+        id: { type: string, format: uuid }
+        key:
+          type: string
+          description: Stable identifier (e.g. `compute.vcpu`, `memory.ramGb`).
+          example: compute.vcpu
+        displayName: { type: string, example: vCPUs per scope }
+        metric:
+          type: string
+          description: The field on the resource this quota measures (vCPUs, GB of RAM, ...).
+          example: vcpu
+        unit:
+          type: string
+          description: Display unit (count, GB, GiB-hours, ...).
+          example: count
+        defaultCeiling:
+          type: integer
+          format: int64
+          description: Platform default ceiling — applied when no assignment overrides it.
+          minimum: 0
+          example: 64
+
+    QuotaAssignmentSummary:
+      type: object
+      description: One (definition, scope, scopeId, ceiling) tuple.
+      required: [id, definitionId, scope, scopeId, ceiling, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        definitionId: { type: string, format: uuid }
+        scope:
+          type: string
+          enum: [org, team, folder]
+        scopeId: { type: string, format: uuid }
+        ceiling:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 32
+        updatedAt: { type: string, format: date-time }
+
+    QuotaUsageEntry:
+      type: object
+      description: Live usage for one (definition, scope) pair.
+      required: [definitionId, metric, used, limit]
+      properties:
+        definitionId: { type: string, format: uuid }
+        metric: { type: string, example: vcpu }
+        used: { type: integer, format: int64, minimum: 0, example: 18 }
+        limit:
+          type: integer
+          format: int64
+          description: Effective ceiling after merging parent overrides.
+          minimum: 0
+          example: 32
+        updatedAt: { type: string, format: date-time }
+
+    EffectiveQuotaEntry:
+      type: object
+      description: Effective rollup of a definition for a scope (what ceiling applies here, after merging).
+      required: [definitionId, metric, scope, scopeId, effectiveCeiling, appliedAssignmentIds]
+      properties:
+        definitionId: { type: string, format: uuid }
+        metric: { type: string, example: vcpu }
+        scope:
+          type: string
+          enum: [org, team, folder]
+        scopeId: { type: string, format: uuid }
+        effectiveCeiling:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 32
+        appliedAssignmentIds:
+          type: array
+          description: The chain of assignment ids that contributed to the effective ceiling (folder → team → org → default).
+          items: { type: string, format: uuid }
+
+    UpsertQuotaAssignmentRequest:
+      type: object
+      description: Wire shape for PUT /quotas/assignments. The (definitionId, scope, scopeId) tuple is the natural key.
+      required: [definitionId, scope, scopeId, ceiling]
+      properties:
+        definitionId: { type: string, format: uuid }
+        scope:
+          type: string
+          enum: [org, team, folder]
+        scopeId: { type: string, format: uuid }
+        ceiling:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 32
+
+    # ───────────────────────── branding ─────────────────────────
+    GlobalThemeConfigResponse:
+      type: object
+      description: Operator-global branding row (Plexor.Modules.Branding).
+      required: [brandName, brandLogoUrl, brandFaviconUrl, defaultPresetId, customAccent, updatedAt]
+      properties:
+        brandName: { type: string, example: Plexor }
+        brandLogoUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: URL or web-root-relative path. Null = default SVG mark.
+          example: /brand.svg
+        brandFaviconUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: URL or web-root-relative path. Null = default favicon.
+          example: /favicon.svg
+        defaultPresetId: { type: string, example: plexor-default-light }
+        customAccent:
+          type: string
+          nullable: true
+          description: OKLCH color. Null = preset default.
+          example: oklch(0.6 0.18 250)
+        updatedAt: { type: string, format: date-time }
+
+    UpsertGlobalThemeConfigRequest:
+      type: object
+      description: Wire shape for PUT /branding/global.
+      required: [brandName, defaultPresetId]
+      properties:
+        brandName:
+          type: string
+          minLength: 1
+          maxLength: 128
+          example: Plexor
+        brandLogoUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: https://acme.example/logo.svg
+        brandFaviconUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: https://acme.example/favicon.svg
+        defaultPresetId: { type: string, minLength: 1, example: plexor-default-light }
+        customAccent:
+          type: string
+          nullable: true
+          description: OKLCH color string.
+          example: oklch(0.6 0.18 250)
+
+    BrandingBootConfig:
+      type: object
+      description: Resolved branding for the caller — merges global row + per-org override. Written server-side into window.__PLEXOR_CONFIG__ before first paint.
+      required: [brandName, brandLogoUrl, brandFaviconUrl, defaultPresetId, customAccent]
+      properties:
+        brandName: { type: string, example: Plexor }
+        brandLogoUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: /brand.svg
+        brandFaviconUrl:
+          type: string
+          format: uri
+          nullable: true
+          example: /favicon.svg
+        defaultPresetId: { type: string, example: plexor-default-light }
+        customAccent:
+          type: string
+          nullable: true
+          example: oklch(0.6 0.18 250)
+
+    OrgBrandingConfigResponse:
+      type: object
+      description: Per-org override row. Null fields inherit the operator-global default.
+      required: [orgId, presetId, customAccent, brandName, brandLogoUrl, brandFaviconUrl, updatedAt]
+      properties:
+        orgId: { type: string, format: uuid }
+        presetId:
+          type: string
+          nullable: true
+          description: Per-org theme preset override. Null = inherit.
+          example: plexor-noir
+        customAccent:
+          type: string
+          nullable: true
+          description: OKLCH color. Null = inherit.
+          example: oklch(0.6 0.18 30)
+        brandName:
+          type: string
+          nullable: true
+          description: Per-org brand name. Null = inherit.
+          example: Acme Cloud
+        brandLogoUrl:
+          type: string
+          format: uri
+          nullable: true
+        brandFaviconUrl:
+          type: string
+          format: uri
+          nullable: true
+        updatedAt: { type: string, format: date-time }
+
+    UpsertOrgBrandingRequest:
+      type: object
+      description: Wire shape for PUT /branding/org/{orgId}. Null fields mean "inherit the operator global default".
+      properties:
+        presetId: { type: string, nullable: true }
+        customAccent: { type: string, nullable: true }
+        brandName: { type: string, nullable: true, maxLength: 128 }
+        brandLogoUrl: { type: string, format: uri, nullable: true }
+        brandFaviconUrl: { type: string, format: uri, nullable: true }
+
+    # ───────────────────────── audit ─────────────────────────
+    AuditQueryResponse:
+      type: object
+      description: One row in the audit timeline.
+      required: [id, action, orgId, actorUserId, targetKind, targetId, payload, occurredAt]
+      properties:
+        id: { type: string, format: uuid }
+        action:
+          type: string
+          description: Stable dot.case wire name (e.g. `quotas.assignment.changed`).
+          example: quotas.assignment.changed
+        orgId: { type: string, format: uuid }
+        actorUserId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Id of the user (or API-key owner) that triggered the event.
+        targetKind:
+          type: string
+          description: Short discriminator of what the event refers to.
+          example: quota_assignment
+        targetId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Id of the affected entity. Null when the event doesn't reference a single row.
+        payload:
+          type: object
+          description: Action-specific context keys parsed from the row's payload_json column. A malformed payload falls back to a single `_raw` key.
+          additionalProperties: true
+          example:
+            ceiling: 32
+            scope: org
+        occurredAt: { type: string, format: date-time }
+
+    # ─────────────────── auth providers (per org) ───────────────────
+    OrgAuthProviderConfigResponse:
+      type: object
+      description: The org's identity-provider configuration. Sensitive fields (client secrets, bind passwords) are write-only; the GET response carries a sentinel (`***`) instead of the real value.
+      required: [orgId, provider, updatedAt]
+      properties:
+        orgId: { type: string, format: uuid }
+        provider:
+          type: string
+          enum: [local, oidc, ldap]
+          description: Active provider for this org.
+          example: oidc
+        updatedAt: { type: string, format: date-time }
+        oidc:
+          type: object
+          nullable: true
+          description: OIDC-specific config (only set when provider = oidc).
+          required: [issuer, clientId]
+          properties:
+            issuer:
+              type: string
+              format: uri
+              example: 'https://kc.example.com/realms/tessera'
+            clientId: { type: string, example: tessera-console }
+            clientSecretSentinel:
+              type: string
+              nullable: true
+              description: "`***` when a secret is stored; null when none configured."
+              example: '***'
+            scopes:
+              type: array
+              items: { type: string }
+              example: [openid, profile, email]
+            redirectUri:
+              type: string
+              format: uri
+              example: 'https://console.example.com/auth/oidc/callback'
+            claimMappings:
+              type: object
+              description: Maps OIDC claims onto Plexor user fields.
+              additionalProperties: { type: string }
+              example:
+                org: 'https://plexor.example.com/claims/org'
+                team: 'https://plexor.example.com/claims/team'
+        ldap:
+          type: object
+          nullable: true
+          description: LDAP-specific config (only set when provider = ldap).
+          required: [server, baseDn, bindDn, userFilter]
+          properties:
+            server: { type: string, example: 'ldap://ldap.example.com' }
+            baseDn: { type: string, example: 'dc=example,dc=com' }
+            bindDn: { type: string, example: 'cn=plexor,ou=services,dc=example,dc=com' }
+            bindPasswordSentinel:
+              type: string
+              nullable: true
+              description: "`***` when a password is stored; null when none configured."
+              example: '***'
+            userFilter: { type: string, example: '(uid={0})' }
+            roleAttribute: { type: string, nullable: true, example: memberOf }
+
+    UpsertOrgAuthProviderRequest:
+      type: object
+      description: Wire shape for PUT /iam/orgs/{orgId}/auth-provider. Omit a sensitive field to keep the stored value unchanged (write-only secrets).
+      required: [provider]
+      properties:
+        provider:
+          type: string
+          enum: [local, oidc, ldap]
+        oidc:
+          type: object
+          nullable: true
+          properties:
+            issuer: { type: string, format: uri }
+            clientId: { type: string, minLength: 1 }
+            clientSecret:
+              type: string
+              nullable: true
+              description: Write-only. Omit (or send the sentinel `***`) to keep the existing value.
+            scopes:
+              type: array
+              items: { type: string }
+            redirectUri: { type: string, format: uri }
+            claimMappings:
+              type: object
+              additionalProperties: { type: string }
+        ldap:
+          type: object
+          nullable: true
+          properties:
+            server: { type: string }
+            baseDn: { type: string }
+            bindDn: { type: string }
+            bindPassword:
+              type: string
+              nullable: true
+              description: Write-only. Omit (or send the sentinel `***`) to keep the existing value.
+            userFilter: { type: string }
+            roleAttribute: { type: string, nullable: true }
+
+    OrgAuthProviderTestResult:
+      type: object
+      description: Result of POST /iam/orgs/{orgId}/auth-provider/test. The test never persists side effects.
+      required: [ok, message]
+      properties:
+        ok: { type: boolean, example: true }
+        message:
+          type: string
+          description: "Human-readable diagnostic. For OIDC: the discovery + token-exchange result. For LDAP: the bind result."
+          example: 'OIDC discovery succeeded; JWKS published at /jwks; token exchange simulated.'
+        latencyMs:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Round-trip latency in milliseconds. Null when the test failed before a request was issued.
+          example: 87
+        details:
+          type: object
+          nullable: true
+          description: Provider-specific diagnostics (discovery URL, JWKS URL, bind subject, ...). Free-form.
+          additionalProperties: true
