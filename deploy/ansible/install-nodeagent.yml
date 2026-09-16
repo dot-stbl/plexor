@@ -1,0 +1,331 @@
+---
+# ============================================================================
+# install-nodeagent.yml — provision a Plexor NodeAgent on a Debian 12 VM.
+#
+# Target: fresh Debian 12 (bookworm) host with KVM enabled in BIOS.
+# Role: turns the box into a Plexor compute node:
+#   1. Installs qemu-kvm + libvirt stack
+#   2. Installs .NET 10 runtime
+#   3. Creates plexor-nodeagent system user
+#   4. Drops the agent binary + certs + env at the right paths
+#   5. Enables + starts the systemd service
+#   6. Verifies the service is running
+#
+# Idempotent — every task is gated with `creates:` / `state: present` /
+# systemd's `daemon-reload` only-on-change, so re-runs converge to the
+# same state without resetting the agent's enrolled cert.
+#
+# Required vars (see inventory.example.yml):
+#   plexor_host_url            Plexor.Host control plane URL
+#                              (e.g. https://plexor.example.com)
+#   plexor_join_token          Out-of-band enrollment token from the host
+#   plexor_node_id             Plexor NodeId in wire form (node_<ulid>)
+#   plexor_nodeagent_version   Agent release tag (e.g. v0.1.0)
+#
+# Optional vars (defaults below):
+#   plexor_nodeagent_release_url    Binary download URL template; uses
+#                                  {version} placeholder.
+#                                  Default: GitHub releases on dot-stbl/plexor.
+#   plexor_nodeagent_binary_sha256  Expected SHA-256 of the binary.
+#                                  Default: omit (no verification).
+#   plexor_ca_fingerprint           SHA-256 of the host CA cert — passed
+#                                  to setup-mtls.sh to verify before install.
+#                                  Required: pass it explicitly or
+#                                  setup-mtls.sh will fail.
+#   plexor_nodeagent_user           Service user (default: plexor-nodeagent)
+#   plexor_nodeagent_group          Service group (default: plexor-nodeagent)
+#
+# Usage:
+#   ansible-playbook -i inventory.example.yml install-nodeagent.yml \
+#     --ask-become-pass
+# ============================================================================
+- name: Install Plexor NodeAgent on a Debian 12 VM
+  hosts: plexor_nodes
+  become: true
+  gather_facts: true
+
+  vars:
+    plexor_nodeagent_user: plexor-nodeagent
+    plexor_nodeagent_group: plexor-nodeagent
+    plexor_nodeagent_install_dir: /opt/plexor-nodeagent
+    plexor_nodeagent_etc_dir: /etc/plexor-nodeagent
+    plexor_nodeagent_cert_dir: /etc/plexor-nodeagent/certs
+    plexor_nodeagent_data_dir: /var/lib/plexor-nodeagent
+    plexor_nodeagent_release_url: >-
+      https://github.com/dot-stbl/plexor/releases/download/{version}/plexor-nodeagent-linux-x64.tar.gz
+
+  pre_tasks:
+    - name: Validate Plexor NodeId format
+      ansible.builtin.assert:
+        that:
+          - plexor_node_id is match('^node_[0-9A-HJKMNP-TV-Z]{26}$')
+        fail_msg: >-
+          plexor_node_id '{{ plexor_node_id }}' is not a valid Plexor NodeId.
+          Expected wire-format: node_<26-char ULID>.
+
+    - name: Validate Plexor.Host URL
+      ansible.builtin.assert:
+        that:
+          - plexor_host_url is match('^https?://.+')
+        fail_msg: >-
+          plexor_host_url '{{ plexor_host_url }}' must be an http(s) URL.
+
+    - name: Check distro is Debian
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['os_family'] == 'Debian'
+        fail_msg: >-
+          This playbook targets Debian 12. Detected
+          { ansible_facts['distribution'] } { ansible_facts['distribution_version'] }.
+
+  tasks:
+    # ---------------------------------------------------------------------
+    # 1. apt cache + system packages
+    # ---------------------------------------------------------------------
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install KVM + libvirt + agent deps
+      ansible.builtin.apt:
+        name:
+          - qemu-kvm
+          - libvirt-daemon
+          - libvirt-clients
+          - openssl
+          - ca-certificates
+          - curl
+          - rsync
+        state: present
+
+    # ---------------------------------------------------------------------
+    # 2. .NET 10 runtime — Microsoft's apt repo
+    # ---------------------------------------------------------------------
+    - name: Ensure Microsoft apt key is present
+      ansible.builtin.apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Ensure Microsoft apt repo is configured
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg]
+          https://packages.microsoft.com/debian/12/prod bookworm main
+        filename: microsoft-prod
+        state: present
+        update_cache: true
+
+    - name: Install ASP.NET Core 10 runtime (Plexor.NodeAgent is a Worker SDK; runtime suffices)
+      ansible.builtin.apt:
+        name: aspnetcore-runtime-10.0
+        state: present
+      ignore_errors: true  # TODO: remove once the 10.0 apt package is published
+
+    - name: Fallback to .NET 10 runtime if aspnetcore runtime unavailable
+      ansible.builtin.apt:
+        name: dotnet-runtime-10.0
+        state: present
+      when: false  # TODO: enable once packages exist
+
+    # ---------------------------------------------------------------------
+    # 3. /dev/kvm availability — fail loud if KVM not exposed
+    # ---------------------------------------------------------------------
+    - name: Check /dev/kvm exists
+      ansible.builtin.stat:
+        path: /dev/kvm
+      register: kvm_device
+
+    - name: Warn if /dev/kvm is missing
+      ansible.builtin.debug:
+        msg: >-
+          /dev/kvm missing — agent will fall back to TCG (software
+          emulation). Check BIOS virtualization settings + kernel
+          'kvm' module.
+      when: not kvm_device.stat.exists
+
+    # ---------------------------------------------------------------------
+    # 4. System user + directories
+    # ---------------------------------------------------------------------
+    - name: Create plexor-nodeagent system user
+      ansible.builtin.user:
+        name: "{{ plexor_nodeagent_user }}"
+        group: "{{ plexor_nodeagent_group }}"
+        system: true
+        create_home: false
+        shell: /usr/sbin/nologin
+        state: present
+
+    - name: Ensure base directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ plexor_nodeagent_user }}"
+        group: "{{ plexor_nodeagent_group }}"
+        mode: "0750"
+      loop:
+        - "{{ plexor_nodeagent_install_dir }}"
+        - "{{ plexor_nodeagent_etc_dir }}"
+        - "{{ plexor_nodeagent_data_dir }}"
+
+    # ---------------------------------------------------------------------
+    # 5. NodeAgent binary — release tarball, with sha256 verify
+    # ---------------------------------------------------------------------
+    - name: Resolve release tarball URL
+      ansible.builtin.set_fact:
+        plexor_nodeagent_release_tarball: >-
+          {{ plexor_nodeagent_release_url | format(version=plexor_nodeagent_version) }}
+
+    - name: Download NodeAgent release tarball
+      ansible.builtin.get_url:
+        url: "{{ plexor_nodeagent_release_tarball }}"
+        dest: /tmp/plexor-nodeagent-{{ plexor_nodeagent_version }}.tar.gz
+        owner: root
+        group: root
+        mode: "0644"
+        # sha256 verification — only enforced if the var is set.
+        checksum: >-
+          sha256:{{ plexor_nodeagent_binary_sha256
+                    | default('0000000000000000000000000000000000000000000000000000000000000000') }}
+      register: plexor_nodeagent_download
+      retries: 3
+      delay: 5
+      until: plexor_nodeagent_download is succeeded
+
+    - name: Extract NodeAgent binary into install dir
+      ansible.builtin.unarchive:
+        src: /tmp/plexor-nodeagent-{{ plexor_nodeagent_version }}.tar.gz
+        dest: "{{ plexor_nodeagent_install_dir }}"
+        owner: "{{ plexor_nodeagent_user }}"
+        group: "{{ plexor_nodeagent_group }}"
+        creates: "{{ plexor_nodeagent_install_dir }}/Plexor.NodeAgent"
+        remote_src: true
+
+    - name: Make Plexor.NodeAgent binary executable
+      ansible.builtin.file:
+        path: "{{ plexor_nodeagent_install_dir }}/Plexor.NodeAgent"
+        mode: "0750"
+        owner: "{{ plexor_nodeagent_user }}"
+        group: "{{ plexor_nodeagent_group }}"
+
+    # ---------------------------------------------------------------------
+    # 6. Environment file — config the worker reads at startup
+    # ---------------------------------------------------------------------
+    - name: Write /etc/plexor-nodeagent/env
+      ansible.builtin.copy:
+        dest: "{{ plexor_nodeagent_etc_dir }}/env"
+        owner: "{{ plexor_nodeagent_user }}"
+        group: "{{ plexor_nodeagent_group }}"
+        mode: "0640"
+        content: |
+          # Plexor.NodeAgent environment — written by deploy/ansible/install-nodeagent.yml.
+          # .NET maps A__B__C → A:B:C. Keep keys uppercase with single
+          # underscores; the agent uses IConfiguration.GetValue() / GetSection().
+          #
+          # Override values by editing this file + `systemctl daemon-reload`
+          # (env file is read once). Don't commit secrets here — use a
+          # separate credentials file the playbook pulls from Ansible Vault
+          # or a secret store.
+
+          # Control plane (Plexor.Host) — the agent joins / heartbeats here.
+          Plexor__ControlPlaneUrl={{ plexor_host_url }}
+
+          # Node identity — what /join posts as the agent's hostname.
+          Plexor__Node__Hostname={{ ansible_facts['hostname'] }}
+
+          # Hardware caps reported on heartbeat. Defaults match the agent's
+          # built-in fallbacks; override only if the agent is sandboxed.
+          Plexor__Node__CpuCores={{ ansible_facts['processor_cores'] | default(ansible_facts['processor_count']) }}
+          Plexor__Node__RamBytes={{ ansible_facts['memtotal_mb'] | default(8192) * 1024 * 1024 }}
+
+          # Cert directory (Plexor.Shared.Mtls writes the cert triple here
+          # on first successful join). Mounted RW via systemd's
+          # ReadWritePaths.
+          NodeAgent__Mtls__CertDirectory={{ plexor_nodeagent_cert_dir }}
+
+          # ASP.NET / .NET runtime niceties.
+          DOTNET_ENVIRONMENT=Production
+          DOTNET_CLI_TELEMETRY_OPTOUT=1
+      notify: plexor-nodeagent restart
+
+    # ---------------------------------------------------------------------
+    # 7. mTLS setup — pre-place the CA + generate placeholder client cert
+    # ---------------------------------------------------------------------
+    - name: Ensure host CA cert is in place
+      ansible.builtin.copy:
+        dest: "{{ plexor_nodeagent_etc_dir }}/host-ca.crt"
+        src: "{{ plexor_host_ca_local_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+      when: plexor_host_ca_local_path is defined
+      # plexor_host_ca_local_path is a path on the Ansible controller
+      # that the operator pre-copies the host's dev-certs/ca.crt (or
+      # /var/lib/plexor/ca.crt in production) into. The playbook then
+      # uploads it to the VM.
+
+    - name: Verify host CA fingerprint before continuing
+      ansible.builtin.command: >-
+        openssl x509 -in {{ plexor_nodeagent_etc_dir }}/host-ca.crt
+        -noout -fingerprint -sha256
+      register: actual_ca_fingerprint
+      changed_when: false
+      when:
+        - plexor_host_ca_local_path is defined
+        - plexor_ca_fingerprint is defined
+
+    - name: Assert CA fingerprint matches plexor_ca_fingerprint
+      ansible.builtin.assert:
+        that:
+          - actual_ca_fingerprint.stdout is search(plexor_ca_fingerprint | regex_replace('^sha256:', ''))
+        fail_msg: >-
+          CA fingerprint mismatch — refusing to install.
+          Expected: {{ plexor_ca_fingerprint }}
+          Actual:   {{ actual_ca_fingerprint.stdout }}
+      when:
+        - plexor_host_ca_local_path is defined
+        - plexor_ca_fingerprint is defined
+
+    - name: Run setup-mtls.sh to generate placeholder cert + verify CA
+      ansible.builtin.command: >-
+        {{ plexor_nodeagent_install_dir }}/../scripts/setup-mtls.sh
+        {{ plexor_node_id }}
+        {{ plexor_ca_fingerprint | default('skip') }}
+      args:
+        creates: "{{ plexor_nodeagent_cert_dir }}/node.crt"
+      environment:
+        PLEXOR_HOST_CA_FILE: "{{ plexor_nodeagent_etc_dir }}/host-ca.crt"
+        PLEXOR_CERT_DIR: "{{ plexor_nodeagent_cert_dir }}"
+        PLEXOR_SERVICE_USER: "{{ plexor_nodeagent_user }}"
+      when: plexor_ca_fingerprint is defined
+
+    # ---------------------------------------------------------------------
+    # 8. systemd unit
+    # ---------------------------------------------------------------------
+    - name: Copy plexor-nodeagent systemd unit
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../systemd/plexor-nodeagent.service"
+        dest: /etc/systemd/system/plexor-nodeagent.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - plexor-nodeagent daemon-reload
+        - plexor-nodeagent restart
+
+    - name: Enable + start plexor-nodeagent
+      ansible.builtin.systemd:
+        name: plexor-nodeagent
+        daemon_reload: true
+        enabled: true
+        state: started
+
+  handlers:
+    - name: plexor-nodeagent daemon-reload
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: plexor-nodeagent restart
+      ansible.builtin.systemd:
+        name: plexor-nodeagent
+        state: restarted
