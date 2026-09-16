@@ -1,0 +1,64 @@
+# inventory.example.yml — example inventory for the Plexor NodeAgent deploy.
+#
+# Copy to `inventory.yml` and edit the placeholders. Don't commit the real
+# copy — credentials + hostnames don't belong in git. Add inventory.yml to
+# `.gitignore` (already the case for the dev-certs/ pattern; mirror it
+# here).
+#
+# Two connection models are shown — pick one:
+#
+#   (A) ssh + become: operator pushes the playbook from a workstation.
+#   (B) local + become: playbook runs ON the NodeAgent VM.
+#
+# (A) — from workstation
+# ======================
+#   ansible_connection=ssh
+#   ansible_ssh_private_key_file=~/.ssh/id_ed25519_plexor
+#
+# (B) — from the VM itself (e.g. via cloud-init user-data)
+# ========================================================
+#   ansible_connection=local
+#   ansible_become=true
+#
+# Both forms share the same vars block; vars can also live in
+# group_vars/plexor_nodes.yml or a vault file passed via --extra-vars
+# @vault.yml.
+all:
+  children:
+    plexor_nodes:
+      hosts:
+        # Replace `plexor-node-01` with your VM's hostname or IP.
+        plexor-node-01:
+          ansible_host: 10.0.0.10        # VM IP (omit if using local connection)
+          ansible_user: debian            # SSH user (Debian cloud images)
+
+          # (A) ssh-from-workstation (default)
+          ansible_connection: ssh
+          ansible_ssh_private_key_file: ~/.ssh/id_ed25519_plexor
+
+          # (B) run-from-the-VM itself — uncomment + comment out (A) above
+          # ansible_connection: local
+
+          # ----- Required vars for install-nodeagent.yml -----
+          plexor_host_url: https://plexor.example.com
+          plexor_join_token: change-me   # out-of-band token issued by the host
+          plexor_node_id: node_01HXYZABCDEFGHJKMNPQRSTVW
+          plexor_nodeagent_version: v0.1.0
+
+          # ----- Optional vars -----
+          # CA fingerprint — required if you want setup-mtls.sh to verify
+          # the pre-shared CA cert before installing. Format: "sha256:<hex>"
+          # or bare "<hex>". Pull from `openssl x509 -in host-ca.crt -noout
+          # -fingerprint -sha256` on the host that generated it.
+          plexor_ca_fingerprint: sha256:REPLACE_WITH_SHA256_OF_HOST_CA_CERT
+
+          # Local path on the Ansible controller to the host CA cert
+          # (dev-certs/ca.crt on the Plexor.Host box, or
+          # /var/lib/plexor/ca.crt in production). Omit to skip
+          # pre-placement — the agent will fetch via /join instead.
+          plexor_host_ca_local_path: ./host-ca.crt
+
+          # SHA-256 of the agent release tarball — enables integrity
+          # verification on download. Get it from the GitHub release
+          # page (the .sha256 file). Omit for "trust the TLS" mode.
+          # plexor_nodeagent_binary_sha256: REPLACE_WITH_SHA256
