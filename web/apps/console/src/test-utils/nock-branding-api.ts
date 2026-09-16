@@ -10,40 +10,24 @@
  *   expect(mocks.updateGlobal).toHaveBeenCalledWith({ ... });
  */
 import { vi, type MockInstance } from 'vitest';
-import {
-  deleteOrgBranding,
-  getBootBranding,
-  getGlobalBranding,
-  getOrgBranding,
-  updateGlobalBranding,
-  updateOrgBranding,
-} from '@/features/branding/branding-service';
-
-const brandingService = {
-  getGlobalBranding,
-  updateGlobalBranding,
-  getOrgBranding,
-  updateOrgBranding,
-  deleteOrgBranding,
-  getBootBranding,
-};
+import * as service from '@/features/branding/branding-service';
 
 export interface BrandingServiceMocks {
-  getGlobal: MockInstance<typeof getGlobalBranding>;
-  updateGlobal: MockInstance<typeof updateGlobalBranding>;
-  getOrg: MockInstance<typeof getOrgBranding>;
-  updateOrg: MockInstance<typeof updateOrgBranding>;
-  deleteOrg: MockInstance<typeof deleteOrgBranding>;
-  getBoot: MockInstance<typeof getBootBranding>;
+  getGlobal: MockInstance<(typeof service)['getGlobalBranding']>;
+  updateGlobal: MockInstance<(typeof service)['updateGlobalBranding']>;
+  getOrg: MockInstance<(typeof service)['getOrgBranding']>;
+  updateOrg: MockInstance<(typeof service)['updateOrgBranding']>;
+  deleteOrg: MockInstance<(typeof service)['deleteOrgBranding']>;
+  getBoot: MockInstance<(typeof service)['getBootBranding']>;
 }
 
 export function mockBrandingService(): BrandingServiceMocks {
   return {
-    getGlobal: vi.spyOn(brandingService, 'getGlobalBranding'),
-    updateGlobal: vi.spyOn(brandingService, 'updateGlobalBranding'),
-    getOrg: vi.spyOn(brandingService, 'getOrgBranding'),
-    updateOrg: vi.spyOn(brandingService, 'updateOrgBranding'),
-    deleteOrg: vi.spyOn(brandingService, 'deleteOrgBranding'),
-    getBoot: vi.spyOn(brandingService, 'getBootBranding'),
+    getGlobal: vi.spyOn(service, 'getGlobalBranding'),
+    updateGlobal: vi.spyOn(service, 'updateGlobalBranding'),
+    getOrg: vi.spyOn(service, 'getOrgBranding'),
+    updateOrg: vi.spyOn(service, 'updateOrgBranding'),
+    deleteOrg: vi.spyOn(service, 'deleteOrgBranding'),
+    getBoot: vi.spyOn(service, 'getBootBranding'),
   };
 }

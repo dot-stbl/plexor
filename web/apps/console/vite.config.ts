@@ -10,6 +10,9 @@ export default defineConfig({
     TanStackRouterVite({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.ts',
+      // Skip co-located `*.test.tsx` / `*.test.ts` files so component tests
+      // don't get pulled into the route tree at build / test time.
+      routeFileIgnorePattern: '\\.test\\.(tsx|ts)$',
     }),
     react(),
     tailwindcss(),
