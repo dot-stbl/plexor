@@ -80,6 +80,11 @@
         <Project Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Application/Plexor.Modules.Realm.Application.csproj" />
         <Project Path="src/modules/Plexor.Modules.Realm/Plexor.Modules.Realm.Infrastructure/Plexor.Modules.Realm.Infrastructure.csproj" />
     </Folder>
+    <Folder Name="/src/modules/Plexor.Modules.Outpost/">
+        <Project Path="src/modules/Plexor.Modules.Outpost/Plexor.Modules.Outpost.Application/Plexor.Modules.Outpost.Application.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Outpost/Plexor.Modules.Outpost.Infrastructure/Plexor.Modules.Outpost.Infrastructure.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Outpost/Plexor.Modules.Outpost.Api/Plexor.Modules.Outpost.Api.csproj" />
+    </Folder>
 
     <!-- ============ Hosts (entry points) =================================== -->
     <Folder Name="/src/host/">
@@ -106,6 +111,7 @@
         <Project Path="tests/unit/Plexor.Host.UnitTests/Plexor.Host.UnitTests.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Audit.Unit/Plexor.Modules.Audit.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Clusters.Unit/Plexor.Modules.Clusters.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Modules.Outpost.Unit/Plexor.Modules.Outpost.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Realm.Unit/Plexor.Modules.Realm.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Sigil.Unit/Plexor.Modules.Sigil.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Filtering.Unit/Plexor.Shared.Filtering.Unit.csproj" />
