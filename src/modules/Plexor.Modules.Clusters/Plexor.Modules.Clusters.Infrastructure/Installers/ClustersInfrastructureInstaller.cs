@@ -49,9 +49,12 @@ public static class ClustersInfrastructureInstaller
         services.AddScoped<ICommandHandler<GetClusterQuery, ClusterDetail>, GetClusterQueryHandler>();
         services.AddScoped<ICommandHandler<ListClustersQuery, PageResult<ClusterSummary>>, ListClustersQueryHandler>();
         services.AddScoped<ICommandHandler<RotateJoinTokenCommand, JoinTokenResult>, RotateJoinTokenCommandHandler>();
-        services.AddScoped<ICommandHandler<NodeJoinCommand, NodeJoinResult>, NodeJoinCommandHandler>();
-        services.AddScoped<ICommandHandler<NodeHeartbeatCommand, NodeHeartbeatResult>, NodeHeartbeatCommandHandler>();
-        services.AddScoped<ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>, ListNodesQueryHandler>();
+        // Node join / heartbeat / list handlers moved to
+        // Plexor.Modules.Outpost.Infrastructure as part of the
+        // node-tracking extraction. The clusters module still owns
+        // the join-token surface (RotateJoinTokenCommand) — that
+        // handler validates the token shape + flips the status row
+        // when a node redeems it.
 
         // Workload handlers — see WorkloadCommandHandlers.cs +
         // WorkloadReadHandlers.cs. Create / Delete / List / Get split
@@ -84,7 +87,6 @@ public static class ClustersInfrastructureInstaller
         // Read repositories — base class from Shared.Persistence; per-module
         // subclass wires the typed DbSet. Scoped lifetime matches DbContext.
         services.AddScoped<Repository<Cluster>, ClusterRepository>();
-        services.AddScoped<Repository<Node>, NodeRepository>();
         services.AddScoped<Repository<JoinToken>, JoinTokenRepository>();
         services.AddScoped<Repository<Workload>, WorkloadRepository>();
 

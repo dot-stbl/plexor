@@ -2,9 +2,10 @@
 // ============================================================================
 // ClusterReadHandlers — read-only handlers using Repository<T> +
 // Specification. Write handlers (CreateCluster, UpdateCluster,
-// DeleteCluster, RotateJoinToken, NodeJoin's writes, NodeHeartbeat)
-// stay on ClusterDbContext directly in ClusterCommandHandlers.cs /
-// NodeCommandHandlers.cs.
+// DeleteCluster, RotateJoinToken) stay on ClusterDbContext directly
+// in ClusterCommandHandlers.cs. Node-join / node-heartbeat writes
+// moved to Plexor.Modules.Outpost as part of the node-tracking
+// extraction.
 //
 // Pattern matches architecture/persistence.md: reads via
 // Repository<T> + Spec<T, TResult>, writes + multi-entity aggregates
@@ -28,17 +29,15 @@ using Plexor.Shared.Persistence;
 namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 
 /// <summary>
-///     Get one cluster by id with its child nodes loaded. Read
-///     surface — goes through the repository. The nodes collection
-///     is loaded by a separate Repository call (no eager-load
-///     collection property on the entity).
+///     Get one cluster by id. The nodes collection is loaded by a
+///     separate Repository call from Plexor.Modules.Outpost (the
+///     outpost schema owns the read surface now); this handler is
+///     intentionally narrow — no node eager-load.
 /// </summary>
 /// <param name="clusterRepo">Cluster read surface.</param>
-/// <param name="nodeRepo">Node read surface.</param>
 /// <param name="mapper">Entity → DTO mapper (Mapperly-generated).</param>
 public sealed class GetClusterQueryHandler(
     Repository<Cluster> clusterRepo,
-    Repository<Node> nodeRepo,
     IClusterMapper mapper) : ICommandHandler<GetClusterQuery, ClusterDetail>
 {
     /// <inheritdoc />
@@ -55,12 +54,7 @@ public sealed class GetClusterQueryHandler(
                 $"Cluster '{command.ClusterId}' not found.");
         }
 
-        var nodes = await nodeRepo.ListAsync(
-            new NodesByClusterSpec(command.ClusterId),
-            n => mapper.ToNodeSummary(n),
-            cancellationToken);
-
-        return mapper.ToDetail(cluster, nodes);
+        return mapper.ToDetail(cluster, []);
     }
 }
 
@@ -71,12 +65,12 @@ public sealed class GetClusterQueryHandler(
 ///     <c>?page=1&amp;pageSize=50</c>). Pipeline:
 ///     <list type="number">
 ///       <item><see cref="ClustersByOrgSpec" /> applies the org filter +
-///       tracking flags</item>
-///       <li>Repository applies URL <c>filter</c> DSL via <see cref="QueryableFilterExtensions.ApplyFilter{T}" /></li>
-///       <li>Repository applies URL <c>sort</c> via <see cref="QueryableFilterExtensions.ApplySort{T}" /></li>
-///       <li>Repository counts the filtered set + slices the requested
-///       page; returns <see cref="PageResult{T}" /></li>
-///       <li>Mapperly projects each row to <see cref="ClusterSummary" /></li>
+///       tracking flags.</item>
+///       <item>Repository applies URL <c>filter</c> DSL via <see cref="QueryableFilterExtensions.ApplyFilter{T}" />.</item>
+///       <item>Repository applies URL <c>sort</c> via <see cref="QueryableFilterExtensions.ApplySort{T}" />.</item>
+///       <item>Repository counts the filtered set + slices the requested
+///       page; returns <see cref="PageResult{T}" />.</item>
+///       <item>Mapperly projects each row to <see cref="ClusterSummary" />.</item>
 ///     </list>
 /// </summary>
 /// <param name="clusterRepo">Cluster read surface.</param>
@@ -99,28 +93,6 @@ public sealed class ListClustersQueryHandler(
             c => mapper.ToSummary(c),
             command.Query,
             fields,
-            cancellationToken);
-    }
-}
-
-/// <summary>
-///     List nodes in one cluster — read via <see cref="NodesByClusterSpec" />.
-/// </summary>
-/// <param name="nodeRepo">Node read surface.</param>
-/// <param name="mapper">Entity → DTO mapper (Mapperly-generated).</param>
-public sealed class ListNodesQueryHandler(
-    Repository<Node> nodeRepo,
-    IClusterMapper mapper)
-    : ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>
-{
-    /// <inheritdoc />
-    public async Task<IReadOnlyList<NodeSummary>> HandleAsync(
-        ListNodesQuery command,
-        CancellationToken cancellationToken = default)
-    {
-        return await nodeRepo.ListAsync(
-            new NodesByClusterSpec(command.ClusterId),
-            n => mapper.ToNodeSummary(n),
             cancellationToken);
     }
 }

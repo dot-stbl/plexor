@@ -11,6 +11,7 @@
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Outpost.Application;
 using Plexor.Shared.Identifiers;
+using NodeStatus = Plexor.Modules.Outpost.Application.NodeStatus;
 
 namespace Plexor.Modules.Outpost.Api.Models;
 

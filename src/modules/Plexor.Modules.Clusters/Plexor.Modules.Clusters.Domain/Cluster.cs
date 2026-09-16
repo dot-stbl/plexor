@@ -91,11 +91,29 @@ public sealed class Cluster : IFilterableEntity, ICreatedAt, IUpdatedAt
     /// <summary>Wall-clock the host process started.</summary>
     public TimeSpan Uptime { get; init; }
 
-    /// <summary>Nodes that have joined this cluster. Loaded by
-    /// the EF query — not part of the row.</summary>
-    public IReadOnlyList<Node> Nodes { get; init; } = [];
+    /// <summary>Nodes that have joined this cluster. The row lives
+    /// in Plexor.Modules.Outpost (outpost.node_records) and is
+    /// loaded by a separate Repository call from the dashboard's
+    /// cluster-detail page (no eager-load navigation on the entity).
+    /// v0.1 leaves this empty — Outpost populates it via
+    /// <c>ListNodesQueryHandler</c> when the controller renders the
+    /// cluster-detail card.</summary>
+    public IReadOnlyList<ClusterNodeSummary> Nodes { get; init; } = [];
 
     /// <summary>Join tokens issued for this cluster. Loaded by
     /// the EF query.</summary>
     public IReadOnlyList<JoinToken> Tokens { get; init; } = [];
 }
+
+/// <summary>Lightweight projection of a joined Plexor.NodeAgent — used
+/// by the Cluster entity's <see cref="Cluster.Nodes" /> collection.
+/// Kept in Clusters.Domain to avoid a cross-module Application →
+/// Domain reference from Clusters.Domain → Outpost. The status
+/// field is the persisted <c>NodeStatus</c> integer (Plexor.Modules
+/// .Outpost.Application.NodeStatus); the integer matches 1:1 across
+/// modules (the Outpost enum owns the wire-stable values).</summary>
+public sealed record ClusterNodeSummary(
+    Plexor.Shared.Identifiers.NodeId Id,
+    string Hostname,
+    NodeRole Role,
+    int Status);

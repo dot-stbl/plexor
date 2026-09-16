@@ -29,14 +29,14 @@ public sealed class WorkloadActionCommandHandlerShould
     public async Task EnqueuesCommandAndReturnsAckedStateAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var (cluster, node) = await SeedClusterAndNodeAsync(db);
+        var (cluster, assignedNodeId) = await SeedClusterAndNodeAsync(db);
         var workloadId = IdGenerator.NewWorkloadId();
         var now = DateTimeOffset.UtcNow;
         await db.Workloads.AddAsync(new Workload
         {
             Id = workloadId,
             ClusterId = cluster.Id,
-            AssignedNodeId = node.Id,
+            AssignedNodeId = assignedNodeId,
             LocalId = "docker-abc123",
             Name = "web-1",
             Kind = "container",
@@ -59,7 +59,7 @@ public sealed class WorkloadActionCommandHandlerShould
         // workload state to simulate the agent's reply.
         await Task.Delay(150);
         var queued = await db.Commands.AsNoTracking()
-            .Where(c => c.NodeId == node.Id)
+            .Where(c => c.NodeId == assignedNodeId)
             .FirstOrDefaultAsync();
         queued.ShouldNotBeNull();
         queued.Type.ShouldBe("workload.start");
@@ -101,14 +101,14 @@ public sealed class WorkloadActionCommandHandlerShould
     public async Task NoLocalIdThrowsAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var (cluster, node) = await SeedClusterAndNodeAsync(db);
+        var (cluster, assignedNodeId) = await SeedClusterAndNodeAsync(db);
         var workloadId = IdGenerator.NewWorkloadId();
         var now = DateTimeOffset.UtcNow;
         await db.Workloads.AddAsync(new Workload
         {
             Id = workloadId,
             ClusterId = cluster.Id,
-            AssignedNodeId = node.Id,
+            AssignedNodeId = assignedNodeId,
             LocalId = null,  // ← no runtime handle yet (agent hasn't heartbeated)
             Name = "web-1",
             Kind = "container",
@@ -159,7 +159,7 @@ public sealed class WorkloadActionCommandHandlerShould
         ex.Code.ShouldBe(ClustersExceptions.WorkloadNotFound);
     }
 
-    private static async Task<(Cluster Cluster, Node Node)> SeedClusterAndNodeAsync(ClusterDbContext db)
+    private static async Task<(Cluster Cluster, NodeId AssignedNodeId)> SeedClusterAndNodeAsync(ClusterDbContext db)
     {
         var now = DateTimeOffset.UtcNow;
         var cluster = new Cluster
@@ -175,20 +175,12 @@ public sealed class WorkloadActionCommandHandlerShould
         };
         await db.Clusters.AddAsync(cluster);
 
-        var node = new Node
-        {
-            Id = IdGenerator.NewNodeId(),
-            OrgId = cluster.OrgId,
-            ClusterId = cluster.Id,
-            Hostname = "node-test",
-            Role = NodeRole.Control,
-            Status = NodeStatus.Ready,
-            Spec = new NodeSpec(Vcpu: 2, RamGb: 4, DiskGb: 20, Providers: []),
-            CreatedAt = now,
-            UpdatedAt = now,
-        };
-        await db.Nodes.AddAsync(node);
+        // The Node row itself lives in Plexor.Modules.Outpost
+        // (outpost.node_records) — Clusters.Workloads.AssignedNodeId
+        // is a soft reference (varchar(64) NodeId). The test only
+        // needs a valid NodeId to assign the workload to.
+        var assignedNodeId = IdGenerator.NewNodeId();
         await db.SaveChangesAsync();
-        return (cluster, node);
+        return (cluster, assignedNodeId);
     }
 }

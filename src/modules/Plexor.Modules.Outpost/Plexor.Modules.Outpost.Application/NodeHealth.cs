@@ -8,8 +8,6 @@
 // node in?".
 // ============================================================================
 
-using Plexor.Modules.Clusters.Domain;
-
 namespace Plexor.Modules.Outpost.Application;
 
 /// <summary>

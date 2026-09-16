@@ -23,6 +23,7 @@ using Plexor.Modules.Outpost.Infrastructure.Persistence;
 using Plexor.Modules.Outpost.Infrastructure.Persistence.Specifications;
 using Plexor.Shared.Identifiers;
 using Plexor.Shared.Persistence;
+using NodeStatus = Plexor.Modules.Outpost.Application.NodeStatus;
 
 namespace Plexor.Modules.Outpost.Infrastructure.Nodes;
 
