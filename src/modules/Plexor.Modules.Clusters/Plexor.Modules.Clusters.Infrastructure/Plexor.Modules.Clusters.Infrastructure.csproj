@@ -18,6 +18,13 @@
     <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Identifiers\Plexor.Shared.Identifiers.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj" />
+    <!-- Outpost.Infrastructure — the node-tracking read surface
+         (INodeRegistry) is needed by DeleteClusterCommandHandler
+         to mark every cluster's nodes Gone before the cluster row
+         flips to ClusterStatus.Offline. Application → Application
+         cross-reference; mirrors the existing Clusters.Infrastructure
+         → Sigil.Application edge. -->
+    <ProjectReference Include="..\..\Plexor.Modules.Outpost\Plexor.Modules.Outpost.Application\Plexor.Modules.Outpost.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

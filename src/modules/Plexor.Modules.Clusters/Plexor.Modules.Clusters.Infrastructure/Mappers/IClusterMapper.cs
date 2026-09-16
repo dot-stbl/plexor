@@ -6,6 +6,10 @@
 // DI registration wires interface → concrete implementation, so
 // integration tests can swap in NSubstitute mocks without pulling in
 // the source-generated mapper body.
+//
+// Node tracking moved to Plexor.Modules.Outpost; the ClusterDetail
+// DTO's <c>Nodes</c> collection is now empty + populated by the
+// Outpost read handler, not by this mapper.
 // ==========================================================================
 
 using Plexor.Modules.Clusters.Application.Clusters;
@@ -28,19 +32,12 @@ public interface IClusterMapper
     public ClusterSummary ToSummary(Cluster source);
 
     /// <summary>
-    ///     Map a single <see cref="Cluster" /> row + already-loaded
-    ///     child nodes to a <see cref="ClusterDetail" />
-    ///     (single-cluster shape). <c>nodes</c> comes from a separate
-    ///     <c>NodesByClusterSpec</c> repository call.
+    ///     Map a single <see cref="Cluster" /> row to a
+    ///     <see cref="ClusterDetail" /> (single-cluster shape). The
+    ///     Nodes collection is populated by the Outpost-side handler;
+    ///     this mapper only knows about the forge-side row.
     /// </summary>
     /// <param name="source"></param>
-    /// <param name="nodes"></param>
-    public ClusterDetail ToDetail(Cluster source, IReadOnlyList<NodeSummary> nodes);
-
-    /// <summary>
-    ///     Map a single <see cref="Node" /> row to a
-    ///     <see cref="NodeSummary" />. Property names match 1:1.
-    /// </summary>
-    /// <param name="source"></param>
-    public NodeSummary ToNodeSummary(Node source);
+    /// <param name="nodes">Optional pre-loaded nodes (empty for v0.1).</param>
+    public ClusterDetail ToDetail(Cluster source, IReadOnlyList<ClusterNodeSummary> nodes);
 }

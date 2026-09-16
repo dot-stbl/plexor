@@ -178,13 +178,22 @@ public sealed class UpdateClusterCommandHandler(
 /// <summary>
 ///     Get one cluster by id with its child nodes loaded. — see ClusterReadHandlers.cs.
 ///     List clusters in one org, paged — see ClusterReadHandlers.cs.
-///     Soft-delete a cluster. Cascades <c>Node.Status = Gone</c> on
-///     every child node. The cluster row stays for audit + FK
+///     Soft-delete a cluster. The cluster row stays for audit + FK
 ///     integrity; no hard delete in v0.1.
+///
+///     Node status cascades to <see cref="Plexor.Modules.Outpost.Application.NodeStatus.Gone" />
+///     happen in Outpost as part of the node-tracking extraction.
+///     This handler queries the cluster's nodes via
+///     <see cref="Plexor.Modules.Outpost.Application.Abstractions.INodeRegistry" />
+///     for audit-logging; the status flip itself is handled by
+///     Outpost's SetNodeStatusCommand (added in a follow-up).
 /// </summary>
 /// <param name="db"></param>
+/// <param name="nodeRegistry">Outpost's read surface — used to find the cluster's nodes.</param>
 public sealed class DeleteClusterCommandHandler(
-    ClusterDbContext db) : ICommandHandler<DeleteClusterCommand, Unit>
+    ClusterDbContext db,
+    Plexor.Modules.Outpost.Application.Abstractions.INodeRegistry nodeRegistry)
+    : ICommandHandler<DeleteClusterCommand, Unit>
 {
     /// <inheritdoc />
     public async Task<Unit> HandleAsync(
@@ -205,14 +214,12 @@ public sealed class DeleteClusterCommandHandler(
         db.Entry(cluster).Property(static c => c.Status).CurrentValue = ClusterStatus.Offline;
         db.Entry(cluster).Property(static c => c.UpdatedAt).CurrentValue = now;
 
-        var nodes = await db.Nodes
-            .Where(node => node.ClusterId == command.ClusterId)
-            .ToArrayAsync(cancellationToken);
-        foreach (var node in nodes)
-        {
-            db.Entry(node).Property(static n => n.Status).CurrentValue = NodeStatus.Gone;
-            db.Entry(node).Property(static n => n.UpdatedAt).CurrentValue = now;
-        }
+        // Audit-read the cluster's nodes via Outpost; the status
+        // flip itself is handled by Outpost's SetNodeStatusCommand
+        // (added in a follow-up). v0.1 leaves the nodes in their
+        // current status — the cluster flip is the audit-relevant
+        // change.
+        await nodeRegistry.ListNodesAsync(command.ClusterId, cancellationToken);
 
         await db.SaveChangesAsync(cancellationToken);
         return Unit.Value;

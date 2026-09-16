@@ -118,9 +118,6 @@ public sealed class ClusterSummary
     /// </summary>
     public string RuntimeId { get; init; } = ClusterRuntimeIds.Default;
 
-    /// <summary>Aggregated node counts by status.</summary>
-    public NodeCounts NodeCounts { get; init; } = new();
-
     /// <summary>Cluster creation time (UTC).</summary>
     public DateTimeOffset CreatedAt { get; init; }
 
@@ -169,8 +166,10 @@ public sealed class ClusterDetail
     /// <summary>When the active join token expires, null if none.</summary>
     public DateTimeOffset? JoinTokenExpiresAt { get; init; }
 
-    /// <summary>Child nodes (empty if none joined).</summary>
-    public IReadOnlyList<NodeSummary> Nodes { get; init; } = [];
+    /// <summary>Child nodes (empty if none joined). The actual rows
+    /// live in Plexor.Modules.Outpost (outpost.node_records); the
+    /// dashboard populates this via a separate repository call.</summary>
+    public IReadOnlyList<ClusterNodeSummary> Nodes { get; init; } = [];
 
     /// <summary>Creation time (UTC).</summary>
     public DateTimeOffset CreatedAt { get; init; }
