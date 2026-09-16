@@ -9,16 +9,14 @@
  *   expect(mocks.fetch).toHaveBeenCalledWith(expect.objectContaining({ action: 'x' }));
  */
 import { vi, type MockInstance } from 'vitest';
-import { fetchAudit } from '@/features/audit/audit-service';
-
-const auditService = { fetchAudit };
+import * as service from '@/features/audit/audit-service';
 
 export interface AuditServiceMocks {
-  fetch: MockInstance<typeof fetchAudit>;
+  fetch: MockInstance<(typeof service)['fetchAudit']>;
 }
 
 export function mockAuditService(): AuditServiceMocks {
   return {
-    fetch: vi.spyOn(auditService, 'fetchAudit'),
+    fetch: vi.spyOn(service, 'fetchAudit'),
   };
 }

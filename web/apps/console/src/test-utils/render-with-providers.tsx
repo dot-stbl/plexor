@@ -15,6 +15,8 @@ import { I18nextProvider, initReactI18next } from 'react-i18next';
 import { Outlet, RouterProvider, createMemoryHistory, createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
 import i18next from 'i18next';
 import { PreferencesProvider } from '@/shared/lib/preferences-provider';
+import en from '@/shared/lib/i18n/locales/en/common.json';
+import ru from '@/shared/lib/i18n/locales/ru/common.json';
 
 export interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper'> {
   /** Pre-populated QueryClient (default: a fresh one with `retry: false` for fast tests). */
@@ -89,8 +91,10 @@ function createTestQueryClient(): QueryClient {
  * depends on browser-only `localStorage` detection. A dedicated
  * createInstance avoids both.
  *
- * Resources are intentionally empty — tests can supply their own keys
- * via `resources` if they need to assert on a specific translation.
+ * Resources are loaded from the real locale JSONs so the page renders
+ * the same translations it would in the browser; tests can still
+ * override individual keys by re-initializing or via custom resources
+ * if needed.
  */
 const testI18n = i18next.createInstance();
 
@@ -99,6 +103,9 @@ void testI18n.use(initReactI18next).init({
   fallbackLng: 'en',
   defaultNS: 'translation',
   ns: ['translation'],
-  resources: { en: { translation: {} } },
+  resources: {
+    en: { translation: en as Record<string, unknown> },
+    ru: { translation: ru as Record<string, unknown> },
+  },
   interpolation: { escapeValue: false },
 });
