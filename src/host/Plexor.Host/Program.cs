@@ -28,6 +28,10 @@ using Plexor.Host.NodeAgent;
 using Plexor.Host.OpenApi;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Outpost.Api.Installers;
+using Plexor.Modules.Outpost.Application.Installers;
+using Plexor.Modules.Outpost.Infrastructure.Installers;
+using Plexor.Modules.Outpost.Infrastructure.Persistence;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Api;
 using Plexor.Modules.Sigil.Application.Installers;
@@ -102,7 +106,10 @@ builder.Services
             options.JsonSerializerOptions.Converters.Add(
                 new JsonStringEnumConverter());
         })
-        .AddApplicationPart(typeof(Plexor.Modules.Sigil.Api.Controllers.AuthController).Assembly);
+        .AddApplicationPart(typeof(Plexor.Modules.Sigil.Api.Controllers.AuthController).Assembly)
+        // 5.x — Outpost module's NodesController (/api/v1/nodes/*)
+        // lives in the Outpost.Api assembly.
+        .AddApplicationPart(typeof(Plexor.Modules.Outpost.Api.Controllers.NodesController).Assembly);
 
 // Persistence — schema-per-module DbContexts. Connection string
 // Persistence — single Postgres connection string, schema-per-module.
@@ -124,7 +131,8 @@ builder.Services.AddModuleDbContext<RealmDbContext>(postgresConnection);
 builder.Services.AddModuleDbContext<IdentityDbContext>(postgresConnection);
 builder.Services.AddModuleDbContext<ClusterDbContext>(postgresConnection);
 builder.Services.AddModuleDbContext<RevokedCertsDbContext>(postgresConnection);
-var contextCount = 4;
+builder.Services.AddModuleDbContext<OutpostDbContext>(postgresConnection);
+var contextCount = 5;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -149,6 +157,29 @@ builder.Services.AddPlexorSigilApi();
 // NodeAgent join/heartbeat endpoints). Phase 5.
 builder.Services.AddClustersInfrastructureCore();
 builder.Services.AddExceptionHandler<Plexor.Modules.Clusters.Infrastructure.Errors.ClustersExceptionHandler>();
+
+// Outpost module — host-side node registry (outpost schema).
+// Application hosts the ICommandHandler contracts + INodeHeartbeatEvaluator;
+// Infrastructure wires the EF-backed register / heartbeat handlers
+// + the read repositories. Api hosts the NodesController
+// (/api/v1/nodes/*). The heartbeat evaluator is bound below.
+builder.Services.AddOutpostApplicationCore();
+builder.Services.AddOutpostInfrastructureCore();
+builder.Services.AddOutpostApiCore();
+// OutpostHeartbeatOptions (5.x) — bind the heartbeat evaluator's
+// threshold window. ValidateDataAnnotations + ValidateOnStart fail
+// the host startup on an out-of-range value rather than the first
+// heartbeat. Mirrors the AuditOptions binding.
+builder.Services
+    .AddOptions<Plexor.Modules.Outpost.Infrastructure.Nodes.OutpostHeartbeatOptions>()
+    .Bind(builder.Configuration.GetSection(Plexor.Modules.Outpost.Infrastructure.Nodes.OutpostHeartbeatOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+// OutpostException (5.x) — maps OutpostException to a 400/404/409
+// ProblemDetails via the central handler pipeline. Coexists with
+// the Clusters + Identity + Quota handlers — each owns its own
+// typed exception + stable Code.
+builder.Services.AddExceptionHandler<Plexor.Modules.Outpost.Infrastructure.Errors.OutpostExceptionHandler>();
 
 // Strip our own IHostedService implementations when the host is being
 // launched by the build-time OpenAPI document generator. Without this,
