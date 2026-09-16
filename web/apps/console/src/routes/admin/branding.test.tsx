@@ -1,9 +1,10 @@
 /**
- * AdminBrandingPage component tests — the first real component test in
- * apps/console, exercising the operator-global + per-org override form
- * wired to the branding-service mock. The page reads global + org via
- * TanStack Query hooks, so we stub the service functions (one
- * fetchGlobal, one fetchOrg) and assert the rendered form + the
+ * AdminBrandingPage component tests — the operator-global + per-org override
+ * form wired to the kubb-generated branding client. The page reads
+ * global + org via TanStack Query hooks (`useGlobalBranding`,
+ * `useOrgBranding`) which call kubb's `getBrandingGlobal` /
+ * `getBrandingOrg`; tests stub those client functions via vi.spyOn
+ * (see `nock-branding-api.ts`) and assert the rendered form + the
  * Save / Clear buttons actually call the mutation paths.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -12,20 +13,19 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route } from './branding';
 import { mockBrandingService, renderWithProviders } from '@/test-utils';
+import type {
+  GlobalThemeConfigResponse,
+  OrgBrandingConfigResponse,
+} from '@/shared/api';
 
 // `Route.options.component` carries the loader-aware generic type from
 // `createFileRoute` — extracting it into a ComponentType simplifies the
 // JSX usage in the tests below.
 const AdminBrandingPage = Route.options.component as ComponentType;
 
-function makeGlobalConfig(overrides: Partial<{
-  brandName: string;
-  brandLogoUrl: string | null;
-  brandFaviconUrl: string | null;
-  defaultPresetId: string;
-  customAccent: string | null;
-  updatedAt: string;
-}> = {}) {
+function makeGlobalConfig(
+  overrides: Partial<GlobalThemeConfigResponse> = {},
+): GlobalThemeConfigResponse {
   return {
     brandName: 'Plexor',
     brandLogoUrl: null,
@@ -37,15 +37,9 @@ function makeGlobalConfig(overrides: Partial<{
   };
 }
 
-function makeOrgConfig(overrides: Partial<{
-  orgId: string;
-  presetId: string | null;
-  customAccent: string | null;
-  brandName: string | null;
-  brandLogoUrl: string | null;
-  brandFaviconUrl: string | null;
-  updatedAt: string;
-}> = {}) {
+function makeOrgConfig(
+  overrides: Partial<OrgBrandingConfigResponse> = {},
+): OrgBrandingConfigResponse {
   return {
     orgId: '00000000-0000-0000-0000-000000000001',
     presetId: null,
@@ -79,7 +73,9 @@ describe('AdminBrandingPage', () => {
   it('renders the global preset picker with plexor-default-light preselected', async () => {
     const mocks = mockBrandingService();
     mocks.getGlobal.mockResolvedValue(makeGlobalConfig());
-    mocks.getOrg.mockResolvedValue(null);
+    // No per-org override — kubb propagates the 404 as a typed error;
+    // the page treats the absent `data` as "no override".
+    mocks.getOrg.mockRejectedValue(new Error('404 Not Found'));
 
     renderWithProviders(<AdminBrandingPage />);
 
@@ -100,7 +96,7 @@ describe('AdminBrandingPage', () => {
   it('renders the brand name input prefilled with the value from the API', async () => {
     const mocks = mockBrandingService();
     mocks.getGlobal.mockResolvedValue(makeGlobalConfig({ brandName: 'Acme Cloud' }));
-    mocks.getOrg.mockResolvedValue(null);
+    mocks.getOrg.mockRejectedValue(new Error('404 Not Found'));
 
     renderWithProviders(<AdminBrandingPage />);
 
@@ -151,7 +147,7 @@ describe('AdminBrandingPage', () => {
     mocks.getGlobal.mockResolvedValue(
       makeGlobalConfig({ customAccent: 'oklch(0.65 0.18 250)' }),
     );
-    mocks.getOrg.mockResolvedValue(null);
+    mocks.getOrg.mockRejectedValue(new Error('404 Not Found'));
 
     renderWithProviders(<AdminBrandingPage />);
 
@@ -169,7 +165,7 @@ describe('AdminBrandingPage', () => {
         customAccent: null,
       }),
     );
-    mocks.getOrg.mockResolvedValue(null);
+    mocks.getOrg.mockRejectedValue(new Error('404 Not Found'));
     mocks.updateGlobal.mockResolvedValue(makeGlobalConfig({ brandName: 'Plexor' }));
 
     renderWithProviders(<AdminBrandingPage />);
@@ -185,6 +181,9 @@ describe('AdminBrandingPage', () => {
     });
     await user.click(saveButton);
 
+    // kubb's `updateBrandingGlobal(data, config)` — the body is the
+    // first arg; `config` (signal, etc.) is the second. Assert the
+    // body shape, ignore the config arg.
     await waitFor(() => {
       expect(mocks.updateGlobal).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -194,11 +193,12 @@ describe('AdminBrandingPage', () => {
           brandFaviconUrl: null,
           customAccent: null,
         }),
+        expect.anything(),
       );
     });
   });
 
-  it('calls deleteOrgBranding when the Clear Override button is clicked', async () => {
+  it('calls deleteBrandingOrg when the Clear Override button is clicked', async () => {
     const user = userEvent.setup();
     const mocks = mockBrandingService();
     mocks.getGlobal.mockResolvedValue(makeGlobalConfig());
@@ -212,8 +212,15 @@ describe('AdminBrandingPage', () => {
     const clearButton = await screen.findByRole('button', { name: /clear override/i });
     await user.click(clearButton);
 
+    // deleteBrandingOrg(orgId, config) — kubb's DELETE-with-path-param
+    // signature takes the path value as a positional string arg, then
+    // the kubb config (signal, etc.). Assert the orgId and ignore the
+    // config arg.
     await waitFor(() => {
-      expect(mocks.deleteOrg).toHaveBeenCalledTimes(1);
+      expect(mocks.deleteOrg).toHaveBeenCalledWith(
+        '00000000-0000-0000-0000-000000000001',
+        expect.anything(),
+      );
     });
   });
 
@@ -221,7 +228,7 @@ describe('AdminBrandingPage', () => {
     const user = userEvent.setup();
     const mocks = mockBrandingService();
     mocks.getGlobal.mockResolvedValue(makeGlobalConfig());
-    mocks.getOrg.mockResolvedValue(null);
+    mocks.getOrg.mockRejectedValue(new Error('404 Not Found'));
     mocks.updateGlobal.mockRejectedValue(new Error('upstream 502'));
 
     renderWithProviders(<AdminBrandingPage />);

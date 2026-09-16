@@ -1,8 +1,8 @@
 /**
  * AdminAuditPage component tests — the read surface for the
  * tenant-scoped audit log. The page wires filter inputs to a TanStack
- * Query that hits the audit endpoint, paginates via a `before` cursor,
- * and falls back to an EmptyState when no rows are returned.
+ * Query (`useAudit`) which calls the kubb-generated `getAudit` client.
+ * Tests stub the client via vi.spyOn (see `nock-audit-api.ts`).
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { ComponentType } from 'react';
@@ -10,22 +10,14 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route } from './audit';
 import { mockAuditService, renderWithProviders } from '@/test-utils';
+import type { AuditQueryResponse } from '@/shared/api';
 
 // `Route.options.component` carries the loader-aware generic type from
 // `createFileRoute` — extracting it into a ComponentType simplifies the
 // JSX usage in the tests below.
 const AdminAuditPage = Route.options.component as ComponentType;
 
-function makeEntry(overrides: Partial<{
-  id: string;
-  action: string;
-  orgId: string;
-  actorUserId: string | null;
-  targetKind: string;
-  targetId: string | null;
-  payload: Record<string, unknown>;
-  occurredAt: string;
-}> = {}) {
+function makeEntry(overrides: Partial<AuditQueryResponse> = {}): AuditQueryResponse {
   return {
     id: '00000000-0000-0000-0000-000000000001',
     action: 'quotas.assignment.changed',
@@ -82,9 +74,12 @@ describe('AdminAuditPage', () => {
     const applyButton = await screen.findByRole('button', { name: /apply filters/i });
     await user.click(applyButton);
 
+    // kubb's `getAudit(params, config)` — first arg is the query
+    // params object; assert its shape, ignore the config arg.
     await waitFor(() => {
       expect(mocks.fetch).toHaveBeenCalledWith(
         expect.objectContaining({ action: 'quotas.assignment.changed' }),
+        expect.anything(),
       );
     });
   });
@@ -114,7 +109,9 @@ describe('AdminAuditPage', () => {
       // The second fetch carries a `before` cursor equal to the oldest
       // row's occurredAt from the first page.
       const before = firstPage[firstPage.length - 1]?.occurredAt ?? '';
-      expect(calls[calls.length - 1]?.[0]).toEqual(expect.objectContaining({ before }));
+      const lastCall = calls[calls.length - 1];
+      const params = (lastCall?.[0] ?? {}) as { before?: string };
+      expect(params.before).toBe(before);
     });
   });
 

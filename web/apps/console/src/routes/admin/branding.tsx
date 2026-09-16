@@ -19,7 +19,7 @@ import {
   useUpdateOrgBranding,
   useDeleteOrgBranding,
 } from '@/features/branding/use-branding';
-import type { GlobalBrandingConfig } from '@/features/branding/branding-types';
+import type { GlobalThemeConfigResponse } from '@/shared/api';
 
 /**
  * AdminBrandingPage — operator-only console surface for the
@@ -55,7 +55,7 @@ interface FormState {
   customAccent: string;
 }
 
-function toForm(config: Pick<GlobalBrandingConfig, 'brandName' | 'brandLogoUrl' | 'brandFaviconUrl' | 'defaultPresetId' | 'customAccent'>): FormState {
+function toForm(config: Pick<GlobalThemeConfigResponse, 'brandName' | 'brandLogoUrl' | 'brandFaviconUrl' | 'defaultPresetId' | 'customAccent'>): FormState {
   return {
     brandName: config.brandName,
     brandLogoUrl: config.brandLogoUrl ?? '',
