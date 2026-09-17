@@ -2,16 +2,16 @@
 // ============================================================================
 // SigilAuthProviderShould — exercise the local-email+password provider
 // against NSubstitute mocks for the JWT signer + user lookup + role
-// resolver + permission resolver, plus a real in-memory RealmDbContext
-// for the per-tenant routing decision. Covers the resolution success
-// path, every null-return path, and the CanAuthenticateForAsync gate.
+// resolver + permission resolver + the per-tenant config reader.
+// Covers the resolution success path, every null-return path, and
+// the CanAuthenticateForAsync gate.
 // ============================================================================
 
 using System.Security.Claims;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
+using Plexor.Modules.Realm.Application.AuthProviders;
 using Plexor.Modules.Realm.Domain.Entities;
-using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.AuthProviders;
@@ -19,7 +19,6 @@ using Plexor.Modules.Sigil.Application.Users;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
-using Plexor.Modules.Sigil.Unit.Realm;
 using Shouldly;
 using Xunit;
 
@@ -65,32 +64,53 @@ public sealed class SigilAuthProviderShould
     }
 
     /// <summary>
-    ///     Wire a SigilAuthProvider with the supplied mocks + a
-    ///     real <see cref="RealmDbContext" />. The default config
-    ///     table is empty — callers seed it before invoking
-    ///     <c>ResolveAsync</c> when they want to test the OIDC
-    ///     rejection path.
+    ///     Build a seeded <see cref="OrgAuthProviderConfig" /> row
+    ///     for a given tenant — the substitute reader returns it on
+    ///     every <c>GetForOrgAsync</c> call, mirroring the production
+    ///     EF read against <c>realm.org_auth_provider_configs</c>.
+    /// </summary>
+    /// <param name="orgId">Tenant id.</param>
+    /// <param name="provider">Provider discriminator to return.</param>
+    private static OrgAuthProviderConfig BuildConfig(Guid orgId, OrgAuthProvider provider)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return new OrgAuthProviderConfig
+        {
+            Id = Guid.NewGuid(),
+            OrgId = orgId,
+            Provider = provider,
+            CreatedAt = now,
+            UpdatedAt = now,
+        };
+    }
+
+    /// <summary>
+    ///     Wire a SigilAuthProvider with the supplied mocks. The
+    ///     supplied config reader is returned as-is — tests configure
+    ///     it before invoking <c>ResolveAsync</c> /
+    ///     <c>CanAuthenticateForAsync</c> when they want to exercise
+    ///     the OIDC rejection / Sigil acceptance branches.
     /// </summary>
     /// <param name="signing">Stubbed JWT signer.</param>
     /// <param name="userLookup">Stubbed user lookup.</param>
     /// <param name="roleResolver">Stubbed role resolver.</param>
     /// <param name="permissionResolver">Stubbed permission resolver.</param>
-    /// <param name="realm">In-memory realm DbContext.</param>
-    private static (SigilAuthProvider Provider, RealmDbContext Realm) BuildProvider(
+    /// <param name="configReader">Stubbed per-tenant config reader.</param>
+    private static (SigilAuthProvider Provider, IOrgAuthProviderConfigReader ConfigReader) BuildProvider(
         IJwtSigningService signing,
         IUserLookup userLookup,
         IRoleResolver roleResolver,
         IPermissionResolver permissionResolver,
-        RealmDbContext realm)
+        IOrgAuthProviderConfigReader configReader)
     {
         var provider = new SigilAuthProvider(
             signing,
             userLookup,
             roleResolver,
             permissionResolver,
-            realm,
+            configReader,
             NullLogger<SigilAuthProvider>.Instance);
-        return (provider, realm);
+        return (provider, configReader);
     }
 
     /// <summary>Given a Sigil-issued token, when the tenant has no
@@ -117,10 +137,10 @@ public sealed class SigilAuthProviderShould
             .Returns(AdminRole);
         permissionResolver.ResolveAsync(userId, orgId, Arg.Any<CancellationToken>())
             .Returns(AdminWildcardPermissions);
-        await using var realm = await RealmTestDb.CreateAsync();
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
 
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var resolution = await provider.ResolveAsync("token", CancellationToken.None);
 
@@ -145,12 +165,12 @@ public sealed class SigilAuthProviderShould
         var (signing, userLookup, roleResolver, permissionResolver) = SubstituteAuthServices();
         signing.VerifyAsync("token", Arg.Any<CancellationToken>())
             .Returns(BuildSuccess(userId, orgId));
-        await using var realm = await RealmTestDb.CreateAsync();
-        await SeedOrgAsync(realm, orgId);
-        await SeedOrgAuthProviderAsync(realm, orgId, OrgAuthProvider.Oidc);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetForOrgAsync(orgId, Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, OrgAuthProvider.Oidc));
 
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var resolution = await provider.ResolveAsync("token", CancellationToken.None);
 
@@ -182,12 +202,12 @@ public sealed class SigilAuthProviderShould
             .Returns(EmptyRoles);
         permissionResolver.ResolveAsync(userId, orgId, Arg.Any<CancellationToken>())
             .Returns(EmptyPermissions);
-        await using var realm = await RealmTestDb.CreateAsync();
-        await SeedOrgAsync(realm, orgId);
-        await SeedOrgAuthProviderAsync(realm, orgId, OrgAuthProvider.Sigil);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetForOrgAsync(orgId, Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, OrgAuthProvider.Sigil));
 
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var resolution = await provider.ResolveAsync("token", CancellationToken.None);
 
@@ -204,10 +224,10 @@ public sealed class SigilAuthProviderShould
         var (signing, userLookup, roleResolver, permissionResolver) = SubstituteAuthServices();
         signing.VerifyAsync("token", Arg.Any<CancellationToken>())
             .Returns(new VerifyResult.Invalid("signature mismatch"));
-        await using var realm = await RealmTestDb.CreateAsync();
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
 
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var resolution = await provider.ResolveAsync("token", CancellationToken.None);
 
@@ -218,6 +238,8 @@ public sealed class SigilAuthProviderShould
             Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         await permissionResolver.DidNotReceive().ResolveAsync(
             Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await configReader.DidNotReceive().GetForOrgAsync(
+            Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>Given a malformed JWT, when resolving, then returns null.</summary>
@@ -227,10 +249,10 @@ public sealed class SigilAuthProviderShould
         var (signing, userLookup, roleResolver, permissionResolver) = SubstituteAuthServices();
         signing.VerifyAsync("token", Arg.Any<CancellationToken>())
             .Returns(new VerifyResult.Malformed("not three dots"));
-        await using var realm = await RealmTestDb.CreateAsync();
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
 
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var resolution = await provider.ResolveAsync("token", CancellationToken.None);
 
@@ -250,10 +272,10 @@ public sealed class SigilAuthProviderShould
             .Returns(BuildSuccess(userId, orgId));
         userLookup.FindByIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns((User?)null);
-        await using var realm = await RealmTestDb.CreateAsync();
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
 
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var resolution = await provider.ResolveAsync("token", CancellationToken.None);
 
@@ -280,10 +302,10 @@ public sealed class SigilAuthProviderShould
                 Email = new Email("charlie@example.com"),
                 Status = "suspended",
             });
-        await using var realm = await RealmTestDb.CreateAsync();
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
 
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var resolution = await provider.ResolveAsync("token", CancellationToken.None);
 
@@ -301,10 +323,10 @@ public sealed class SigilAuthProviderShould
         var (signing, userLookup, roleResolver, permissionResolver) = SubstituteAuthServices();
         signing.VerifyAsync("token", Arg.Any<CancellationToken>())
             .Returns(new VerifyResult.Success(new ClaimsPrincipal(identity)));
-        await using var realm = await RealmTestDb.CreateAsync();
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
 
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var resolution = await provider.ResolveAsync("token", CancellationToken.None);
 
@@ -317,9 +339,10 @@ public sealed class SigilAuthProviderShould
     public async Task CanAuthenticateForAsync_WithUnconfiguredTenant_ReturnsTrueAsync()
     {
         var (signing, userLookup, roleResolver, permissionResolver) = SubstituteAuthServices();
-        await using var realm = await RealmTestDb.CreateAsync();
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var result = await provider.CanAuthenticateForAsync(
             Guid.NewGuid(), CancellationToken.None);
@@ -334,11 +357,12 @@ public sealed class SigilAuthProviderShould
     {
         var orgId = Guid.NewGuid();
         var (signing, userLookup, roleResolver, permissionResolver) = SubstituteAuthServices();
-        await using var realm = await RealmTestDb.CreateAsync();
-        await SeedOrgAsync(realm, orgId);
-        await SeedOrgAuthProviderAsync(realm, orgId, OrgAuthProvider.Sigil);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetForOrgAsync(orgId, Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, OrgAuthProvider.Sigil));
+
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var result = await provider.CanAuthenticateForAsync(
             orgId, CancellationToken.None);
@@ -353,11 +377,12 @@ public sealed class SigilAuthProviderShould
     {
         var orgId = Guid.NewGuid();
         var (signing, userLookup, roleResolver, permissionResolver) = SubstituteAuthServices();
-        await using var realm = await RealmTestDb.CreateAsync();
-        await SeedOrgAsync(realm, orgId);
-        await SeedOrgAuthProviderAsync(realm, orgId, OrgAuthProvider.Oidc);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetForOrgAsync(orgId, Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, OrgAuthProvider.Oidc));
+
         var (provider, _) = BuildProvider(
-            signing, userLookup, roleResolver, permissionResolver, realm);
+            signing, userLookup, roleResolver, permissionResolver, configReader);
 
         var result = await provider.CanAuthenticateForAsync(
             orgId, CancellationToken.None);
@@ -372,37 +397,5 @@ public sealed class SigilAuthProviderShould
             Substitute.For<IUserLookup>(),
             Substitute.For<IRoleResolver>(),
             Substitute.For<IPermissionResolver>());
-    }
-
-    private static async Task SeedOrgAsync(RealmDbContext db, Guid orgId)
-    {
-        var now = DateTimeOffset.UtcNow;
-        var slug = $"org-{orgId.ToString()[..6]}";
-        await db.Organizations.AddAsync(new Organization
-        {
-            Id = orgId,
-            Name = slug,
-            Slug = slug,
-            Status = "active",
-            CreatedAt = now,
-        });
-        await db.SaveChangesAsync();
-    }
-
-    private static async Task SeedOrgAuthProviderAsync(
-        RealmDbContext db,
-        Guid orgId,
-        OrgAuthProvider provider)
-    {
-        var now = DateTimeOffset.UtcNow;
-        await db.OrgAuthProviderConfigs.AddAsync(new OrgAuthProviderConfig
-        {
-            Id = Guid.NewGuid(),
-            OrgId = orgId,
-            Provider = provider,
-            CreatedAt = now,
-            UpdatedAt = now,
-        });
-        await db.SaveChangesAsync();
     }
 }

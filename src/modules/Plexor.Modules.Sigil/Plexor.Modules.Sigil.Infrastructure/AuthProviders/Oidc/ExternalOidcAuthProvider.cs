@@ -7,7 +7,8 @@
 //
 //   1. Decode the JWT header (no signature check yet) to discover
 //      `kid` + `iss`.
-//   2. Look up the OrgAuthProviderConfig by issuer — the dispatcher's
+//   2. Look up the OrgAuthProviderConfig by issuer via
+//      IOrgAuthProviderConfigReader — the dispatcher's
 //      responsibility in 4.6.2c, but for now the provider self-routes
 //      by issuer.
 //   3. Fetch the JWKS via IJwksFetcher (cached 1h in-memory per
@@ -36,12 +37,11 @@
 // last-wins semantics on multi-IAuthProvider registrations.
 // ============================================================================
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Plexor.Modules.Realm.Application.AuthProviders;
 using Plexor.Modules.Realm.Domain.Entities;
-using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.AuthProviders;
 
@@ -55,14 +55,11 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 ///     dispatcher (4.6.2c) uses to rebuild <c>HttpContext.User</c>.
 /// </summary>
 /// <remarks>
-///     <para><b>Cross-module reference.</b> Same shape as
-///     <see cref="Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers.SigilAuthProvider" /> — this class consumes
-///     <see cref="RealmDbContext" /> to read
-///     <see cref="OrgAuthProviderConfig" />. The reference is
-///     necessary because the OIDC provider is the only place that
-///     knows whether the inbound token's <c>iss</c> claim still
-///     corresponds to an OIDC-served tenant. The architecture-test
-///     backlog records this as a permitted cross-module dep.</para>
+///     <para><b>Cross-module seam.</b> Reads the per-tenant config via
+///     <see cref="IOrgAuthProviderConfigReader" /> — the abstraction
+///     defined in <c>Plexor.Modules.Realm.Application.AuthProviders</c>.
+///     This class never touches <c>RealmDbContext</c> directly (Law 3:
+///     modules don't reference each other's Infrastructure).</para>
 ///     <para><b>Why <see cref="JsonWebTokenHandler" />.</b> Microsoft's
 ///     modern JWT pipeline (replaces <c>JwtSecurityTokenHandler</c>).
 ///     Reads + validates in one call via
@@ -73,19 +70,20 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 ///     JwtSecurityTokenHandler does an inbound legacy mapping to
 ///     <c>ClaimTypes.*</c> that we don't want here.</para>
 ///     <para><b>Why re-resolve roles + permissions on every call.</b>
-///     Same shape as <see cref="Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers.SigilAuthProvider" />: the OIDC
-///     provider is the source of truth for which Plexor roles +
-///     permissions an external user holds. Two small roundtrips on
-///     every authenticated request; the dispatcher (4.6.2c) caches
-///     the result. Phase 5+ adds a TTL cache.</para>
-///     <para><b>Secret decryption is deferred.</b> v0.1 JWT
+///     The OIDC provider is the source of truth for which Plexor
+///     roles + permissions an external user holds. Two small
+///     roundtrips on every authenticated request; the dispatcher
+///     (4.6.2c) caches the result. Phase 5+ adds a TTL cache.</para>
+///     <para><b>Secret decryption is deferred.</b> v1 JWT
 ///     validation doesn't need the OIDC client secret — signature
 ///     validation is public-key, not HMAC. The secret is used by
 ///     4.6.3 (OIDC flow endpoints) for client authentication at the
 ///     IDP's token endpoint. The decryption seam
-///     (<see cref="Microsoft.AspNetCore.DataProtection.IDataProtectionProvider" />)
-///     will land with 4.6.3 alongside the flow.</para>
-///     <para><b>User lookup is deferred.</b> v0.1 JWT validation
+///     (<see cref="IOrgAuthProviderSecretProtector" />, registered
+///     via <see cref="Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers.AuthProviderResolver" />'s peer consumer
+///     <c>OrgAuthProviderSecretProtector</c> in Realm) will land with
+///     4.6.3 alongside the flow.</para>
+///     <para><b>User lookup is deferred.</b> v1 JWT validation
 ///     doesn't read the Plexor <c>User</c> row — the OIDC user is
 ///     created by the 4.6.3 flow endpoints when the user lands.
 ///     <see cref="Application.Users.IUserLookup" /> lands in
@@ -97,15 +95,15 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 /// the Plexor <c>Role</c> table for the tenant.</param>
 /// <param name="permissionResolver">Unions the matched roles'
 /// permissions.</param>
-/// <param name="realm">Realm DbContext — used to read
-/// <see cref="OrgAuthProviderConfig" /> for the issuer →
-/// tenant mapping.</param>
+/// <param name="configReader">Reads the per-tenant
+/// <see cref="OrgAuthProviderConfig" /> via the cross-module
+/// abstraction.</param>
 /// <param name="logger">Structured logger.</param>
 public sealed class ExternalOidcAuthProvider(
     IJwksFetcher jwksFetcher,
     IRoleResolver roleResolver,
     IPermissionResolver permissionResolver,
-    RealmDbContext realm,
+    IOrgAuthProviderConfigReader configReader,
     ILogger<ExternalOidcAuthProvider> logger) : IAuthProvider
 {
     /// <summary>
@@ -136,11 +134,7 @@ public sealed class ExternalOidcAuthProvider(
         Guid orgId,
         CancellationToken cancellationToken)
     {
-        var config = await realm.OrgAuthProviderConfigs
-            .AsNoTracking()
-            .FirstOrDefaultAsync(
-                config => config.OrgId == orgId,
-                cancellationToken);
+        var config = await configReader.GetForOrgAsync(orgId, cancellationToken);
 
         return config is { Provider: OrgAuthProvider.Oidc };
     }
@@ -166,11 +160,7 @@ public sealed class ExternalOidcAuthProvider(
             return null;
         }
 
-        var config = await realm.OrgAuthProviderConfigs
-            .AsNoTracking()
-            .FirstOrDefaultAsync(
-                config => config.OidcAuthority == issuer,
-                cancellationToken);
+        var config = await configReader.GetByOidcIssuerAsync(issuer, cancellationToken);
 
         if (config is null)
         {

@@ -309,7 +309,7 @@ public sealed class OidcTokenClientShould
     }
 
     private static OrgAuthProviderConfig BuildOidcConfig(
-        OrgAuthProviderSecretProtector protector,
+        IOrgAuthProviderSecretProtector protector,
         string plaintextSecret = TestClientSecret)
     {
         return new OrgAuthProviderConfig
@@ -340,7 +340,7 @@ public sealed class OidcTokenClientShould
         OidcTokenClient Client,
         ScriptedHttpHandler Handler,
         IOrgAuthProviderConfigReader ConfigReader,
-        OrgAuthProviderSecretProtector Protector);
+        IOrgAuthProviderSecretProtector Protector);
 
     /// <summary>
     ///     Ephemeral in-memory data-protection provider — no keyring
