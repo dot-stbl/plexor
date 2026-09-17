@@ -30,11 +30,11 @@ using Plexor.Host.Validation;
 using Plexor.Modules.Realm.Domain.Entities;
 using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
-using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Kernel.Audit;
 using Plexor.Shared.Kernel.AuthProviders;
+using Plexor.Shared.Kernel.Identity;
 
 namespace Plexor.Host.Controllers;
 

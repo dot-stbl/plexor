@@ -14,8 +14,8 @@ using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
-using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.Kernel.Identity;
 using Plexor.Shared.Kernel.Quotas;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Persistence;
@@ -59,13 +59,12 @@ namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 ///     that's within quota but collides on name rolls back the
 ///     reservation cleanly because the open transaction disposes
 ///     before the exception propagates.</para>
-///     <para><b>ICurrentUser dependency (4.5.h).</b> The interface lives
-///     in <c>Plexor.Modules.Sigil.Application.Abstractions</c>; the
-///     handler depends on the Application layer only, never on the
-///     Sigil Infrastructure layer (the <c>HttpContextCurrentUser</c>
-///     implementation). Forward plan: move ICurrentUser into
-///     <c>Plexor.Shared.Kernel</c> so this cross-module reference
-///     becomes a same-module reference.</para>
+///     <para><b>ICurrentUser dependency (4.5.h).</b> The interface
+///     lives in <c>Plexor.Shared.Kernel.Identity</c> (the shared
+///     kernel — moved out of Sigil in commit L8); the handler
+///     depends on the shared kernel, never on the Sigil
+///     Infrastructure layer (the <c>HttpContextCurrentUser</c>
+///     implementation).</para>
 /// </remarks>
 public sealed class CreateClusterCommandHandler(
     ClusterDbContext db,

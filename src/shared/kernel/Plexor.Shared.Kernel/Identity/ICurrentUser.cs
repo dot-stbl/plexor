@@ -1,4 +1,4 @@
-namespace Plexor.Modules.Sigil.Application.Abstractions;
+namespace Plexor.Shared.Kernel.Identity;
 
 /// <summary>
 ///     Per-request information about the authenticated principal — user

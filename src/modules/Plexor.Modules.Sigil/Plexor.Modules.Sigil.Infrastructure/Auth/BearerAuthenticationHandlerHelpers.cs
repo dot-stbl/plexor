@@ -11,6 +11,7 @@ using System.Security.Claims;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.AuthProviders;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
+using Plexor.Shared.Kernel.Identity;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
