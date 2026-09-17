@@ -21,10 +21,10 @@ using Microsoft.AspNetCore.Mvc;
 using Plexor.Modules.Branding.Api.Models.Requests;
 using Plexor.Modules.Branding.Api.Models.Responses;
 using Plexor.Modules.Branding.Application.Branding;
-using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Kernel.Branding;
+using Plexor.Shared.Kernel.Identity;
 
 namespace Plexor.Modules.Branding.Api.Controllers;
 

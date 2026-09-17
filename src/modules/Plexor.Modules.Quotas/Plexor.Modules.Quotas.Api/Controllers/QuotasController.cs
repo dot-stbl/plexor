@@ -19,9 +19,9 @@ using Microsoft.AspNetCore.Mvc;
 using Plexor.Modules.Quotas.Api.Models;
 using Plexor.Modules.Quotas.Application.Quotas;
 using Plexor.Modules.Quotas.Domain;
-using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
+using Plexor.Shared.Kernel.Identity;
 using Plexor.Shared.Kernel.Quotas;
 
 namespace Plexor.Modules.Quotas.Api.Controllers;

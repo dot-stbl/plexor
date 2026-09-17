@@ -13,8 +13,8 @@ using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
-using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.Kernel.Identity;
 using Plexor.Shared.Kernel.Quotas;
 using Plexor.Shared.Persistence;
 

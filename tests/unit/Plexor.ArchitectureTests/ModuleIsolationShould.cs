@@ -184,4 +184,46 @@ public sealed class ModuleIsolationShould
             + "(both in Plexor.Modules.Realm.Application.AuthProviders) for any "
             + "OrgAuthProviderConfig / OIDC secret-protector reads.");
     }
+
+    // L8 — ICurrentUser used to live in Plexor.Modules.Sigil.Application.Abstractions.
+    // It is a cross-module contract (every module + Host reads it), so it belongs in
+    // Plexor.Shared.Kernel alongside the other shared-kernel contracts (IRateLimiter,
+    // IAuditEmitter, …). The boundary guard below pins that location: future contributors
+    // who try to add a new method to ICurrentUser (or read it from a new module) find it
+    // in the kernel, not in Sigil — and Sigil's Application assembly stays free of a
+    // shared-kernel shape that other modules shouldn't reach into.
+    /// <summary>
+    ///     Given the Plexor solution, when the
+    ///     <c>Plexor.Shared.Kernel</c> and
+    ///     <c>Plexor.Modules.Sigil.Application</c> assemblies are
+    ///     scanned by NetArchTest for the interface
+    ///     <c>ICurrentUser</c>, then it lives in the shared kernel
+    ///     and is absent from Sigil's Application layer. <c>ICurrentUser</c>
+    ///     is a cross-module contract — every module (Host, Branding,
+    ///     Audit, Quotas, Clusters, Sigil) and the composition root
+    ///     read it. Pinning it under <c>Plexor.Shared.Kernel</c>
+    ///     prevents modules from coupling through Sigil's Application
+    ///     abstractions layer.
+    /// </summary>
+    [Fact(DisplayName = "Given ICurrentUser, when assemblies are scanned, then it lives in Plexor.Shared.Kernel and not in Sigil.Application")]
+    public void ICurrentUser_lives_in_Plexor_Shared_Kernel_not_in_Sigil()
+    {
+        var inSharedKernel = Types
+            .InAssembly(TestAssemblies.Load("Plexor.Shared.Kernel"))
+            .That()
+            .AreInterfaces()
+            .GetTypes()
+            .Any(t => t.Name == "ICurrentUser");
+        inSharedKernel.ShouldBeTrue(
+            "ICurrentUser must live in Plexor.Shared.Kernel so modules don't depend on Sigil.");
+
+        var inSigilApplication = Types
+            .InAssembly(TestAssemblies.Load("Plexor.Modules.Sigil.Application"))
+            .That()
+            .AreInterfaces()
+            .GetTypes()
+            .Any(t => t.Name == "ICurrentUser");
+        inSigilApplication.ShouldBeFalse(
+            "ICurrentUser was moved OUT of Sigil in commit L8 — it should not be re-introduced here.");
+    }
 }

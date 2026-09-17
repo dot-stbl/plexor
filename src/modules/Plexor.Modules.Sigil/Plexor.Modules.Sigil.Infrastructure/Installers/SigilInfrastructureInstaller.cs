@@ -10,7 +10,6 @@
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
-using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.AuthProviders;
 using Plexor.Modules.Sigil.Domain.Entities;
@@ -22,6 +21,7 @@ using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Kernel.AuthProviders;
+using Plexor.Shared.Kernel.Identity;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Installers;
 

@@ -4,9 +4,9 @@ namespace Plexor.Modules.Sigil.Application.Abstractions;
 ///     Claim type names used by the JWT signer (Phase 3.4) and the
 ///     bearer authentication handler (Phase 3.6). The signer writes
 ///     claims using these names; the bearer handler reads them back
-///     to populate <see cref="ICurrentUser" />. Both sides reference
-///     the same constants so a typo on one side fails the build, not
-///     production auth.
+///     to populate <see cref="Plexor.Shared.Kernel.Identity.ICurrentUser" />.
+///     Both sides reference the same constants so a typo on one side
+///     fails the build, not production auth.
 /// </summary>
 /// <remarks>
 ///     <para><b>Standard claims (no prefix).</b> <c>sub</c> and
@@ -60,7 +60,8 @@ public static class IdentityClaims
     /// <summary>
     ///     Boolean flag. <c>"true"</c> when the caller authenticated
     ///     via API key, <c>"false"</c> or missing when authenticated
-    ///     via JWT. Drives <see cref="ICurrentUser.IsService" />.
+    ///     via JWT. Drives
+    ///     <see cref="Plexor.Shared.Kernel.Identity.ICurrentUser.IsService" />.
     /// </summary>
     public const string IsService = "service";
 

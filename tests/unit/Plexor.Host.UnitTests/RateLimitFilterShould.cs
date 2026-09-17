@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using NSubstitute;
 using Plexor.Host.Filters;
-using Plexor.Modules.Sigil.Application.Abstractions;
+using Plexor.Shared.Kernel.Identity;
 using Plexor.Shared.Kernel.Quotas;
 using Shouldly;
 using Xunit;
