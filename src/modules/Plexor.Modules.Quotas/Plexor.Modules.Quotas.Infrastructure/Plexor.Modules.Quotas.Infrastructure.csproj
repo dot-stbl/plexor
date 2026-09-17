@@ -27,6 +27,18 @@
       enforces this.
     -->
     <ProjectReference Include="..\..\Plexor.Modules.Storage\Plexor.Modules.Storage.Application\Plexor.Modules.Storage.Application.csproj" />
+    <!--
+      Same shape for the network module — INetworkQuotaReader lives in
+      Plexor.Modules.Network.Application. The Quotas enforcer needs it
+      to gate network.floating_ips.count + network.load_balancers.count
+      on the *live* aggregate from network.*. Per Law 3 the
+      cross-module reference points at Application (the seam
+      namespace), NOT Network.Infrastructure (where the EF plumbing
+      lives) — the architecture test
+      Plexor.Modules.Quotas.Infrastructure_does_not_reference_Network_Infrastructure
+      enforces this.
+    -->
+    <ProjectReference Include="..\..\Plexor.Modules.Network\Plexor.Modules.Network.Application\Plexor.Modules.Network.Application.csproj" />
     <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Authorization\Plexor.Shared.Authorization.csproj" />
     <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
