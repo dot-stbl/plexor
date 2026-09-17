@@ -8,7 +8,8 @@
 // at startup), no JSON serialization in the hot path.
 //
 // The CLI exposes a subcommand tree (Group A — installer surface,
-// Group B — host operations, Group C — cluster CRUD):
+// Group B — host operations, Group C — cluster CRUD,
+// Group D — vm lifecycle):
 //
 //   plx                            — show help (full banner)
 //   plx --version                  — print version (full banner)
@@ -21,6 +22,11 @@
 //   plx host nodes list            — list registered nodes
 //   plx host nodes add             — register a node
 //   plx host nodes remove <id>     — unregister a node
+//   plx host vm list               — list VMs in the resolved cluster
+//   plx host vm create             — create a VM (workload)
+//   plx host vm start <vm-id>      — start a stopped VM
+//   plx host vm stop <vm-id>       — stop a running VM
+//   plx host vm delete <vm-id>     — delete a VM + its storage
 //   plx cluster list               — list clusters in the caller's org
 //   plx cluster create --name N    — provision a new cluster
 //   plx cluster delete <id>        — soft-delete a cluster
@@ -72,6 +78,24 @@ return PlexorCli.New(args)
                 nodes.AddCommand<HostNodesAddCommand>("add", static cmd => cmd.WithDescription("Register a new node"));
                 nodes.AddCommand<HostNodesRemoveCommand>("remove", static cmd => cmd.WithDescription("Unregister a node")
                     .WithExample(["remove", "node_01H...", "--yes"]));
+            });
+            host.AddBranch("vm", static vm =>
+            {
+                vm.AddCommand<VmListCommand>("list", static cmd => cmd
+                    .WithDescription("List VMs (workloads) in the resolved cluster")
+                    .WithExample(["list", "--page", "1", "--page-size", "25"]));
+                vm.AddCommand<VmCreateCommand>("create", static cmd => cmd
+                    .WithDescription("Create a new VM (workload) in the resolved cluster")
+                    .WithExample(["create", "--name", "web-1", "--image", "ubuntu-22.04-cloud"]));
+                vm.AddCommand<VmStartCommand>("start", static cmd => cmd
+                    .WithDescription("Start a stopped VM")
+                    .WithExample(["start", "wl_01H..."]));
+                vm.AddCommand<VmStopCommand>("stop", static cmd => cmd
+                    .WithDescription("Stop a running VM (graceful)")
+                    .WithExample(["stop", "wl_01H...", "--force"]));
+                vm.AddCommand<VmDeleteCommand>("delete", static cmd => cmd
+                    .WithDescription("Delete a VM + its storage (destructive; confirms unless --yes)")
+                    .WithExample(["delete", "wl_01H...", "--yes"]));
             });
         })
         .AddBranch("cluster", static cluster =>
