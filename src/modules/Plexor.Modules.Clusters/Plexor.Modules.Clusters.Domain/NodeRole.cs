@@ -4,30 +4,16 @@
 // Plan: .agents/docs/plans/plan-clusters.md. State machines match
 // .agents/docs/ui/state-machines.md (Cluster lifecycle) and
 // .agents/docs/ui/ui-state-machines.md (Node lifecycle).
+//
+// NodeRole (formerly here) moved to Plexor.Shared.Identifiers in the
+// NodeAgent wire-format alignment — Plexor.Shared.NodeApi references it
+// directly to type the RegisterNodeRequest body, so the wire-contract
+// enum has to live in shared, not in a module's domain.
 // ============================================================================
 
+using Plexor.Shared.Identifiers;
+
 namespace Plexor.Modules.Clusters.Domain;
-
-/// <summary>
-///     Role a Plexor.NodeAgent fills when joining a cluster. The control
-///     role is reserved for the Plexor.Host itself; workers run the
-///     compute role. Per-cluster role pinning is done at
-///     <see cref="JoinToken.IntendedRole" />.
-/// </summary>
-public enum NodeRole
-{
-    /// <summary>
-    ///     The Plexor.Host control plane. Only one node per cluster can
-    ///     redeem a control-plane join token.
-    /// </summary>
-    Control = 0,
-
-    /// <summary>
-    ///     Worker node — runs Plexor.NodeAgent + user workloads.
-    ///     Multiple compute nodes per cluster are expected.
-    /// </summary>
-    Compute = 1,
-}
 
 /// <summary>
 ///     Lifecycle status of a node within a cluster. See
@@ -84,7 +70,7 @@ public enum ClusterStatus
 
 /// <summary>
 ///     Lifecycle status of a single join token. New tokens are Active
-/// until redeemed, revoked, or expired.
+///     until redeemed, revoked, or expired.
 /// </summary>
 public enum TokenStatus
 {
@@ -100,23 +86,6 @@ public enum TokenStatus
     /// passed. Plexor.Host rejects the join with 401.</summary>
     Expired = 2,
 }
-
-/// <summary>
-///     Hardware spec reported by Plexor.NodeAgent on first join. We
-///     persist the snapshot — operators care about what the node
-///     reports, not what the host thinks it should be.
-/// </summary>
-/// <param name="Vcpu">Logical CPU count visible to the kernel.</param>
-/// <param name="RamGb">Total RAM in gibibytes (rounded up).</param>
-/// <param name="DiskGb">Total block storage in gibibytes reachable
-/// from the node (Ceph pool, local LVM, etc.).</param>
-/// <param name="Providers">Install providers selected for this
-/// node (kvm, lxc, pod, ovs, cilium, ...).</param>
-public sealed record NodeSpec(
-    int Vcpu,
-    int RamGb,
-    int DiskGb,
-    IReadOnlyList<string> Providers);
 
 /// <summary>
 ///     Aggregate node counts by status. The local <see cref="ClusterNodeSummary" />

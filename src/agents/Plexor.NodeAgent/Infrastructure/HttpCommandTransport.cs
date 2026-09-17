@@ -13,7 +13,6 @@
 // expected to recover within the configured retry budget.
 // ============================================================================
 
-using System.Globalization;
 using Plexor.NodeAgent.Abstractions;
 using Plexor.Shared.NodeApi;
 using Refit;
@@ -35,80 +34,48 @@ namespace Plexor.NodeAgent.Infrastructure;
 internal sealed class HttpCommandTransport(INodeApi api, ILogger<HttpCommandTransport> logger) : ICommandTransport
 {
     /// <inheritdoc />
-    public async Task<JoinResponse> JoinAsync(JoinRequest request, CancellationToken cancellationToken)
+    public Task<RegisterNodeResponse> JoinAsync(RegisterNodeRequest request, CancellationToken cancellationToken)
     {
-        return await CallAsync(
+        return ApiCallRunner.RunAsync(
             () => api.JoinAsync(request, cancellationToken),
-            "join");
+            operation: "register",
+            logger: logger);
     }
 
     /// <inheritdoc />
-    public async Task HeartbeatAsync(HeartbeatRequest request, CancellationToken cancellationToken)
+    public Task HeartbeatAsync(NodeHeartbeatRequest request, CancellationToken cancellationToken)
     {
-        await CallAsync<object?>(
+        return ApiCallRunner.RunAsync<object?>(
             async () =>
             {
-                await api.HeartbeatAsync(request.NodeId, request, cancellationToken);
+                await api.HeartbeatAsync(request, cancellationToken);
                 return null;
             },
-            "heartbeat");
+            operation: "heartbeat",
+            logger: logger);
     }
 
     /// <inheritdoc />
-    public async Task<CommandPollResponse> PollAsync(
+    public Task<CommandPollResponse> PollAsync(
         CommandPollRequest request,
         CancellationToken cancellationToken)
     {
-        return await CallAsync(
+        return ApiCallRunner.RunAsync(
             () => api.PollAsync(request.NodeId, request, cancellationToken),
-            "poll");
+            operation: "poll",
+            logger: logger);
     }
 
     /// <inheritdoc />
-    public async Task SubmitResultAsync(CommandResult result, CancellationToken cancellationToken)
+    public Task SubmitResultAsync(CommandResult result, CancellationToken cancellationToken)
     {
-        await CallAsync<object?>(
+        return ApiCallRunner.RunAsync<object?>(
             async () =>
             {
                 await api.SubmitResultAsync(result.NodeId, result.CommandId, result, cancellationToken);
                 return null;
             },
-            "submit");
-    }
-
-    /// <summary>
-    ///     Run a Refit call and translate
-    ///     <see cref="ApiException" /> into the transport's
-    ///     <see cref="HttpRequestException" /> contract. The worker
-    ///     loop catches the latter and decides what to do (skip the
-    ///     cycle, restart, etc.).
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="call"></param>
-    /// <param name="operation"></param>
-    /// <exception cref="HttpRequestException"></exception>
-    private async Task<T> CallAsync<T>(
-        Func<Task<T>> call,
-        string operation)
-    {
-        try
-        {
-            return await call();
-        }
-        catch (ApiException ex)
-        {
-            logger.LogWarning(
-                "Control plane {Operation} returned {Status} ({StatusCode}): {Content}",
-                operation,
-                (int)ex.StatusCode,
-                ex.StatusCode,
-                ex.HasContent ? "(body available — see Refit diagnostics)" : "(no body)");
-
-            throw new HttpRequestException(
-                $"Control plane {operation} returned " +
-                string.Create(CultureInfo.InvariantCulture, $"{(int)ex.StatusCode} {ex.StatusCode}."),
-                ex,
-                ex.StatusCode);
-        }
+            operation: "submit",
+            logger: logger);
     }
 }

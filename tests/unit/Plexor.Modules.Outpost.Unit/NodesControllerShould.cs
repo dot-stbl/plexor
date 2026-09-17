@@ -18,6 +18,7 @@ using Plexor.Modules.Outpost.Application;
 using Plexor.Modules.Outpost.Application.Abstractions;
 using Plexor.Modules.Outpost.Application.NodeCommands;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.NodeApi;
 using Shouldly;
 using Xunit;
 using OutpostNodeStatus = Plexor.Modules.Outpost.Application.NodeStatus;

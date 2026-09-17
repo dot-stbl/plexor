@@ -8,6 +8,7 @@
 // ==========================================================================
 
 using Plexor.Modules.Clusters.Domain;
+using Plexor.Shared.Identifiers;
 
 namespace Plexor.Modules.Clusters.Api.Models;
 

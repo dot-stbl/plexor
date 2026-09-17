@@ -157,11 +157,10 @@ builder.Services.AddSingleton<ICommandExecutor, WorkloadCreateExecutor>();
 builder.Services.AddSingleton<ICommandExecutor, WorkloadActionExecutor>();
 builder.Services.AddSingleton<CommandDispatcher>();
 
-// The worker is the BackgroundService that owns the
-// join/heartbeat/poll/submit loop. v0.1 reads node hardware + the
-// control-plane URL from configuration; v0.2+ moves to a
-// typed IOptions<NodeConfig> with validation.
-builder.Services.AddSingleton(new NodeAgentWorker.NodeConfig(
+// Node configuration — the worker joins with this. v0.1 reads
+// the hardware + the control-plane URL from configuration; v0.2+
+// moves to a typed IOptions<NodeConfig> with validation.
+builder.Services.AddSingleton(new NodeConfig(
     builder.Configuration.GetValue("Plexor:Node:CpuCores", Environment.ProcessorCount),
     builder.Configuration.GetValue("Plexor:Node:RamBytes", 8L * 1024 * 1024 * 1024),
     builder.Configuration.GetValue("Plexor:Node:DiskBytes", 100L * 1024 * 1024 * 1024),
@@ -170,6 +169,18 @@ builder.Services.AddSingleton(new NodeAgentWorker.NodeConfig(
     builder.Configuration["Plexor:ControlPlaneUrl"]
     ?? "http://localhost:5000/"));
 
+// Control-loop collaborators — each is a singleton the worker
+// composes via DI. Singletons because they share a single
+// NodeAgentState instance (the worker's per-process current
+// identity).
+builder.Services.AddSingleton<NodeAgentState>();
+builder.Services.AddSingleton<NodeJoiner>();
+builder.Services.AddSingleton<NodeHeartbeatLoop>();
+builder.Services.AddSingleton<NodeEnvelopeDispatcher>();
+builder.Services.AddSingleton<NodePollLoop>();
+
+// The worker is the BackgroundService that owns the
+// join/heartbeat/poll/submit loop.
 builder.Services.AddHostedService<NodeAgentWorker>();
 
 var app = builder.Build();

@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+    <ProjectReference Include="..\..\security\Plexor.Shared.Identifiers\Plexor.Shared.Identifiers.csproj"/>
   </ItemGroup>
 
   <ItemGroup>

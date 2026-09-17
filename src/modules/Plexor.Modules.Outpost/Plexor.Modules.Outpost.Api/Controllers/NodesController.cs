@@ -7,13 +7,13 @@
 // Five endpoints per the v0.1 spec:
 //   * GET    /nodes          — list nodes in one cluster
 //   * GET    /nodes/{id}     — detail
-//   * POST   /nodes/register — NodeAgent's first call (mTLS-validated)
-//   * POST   /nodes/heartbeat— periodic keepalive (mTLS-validated)
+//   * POST   /nodes/register — NodeAgent's first call (anonymous; join token is the credential)
+//   * POST   /nodes/heartbeat— periodic keepalive (anonymous; bearer token is the credential)
 //   * GET    /nodes/{id}/health — derived health classification
 //
-// Authorization: register + heartbeat are anonymous at the HTTP layer
-// (the join token / node-bearer token in the body is the credential).
-// Read endpoints require an authenticated caller with the matching
+// Authorization: register + heartbeat are [AllowAnonymous] (the join
+// token / node-bearer token in the body is the credential). Read
+// endpoints require an authenticated caller with the matching
 // permission claim (Phase 5+).
 // ============================================================================
 
@@ -27,6 +27,7 @@ using Plexor.Modules.Outpost.Application.Abstractions;
 using Plexor.Modules.Outpost.Application.NodeCommands;
 using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.NodeApi;
 using ClusterStatus = Plexor.Modules.Clusters.Domain.ClusterStatus;
 
 namespace Plexor.Modules.Outpost.Api.Controllers;
@@ -72,7 +73,7 @@ public sealed class NodesController(
         var nodes = await listHandler.HandleAsync(
             new ListNodesQuery(parsedClusterId),
             cancellationToken);
-        return Ok(new NodeListResponse(nodes.Select(ToResponse).ToArray()));
+        return Ok(new NodeListResponse(nodes.Select(NodeRecordResponseMapper.ToResponse).ToArray()));
     }
 
     /// <summary>
@@ -88,7 +89,7 @@ public sealed class NodesController(
         CancellationToken cancellationToken)
     {
         var node = await getHandler.HandleAsync(new GetNodeQuery(nodeId), cancellationToken);
-        return node is null ? NotFound() : Ok(ToResponse(node));
+        return node is null ? NotFound() : Ok(NodeRecordResponseMapper.ToResponse(node));
     }
 
     /// <summary>
@@ -124,8 +125,8 @@ public sealed class NodesController(
             cancellationToken);
 
         return Ok(new RegisterNodeResponse(
-            ToResponse(result.NodeRecord),
-            result.NodeToken,
+            result.NodeRecord.Id.ToString(),
+            result.NodeRecord.ClusterId.ToString(),
             result.ClusterEndpoint));
     }
 
@@ -187,39 +188,4 @@ public sealed class NodesController(
         var health = evaluator.Evaluate(node.Id, node.LastHeartbeatAt, now);
         return Ok(new NodeHealthResponse(node.Id, node.Status, health, node.LastHeartbeatAt, now));
     }
-
-    private static NodeResponse ToResponse(NodeRecord node)
-    {
-        return new NodeResponse(
-            node.Id,
-            node.ClusterId,
-            node.OrgId,
-            node.Hostname,
-            node.IpAddress,
-            node.Role,
-            node.Status,
-            new NodeHardwareSpec(node.Spec.Vcpu, node.Spec.RamGb, node.Spec.DiskGb, node.Spec.Providers),
-            node.IsoVersion,
-            node.LastHeartbeatAt,
-            node.CreatedAt,
-            node.UpdatedAt);
-    }
 }
-
-/// <summary>Wire shape for the join response (token + endpoint).</summary>
-/// <param name="Node">The freshly-minted node row.</param>
-/// <param name="NodeToken">Node-bearer token (proves this node's identity).</param>
-/// <param name="ClusterEndpoint">Post-join rendezvous point (mTLS + WireGuard).</param>
-public sealed record RegisterNodeResponse(
-    NodeResponse Node,
-    string NodeToken,
-    string ClusterEndpoint);
-
-/// <summary>Wire shape for the heartbeat ack.</summary>
-/// <param name="NodeId">Echo of the caller's node id.</param>
-/// <param name="ClusterStatus">Cluster's current status — drives NodeAgent drain / exit.</param>
-/// <param name="ServerTime">Host's UTC now — NodeAgent uses for clock-skew checks.</param>
-public sealed record HeartbeatResponse(
-    NodeId NodeId,
-    ClusterStatus ClusterStatus,
-    DateTimeOffset ServerTime);

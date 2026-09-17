@@ -3,7 +3,8 @@
 // NodeAgentWorker — BackgroundService that owns the Plexor.NodeAgent
 // control loop:
 //
-//   1. Join   — POST /api/v1/nodes/join, get NodeId back.
+//   1. Join   — POST /api/v1/nodes/register (via NodeJoiner), get
+//                NodeId + ClusterId back.
 //   2. Loop   — periodic heartbeat (every 30s) + long-poll (every 5s).
 //   3. On poll — for each command envelope, dispatch via
 //                CommandDispatcher, post the result back via
@@ -17,16 +18,20 @@
 // trips; the worker waits for both to complete before returning
 // from ExecuteAsync (per the BackgroundService contract).
 //
-// State: the join happens once at startup. If the join fails
-// (host unreachable, missing config, etc.) the worker logs and
-// retries every 30s with a fixed backoff. We don't crash — the
-// host's health monitor will surface the agent as missing on
-// its own.
+// Refactor (Sep 2026, NodeAgent wire-format alignment):
+//   - JoinOnceAsync / HeartbeatLoopAsync / PollLoopAsync /
+//     DispatchOneAsync extracted to NodeJoiner, NodeHeartbeatLoop,
+//     NodePollLoop. §1a forbids private orchestration methods on
+//     production classes; this worker now contains only the
+//     top-level orchestration.
+//   - NodeHardware replaced by NodeHardwareSpec (the Outpost wire
+//     shape); conversion lives in NodeHardwareSpecBuilder (shared
+//     by NodeJoiner + NodeHeartbeatLoop).
+//   - RegisterNodeRequest / NodeHeartbeatRequest now carry the
+//     Outpost wire shape (Hostname / IpAddress / Role / Hardware /
+//     IsoVersion / WireguardPublicKey on register; NodeId /
+//     ClusterId / Hardware / IpAddress on heartbeat).
 // ============================================================================
-
-using Plexor.NodeAgent.Composition;
-using Plexor.Shared.NodeApi;
-using ICommandTransport = Plexor.NodeAgent.Abstractions.ICommandTransport;
 
 namespace Plexor.NodeAgent;
 
@@ -36,54 +41,41 @@ namespace Plexor.NodeAgent;
 ///     dispatcher routes them to executors; the loop's only job is
 ///     "tick at the right interval and forward".
 /// </summary>
-/// <param name="transport"></param>
-/// <param name="dispatcher"></param>
-/// <param name="logger"></param>
-/// <param name="config"></param>
-/// <param name="nodeOptions"></param>
-/// <param name="clock"></param>
+/// <param name="joiner">Encapsulates a single registration attempt.</param>
+/// <param name="heartbeat">Encapsulates the 30 s heartbeat loop.</param>
+/// <param name="poll">Encapsulates the long-poll + dispatch loop.</param>
+/// <param name="state">Shared state (current identity); written by
+/// <see cref="NodeJoiner" />, read by both loops.</param>
+/// <param name="logger">Structured logger.</param>
 /// <remarks>
 ///     Build the worker. Hardware and control-plane URL
 ///     come from configuration (Plexor:Node:* keys).
 /// </remarks>
 internal sealed class NodeAgentWorker(
-    ICommandTransport transport,
-    CommandDispatcher dispatcher,
-    ILogger<NodeAgentWorker> logger,
-    NodeAgentWorker.NodeConfig config,
-    NodeAgentOptions nodeOptions,
-    TimeProvider clock) : BackgroundService
+    NodeJoiner joiner,
+    NodeHeartbeatLoop heartbeat,
+    NodePollLoop poll,
+    NodeAgentState state,
+    ILogger<NodeAgentWorker> logger) : BackgroundService
 {
-    private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(30);
-    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan JoinRetryInterval = TimeSpan.FromSeconds(30);
-    private readonly Uri controlPlaneUrl = new(config.ControlPlaneUrl);
-
-    private readonly NodeHardware hardware = new(
-        config.CpuCores,
-        config.RamBytes,
-        config.DiskBytes,
-        config.Hostname,
-        Environment.OSVersion.VersionString);
-
-    private volatile NodeIdentity? current;
+    /// <summary>Backoff after a failed join attempt (network blip,
+    /// host restarting, missing config).</summary>
+    public static readonly TimeSpan JoinRetryInterval = TimeSpan.FromSeconds(30);
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation(
-            "plexor-nodeagent starting (cp={ControlPlaneUrl}, hostname={Hostname})",
-            controlPlaneUrl,
-            hardware.Hostname);
+            "plexor-nodeagent starting (awaiting first join)");
 
         // Phase 1: join. Retry on failure with a fixed backoff; the
         // host's health monitor will see us as missing until we
         // join successfully, which is the right behavior.
-        while (!stoppingToken.IsCancellationRequested && current is null)
+        while (!stoppingToken.IsCancellationRequested && state.Current is null)
         {
             try
             {
-                await JoinOnceAsync(stoppingToken);
+                await joiner.JoinOnceAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -91,10 +83,7 @@ internal sealed class NodeAgentWorker(
             }
             catch (Exception ex)
             {
-                logger.LogWarning(
-                    ex,
-                    "Join failed; retrying in {Backoff}",
-                    JoinRetryInterval);
+                logger.LogWarning(ex, "Join failed; retrying in {Backoff}", JoinRetryInterval);
 
                 try
                 {
@@ -107,7 +96,7 @@ internal sealed class NodeAgentWorker(
             }
         }
 
-        if (current is null)
+        if (state.Current is null)
         {
             // Got cancelled during the join loop.
             return;
@@ -116,12 +105,12 @@ internal sealed class NodeAgentWorker(
         // Phase 2: heartbeat + poll loops run concurrently. Each
         // Task exits cleanly on stoppingToken; we wait for both to
         // finish before returning from ExecuteAsync.
-        var heartbeat = Task.Run(() => HeartbeatLoopAsync(stoppingToken), stoppingToken);
-        var poll = Task.Run(() => PollLoopAsync(stoppingToken), stoppingToken);
+        var heartbeatTask = Task.Run(() => heartbeat.RunAsync(stoppingToken), stoppingToken);
+        var pollTask = Task.Run(() => poll.RunAsync(stoppingToken), stoppingToken);
 
         try
         {
-            await Task.WhenAll(heartbeat, poll);
+            await Task.WhenAll(heartbeatTask, pollTask);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
@@ -130,198 +119,4 @@ internal sealed class NodeAgentWorker(
 
         logger.LogInformation("plexor-nodeagent stopping");
     }
-
-    private async Task JoinOnceAsync(CancellationToken cancellationToken)
-    {
-        // v0.1: the token is a placeholder; the host stores it
-        // but does not verify it. Real impl issues the token
-        // out-of-band (installer / enrollment) and the host
-        // looks it up. We send a non-empty value so the host's
-        // structural validation (non-empty join_token) doesn't
-        // reject the join.
-        var request = new JoinRequest(
-            "v0.1-unverified-token",
-            hardware);
-
-        var response = await transport.JoinAsync(request, cancellationToken);
-        current = new NodeIdentity(response.NodeId, 0);
-        logger.LogInformation(
-            "Joined as node {NodeId} (control plane {ControlPlaneUrl})",
-            response.NodeId,
-            response.ControlPlaneUrl);
-
-        // Persist the mTLS cert triple the host just handed us.
-        // The SocketsHttpHandlerFactory reads from disk on the
-        // NEXT request — the /join itself used a plain handler
-        // (the host endpoint is anonymous). From the next call
-        // onwards every request presents this cert.
-        MtlsCertWriter.Persist(nodeOptions, response);
-        logger.LogInformation(
-            "Enrolled — client cert + key written to {Dir}",
-            nodeOptions.CertDirectory);
-    }
-
-    private async Task HeartbeatLoopAsync(CancellationToken stoppingToken)
-    {
-        // Periodic liveness ping. Failures are logged and the
-        // next tick retries; the host flips us to Offline after
-        // three missed heartbeats.
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            if (current is null)
-            {
-                return;
-            }
-
-            try
-            {
-                await Task.Delay(HeartbeatInterval, stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                return;
-            }
-
-            try
-            {
-                await transport.HeartbeatAsync(
-                    new HeartbeatRequest(
-                        current.NodeId,
-                        clock.GetUtcNow(),
-                        hardware,
-                        0,
-                        // Tier 4 wiring — Reports list drives
-                        // control-plane drift detection. Today the
-                        // agent doesn't yet know the control-plane
-                        // WorkloadId for each LocalWorkload (the
-                        // create command only carries Name +
-                        // Kind); the mapping will land in Tier 5
-                        // when action commands need it too. Empty
-                        // for now means drift detection is a no-op
-                        // — heartbeats still flip nodes to Offline
-                        // after three misses.
-                        []),
-                    stoppingToken);
-
-                logger.LogDebug("Heartbeat sent for {NodeId}", current.NodeId);
-            }
-            catch (Exception ex)
-            {
-                // Transient transport failure (network blip,
-                // host restarting). Log and try again next tick.
-                logger.LogWarning(
-                    ex,
-                    "Heartbeat failed for {NodeId}; will retry next tick",
-                    current.NodeId);
-            }
-        }
-    }
-
-    private async Task PollLoopAsync(CancellationToken stoppingToken)
-    {
-        // Long-poll for new commands. The poll returns the
-        // new cursor; we save it for the next iteration.
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            if (current is null)
-            {
-                return;
-            }
-
-            try
-            {
-                var response = await transport.PollAsync(
-                    new CommandPollRequest(
-                        current.NodeId,
-                        16,
-                        current.Cursor),
-                    stoppingToken);
-
-                current = current with { Cursor = response.NextCursor };
-
-                foreach (var envelope in response.Commands)
-                {
-                    await DispatchOneAsync(envelope, stoppingToken);
-                }
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                return;
-            }
-            catch (Exception ex)
-            {
-                // Transient failure (host unreachable, 503,
-                // circuit breaker open). Log and back off one
-                // poll interval before trying again.
-                logger.LogWarning(
-                    ex,
-                    "Poll failed for {NodeId}; retrying in {Backoff}",
-                    current.NodeId,
-                    PollInterval);
-
-                try
-                {
-                    await Task.Delay(PollInterval, stoppingToken);
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-                {
-                    return;
-                }
-            }
-        }
-    }
-
-    private async Task DispatchOneAsync(
-        CommandEnvelope envelope,
-        CancellationToken stoppingToken)
-    {
-        logger.LogInformation(
-            "Dispatching command {CommandId} ({Type})",
-            envelope.CommandId,
-            envelope.Type);
-
-        var result = await dispatcher.DispatchAsync(envelope, stoppingToken);
-
-        try
-        {
-            await transport.SubmitResultAsync(result, stoppingToken);
-            logger.LogInformation(
-                "Submitted result for {CommandId} -> {Status}",
-                result.CommandId,
-                result.Status);
-        }
-        catch (Exception ex)
-        {
-            // Result-submission failure is more serious than a
-            // poll failure: the host will eventually time out the
-            // command. Log loudly so the operator sees it.
-            logger.LogError(
-                ex,
-                "Failed to submit result for {CommandId} ({Status})",
-                result.CommandId,
-                result.Status);
-        }
-    }
-
-    /// <summary>Mutable per-node state held in the worker.</summary>
-    /// <param name="NodeId"></param>
-    /// <param name="Cursor"></param>
-    private sealed record NodeIdentity(Guid NodeId, long Cursor);
-
-    /// <summary>
-    ///     Configuration surface for the worker. Bound from
-    ///     <c>Plexor:Node</c> in appsettings. v0.1 takes the worker
-    ///     directly; future moves to IOptions&lt;NodeConfig&gt;.
-    /// </summary>
-    /// <param name="CpuCores"></param>
-    /// <param name="RamBytes"></param>
-    /// <param name="DiskBytes"></param>
-    /// <param name="Hostname"></param>
-    /// <param name="ControlPlaneUrl"></param>
-    public sealed record NodeConfig(
-        int CpuCores,
-        long RamBytes,
-        long DiskBytes,
-        string Hostname,
-        string ControlPlaneUrl);
 }

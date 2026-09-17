@@ -1,21 +1,22 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
 // WorkloadReport — one workload's current state, as reported by the
-// node in its most recent HeartbeatRequest. Extracted from
-// NodeContracts.cs (Sprint 3, item 5) per folder-organization.md §1.
+// node. Extracted from NodeContracts.cs (Sprint 3, item 5) per
+// folder-organization.md §1.
+//
+// v0.1: NodeHeartbeatRequest doesn't carry per-workload reports (the
+// new Outpost wire shape is the join/heartbeat body only); reports
+// land via the command-result channel. The record is kept here for
+// the Phase D Tier 4 drift-detection follow-up when per-workload
+// state reconciles into the heartbeat body again.
 // ============================================================================
 
 namespace Plexor.Shared.NodeApi;
 
 /// <summary>
-///     One workload's current state, as reported by the node in its
-///     most recent <see cref="HeartbeatRequest" />. The control
-///     plane reconciles these reports against its durable
-///     <c>forge.workloads</c> view and updates each
-///     <c>LastReportedAt</c> + <c>State</c> accordingly. Drift
-///     detection (Phase D Tier 4) consumes these to surface
-///     "VM says Running but control-plane says Provisioning" to
-///     the operator.
+///     One workload's current state, as reported by the node. Used
+///     by Phase D Tier 4 drift detection to surface "VM says Running
+///     but control-plane says Provisioning" to the operator.
 /// </summary>
 /// <param name="WorkloadId">
 ///     Control-plane workload id (<c>wl_&lt;UUIDv7&gt;</c>). The
