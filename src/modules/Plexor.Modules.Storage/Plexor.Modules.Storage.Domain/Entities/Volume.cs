@@ -63,20 +63,22 @@ public sealed class Volume : IFilterableEntity, ICreatedAt, IUpdatedAt
     /// <summary>Volume name as it appears in the dashboard +
     /// NodeAgent's runtime. Unique per cluster — enforced by the
     /// <c>ix_storage_volumes_cluster_id_name</c> UNIQUE index.</summary>
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>Size in GiB. Drives the
     /// <c>storage.volumes.gb</c> quota. Whole-number GiB is fine for
-    /// v0.1 (Plexor doesn't expose fractional volume sizes yet).</summary>
-    public int SizeGb { get; init; }
+    /// v0.1 (Plexor doesn't expose fractional volume sizes yet).
+    /// Mutable so the resize path (UpdateVolumeEndpoint → service)
+    /// can stamp the new size after the API-layer validation.</summary>
+    public int SizeGb { get; set; }
 
     /// <summary>Lifecycle status — see <see cref="VolumeStatus" />.</summary>
-    public VolumeStatus Status { get; init; }
+    public VolumeStatus Status { get; set; }
 
     /// <summary>Row creation time (UTC).</summary>
     public DateTimeOffset CreatedAt { get; init; }
 
     /// <summary>Last modification time (UTC) — bumped on any
     /// field write (status change, size resize, rename).</summary>
-    public DateTimeOffset UpdatedAt { get; init; }
+    public DateTimeOffset UpdatedAt { get; set; }
 }

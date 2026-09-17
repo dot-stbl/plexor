@@ -12,7 +12,12 @@
 // ============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
+using Plexor.Modules.Storage.Application.Buckets;
 using Plexor.Modules.Storage.Application.Storage;
+using Plexor.Modules.Storage.Application.Volumes;
+using Plexor.Modules.Storage.Infrastructure.Buckets;
+using Plexor.Modules.Storage.Infrastructure.Installers;
+using Plexor.Modules.Storage.Infrastructure.Volumes;
 
 namespace Plexor.Modules.Storage.Infrastructure.Installers;
 
@@ -47,6 +52,15 @@ public static class StorageInfrastructureInstaller
         // with (the advisory lock + UPDATE on quotas.quota_usage +
         // SELECT COUNT(*) on storage.volumes ride the same connection).
         services.AddScoped<IStorageQuotaReader, EfStorageQuotaReader>();
+
+        // IVolumeService — EF implementation. Scoped — shares the
+        // per-request DbContext with the API endpoint. Used by the
+        // REST endpoints mounted from StorageEndpoints in commit 2.
+        services.AddScoped<IVolumeService, EfVolumeService>();
+
+        // IBucketService — EF implementation. Scoped — same pattern as
+        // IVolumeService.
+        services.AddScoped<IBucketService, EfBucketService>();
 
         return services;
     }

@@ -96,6 +96,7 @@
         <Project Path="src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Domain/Plexor.Modules.Storage.Domain.csproj" />
         <Project Path="src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Application/Plexor.Modules.Storage.Application.csproj" />
         <Project Path="src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Infrastructure/Plexor.Modules.Storage.Infrastructure.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Api/Plexor.Modules.Storage.Api.csproj" />
     </Folder>
 
     <!-- ============ Hosts (entry points) =================================== -->

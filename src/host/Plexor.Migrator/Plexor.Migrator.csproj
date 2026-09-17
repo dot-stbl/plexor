@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Branding\Plexor.Modules.Branding.Application\Plexor.Modules.Branding.Application.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Infrastructure\Plexor.Modules.Storage.Infrastructure.csproj"/>
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Application\Plexor.Modules.Storage.Application.csproj"/>
     <ProjectReference Include="..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj"/>
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Configuration\Plexor.Shared.Configuration.csproj"/>
   </ItemGroup>
