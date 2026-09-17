@@ -92,6 +92,11 @@
         <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Infrastructure/Plexor.Modules.Audit.Infrastructure.csproj" />
         <Project Path="src/modules/Plexor.Modules.Audit/Plexor.Modules.Audit.Api/Plexor.Modules.Audit.Api.csproj" />
     </Folder>
+    <Folder Name="/src/modules/Plexor.Modules.Storage/">
+        <Project Path="src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Domain/Plexor.Modules.Storage.Domain.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Application/Plexor.Modules.Storage.Application.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Infrastructure/Plexor.Modules.Storage.Infrastructure.csproj" />
+    </Folder>
 
     <!-- ============ Hosts (entry points) =================================== -->
     <Folder Name="/src/host/">
@@ -121,6 +126,7 @@
         <Project Path="tests/unit/Plexor.Modules.Audit.Unit/Plexor.Modules.Audit.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Branding.Unit/Plexor.Modules.Branding.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Realm.Unit/Plexor.Modules.Realm.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Modules.Storage.Unit/Plexor.Modules.Storage.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Modules.Sigil.Unit/Plexor.Modules.Sigil.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Filtering.Unit/Plexor.Shared.Filtering.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Kernel.Unit/Plexor.Shared.Kernel.Unit.csproj" />
