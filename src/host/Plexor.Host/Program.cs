@@ -59,6 +59,9 @@ using Plexor.Modules.Sigil.Api.Endpoints;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Modules.Storage.Application.Installers;
+using Plexor.Modules.Storage.Infrastructure.Installers;
+using Plexor.Modules.Storage.Infrastructure.Persistence;
 using Plexor.Shared.Configuration;
 using Plexor.Shared.Filtering.DI;
 using Plexor.Shared.Mtls;
@@ -186,8 +189,9 @@ builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<StorageDbContext>(plexorDataSource);
 builder.Services.AddScoped<IAuditDbContext>(sp => sp.GetRequiredService<AuditDbContext>());
-var contextCount = 7;
+var contextCount = 8;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -292,6 +296,15 @@ builder.Services
 builder.Services.AddAuditApplicationCore(builder.Configuration);
 builder.Services.AddAuditInfrastructureCore();
 builder.Services.AddAuditApiCore();
+
+// Storage module (Phase 4.5.d) — volumes + buckets in the `storage`
+// schema. The Application + Infrastructure installers wire the
+// IStorageQuotaReader seam the Quotas enforcer needs to read the
+// current org-scoped volume count + cumulative GiB. The Api project
+// (REST endpoints) lands in commit 2; the Host's
+// AddApplicationPart chain updates in commit 2 too.
+builder.Services.AddStorageApplicationCore(builder.Configuration);
+builder.Services.AddStorageInfrastructureCore();
 // Audit retention (Phase 5.3) — bind AuditOptions so the daily
 // sweep BackgroundService picks up RetentionDays / CleanupInterval /
 // BatchSize / SweepHourUtc. ValidateDataAnnotations + ValidateOnStart

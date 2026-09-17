@@ -226,4 +226,52 @@ public sealed class ModuleIsolationShould
         inSigilApplication.ShouldBeFalse(
             "ICurrentUser was moved OUT of Sigil in commit L8 — it should not be re-introduced here.");
     }
+
+    // Phase 4.5.d — Storage + Network modules. The two new sibling
+    // modules must stay isolated from each other: any cross-reference
+    // would root one module's EF plumbing inside the other. The
+    // cross-module seam Quotas.Infrastructure uses
+    // (Plexor.Modules.Storage.Application for IStorageQuotaReader) is
+    // an Application-only reference — the test below asserts that
+    // Storage.Infrastructure and Network.Infrastructure don't leak
+    // into each other.
+    /// <summary>
+    ///     Given the Network module, when its assemblies are scanned
+    ///     by NetArchTest for dependencies, then neither references
+    ///     <c>Plexor.Modules.Storage.Infrastructure</c>. The Network
+    ///     module reads storage state through its own seams; reaching
+    ///     into Storage.Infrastructure would break Law 3 and
+    ///     silently couple the two sibling modules' EF plumbing.
+    /// </summary>
+    [Fact(Skip = "Network.Infrastructure lands in commit 3 — re-enable then.")]
+    public void Network_does_not_reference_Storage_Infrastructure()
+    {
+        var result = Types
+            .InAssembly(TestAssemblies.Load("Plexor.Modules.Network.Infrastructure"))
+            .ShouldNot()
+            .HaveDependencyOn("Plexor.Modules.Storage.Infrastructure")
+            .GetResult();
+        result.IsSuccessful.ShouldBeTrue(
+            "Plexor.Modules.Network.Infrastructure must not reference Plexor.Modules.Storage.Infrastructure "
+            + "(Law 3: sibling modules communicate only via contracts).");
+    }
+
+    /// <summary>
+    ///     Given the Storage module, when its assemblies are scanned
+    ///     by NetArchTest for dependencies, then neither references
+    ///     <c>Plexor.Modules.Network.Infrastructure</c>. Symmetric to
+    ///     <see cref="Network_does_not_reference_Storage_Infrastructure" />.
+    /// </summary>
+    [Fact(Skip = "Network.Infrastructure lands in commit 3 — re-enable then.")]
+    public void Storage_does_not_reference_Network_Infrastructure()
+    {
+        var result = Types
+            .InAssembly(TestAssemblies.Load("Plexor.Modules.Storage.Infrastructure"))
+            .ShouldNot()
+            .HaveDependencyOn("Plexor.Modules.Network.Infrastructure")
+            .GetResult();
+        result.IsSuccessful.ShouldBeTrue(
+            "Plexor.Modules.Storage.Infrastructure must not reference Plexor.Modules.Network.Infrastructure "
+            + "(Law 3: sibling modules communicate only via contracts).");
+    }
 }
