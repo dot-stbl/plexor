@@ -68,6 +68,14 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Application\Plexor.Modules.Storage.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Infrastructure\Plexor.Modules.Storage.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Api\Plexor.Modules.Storage.Api.csproj" />
+    <!-- Phase 4.5.d — Network module. Application + Infrastructure
+         land in commit 3; the Api layer + the REST endpoints land in
+         commit 4. Infrastructure wires NetworkDbContext +
+         EfNetworkQuotaReader (the seam the Quotas enforcer
+         depends on for network.floating_ips.count +
+         network.load_balancers.count). -->
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Application\Plexor.Modules.Network.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Infrastructure\Plexor.Modules.Network.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

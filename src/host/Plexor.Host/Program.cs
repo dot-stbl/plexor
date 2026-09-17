@@ -59,6 +59,9 @@ using Plexor.Modules.Sigil.Api.Endpoints;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Modules.Network.Application.Installers;
+using Plexor.Modules.Network.Infrastructure.Installers;
+using Plexor.Modules.Network.Infrastructure.Persistence;
 using Plexor.Modules.Storage.Api.Endpoints;
 using Plexor.Modules.Storage.Api.Installers;
 using Plexor.Modules.Storage.Application.Installers;
@@ -192,8 +195,9 @@ builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<StorageDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<NetworkDbContext>(plexorDataSource);
 builder.Services.AddScoped<IAuditDbContext>(sp => sp.GetRequiredService<AuditDbContext>());
-var contextCount = 8;
+var contextCount = 9;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -309,6 +313,14 @@ builder.Services.AddAuditApiCore();
 builder.Services.AddStorageApplicationCore(builder.Configuration);
 builder.Services.AddStorageInfrastructureCore();
 builder.Services.AddStorageApiCore();
+
+// Network module (Phase 4.5.d) — floating IPs + load balancers in
+// the `network` schema. The Application + Infrastructure installers
+// wire the INetworkQuotaReader seam the Quotas enforcer needs for
+// network.floating_ips.count + network.load_balancers.count. The
+// Api project + REST endpoints land in commit 4.
+builder.Services.AddNetworkApplicationCore(builder.Configuration);
+builder.Services.AddNetworkInfrastructureCore();
 // Audit retention (Phase 5.3) — bind AuditOptions so the daily
 // sweep BackgroundService picks up RetentionDays / CleanupInterval /
 // BatchSize / SweepHourUtc. ValidateDataAnnotations + ValidateOnStart

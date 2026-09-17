@@ -243,7 +243,7 @@ public sealed class ModuleIsolationShould
     ///     into Storage.Infrastructure would break Law 3 and
     ///     silently couple the two sibling modules' EF plumbing.
     /// </summary>
-    [Fact(Skip = "Network.Infrastructure lands in commit 3 — re-enable then.")]
+    [Fact(DisplayName = "Given the Network module, when scanned, then it does not reference Storage.Infrastructure")]
     public void Network_does_not_reference_Storage_Infrastructure()
     {
         var result = Types
@@ -262,7 +262,7 @@ public sealed class ModuleIsolationShould
     ///     <c>Plexor.Modules.Network.Infrastructure</c>. Symmetric to
     ///     <see cref="Network_does_not_reference_Storage_Infrastructure" />.
     /// </summary>
-    [Fact(Skip = "Network.Infrastructure lands in commit 3 — re-enable then.")]
+    [Fact(DisplayName = "Given the Storage module, when scanned, then it does not reference Network.Infrastructure")]
     public void Storage_does_not_reference_Network_Infrastructure()
     {
         var result = Types
@@ -273,5 +273,39 @@ public sealed class ModuleIsolationShould
         result.IsSuccessful.ShouldBeTrue(
             "Plexor.Modules.Storage.Infrastructure must not reference Plexor.Modules.Network.Infrastructure "
             + "(Law 3: sibling modules communicate only via contracts).");
+    }
+
+    /// <summary>
+    ///     Given the Quotas Infrastructure (which depends on Storage +
+    ///     Network + Realm for the cross-module seams), when scanned
+    ///     for dependencies, then it does NOT reach into the sibling
+    ///     modules' Infrastructure layers (where the EF plumbing
+    ///     lives). The cross-module references go through the sibling
+    ///     <c>Application</c> layers only — the seam pattern that
+    ///     Law 3 enforces. The positive direction (Quotas → Storage.Application,
+    ///     Quotas → Network.Application) is asserted implicitly: the
+    ///     Solutions Build step would fail if those seams were missing,
+    ///     because the EfQuotaEnforcer constructor takes them.
+    /// </summary>
+    [Fact(DisplayName = "Given the Quotas module, when its Infrastructure is scanned, then it does not reach into either sibling module's Infrastructure layer")]
+    public void QuotasInfrastructure_reaches_sibling_Application_seams_but_not_Infrastructure()
+    {
+        var storageInfraBlocked = Types
+            .InAssembly(TestAssemblies.Load("Plexor.Modules.Quotas.Infrastructure"))
+            .ShouldNot()
+            .HaveDependencyOn("Plexor.Modules.Storage.Infrastructure")
+            .GetResult();
+        storageInfraBlocked.IsSuccessful.ShouldBeTrue(
+            "Plexor.Modules.Quotas.Infrastructure must not depend on Plexor.Modules.Storage.Infrastructure "
+            + "(Law 3: cross-module references go through Application seams, not Infrastructure plumbing).");
+
+        var networkInfraBlocked = Types
+            .InAssembly(TestAssemblies.Load("Plexor.Modules.Quotas.Infrastructure"))
+            .ShouldNot()
+            .HaveDependencyOn("Plexor.Modules.Network.Infrastructure")
+            .GetResult();
+        networkInfraBlocked.IsSuccessful.ShouldBeTrue(
+            "Plexor.Modules.Quotas.Infrastructure must not depend on Plexor.Modules.Network.Infrastructure "
+            + "(Law 3: cross-module references go through Application seams, not Infrastructure plumbing).");
     }
 }
