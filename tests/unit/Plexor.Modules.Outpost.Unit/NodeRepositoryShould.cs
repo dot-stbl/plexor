@@ -11,6 +11,7 @@ using Plexor.Modules.Outpost.Infrastructure.Persistence.Repositories;
 using Plexor.Shared.Identifiers;
 using Shouldly;
 using Xunit;
+using OutpostNodeStatus = Plexor.Modules.Outpost.Application.NodeStatus;
 
 namespace Plexor.Modules.Outpost.Unit;
 
@@ -26,8 +27,8 @@ public sealed class NodeRepositoryShould
             Hostname = hostname,
             IpAddress = "10.0.0.1",
             Role = NodeRole.Compute,
-            Status = NodeStatus.Ready,
-            Spec = new NodeSpec(4, 16, 100, []),
+            Status = OutpostNodeStatus.Ready,
+            Spec = new Plexor.Modules.Outpost.Application.NodeSpec(4, 16, 100, []),
             CreatedAt = now,
             UpdatedAt = now,
         };

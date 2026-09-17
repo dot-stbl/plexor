@@ -213,14 +213,11 @@ public sealed class DeleteClusterCommandHandler(
         db.Entry(cluster).Property(static c => c.Status).CurrentValue = ClusterStatus.Offline;
         db.Entry(cluster).Property(static c => c.UpdatedAt).CurrentValue = now;
 
-        var nodes = await db.Nodes
-            .Where(node => node.ClusterId == command.ClusterId)
-            .ToArrayAsync(cancellationToken);
-        foreach (var node in nodes)
-        {
-            db.Entry(node).Property(static n => n.Status).CurrentValue = NodeStatus.Gone;
-            db.Entry(node).Property(static n => n.UpdatedAt).CurrentValue = now;
-        }
+        // TODO: cascade nodes to Gone via Outpost's INodeRegistry.SetNodeStatusCommand
+        // when the node-cascade command lands (post-Outpost-extraction follow-up).
+        // Today: clusters can be deleted while nodes are still Ready, but those
+        // nodes will fail to heartbeat and self-flip to Gone on the next missed
+        // heartbeat window (~90s).
 
         await db.SaveChangesAsync(cancellationToken);
         return Unit.Value;

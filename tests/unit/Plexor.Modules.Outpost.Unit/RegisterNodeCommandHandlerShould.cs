@@ -13,6 +13,8 @@ using NSubstitute;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using OutpostNodeSpec = Plexor.Modules.Outpost.Application.NodeSpec;
+using OutpostNodeStatus = Plexor.Modules.Outpost.Application.NodeStatus;
 using Plexor.Modules.Clusters.Infrastructure.Persistence.Specifications;
 using Plexor.Modules.Outpost.Application;
 using Plexor.Modules.Outpost.Application.NodeCommands;
@@ -76,14 +78,14 @@ public sealed class RegisterNodeCommandHandlerShould
             "node-1",
             "10.0.0.1",
             NodeRole.Compute,
-            new NodeSpec(8, 32, 200, ["kvm"]),
+            new OutpostNodeSpec(8, 32, 200, ["kvm"]),
             "0.1.0-dev",
             string.Empty));
 
         result.NodeRecord.Hostname.ShouldBe("node-1");
         result.NodeRecord.IpAddress.ShouldBe("10.0.0.1");
         result.NodeRecord.Role.ShouldBe(NodeRole.Compute);
-        result.NodeRecord.Status.ShouldBe(NodeStatus.Ready);
+        result.NodeRecord.Status.ShouldBe(OutpostNodeStatus.Ready);
         result.NodeToken.ShouldNotBeNullOrWhiteSpace();
         result.ClusterEndpoint.ShouldBe("https://plexor.host");
     }
@@ -131,7 +133,7 @@ public sealed class RegisterNodeCommandHandlerShould
         var ex = await Should.ThrowAsync<OutpostException>(
             () => sut.HandleAsync(new RegisterNodeCommand(
                 tokenSecret, "node-1", "10.0.0.1", NodeRole.Compute,
-                new NodeSpec(8, 32, 200, []),
+                new OutpostNodeSpec(8, 32, 200, []),
                 "0.1.0-dev",
                 string.Empty)));
         ex.Code.ShouldBe(OutpostExceptions.InvalidJoinToken);
@@ -180,7 +182,7 @@ public sealed class RegisterNodeCommandHandlerShould
         var ex = await Should.ThrowAsync<OutpostException>(
             () => sut.HandleAsync(new RegisterNodeCommand(
                 tokenSecret, "node-1", "10.0.0.1", NodeRole.Compute,
-                new NodeSpec(8, 32, 200, []),
+                new OutpostNodeSpec(8, 32, 200, []),
                 "0.1.0-dev",
                 string.Empty)));
         ex.Code.ShouldBe(OutpostExceptions.NodeRoleMismatch);

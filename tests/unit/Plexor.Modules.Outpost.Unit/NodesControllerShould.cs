@@ -20,6 +20,7 @@ using Plexor.Modules.Outpost.Application.NodeCommands;
 using Plexor.Shared.Identifiers;
 using Shouldly;
 using Xunit;
+using OutpostNodeStatus = Plexor.Modules.Outpost.Application.NodeStatus;
 
 namespace Plexor.Modules.Outpost.Unit;
 
@@ -56,8 +57,8 @@ public sealed class NodesControllerShould
             Hostname = "node-1",
             IpAddress = "10.0.0.1",
             Role = NodeRole.Compute,
-            Status = NodeStatus.Ready,
-            Spec = new NodeSpec(4, 16, 100, []),
+            Status = OutpostNodeStatus.Ready,
+            Spec = new Plexor.Modules.Outpost.Application.NodeSpec(4, 16, 100, []),
             CreatedAt = TestNow.AddMinutes(-5),
             UpdatedAt = TestNow.AddMinutes(-1),
             LastHeartbeatAt = TestNow.AddSeconds(-30),

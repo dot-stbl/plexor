@@ -116,21 +116,48 @@ public sealed record NodeSpec(
     int Vcpu,
     int RamGb,
     int DiskGb,
-    IReadOnlyList<string> Providers)
+    IReadOnlyList<string> Providers);
+
+/// <summary>
+///     Aggregate node counts by status. The local <see cref="ClusterNodeSummary" />
+///     record (defined in <c>Cluster.cs</c>) carries the integer <c>Status</c> directly
+///     so we don't import the Outpost module's NodeStatus enum here.
+/// </summary>
+public static class NodeCountsExtensions
 {
     /// <summary>Total node count across all join-bound clusters.</summary>
     /// <param name="nodes">Nodes to aggregate.</param>
-    public static NodeCounts Aggregate(IReadOnlyList<Node> nodes)
+    /// <returns>Counts per status.</returns>
+    public static Plexor.Modules.Clusters.Domain.NodeCounts Aggregate(
+        IReadOnlyList<ClusterNodeSummary> nodes)
     {
-        var byStatus = nodes
-            .GroupBy(static node => node.Status)
-            .ToDictionary(static group => group.Key, static group => group.Count());
+        int ready = 0, pending = 0, gone = 0, draining = 0;
+        foreach (var node in nodes)
+        {
+            var status = (NodeStatus)node.Status;
+            if (status == NodeStatus.Ready)
+            {
+                ready++;
+            }
+            else if (status == NodeStatus.Pending)
+            {
+                pending++;
+            }
+            else if (status == NodeStatus.Gone)
+            {
+                gone++;
+            }
+            else if (status == NodeStatus.Draining)
+            {
+                draining++;
+            }
+        }
 
-        return new NodeCounts(
+        return new Plexor.Modules.Clusters.Domain.NodeCounts(
             Total: nodes.Count,
-            Ready: byStatus.GetValueOrDefault(NodeStatus.Ready),
-            Pending: byStatus.GetValueOrDefault(NodeStatus.Pending),
-            Offline: byStatus.GetValueOrDefault(NodeStatus.Gone),
-            Draining: byStatus.GetValueOrDefault(NodeStatus.Draining));
+            Ready: ready,
+            Pending: pending,
+            Offline: gone,
+            Draining: draining);
     }
 }
