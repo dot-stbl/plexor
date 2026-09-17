@@ -24,6 +24,7 @@
     <ProjectReference Include="../../../src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Domain/Plexor.Modules.Storage.Domain.csproj" />
     <ProjectReference Include="../../../src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Application/Plexor.Modules.Storage.Application.csproj" />
     <ProjectReference Include="../../../src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Infrastructure/Plexor.Modules.Storage.Infrastructure.csproj" />
+    <ProjectReference Include="../../../src/modules/Plexor.Modules.Storage/Plexor.Modules.Storage.Api/Plexor.Modules.Storage.Api.csproj" />
   </ItemGroup>
 
 </Project>

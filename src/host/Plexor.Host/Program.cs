@@ -59,6 +59,8 @@ using Plexor.Modules.Sigil.Api.Endpoints;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Modules.Storage.Api.Endpoints;
+using Plexor.Modules.Storage.Api.Installers;
 using Plexor.Modules.Storage.Application.Installers;
 using Plexor.Modules.Storage.Infrastructure.Installers;
 using Plexor.Modules.Storage.Infrastructure.Persistence;
@@ -300,11 +302,13 @@ builder.Services.AddAuditApiCore();
 // Storage module (Phase 4.5.d) — volumes + buckets in the `storage`
 // schema. The Application + Infrastructure installers wire the
 // IStorageQuotaReader seam the Quotas enforcer needs to read the
-// current org-scoped volume count + cumulative GiB. The Api project
-// (REST endpoints) lands in commit 2; the Host's
-// AddApplicationPart chain updates in commit 2 too.
+// current org-scoped volume count + cumulative GiB. The Api installer
+// (commit 2) registers the FluentValidation validators for the
+// POST endpoints; the MapStorageEndpoints call below mounts the
+// minimal-API routes alongside the controllers.
 builder.Services.AddStorageApplicationCore(builder.Configuration);
 builder.Services.AddStorageInfrastructureCore();
+builder.Services.AddStorageApiCore();
 // Audit retention (Phase 5.3) — bind AuditOptions so the daily
 // sweep BackgroundService picks up RetentionDays / CleanupInterval /
 // BatchSize / SweepHourUtc. ValidateDataAnnotations + ValidateOnStart
@@ -411,6 +415,13 @@ app.UseStatusCodePages();
 app.UseMiddleware<MtlsAuthMiddleware>();
 
 app.MapControllers();
+
+// Storage module endpoints (Phase 4.5.d) — minimal-API surface for
+// volumes + buckets. The endpoints are NOT controller-discovered
+// (the .AddApplicationPart chain above only finds MVC controllers);
+// they're mapped explicitly here alongside the other minimal-API
+// endpoints (custom.css, OIDC flow, audit query).
+app.MapStorageEndpoints();
 
 // Custom CSS endpoint — serves the operator's custom.css escape
 // hatch (commit 5). Mounted before MapControllers so it takes
