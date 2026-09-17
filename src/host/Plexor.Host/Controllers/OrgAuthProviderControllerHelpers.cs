@@ -10,6 +10,7 @@
 // ============================================================================
 
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Plexor.Host.Models;
@@ -128,6 +129,12 @@ internal static class OrgAuthProviderControllerHelpers
     ///     authority. Returns a structured success / failure
     ///     shape so the controller can wrap it in an HTTP
     ///     response without leaking transport-level details.
+    ///     Expected failure modes (timeout, transport error, malformed
+    ///     JSON body) all narrow-catch into a <see cref="DiscoveryFetchResult.Failed" />;
+    ///     anything outside those (programming bugs, reflection
+    ///     errors, mis-configured DI) rethrows so the host surfaces
+    ///     a 500 via the ProblemDetails handler instead of a misleading
+    ///     "Authority discovery failed" string.
     /// </summary>
     /// <param name="discoveryUrl">The discovery document URL
     /// (<see cref="BuildDiscoveryDocumentUrl" />).</param>
@@ -170,10 +177,14 @@ internal static class OrgAuthProviderControllerHelpers
             return DiscoveryFetchResult.Failed(
                 $"Authority is unreachable: {ex.Message}");
         }
-        catch (Exception ex)
+        catch (JsonException ex)
         {
+            // ReadFromJsonAsync<T> throws JsonException on a malformed
+            // discovery-document body. That's an authority-side config
+            // problem the operator needs to know about, not a bug in
+            // Plexor — surface it as a structured failure.
             return DiscoveryFetchResult.Failed(
-                $"Authority discovery failed: {ex.Message}");
+                $"Authority returned a malformed discovery document: {ex.Message}");
         }
     }
 

@@ -19,6 +19,7 @@
 // AddControllers() because it lives in this assembly.
 // ============================================================================
 
+using System.Security.Cryptography;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -337,13 +338,20 @@ public sealed class OrgAuthProvidersController(
             {
                 plaintextSecret = secretProtector.Decrypt(row.OidcClientSecretProtected);
             }
-            catch (Exception ex)
+            catch (CryptographicException ex)
             {
+                // IDataProtector.Unprotect throws CryptographicException on a
+                // keyring rotation or malformed ciphertext — exactly the
+                // failure modes that need to surface to the operator who
+                // hit the test endpoint. Log + rethrow so the test returns
+                // 500 instead of pretending the discovery probe succeeded
+                // against an unrecoverable secret.
                 logger.LogWarning(
                     ex,
                     "OrgAuthProvidersController.TestAsync: failed to decrypt the OIDC client secret for org {OrgId}; " +
                     "the keyring may have rotated and the stored ciphertext is unrecoverable.",
                     orgId);
+                throw;
             }
         }
 
