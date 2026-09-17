@@ -7,8 +7,8 @@
 // so unit tests can substitute an in-process implementation.
 //
 // Path conventions match the Plexor.Host controllers exactly:
-//   POST nodes/join
-//   POST nodes/{nodeId}/heartbeat
+//   POST nodes/register                 (was nodes/join)
+//   POST nodes/heartbeat                (was nodes/{nodeId}/heartbeat)
 //   POST nodes/{nodeId}/commands/poll
 //   POST nodes/{nodeId}/commands/{commandId}/result
 //
@@ -34,27 +34,25 @@ namespace Plexor.NodeAgent.Infrastructure;
 /// </summary>
 public interface INodeApi
 {
-    /// <summary>POST /api/v1/nodes/join.</summary>
+    /// <summary>POST /api/v1/nodes/register.</summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [Post("/nodes/join")]
-    public Task<JoinResponse> JoinAsync(
-        [Body] JoinRequest request,
+    [Post("/nodes/register")]
+    public Task<RegisterNodeResponse> JoinAsync(
+        [Body] RegisterNodeRequest request,
         CancellationToken cancellationToken);
 
     /// <summary>
-    ///     POST /api/v1/nodes/{nodeId}/heartbeat. The
-    ///     <c>nodeId</c> in the route must match the body's
-    ///     <c>NodeId</c> (the host rejects mismatches with 400).
-    ///     No response body.
+    ///     POST /api/v1/nodes/heartbeat. The body carries the
+    ///     <c>nodeId</c> + <c>clusterId</c> (both wire format) so
+    ///     the route no longer needs a <c>{nodeId}</c> segment. No
+    ///     response body.
     /// </summary>
-    /// <param name="nodeId"></param>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    [Post("/nodes/{nodeId}/heartbeat")]
+    [Post("/nodes/heartbeat")]
     public Task HeartbeatAsync(
-        Guid nodeId,
-        [Body] HeartbeatRequest request,
+        [Body] NodeHeartbeatRequest request,
         CancellationToken cancellationToken);
 
     /// <summary>POST /api/v1/nodes/{nodeId}/commands/poll.</summary>

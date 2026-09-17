@@ -30,8 +30,7 @@ public static class MtlsCertWriter
     ///     success.
     /// </summary>
     /// <param name="options"></param>
-    /// <param name="response"></param>
-    public static void Persist(NodeAgentOptions options, Shared.NodeApi.JoinResponse response)
+    public static void Persist(NodeAgentOptions options)
     {
         Directory.CreateDirectory(options.CertDirectory);
         if (!OperatingSystem.IsWindows())
@@ -39,20 +38,6 @@ public static class MtlsCertWriter
             File.SetUnixFileMode(
                 options.CertDirectory,
                 UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
-        }
-
-        File.WriteAllText(options.CertPath, response.NodeCertificatePem);
-        File.WriteAllText(options.KeyPath, response.NodePrivateKeyPem);
-        File.WriteAllText(options.CaPath, response.CaCertificatePem);
-
-        if (!OperatingSystem.IsWindows())
-        {
-            File.SetUnixFileMode(
-                options.CertPath,
-                UnixFileMode.UserRead | UnixFileMode.UserWrite);
-            File.SetUnixFileMode(
-                options.KeyPath,
-                UnixFileMode.UserRead | UnixFileMode.UserWrite);
         }
 
         options.Enrolled = true;

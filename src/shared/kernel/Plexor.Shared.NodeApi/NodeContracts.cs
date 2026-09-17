@@ -8,10 +8,14 @@
 //
 // This file holds the polymorphic *abstract* records (WorkloadKind +
 // CommandType) and their enums (CommandResultStatus +
-// WorkloadReportState). Individual top-level DTOs (JoinRequest /
-// HeartbeatRequest / CommandEnvelope / etc.) live in their own files
-// in this same namespace — see JoinRequest.cs et al. Splitting
-// happened in Sprint 3 (item 5) per folder-organization.md §1.
+// WorkloadReportState). Individual top-level DTOs (RegisterNodeRequest
+// / NodeHeartbeatRequest / RegisterNodeResponse / CommandEnvelope /
+// etc.) live in their own files in this same namespace — see
+// RegisterNodeRequest.cs et al. Splitting happened in Sprint 3 (item
+// 5) per folder-organization.md §1. RegisterNodeRequest /
+// NodeHeartbeatRequest moved here from Plexor.Modules.Outpost.Api.Models
+// in the NodeAgent wire-format alignment (Sep 2026) so the agent
+// doesn't have to reference host-side types.
 //
 // XML doc convention (enforced by CS1591, see .agents/rules/
 // engineering-process.md rule 3): every public type/member has at

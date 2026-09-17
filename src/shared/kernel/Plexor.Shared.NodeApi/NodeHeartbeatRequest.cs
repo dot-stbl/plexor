@@ -2,21 +2,21 @@
 // ============================================================================
 // NodeHeartbeatRequest — wire shape for POST /api/v1/nodes/heartbeat.
 //
-// Periodic keepalive from a joined node. The body carries the node
-// id (the host parses it into a strongly-typed NodeId via IdParse),
-// a fresh hardware snapshot, and the agent's refreshed IP address
-// (DHCP / VPN re-lease).
+// Periodic keepalive from a joined node. The body carries the node id
+// + cluster id (both in wire format) + fresh hardware snapshot +
+// refreshed IP address (DHCP / VPN re-lease). Moved here from
+// Plexor.Modules.Outpost.Api.Models in the NodeAgent wire-format
+// alignment (Sep 2026) so the agent doesn't have to reference
+// host-side types.
 // ============================================================================
 
-using Plexor.Shared.Identifiers;
-
-namespace Plexor.Modules.Outpost.Api.Models;
+namespace Plexor.Shared.NodeApi;
 
 /// <summary>Wire shape for <c>POST /api/v1/nodes/heartbeat</c>.</summary>
 /// <param name="NodeId">
 ///     Caller's own node id, in wire format
 ///     (<c>node_&lt;UUIDv7&gt;</c>). Parsed into a strongly-typed
-///     <see cref="NodeId" /> via <c>IdParse.ParseNodeId</c>.
+///     <c>NodeId</c> via <c>IdParse.ParseNodeId</c>.
 /// </param>
 /// <param name="ClusterId">
 ///     Cluster the node belongs to, in wire format

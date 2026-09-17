@@ -29,22 +29,23 @@ namespace Plexor.NodeAgent.Abstractions;
 public interface ICommandTransport
 {
     /// <summary>
-    ///     POST /api/v1/nodes/join. Returns the canonical
-    ///     <c>NodeId</c> and the control-plane URL the agent should
-    ///     call back to (used for logging only — the actual endpoints
-    ///     are pinned at registration time).
+    ///     POST /api/v1/nodes/register. Returns the canonical
+    ///     <c>NodeId</c> + <c>ClusterId</c> the agent should use on
+    ///     subsequent heartbeats, plus the post-join rendezvous point
+    ///     (used for logging only — the actual endpoints are pinned at
+    ///     registration time).
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    public Task<JoinResponse> JoinAsync(JoinRequest request, CancellationToken cancellationToken);
+    public Task<RegisterNodeResponse> JoinAsync(RegisterNodeRequest request, CancellationToken cancellationToken);
 
     /// <summary>
-    ///     POST /api/v1/nodes/{nodeId}/heartbeat. Idempotent
+    ///     POST /api/v1/nodes/heartbeat. Idempotent
     ///     (the host silently ignores heartbeats for unknown nodes).
     /// </summary>
     /// <param name="request"></param>
     /// <param name="cancellationToken"></param>
-    public Task HeartbeatAsync(HeartbeatRequest request, CancellationToken cancellationToken);
+    public Task HeartbeatAsync(NodeHeartbeatRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     ///     POST /api/v1/nodes/{nodeId}/commands/poll. Returns
