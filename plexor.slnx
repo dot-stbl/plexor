@@ -128,6 +128,7 @@
         <Project Path="tests/unit/Plexor.Shared.Identifiers.Unit/Plexor.Shared.Identifiers.Unit.csproj" />
         <Project Path="tests/unit/Plexor.NodeAgent.Unit/Plexor.NodeAgent.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.IntegrationEvents.Unit/Plexor.Shared.IntegrationEvents.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Installer.Cli.Unit/Plexor.Installer.Cli.Unit.csproj" />
     </Folder>
 
     <!-- ============ Benchmarks =================================================== -->

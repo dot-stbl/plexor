@@ -8,7 +8,7 @@
 // at startup), no JSON serialization in the hot path.
 //
 // The CLI exposes a subcommand tree (Group A — installer surface,
-// Group B — host operations):
+// Group B — host operations, Group C — cluster CRUD):
 //
 //   plx                            — show help (full banner)
 //   plx --version                  — print version (full banner)
@@ -21,6 +21,11 @@
 //   plx host nodes list            — list registered nodes
 //   plx host nodes add             — register a node
 //   plx host nodes remove <id>     — unregister a node
+//   plx cluster list               — list clusters in the caller's org
+//   plx cluster create --name N    — provision a new cluster
+//   plx cluster delete <id>        — soft-delete a cluster
+//   plx cluster rotate-token <id>  — rotate the join token
+//   plx cluster show <id>          — single-cluster detail + nodes
 //
 // Each subcommand is a closed type in
 // src/installer/Plexor.Installer.Cli/Commands/.
@@ -68,5 +73,23 @@ return PlexorCli.New(args)
                 nodes.AddCommand<HostNodesRemoveCommand>("remove", static cmd => cmd.WithDescription("Unregister a node")
                     .WithExample(["remove", "node_01H...", "--yes"]));
             });
+        })
+        .AddBranch("cluster", static cluster =>
+        {
+            cluster.AddCommand<ClusterListCommand>("list", static cmd => cmd
+                .WithDescription("List clusters in the caller's org")
+                .WithExample(["list", "--page", "1", "--page-size", "25"]));
+            cluster.AddCommand<ClusterCreateCommand>("create", static cmd => cmd
+                .WithDescription("Provision a new cluster (prints join token once)")
+                .WithExample(["create", "--name", "prod-eu-1", "--region", "eu-central-1"]));
+            cluster.AddCommand<ClusterShowCommand>("show", static cmd => cmd
+                .WithDescription("Single-cluster detail + node list")
+                .WithExample(["show", "cluster_01H..."]));
+            cluster.AddCommand<ClusterRotateTokenCommand>("rotate-token", static cmd => cmd
+                .WithDescription("Rotate the cluster's join token (revokes the old one)")
+                .WithExample(["rotate-token", "cluster_01H..."]));
+            cluster.AddCommand<ClusterDeleteCommand>("delete", static cmd => cmd
+                .WithDescription("Soft-delete a cluster (cascades node status to Gone)")
+                .WithExample(["delete", "cluster_01H...", "--yes"]));
         })
         .Run();
