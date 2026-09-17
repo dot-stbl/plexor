@@ -1,0 +1,33 @@
+<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+  <s:String x:Key="/Default/CodeStyle/CodeCleanup/SilentCleanupProfile/@EntryValue">Built-in: Reformat Code</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeCleanup/OnSaveProfile/@EntryValue">Built-in: Reformat Code</s:String>
+  <s:Boolean x:Key="/Default/Environment/Editor/SaveActions/ReformatCode/@EntryValue">True</s:Boolean>
+  <s:Boolean x:Key="/Default/Environment/Editor/SaveActions/OptimizeImports/@EntryValue">True</s:Boolean>
+  <s:Boolean x:Key="/Default/Environment/Editor/SaveActions/RemoveRedundantQualifiers/@EntryValue">True</s:Boolean>
+  <s:Boolean x:Key="/Default/CodeStyle/CodeCleanup/AutoReformatOnSave/CSharp/@EntryValue">True</s:Boolean>
+  <s:Boolean x:Key="/Default/CodeInspection/Highlighting/HeuristicsHighLightingDisabledForDollarSignInsideStringLiteral/@EntryValue">False</s:Boolean>
+  <s:Boolean x:Key="/Default/CodeInspection/Highlighting/XamlExtractResourceToUserControl/@EntryValue">False</s:Boolean>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/JavaScriptFormat/INDENT_SIZE/@EntryValue">2</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/TypeScriptFormat/INDENT_SIZE/@EntryValue">2</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/JsonFormat/INDENT_SIZE/@EntryValue">2</s:String>
+  <s:String x:Key="/Default/CodeStyle/CSharpUsing/USINGS_PLACEMENT/@EntryValue">OutsideNamespace</s:String>
+  <s:String x:Key="/Default/CodeStyle/CSharpUsing/USINGS_DEFAULT_GLOBAL_NAMESPACE/@EntryValue">Plexor.*</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/BRACE_STYLE/@EntryValue">NextLine</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/BRACES_FOR_IFELSE/@EntryValue">Required</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/BLANK_LINES_AROUND_FIELD/@EntryValue">1</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/BLANK_LINES_AROUND_PROPERTY/@EntryValue">1</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/BLANK_LINES_AROUND_METHOD/@EntryValue">1</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/KEEP_BLANK_LINES_IN_CODE/@EntryValue">1</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/MAX_LINE_LENGTH/@EntryValue">120</s:String>
+  <s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/INDENT_SIZE/@EntryValue">4</s:String>
+  <s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/INDENT_NESTED_CASES/@EntryValue">True</s:Boolean>
+  <s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/NAMESPACE_BODY_INDENT/@EntryValue">False</s:Boolean>
+  <s.String x:Key="/Default/Environment/Editor/SaveActions/ReformatCode/Pattern/=cs/@EntryIndexedValue">*.cs</s.String>
+  <s.String x:Key="/Default/CodeStyle/CodeCleanup/Profiles/=BuiltIn_002DReformat_0020Code/@EntryIndexedValue">Built-in: Reformat Code</s.String>
+  <s.String x:Key="/Default/CodeStyle/CodeCleanup/Profiles/=BuiltIn_002DFull_0020Cleanup/@EntryIndexedValue">Built-in: Full Cleanup</s.String>
+  <s.String x:Key="/Default/CodeStyle/CodeCleanup/ManualProfile/@EntryValue">Built-in: Full Cleanup</s.String>
+  <s.String x:Key="/Default/CodeInspection/Severity/Scope/=swea_003A_003AExtensions/@EntryIndexedValue">Plexor.*</s.String>
+  <s.String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/namespace_doc_layout;lang_003DCSharp/@EntryValue">0</s.String>
+  <s.String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/CSHARP_USINGS_PLACEMENT/@EntryValue">OutsideNamespace</s.String>
+  <s.String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/CSHARP_USINGS_DEFAULT_GLOBAL_NAMESPACE/@EntryValue">...Plexor.*</s.String>
+</wpf:ResourceDictionary>

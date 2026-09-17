@@ -32,18 +32,31 @@ export default defineConfig({
       './tools/audit/rules/plexor.csharp.*.lint.ts',
     ],
   },
+  /**
+   * excludePaths is the SINGLE SOURCE OF TRUTH for "files that aren't
+   * linted, formatted, or reviewed". Mirrored in:
+   *   - .editorconfig (Roslyn analyzer + ReSharper severity override)
+   *   - scripts/format.{sh,ps1} (dotnet format --exclude)
+   *   - scripts/lint.{sh,ps1}   (regent check --scope)
+   * Keep all four in sync. If you add a new entry here, also add it to the
+   * scripts' EXCLUDE_PATHS array (and the [**.cs] block in .editorconfig
+   * if it's a generated-file pattern).
+   */
   excludePaths: [
-    '**/node_modules/**',
-    '**/dist/**',
+    // Canonical generated / build-output paths (canonical 8 — see old
+    // Plexor.Build.Tools.targets VerifyFormatOnBuild target for origin).
+    '**/Migrations/**',
+    '**/*ModelSnapshot.cs',
+    '**/*.Designer.cs',
     '**/obj/**',
     '**/bin/**',
-    '**/.planning/**',
-    '**/Migrations/**',
-    '**/*.Designer.cs',
+    '**/Generated/**',
     '**/*.g.cs',
     '**/*.AssemblyAttributes.cs',
-    '**/Generated/**',
-    // Plexor-specific exclusions
+    // Plexor-specific exclusions (project hygiene / IDE metadata).
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/.planning/**',
     '**/.idea/**',
     '**/.vscode/**',
     '**/.git/**',

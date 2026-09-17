@@ -1,0 +1,125 @@
+# ============================================================================
+# build.yml — Plexor CI: build + unit tests on every PR and push to main.
+#
+# Single job: build-and-test. Build is the gate (TreatWarningsAsErrors=true
+# in Directory.Build.props), tests run on the same compile. Unit tests only
+# — integration tests that require Postgres/Redis/etc are out of scope for
+# this workflow (CI runners don't have those services).
+#
+# Filter exclusions:
+#   *MapperlyApi* — Plexor.Host.UnitTests.MapperlyApiSmokeTests connects
+#     to a live Postgres (PostgresFixture reads MIGRATOR_CONNECTION or
+#     falls back to localhost:47100). CI has no Postgres; this test
+#     belongs to a separate integration workflow when one lands.
+#
+# MinVer needs the full git history to derive a version from the nearest
+# reachable v* tag (Directory.Build.props, MinVerTagPrefix=v). The
+# checkout step uses fetch-depth: 0 to expose it.
+# ============================================================================
+
+name: build
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+  # Allow manual re-runs from the Actions UI without an upstream event.
+  workflow_dispatch:
+
+# Cancel in-progress runs for the same branch+PR when a new commit lands.
+# Saves CI minutes on rapid-fire PR pushes. Disabled for main pushes so a
+# failed main build keeps the red signal until the next push fixes it.
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  # Suppress the .NET first-time-use telemetry noise; also avoids the
+  # interactive prompt on a brand-new runner image.
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+
+jobs:
+  build-and-test:
+    name: build + test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # MinVer reads the git tag graph (Directory.Build.props sets
+          # MinVerTagPrefix=v). Shallow checkouts break version inference.
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          # Explicit version pin. global.json requests 10.0.109 with
+          # rollForward=latestFeature, so any 10.0.1xx build satisfies
+          # the local SDK pin. We pin to the current major minor anyway
+          # so a runner with a brand-new SDK can't surprise us mid-build.
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          # Key on the lock-equivalent (csproj + Directory.Packages.props).
+          # Both change when packages move; neither changes on code-only PRs,
+          # so the cache survives across runs in the same dependency window.
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore plexor.slnx
+
+      - name: Build
+        run: dotnet build plexor.slnx -c Release --no-restore
+
+      - name: Test
+        # --no-build: build artifacts already exist from the previous step.
+        # TRX logger produces a structured test report we upload as an
+        # artifact. Console logger at normal verbosity keeps the GH log
+        # scannable — no test name truncation, no --verbosity detailed
+        # wall-of-text.
+        #
+        # Filter excludes the Postgres-dependent smoke test (see header).
+        run: >
+          dotnet test plexor.slnx
+          -c Release
+          --no-build
+          --filter "FullyQualifiedName!~MapperlyApi"
+          --logger "trx;LogFileName=test-results.trx"
+          --logger "console;verbosity=normal"
+
+      - name: Upload test results
+        # always() — surface failures even when a previous step sets a
+        # non-zero exit that downstream steps would otherwise skip past.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/TestResults/*.trx
+            **/TestResults/*_coverage.cobertura.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Build summary
+        if: always()
+        # Summarise test outcome without grepping 1000-line TRX files.
+        # `dotnet test` already prints the totals to stdout; we just
+        # echo a one-liner so the Actions summary panel picks it up.
+        run: |
+          echo "### Build + test" >> "$GITHUB_STEP_SUMMARY"
+          echo "Trigger: ${{ github.event_name }} / ${{ github.ref }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit: ${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifacts: test-results (trx + cobertura)" >> "$GITHUB_STEP_SUMMARY"

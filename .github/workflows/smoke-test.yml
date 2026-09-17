@@ -1,0 +1,225 @@
+# ============================================================================
+# smoke-test.yml — End-to-end smoke test against the deployed NodeAgent.
+#
+# Triggers:
+#   - workflow_run on deploy-nodeagent completion: the canonical path.
+#     Runs only when the deploy concluded successfully AND happened on
+#     the main branch (PRs that trigger a deploy don't get a smoke
+#     test — there's nothing deployed to verify).
+#   - workflow_dispatch: manual re-run from the Actions UI, useful for
+#     re-verifying a VM that survived a deploy but is now suspect.
+#
+# What the smoke test actually checks:
+#   NodeAgent is a Worker Service — no HTTP listener, no /health endpoint.
+#   The smoke test instead exercises libvirt on the test VM by creating a
+#   tiny Alpine VM via virt-install. That verifies (a) the VM still has
+#   libvirt working, (b) /var/lib/libvirt is writable by the deploy user,
+#   (c) the network bridge virbr0 is up. It's not true NodeAgent E2E
+#   (that would require going through Plexor.Host → NodeAgent → libvirt),
+#   but it's the most we can verify from outside the control plane.
+#
+# The script traps EXIT and cleans up — no orphan VMs / disks / ISOs.
+# ============================================================================
+
+name: smoke-test
+
+on:
+  workflow_run:
+    workflows: [deploy-nodeagent]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Deploy-nodeagent run ID to verify (defaults to the latest on main). Leave blank to use the trigger run.'
+        required: false
+        default: ''
+
+concurrency:
+  group: smoke-test
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read   # needed to download artifacts from another workflow run
+
+jobs:
+  smoke:
+    name: libvirt smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Skip when:
+    #   - Manual trigger always runs.
+    #   - workflow_run trigger: only when parent deploy succeeded AND
+    #     targeted main. Other branches skip (no-op PRs).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+
+    steps:
+      - name: Resolve deploy run
+        id: resolve
+        # workflow_dispatch leaves github.event.workflow_run unset; we
+        # default to the latest successful deploy-nodeagent run on main
+        # in that case. Use a small inline query against the GitHub
+        # API rather than parsing the Actions UI (the UI is human-only).
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            input_run_id="${{ inputs.run_id }}"
+            if [ -n "$input_run_id" ]; then
+              echo "run_id=$input_run_id" >> "$GITHUB_OUTPUT"
+              echo "::notice::Using workflow_dispatch run_id: $input_run_id"
+              exit 0
+            fi
+            # Fall back to the latest successful deploy-nodeagent run.
+            latest=$(gh run list \
+              --workflow deploy-nodeagent \
+              --branch main \
+              --status success \
+              --limit 1 \
+              --json databaseId --jq '.[0].databaseId // empty')
+            if [ -z "$latest" ]; then
+              echo "::error::No successful deploy-nodeagent run found on main."
+              exit 1
+            fi
+            echo "run_id=$latest" >> "$GITHUB_OUTPUT"
+            echo "::notice::Using latest successful deploy run: $latest"
+          else
+            # workflow_run trigger — the event gives us the parent run ID.
+            echo "run_id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download deploy status
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-status
+          run-id: ${{ steps.resolve.outputs.run_id }}
+          path: deploy-status
+          # Missing artifact = parent deploy never reached the upload
+          # step. Bail with a clear message.
+          if-no-files-found: error
+
+      - name: Parse deploy status
+        id: status
+        run: |
+          set -euo pipefail
+          deployed=$(jq -r '.deployed' deploy-status/deploy-status.json)
+          host=$(jq -r '.host // empty' deploy-status/deploy-status.json)
+          reason=$(jq -r '.reason // empty' deploy-status/deploy-status.json)
+          commit=$(jq -r '.commit' deploy-status/deploy-status.json)
+
+          echo "deployed=$deployed" >> "$GITHUB_OUTPUT"
+          echo "host=$host" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+
+          echo "Deploy run: ${{ steps.resolve.outputs.run_id }}"
+          echo "Commit: $commit"
+          echo "Deployed: $deployed  Host: $host  Reason: $reason"
+
+      - name: Skip — deploy did not actually ship
+        if: steps.status.outputs.deployed != 'true'
+        run: |
+          echo "::notice::Deploy was skipped (reason: ${{ steps.status.outputs.reason }})."
+          echo "Smoke test only runs after a successful deploy. Skipping."
+
+      - name: Verify deploy secrets present
+        id: secrets
+        if: steps.status.outputs.deployed == 'true'
+        # We could rely on the deploy step's own secrets check, but
+        # this run may be triggered from workflow_dispatch in isolation,
+        # so re-check the secrets here too.
+        run: |
+          set -euo pipefail
+          missing=0
+          for var in TEST_VM_HOST TEST_VM_USER TEST_VM_SSH_KEY; do
+            if [ -z "${!var:-}" ]; then
+              echo "::warning::$var is not set — smoke test cannot run."
+              missing=1
+            fi
+          done
+          if [ "$missing" = "1" ]; then
+            echo "ready=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip — secrets missing
+        if: steps.status.outputs.deployed == 'true' && steps.secrets.outputs.ready != '1'
+        run: |
+          echo "::notice::Deploy secrets not configured — cannot run smoke test."
+          echo "Configure TEST_VM_HOST / TEST_VM_USER / TEST_VM_SSH_KEY to enable."
+
+      # ----- The actual smoke test -----
+
+      - name: Checkout repo
+        if: steps.status.outputs.deployed == 'true' && steps.secrets.outputs.ready == '1'
+        uses: actions/checkout@v4
+        with:
+          # Default branch (workflow_run runs in the default-branch
+          # context, so HEAD here is main). We need this to ship the
+          # smoke script to the VM.
+          ref: main
+
+      - name: Copy smoke script to VM
+        if: steps.status.outputs.deployed == 'true' && steps.secrets.outputs.ready == '1'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_VM_HOST }}
+          username: ${{ secrets.TEST_VM_USER }}
+          key: ${{ secrets.TEST_VM_SSH_KEY }}
+          source: 'deploy/scripts/smoke-test-vm-create.sh'
+          target: '/tmp/plexor-smoke/smoke-test-vm-create.sh'
+
+      - name: Run smoke test
+        if: steps.status.outputs.deployed == 'true' && steps.secrets.outputs.ready == '1'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.TEST_VM_HOST }}
+          username: ${{ secrets.TEST_VM_USER }}
+          key: ${{ secrets.TEST_VM_SSH_KEY }}
+          command_timeout: 10m
+          script: |
+            set -euo pipefail
+
+            sudo mkdir -p /tmp/plexor-smoke
+            sudo chmod 0755 /tmp/plexor-smoke
+
+            # Idempotent: re-runs overwrite the previous copy.
+            sudo cp /tmp/plexor-smoke/smoke-test-vm-create.sh /tmp/plexor-smoke/run.sh
+            sudo chmod +x /tmp/plexor-smoke/run.sh
+
+            # The script uses libvirt paths under /var/lib/libvirt/
+            # and talks to libvirtd via qemu:///system — both need
+            # root on a typical Linux host.
+            echo "Running libvirt smoke test (deploy ${{ steps.status.outputs.commit }} on ${{ steps.status.outputs.host }})..."
+            if sudo /tmp/plexor-smoke/run.sh; then
+              echo "SMOKE: PASS"
+            else
+              rc=$?
+              echo "SMOKE: FAIL (exit $rc)"
+              # Surface the failed VM (if any) for the operator to clean up
+              # by hand. The script's own trap should have destroyed it,
+              # but if cleanup itself failed we want the VM visible.
+              sudo virsh list --all 2>/dev/null || true
+              exit "$rc"
+            fi
+
+      - name: Build summary
+        if: always()
+        run: |
+          echo "### Smoke test" >> "$GITHUB_STEP_SUMMARY"
+          echo "Trigger: ${{ github.event_name }} (${{ github.ref }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "Deploy run: ${{ steps.resolve.outputs.run_id }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.status.outputs.deployed }}" != 'true' ]; then
+            echo "Status: ⚠️ skipped — deploy was skipped (reason: ${{ steps.status.outputs.reason }})" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.secrets.outputs.ready }}" != '1' ]; then
+            echo "Status: ⚠️ skipped — secrets not configured" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Status: ✅ smoke test passed against ${{ steps.status.outputs.host }}" >> "$GITHUB_STEP_SUMMARY"
+          fi

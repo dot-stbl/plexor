@@ -1,0 +1,65 @@
+# ============================================================================
+# plexor-nodeagent.service — systemd unit for the Plexor.NodeAgent Worker
+# Service. Runs as the unprivileged `plexor` user; needs libvirt access
+# to drive the v0.1 KVM/LXC/QEMU workload providers.
+#
+# Installed by deploy/nodeagent.yml to /etc/systemd/system/ on first
+# deploy. Subsequent deploys reuse the same unit — only /opt/plexor-nodeagent
+# is refreshed. Override Plexor__* environment variables via a
+# /etc/systemd/system/plexor-nodeagent.service.d/ drop-in if you need
+# environment-specific tweaks (the file is small, edits here propagate
+# to every VM via the deploy workflow).
+#
+# Reference: .agents/docs/plans/plan-mvp-secure-deploy.md (R-4 mitigation).
+# ============================================================================
+
+[Unit]
+Description=Plexor NodeAgent — per-node compute runtime
+Documentation=https://github.com/dot-stbl/plexor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=plexor
+Group=plexor
+WorkingDirectory=/opt/plexor-nodeagent
+
+# The published dll from `dotnet publish src/agents/Plexor.NodeAgent`.
+# Publish output is copied to /opt/plexor-nodeagent/ by the deploy
+# workflow; the dll name matches Plexor.NodeAgent.csproj's RootNamespace.
+ExecStart=/usr/bin/dotnet /opt/plexor-nodeagent/Plexor.NodeAgent.dll
+
+# Restart policy — agent is stateless across restarts (the host is the
+# source of truth for the workload registry). on-failure is enough.
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=10
+
+# Filesystem hardening. ReadWritePaths gives libvirt + the mTLS cert
+# directory + local image cache write access; everything else stays
+# read-only or hidden.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/var/lib/libvirt /var/lib/plexor /home/plexor/.plexor
+
+# Logging goes to journald by default; `journalctl -u plexor-nodeagent`
+# is the operational entry point. StandardOutput=journal keeps the
+# agent's structured logs in one place.
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=plexor-nodeagent
+
+# Environment. Plexor__NodeAgent__Mtls__CertDirectory is the default
+# location the NodeAgent reads at startup if NodeAgent:Mtls:CertDirectory
+# is not set in appsettings. Plexor__ControlPlaneUrl points at the host
+# the agent should join; override per-VM via a drop-in.
+Environment=DOTNET_ENVIRONMENT=Production
+Environment=Plexor__NodeAgent__Mtls__CertDirectory=/home/plexor/.plexor/agent
+Environment=Plexor__ControlPlaneUrl=http://plexor-host.local:5000/
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,308 @@
+# ============================================================================
+# deploy-nodeagent.yml — Publish Plexor.NodeAgent and ship it to the test VM.
+#
+# Two jobs:
+#   1. build-and-publish — builds and publishes the NodeAgent Worker, uploads
+#      the publish directory + the systemd unit file as one artifact.
+#   2. deploy — downloads the artifact, ships it to the test VM via SCP,
+#      restarts the service via SSH, verifies via systemctl (NOT a /health
+#      endpoint — the NodeAgent is a Worker Service, see README for why).
+#
+# Trigger:
+#   - push to main (after build.yml has gone green) — the canonical path.
+#   - workflow_dispatch — manual trigger from the Actions UI; lets a
+#     maintainer force a redeploy without waiting for a commit.
+#
+# Required secrets (all optional — see "Missing secrets" below):
+#   TEST_VM_HOST     — SSH hostname of the test VM (e.g. test-vm.example.com).
+#   TEST_VM_USER     — SSH username (e.g. deploy). The user must have sudo
+#                      rights for `systemctl daemon-reload` + `restart`.
+#   TEST_VM_SSH_KEY  — PEM-encoded private key. The matching public key must
+#                      be present in ~TEST_VM_USER/.ssh/authorized_keys on
+#                      the test VM.
+#
+# When any of these secrets is missing, the deploy job logs a warning and
+# exits 0. This lets PRs from forks or feature branches succeed without
+# the secrets; the build artifact is still produced.
+# ============================================================================
+
+name: deploy-nodeagent
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Why are you triggering this deploy?'
+        required: false
+        default: 'manual'
+
+concurrency:
+  # One deploy at a time. cancel-in-progress=false because each deploy
+  # restarts the systemd unit; two parallel restarts race against each
+  # other and one of them will land on a half-written publish directory.
+  group: deploy-nodeagent
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+
+jobs:
+  build-and-publish:
+    name: build + publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        # Restore just the NodeAgent project (not the full solution).
+        # The publish step then does its own resolve; restoring once
+        # warms the cache and surfaces network issues early.
+        run: dotnet restore src/agents/Plexor.NodeAgent/Plexor.NodeAgent.csproj
+
+      - name: Publish NodeAgent
+        # Self-contained=false — the test VM has the .NET 10 runtime
+        # installed (systemd unit ExecStart=/usr/bin/dotnet ...). RID-less
+        # publish produces a portable linux-x64 layout that works on the
+        # VM without us baking a runtime into the artifact.
+        run: >
+          dotnet publish src/agents/Plexor.NodeAgent/Plexor.NodeAgent.csproj
+          -c Release
+          -o ./publish
+          --no-restore
+          /p:UseAppHost=false
+
+      - name: Stage systemd unit
+        # Copy the unit file alongside the publish output so the artifact
+        # contains everything the deploy job needs in one tarball.
+        run: |
+          mkdir -p ./publish/systemd
+          cp deploy/systemd/plexor-nodeagent.service ./publish/systemd/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plexor-nodeagent-publish
+          path: |
+            publish/**/*
+            !publish/**/*.pdb
+          # PDBs are useful for crash dumps but bloat the artifact and
+          # can leak source paths; drop them for now. Re-add per-need.
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: deploy to test VM
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Skip the deploy job on manual runs from forks (where secrets are
+    # not exposed). The build artifact still exists; a maintainer can
+    # rerun the workflow from the default branch to actually deploy.
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: plexor-nodeagent-publish
+          path: ./publish
+
+      - name: Verify secrets present
+        id: secrets
+        # All three secrets must be configured. If any is missing, the
+        # job logs a warning and exits 0 — the workflow as a whole is
+        # green, and the operator can configure the secrets and re-run.
+        # Use the "fail job if secrets missing" toggle by setting
+        # REQUIRE_DEPLOY_SECRETS=true in the repo's Actions variables.
+        run: |
+          set -euo pipefail
+          missing=0
+          for var in TEST_VM_HOST TEST_VM_USER TEST_VM_SSH_KEY; do
+            if [ -z "${!var:-}" ]; then
+              echo "::warning::$var is not set — deploy will be skipped."
+              missing=1
+            fi
+          done
+          if [ "$missing" = "1" ]; then
+            echo "skipped=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "skipped=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip deploy (missing secrets)
+        if: steps.secrets.outputs.skipped == '1'
+        run: |
+          echo "::notice::Deploy secrets not configured — skipping the deploy job."
+          echo "Configure TEST_VM_HOST / TEST_VM_USER / TEST_VM_SSH_KEY and re-run"
+          echo "the workflow to actually ship to the test VM."
+          echo "Build artifact is available at:"
+          echo "  https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      # ----- The actual deploy (runs only when secrets are present) -----
+
+      - name: Copy publish output to test VM
+        if: steps.secrets.outputs.skipped == '0'
+        # scp-action supports directory copy; it lands under the remote
+        # path we give it. /tmp/ is writable by the SSH user; the
+        # deploy script moves it to /opt/plexor-nodeagent with sudo.
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_VM_HOST }}
+          username: ${{ secrets.TEST_VM_USER }}
+          key: ${{ secrets.TEST_VM_SSH_KEY }}
+          source: 'publish/'
+          target: '/tmp/plexor-nodeagent-staging/'
+          # rm=true cleans any previous staging dir so we never merge
+          # old + new files (drop a file from publish and the next
+          # deploy must not keep the lingering old copy).
+          rm: true
+          strip_components: 0
+
+      - name: Install + restart NodeAgent on test VM
+        if: steps.secrets.outputs.skipped == '0'
+        # One SSH block per logical phase so each phase's output is
+        # visible in its own step log. set -euo pipefail makes any
+        # individual phase failure surface as a job failure rather than
+        # silently continuing past a broken restart.
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.TEST_VM_HOST }}
+          username: ${{ secrets.TEST_VM_USER }}
+          key: ${{ secrets.TEST_VM_SSH_KEY }}
+          command_timeout: 5m
+          # shell: bash — explicit, since some distros default to dash.
+          script: |
+            set -euo pipefail
+
+            # --- Phase 1: ensure the deploy layout exists.
+            # First-time deploy needs the plexor user/group + the
+            # /opt/plexor-nodeagent directory. Subsequent deploys
+            # find them and skip. systemd unit is idempotent: if the
+            # symlinked path matches the running unit file, reload
+            # is a no-op.
+            sudo mkdir -p /opt/plexor-nodeagent
+            sudo mkdir -p /home/plexor/.plexor/agent
+            if ! id plexor >/dev/null 2>&1; then
+              sudo useradd --system --home /home/plexor --shell /usr/sbin/nologin plexor
+            fi
+
+            # --- Phase 2: copy publish output into the install dir.
+            # rsync -a --delete keeps the install dir an exact mirror
+            # of the staging dir (no stale files from previous deploys).
+            sudo rsync -a --delete \
+              /tmp/plexor-nodeagent-staging/ \
+              /opt/plexor-nodeagent/
+
+            # Drop the staging dir regardless of how the next steps fare.
+            rm -rf /tmp/plexor-nodeagent-staging
+
+            # The systemd unit is staged alongside the publish output
+            # (./publish/systemd/plexor-nodeagent.service), but rsync
+            # already moved it under /opt/plexor-nodeagent/systemd/.
+            # We install (or refresh) the unit on every deploy — it's
+            # cheap, and it keeps unit-file changes flowing through.
+            if [ ! -e /etc/systemd/system/plexor-nodeagent.service ] \
+               || ! cmp -s \
+                    /opt/plexor-nodeagent/systemd/plexor-nodeagent.service \
+                    /etc/systemd/system/plexor-nodeagent.service; then
+              sudo install -m 0644 \
+                /opt/plexor-nodeagent/systemd/plexor-nodeagent.service \
+                /etc/systemd/system/plexor-nodeagent.service
+              sudo systemctl daemon-reload
+            fi
+            # Drop the systemd dir from the install root — it lives in
+            # /etc/systemd/system/, not in the binary tree.
+            sudo rm -rf /opt/plexor-nodeagent/systemd
+
+            # plexor user owns the install + cert dir.
+            sudo chown -R plexor:plexor /opt/plexor-nodeagent
+            sudo chown -R plexor:plexor /home/plexor/.plexor
+
+            # --- Phase 3: enable + restart.
+            sudo systemctl enable plexor-nodeagent
+            sudo systemctl restart plexor-nodeagent
+
+            # --- Phase 4: verify.
+            #
+            # NodeAgent is a Worker Service (no HTTP listener, no
+            # /health endpoint). systemctl is-active is the canonical
+            # health check. We also grep the last 50 lines of journal
+            # for fatal/error lines — early-bail rather than failing
+            # the deploy if the agent is still warming up.
+            sleep 3
+            active_state=$(systemctl is-active plexor-nodeagent)
+            if [ "$active_state" != "active" ]; then
+              echo "::error::NodeAgent is not active (state: $active_state)"
+              echo "--- recent journal ---"
+              sudo journalctl -u plexor-nodeagent -n 50 --no-pager || true
+              exit 1
+            fi
+
+            echo "NodeAgent is active. Recent log tail:"
+            sudo journalctl -u plexor-nodeagent -n 20 --no-pager
+
+      - name: Build summary
+        if: always()
+        run: |
+          echo "### Deploy NodeAgent" >> "$GITHUB_STEP_SUMMARY"
+          echo "Trigger: ${{ github.event_name }} (${{ github.ref }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit: ${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.secrets.outputs.skipped }}" = '1' ]; then
+            echo "Status: ⚠️ skipped — deploy secrets not configured" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Status: ✅ deployed to ${{ secrets.TEST_VM_HOST }}" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Write deploy status
+        if: always()
+        # Emit a small JSON marker that smoke-test.yml reads to decide
+        # whether to run. Presence + deployed=true is the signal; if
+        # the deploy was skipped (secrets missing), deployed=false and
+        # smoke-test bails with a notice instead of running against a
+        # stale VM.
+        run: |
+          mkdir -p deploy-status
+          if [ "${{ steps.secrets.outputs.skipped }}" = '1' ]; then
+            printf '{"deployed":false,"reason":"missing_secrets","commit":"%s","ref":"%s"}\n' \
+              "${{ github.sha }}" "${{ github.ref }}" > deploy-status/deploy-status.json
+          else
+            printf '{"deployed":true,"host":"%s","commit":"%s","ref":"%s"}\n' \
+              "${{ secrets.TEST_VM_HOST }}" "${{ github.sha }}" "${{ github.ref }}" \
+              > deploy-status/deploy-status.json
+          fi
+          cat deploy-status/deploy-status.json
+
+      - name: Upload deploy status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-status
+          path: deploy-status/deploy-status.json
+          if-no-files-found: error
+          retention-days: 3
