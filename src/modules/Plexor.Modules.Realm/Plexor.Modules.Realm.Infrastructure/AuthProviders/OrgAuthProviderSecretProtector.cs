@@ -28,6 +28,7 @@
 // ============================================================================
 
 using Microsoft.AspNetCore.DataProtection;
+using Plexor.Modules.Realm.Application.AuthProviders;
 
 namespace Plexor.Modules.Realm.Infrastructure.AuthProviders;
 
@@ -46,6 +47,7 @@ namespace Plexor.Modules.Realm.Infrastructure.AuthProviders;
 /// <param name="provider">The host's
 /// <see cref="IDataProtectionProvider" />.</param>
 public sealed class OrgAuthProviderSecretProtector(IDataProtectionProvider provider)
+    : IOrgAuthProviderSecretProtector
 {
     /// <summary>
     ///     Stable purpose discriminator. Different-purpose protectors

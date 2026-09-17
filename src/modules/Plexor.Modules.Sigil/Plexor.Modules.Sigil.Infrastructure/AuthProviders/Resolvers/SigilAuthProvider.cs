@@ -7,7 +7,8 @@
 //   1. Verifying the JWT signature + lifetime via IJwtSigningService.
 //   2. Confirming the tenant's OrgAuthProviderConfig is still Sigil
 //      (a token issued against a Sigil-configured tenant must not be
-//      honoured after the admin flips the row to Oidc).
+//      honoured after the admin flips the row to Oidc) — read via
+//      IOrgAuthProviderConfigReader.
 //   3. Loading the user from the verified subject id and confirming
 //      Status == "active".
 //   4. Resolving roles + permissions from the live role_bindings +
@@ -20,10 +21,9 @@
 // provider; the existing bearer path remains in place until then.
 // ============================================================================
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Plexor.Modules.Realm.Application.AuthProviders;
 using Plexor.Modules.Realm.Domain.Entities;
-using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.AuthProviders;
@@ -40,20 +40,19 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
 ///     rebuild <c>HttpContext.User</c>.
 /// </summary>
 /// <remarks>
-///     <para><b>Cross-module reference.</b> This class consumes
-///     <see cref="RealmDbContext" /> to read
-///     <see cref="OrgAuthProviderConfig" />. The reference is
-///     necessary because <c>SigilAuthProvider</c> is the only place
-///     that knows whether the JWT's <c>tid</c> claim still corresponds
-///     to a Sigil-served tenant. The architecture-test backlog will
-///     gate this as a permitted cross-module dep.</para>
+///     <para><b>Cross-module seam.</b> Reads the per-tenant config
+///     via <see cref="IOrgAuthProviderConfigReader" /> — the
+///     abstraction defined in
+///     <c>Plexor.Modules.Realm.Application.AuthProviders</c>. This
+///     class never touches <c>RealmDbContext</c> directly (Law 3:
+///     modules don't reference each other's Infrastructure).</para>
 ///     <para><b>No <c>private</c> helpers.</b> Per project convention
 ///     <c>code-shape.md §9</c>, every step lives inline or behind a
 ///     separate service. Role resolution lives in
 ///     <see cref="IRoleResolver" />; permission resolution in
 ///     <see cref="IPermissionResolver" />. The
-///     <see cref="OrgAuthProviderConfig" /> lookup is a single EF
-///     query — no need to extract.</para>
+///     <see cref="OrgAuthProviderConfig" /> lookup is a single reader
+///     call — no need to extract.</para>
 ///     <para><b>Why re-resolve roles + permissions on every call.</b>
 ///     The Sigil provider is the source of truth for which
 ///     permissions a user holds at this instant. The JWT carries a
@@ -71,9 +70,9 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
 ///     resolved user. Mirrors <see cref="IRoleResolver" />.</param>
 /// <param name="permissionResolver">Reads the union of permissions
 ///     bound to the resolved user via their roles.</param>
-/// <param name="realm">Realm DbContext — used to read
-///     <see cref="OrgAuthProviderConfig" /> for the per-tenant routing
-///     decision.</param>
+/// <param name="configReader">Reads the per-tenant
+///     <see cref="OrgAuthProviderConfig" /> via the cross-module
+///     abstraction.</param>
 /// <param name="logger">Logs the tenant-mismatch case at warning level
 ///     (security-relevant event).</param>
 public sealed class SigilAuthProvider(
@@ -81,7 +80,7 @@ public sealed class SigilAuthProvider(
     IUserLookup userLookup,
     IRoleResolver roleResolver,
     IPermissionResolver permissionResolver,
-    RealmDbContext realm,
+    IOrgAuthProviderConfigReader configReader,
     ILogger<SigilAuthProvider> logger) : IAuthProvider
 {
     /// <inheritdoc />
@@ -92,11 +91,7 @@ public sealed class SigilAuthProvider(
         Guid orgId,
         CancellationToken cancellationToken)
     {
-        var config = await realm.OrgAuthProviderConfigs
-            .AsNoTracking()
-            .FirstOrDefaultAsync(
-                config => config.OrgId == orgId,
-                cancellationToken);
+        var config = await configReader.GetForOrgAsync(orgId, cancellationToken);
 
         // v0.1 single-tenant boot state: an org without a config row
         // is treated as Sigil-served (the OrgAuthProviderSeeder

@@ -13,8 +13,9 @@
 //   4. Cache miss:
 //        - iss == "plexor" → Sigil (no DB read — the Sigil provider
 //          self-routes by the `tid` claim in the JWT).
-//        - iss != "plexor" → query OrgAuthProviderConfig by OidcAuthority.
-//          Match → Oidc, cache + dispatch. No match → null (logged).
+//        - iss != "plexor" → query OrgAuthProviderConfig by OidcAuthority
+//          via IOrgAuthProviderConfigReader. Match → Oidc, cache +
+//          dispatch. No match → null (logged).
 //   5. Dispatch: provider.ResolveAsync(rawCredential, ct).
 //   6. Cache invalidation: 5-minute TTL bounds the staleness window
 //      after an admin flips a tenant's OrgAuthProviderConfig. Phase 5+
@@ -31,10 +32,9 @@
 //   to keep both providers injectable.
 // ============================================================================
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Plexor.Modules.Realm.Infrastructure.Persistence;
+using Plexor.Modules.Realm.Application.AuthProviders;
 using Plexor.Modules.Sigil.Application.AuthProviders;
 using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 
@@ -69,9 +69,11 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
 ///     External OIDC provider. Routed-to when
 ///     <c>OrgAuthProviderConfig.OidcAuthority == iss</c>.
 /// </param>
-/// <param name="realm">
-///     Realm DbContext — read <c>OrgAuthProviderConfig</c> on cache miss
-///     for the OIDC path.
+/// <param name="configReader">
+///     Read seam for <c>OrgAuthProviderConfig</c> (Law 3 — Sigil does
+///     not reach into Realm.Infrastructure directly; it asks the
+///     reader, which lives in
+///     <c>Plexor.Modules.Realm.Application.AuthProviders</c>).
 /// </param>
 /// <param name="cache">
 ///     Process-local memory cache; 5-minute TTL on the (iss →
@@ -81,7 +83,7 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
 public sealed class AuthProviderResolver(
     SigilAuthProvider sigilProvider,
     ExternalOidcAuthProvider oidcProvider,
-    RealmDbContext realm,
+    IOrgAuthProviderConfigReader configReader,
     IMemoryCache cache,
     ILogger<AuthProviderResolver> logger) : IAuthProviderResolver
 {
@@ -143,11 +145,7 @@ public sealed class AuthProviderResolver(
             // against at least one OrgAuthProviderConfig row. A bare
             // `iss` claim without a matching row is treated as
             // "no provider claims this credential" → 401.
-            var config = await realm.OrgAuthProviderConfigs
-                .AsNoTracking()
-                .FirstOrDefaultAsync(
-                    config => config.OidcAuthority == issuer,
-                    cancellationToken);
+            var config = await configReader.GetByOidcIssuerAsync(issuer, cancellationToken);
 
             if (config is null)
             {

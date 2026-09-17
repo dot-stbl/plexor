@@ -5,7 +5,7 @@
 // Contracts (Abstractions / Application / Domain / shared kernel) flow
 // freely; concrete plumbing (EF, repos, installers, DbContexts) does not.
 //
-// The two tests below pin the boundary that's currently enforced:
+// The three tests below pin the boundary that's currently enforced:
 //   1. A module's Application layer must not depend on its OWN
 //      Infrastructure layer (intramodule inversion — application
 //      defines ports, infrastructure binds adapters).
@@ -16,6 +16,14 @@
 //      and persistence types to compose the application graph.
 //      See `HostCompositionShould` for the reverse assertion
 //      (modules don't reference Host).
+//   3. Sigil.Infrastructure must not reach into Realm.Infrastructure —
+//      the per-tenant OrgAuthProviderConfig lookups (CanAuthenticate +
+//      Resolve) go through `IOrgAuthProviderConfigReader` (Realm.Application)
+//      and the OIDC client-secret decryption goes through
+//      `IOrgAuthProviderSecretProtector` (Realm.Application). A future
+//      PR that re-introduces a direct Realm.Infrastructure reference
+//      fails this test, forcing the new contributor to widen the seam
+//      in `Plexor.Modules.Realm.Application.AuthProviders` first.
 //
 // NetArchTest 1.3.2's `Types.InAssembly` only accepts a
 // `System.Reflection.Assembly`; the helper in `TestAssemblies.cs`
@@ -137,5 +145,43 @@ public sealed class ModuleIsolationShould
             result.IsSuccessful.ShouldBeTrue(
                 $"{consumer} must not reference {forbidden} (Law 3: modules communicate only via contracts).");
         }
+    }
+
+    // Law 3 (specific cross-module guard): Sigil.Infrastructure is
+    // the consumer that historically reached past the Realm
+    // abstractions into concrete EF plumbing (`RealmDbContext`,
+    // `OrgAuthProviderSecretProtector`). The arch-test cleanup pass
+    // (4.6.3d) wired it through `IOrgAuthProviderConfigReader` and
+    // `IOrgAuthProviderSecretProtector` instead. This assertion
+    // ensures no future PR reintroduces the direct reference.
+    /// <summary>
+    ///     Given <c>Plexor.Modules.Sigil.Infrastructure</c>, when
+    ///     scanned by NetArchTest for dependencies, then it has no
+    ///     dependency on <c>Plexor.Modules.Realm.Infrastructure</c>.
+    ///     Per-tenant config reads go through
+    ///     <see cref="Plexor.Modules.Realm.Application.AuthProviders.IOrgAuthProviderConfigReader" />;
+    ///     OIDC client-secret decryption goes through
+    ///     <see cref="Plexor.Modules.Realm.Application.AuthProviders.IOrgAuthProviderSecretProtector" />.
+    ///     A failure here means Sigil.Infrastructure reached past
+    ///     those abstractions into Realm's EF plumbing — the fix is
+    ///     to widen the seam in
+    ///     <c>Plexor.Modules.Realm.Application.AuthProviders</c>,
+    ///     not to add a project reference.
+    /// </summary>
+    [Fact(DisplayName = "Given Sigil.Infrastructure, when scanned for Realm dependencies, then it has no Realm.Infrastructure reference")]
+    public void SigilInfrastructure_does_not_reference_RealmInfrastructure()
+    {
+        var result = Types
+            .InAssembly(TestAssemblies.Load("Plexor.Modules.Sigil.Infrastructure"))
+            .ShouldNot()
+            .HaveDependencyOn("Plexor.Modules.Realm.Infrastructure")
+            .GetResult();
+
+        result.IsSuccessful.ShouldBeTrue(
+            "Plexor.Modules.Sigil.Infrastructure must not reference Plexor.Modules.Realm.Infrastructure "
+            + "(Law 3: modules communicate only via contracts). Use "
+            + "IOrgAuthProviderConfigReader or IOrgAuthProviderSecretProtector "
+            + "(both in Plexor.Modules.Realm.Application.AuthProviders) for any "
+            + "OrgAuthProviderConfig / OIDC secret-protector reads.");
     }
 }
