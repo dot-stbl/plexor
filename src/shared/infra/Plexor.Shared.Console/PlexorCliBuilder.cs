@@ -115,6 +115,55 @@ public sealed class PlexorCliBuilder
     }
 
     /// <summary>
+    ///     Host label surfaced in the v2 banner's status line
+    ///     (e.g. <c>"prod-eu-1"</c>). When set together with
+    ///     <see cref="WithHostStatus" />, the v2 banner renders an
+    ///     extra <c>● &lt;status&gt;</c> strip under the tagline.
+    /// </summary>
+    /// <param name="hostName"></param>
+    public PlexorCliBuilder WithHostName(string? hostName)
+    {
+        Content.HostName = hostName;
+        return this;
+    }
+
+    /// <summary>
+    ///     Host status keyword for the v2 banner — <c>healthy</c>,
+    ///     <c>degraded</c>, or <c>offline</c>. Unknown values render
+    ///     muted (no color badge). Triggers the v2 banner's status
+    ///     strip when set.
+    /// </summary>
+    /// <param name="hostStatus"></param>
+    public PlexorCliBuilder WithHostStatus(string? hostStatus)
+    {
+        Content.HostStatus = hostStatus;
+        return this;
+    }
+
+    /// <summary>
+    ///     Node count string for the v2 banner status strip
+    ///     (e.g. <c>"3"</c>). Rendered muted; not a substitute for
+    ///     <see cref="WithHostStatus" />.
+    /// </summary>
+    /// <param name="nodeCount"></param>
+    public PlexorCliBuilder WithNodeCount(string? nodeCount)
+    {
+        Content.NodeCount = nodeCount;
+        return this;
+    }
+
+    /// <summary>
+    ///     VM count string for the v2 banner status strip
+    ///     (e.g. <c>"7"</c>). Rendered muted.
+    /// </summary>
+    /// <param name="vmCount"></param>
+    public PlexorCliBuilder WithVmCount(string? vmCount)
+    {
+        Content.VmCount = vmCount;
+        return this;
+    }
+
+    /// <summary>
     ///     Add a command at the root level. The optional
     ///     <paramref name="configure" /> lambda chains Spectre
     ///     configuration methods (description, alias, examples, ...).
@@ -291,19 +340,47 @@ file static class CliBuilderHelpers
 
         if (DetectHelpLike(content.Args))
         {
-            // Help-like: full boxed banner with logo, version, tagline,
-            // and the command list.
-            AnsiConsole.MarkupLine(BannerArt.FullHelpBanner(
-                toolName,
-                version,
-                tagline,
-                content.RegisteredCommands));
+            // Help-like: full banner with logo, version, tagline,
+            // command list, and (v2) optional host status strip.
+            // V2 fires when any of the host fields are set; v1
+            // otherwise.
+            var banner = HasHostContext(content)
+                ? BannerArt.FullHelpBannerV2(
+                    toolName,
+                    version,
+                    tagline,
+                    content.HostName,
+                    content.HostStatus,
+                    content.NodeCount,
+                    content.VmCount,
+                    content.RegisteredCommands)
+                : BannerArt.FullHelpBanner(
+                    toolName,
+                    version,
+                    tagline,
+                    content.RegisteredCommands);
+
+            AnsiConsole.MarkupLine(banner);
         }
         else
         {
             // Real command: one-line compact mark.
             AnsiConsole.MarkupLine(BannerArt.CompactMark(toolName, version, tagline));
         }
+    }
+
+    /// <summary>
+    ///     Decide whether the v2 banner should fire — true when at
+    ///     least one of hostName / hostStatus / nodeCount / vmCount
+    ///     is supplied.
+    /// </summary>
+    /// <param name="content"></param>
+    public static bool HasHostContext(PlexorCliContent content)
+    {
+        return !string.IsNullOrWhiteSpace(content.HostName)
+            || !string.IsNullOrWhiteSpace(content.HostStatus)
+            || !string.IsNullOrWhiteSpace(content.NodeCount)
+            || !string.IsNullOrWhiteSpace(content.VmCount);
     }
 
     /// <summary>

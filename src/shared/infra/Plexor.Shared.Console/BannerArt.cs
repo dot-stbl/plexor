@@ -190,6 +190,175 @@ public static class BannerArt
     }
 
     /// <summary>
+    ///     V2 help banner — the <see cref="FullHelpBanner" /> wrapped
+    ///     in a rounded box with an optional host-status line under
+    ///     the tagline. The status line shows
+    ///     <c>● &lt;status&gt;  N nodes  M vms  &lt;hostName&gt;</c> when
+    ///     any of <paramref name="hostStatus" />,
+    ///     <paramref name="nodeCount" />, or
+    ///     <paramref name="vmCount" /> is supplied; otherwise the
+    ///     banner renders identically to
+    ///     <see cref="FullHelpBanner" />.
+    ///     <para>
+    ///         Status colors:
+    ///         <c>healthy</c> → <see cref="ColorPalette.Ok" /> (green);
+    ///         <c>degraded</c> → <see cref="ColorPalette.Warn" /> (yellow);
+    ///         <c>offline</c> → <see cref="ColorPalette.Error" /> (red);
+    ///         unknown status → muted.
+    ///     </para>
+    /// </summary>
+    /// <param name="toolName">Program name (e.g. <c>plexor</c>).</param>
+    /// <param name="version">Tool version (no leading <c>v</c>).</param>
+    /// <param name="tagline">One-line tagline.</param>
+    /// <param name="hostName">Optional host / cluster label.</param>
+    /// <param name="hostStatus">
+    ///     Optional host status (<c>healthy</c> / <c>degraded</c> /
+    ///     <c>offline</c>). Maps to a colored badge; unknown values
+    ///     render without a color tag.
+    /// </param>
+    /// <param name="nodeCount">Optional node count (e.g. <c>"3"</c>).</param>
+    /// <param name="vmCount">Optional VM count (e.g. <c>"7"</c>).</param>
+    /// <param name="commands">Optional command list for the help table.</param>
+    public static string FullHelpBannerV2(
+        string toolName,
+        string version,
+        string tagline,
+        string? hostName = null,
+        string? hostStatus = null,
+        string? nodeCount = null,
+        string? vmCount = null,
+        IReadOnlyList<CommandSpec>? commands = null)
+    {
+        var logoLines = PlexorLogo.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+        // Box width — logo's widest visible line is 25 chars;
+        // padding gives breathing room inside the rounded border.
+        const int boxWidth = 56;
+        const int innerWidth = boxWidth + 4; // "│ " + content + " │"
+        var horizontalRule = new string(Box.Horizontal[0], innerWidth);
+
+        var sb = new StringBuilder();
+
+        // Box top — ╭─...─╮ centered above the logo block.
+        sb.Append(Box.TopLeft[0]).Append(horizontalRule).AppendLine(Box.TopRight[0].ToString());
+
+        // Logo lines — bordered left/right, colorized gradient.
+        for (var i = 0; i < logoLines.Length; i++)
+        {
+            var centered = CenterLine(logoLines[i], boxWidth);
+            sb.Append(Box.Vertical[0])
+                .Append(' ')
+                .Append(ColorizeLogoLine(centered))
+                .Append(' ')
+                .AppendLine(Box.Vertical[0].ToString());
+        }
+
+        // Box bottom.
+        sb.Append(Box.BottomLeft[0]).Append(horizontalRule).AppendLine(Box.BottomRight[0].ToString());
+
+        // Spacer.
+        sb.AppendLine();
+
+        // Tool name + version.
+        var mutedMarkup = ColorPalette.Muted.ToMarkup();
+        sb.AppendLine(CenterLine(
+            "[" + LogoColor.Mid + " bold]" + toolName + "[/] ["
+            + mutedMarkup + "]v" + version + "[/]",
+            innerWidth));
+
+        // Tagline.
+        sb.AppendLine(CenterLine(
+            "[" + mutedMarkup + "]" + tagline + "[/]",
+            innerWidth));
+
+        // Host status line — only when at least one of the host
+        // fields is supplied. Status maps to a color badge; the
+        // counts render muted; the hostName renders bold accent.
+        if (!string.IsNullOrWhiteSpace(hostStatus) ||
+            !string.IsNullOrWhiteSpace(nodeCount) ||
+            !string.IsNullOrWhiteSpace(vmCount) ||
+            !string.IsNullOrWhiteSpace(hostName))
+        {
+            sb.AppendLine().AppendLine(CenterLine(BuildHostStatusLine(
+                hostStatus,
+                nodeCount,
+                vmCount,
+                hostName),
+                innerWidth));
+        }
+
+        // Commands.
+        if (commands is { Count: > 0 })
+        {
+            sb.AppendLine().AppendLine(CenterLine(
+                "[" + LogoColor.Mid + " bold]COMMANDS[/]",
+                innerWidth));
+
+            for (var i = 0; i < commands.Count; i++)
+            {
+                var cmd = commands[i];
+                var branch = i == commands.Count - 1 ? "└─" : "├─";
+                var line = "  ["
+                           + mutedMarkup + "]" + branch + "[/] ["
+                           + LogoColor.Mid + "]" + cmd.Icon + "[/]  ["
+                           + LogoColor.Mid + " bold]" + cmd.Name + "[/] ["
+                           + mutedMarkup + "]" + cmd.Description + "[/]";
+                sb.AppendLine(line);
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    ///     Compose the host-status strip:
+    ///     <c>● &lt;status badge&gt;  N nodes  M vms  &lt;hostName&gt;</c>.
+    ///     Each segment is omitted when its argument is null/empty;
+    ///     segments are separated by 2-space muted dots.
+    /// </summary>
+    /// <param name="status">Host status keyword (healthy/degraded/offline).</param>
+    /// <param name="nodeCount">Node count string, or null.</param>
+    /// <param name="vmCount">VM count string, or null.</param>
+    /// <param name="hostName">Host label, or null.</param>
+    private static string BuildHostStatusLine(
+        string? status,
+        string? nodeCount,
+        string? vmCount,
+        string? hostName)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            var badge = status.Trim().ToLowerInvariant() switch
+            {
+                "healthy" => MarkupExtensions.Ok($"{Icon.Status} healthy"),
+                "degraded" => MarkupExtensions.Warn($"{Icon.Status} degraded"),
+                "offline" => MarkupExtensions.Err($"{Icon.Status} offline"),
+                _ => MarkupExtensions.Muted($"{Icon.Status} {status.Trim()}")
+            };
+            parts.Add(badge);
+        }
+
+        if (!string.IsNullOrWhiteSpace(nodeCount))
+        {
+            parts.Add(MarkupExtensions.Muted($"{nodeCount} nodes"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(vmCount))
+        {
+            parts.Add(MarkupExtensions.Muted($"{vmCount} vms"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(hostName))
+        {
+            parts.Add(MarkupExtensions.B(hostName));
+        }
+
+        return string.Join("  ", parts);
+    }
+
+    /// <summary>
     ///     One-line compact mark for real command
     ///     invocations. Logo glyph + tagline joined with separators.
     ///     Returns markup (consume with <c>AnsiConsole.MarkupLine</c>).

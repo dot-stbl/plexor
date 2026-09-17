@@ -41,11 +41,23 @@ internal sealed class PlexorCliContent
     /// <summary>Version string used for <c>--version</c>.</summary>
     public string? ToolVersion { get; set; }
 
-    /// <summary>Cluster context surfaced in the status footer.</summary>
+///     <summary>Cluster context surfaced in the status footer.</summary>
     public string? ClusterName { get; set; }
 
     /// <summary>Node context surfaced in the status footer.</summary>
     public string? NodeName { get; set; }
+
+    /// <summary>Host label surfaced in the v2 banner status line.</summary>
+    public string? HostName { get; set; }
+
+    /// <summary>Host status keyword for the v2 banner (healthy / degraded / offline).</summary>
+    public string? HostStatus { get; set; }
+
+    /// <summary>Node count string for the v2 banner.</summary>
+    public string? NodeCount { get; set; }
+
+    /// <summary>VM count string for the v2 banner.</summary>
+    public string? VmCount { get; set; }
 
     /// <summary>
     ///     Deferred <see cref="Spectre.Console.Cli.IConfigurator" />
