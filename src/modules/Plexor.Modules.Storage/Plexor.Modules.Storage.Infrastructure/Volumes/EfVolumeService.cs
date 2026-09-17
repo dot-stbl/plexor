@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Storage.Application.Volumes;
 using Plexor.Modules.Storage.Domain.Entities;
 using Plexor.Modules.Storage.Infrastructure.Persistence;
+using Plexor.Shared.Kernel.Identity;
+using Plexor.Shared.Kernel.Quotas;
+using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Storage.Infrastructure.Volumes;
 
@@ -24,13 +27,38 @@ namespace Plexor.Modules.Storage.Infrastructure.Volumes;
 ///     <c>Plexor.Modules.Quotas.Infrastructure.Quotas.EfQuotaScopeResolver</c>
 ///     — public so the unit-test project can construct it directly
 ///     with the in-memory <see cref="StorageDbContext" />.</para>
+///     <para><b>Quota enforcement (4.5.d follow-up).</b>
+///     <see cref="CreateAsync" /> opens a transaction, reserves both
+///     <c>storage.volumes.count</c> (amount = 1) and
+///     <c>storage.volumes.gb</c> (amount = <see cref="NewVolumeInput.SizeGb" />)
+///     against the org scope, then INSERTs the volume row. Both
+///     reservations share the same transaction as the INSERT — a
+///     <c>Denied</c> from either enforcer check throws
+///     <see cref="QuotaExceededException" />, the open transaction
+///     rolls back on dispose, and no row + no quota counter advances.</para>
 /// </remarks>
 /// <param name="db">Scoped <see cref="StorageDbContext" />.</param>
 /// <param name="clock">Injected <see cref="TimeProvider" /> for the row's
 /// <c>CreatedAt</c> + <c>UpdatedAt</c> stamps.</param>
+/// <param name="quotaEnforcer">
+///     Reserves <c>storage.volumes.count</c> + <c>storage.volumes.gb</c>
+///     capacity inside the same transaction as the volume INSERT —
+///     see 4.5.c and
+///     <c>openspec/changes/phase-4-5-quotas/design.md</c> §"Enforcement:
+///     pure-sync with pg_advisory_xact_lock".
+/// </param>
+/// <param name="currentUser">
+///     Per-request caller identity (4.5.h). The handler forwards
+///     <see cref="ICurrentUser.UserId" /> into the
+///     <see cref="QuotaScope" /> so the audit emitter can attach the
+///     actor to every <c>UsageExceeded</c> / <c>LimitApproaching</c>
+///     event.
+/// </param>
 public sealed class EfVolumeService(
     StorageDbContext db,
-    TimeProvider clock) : IVolumeService
+    TimeProvider clock,
+    IQuotaEnforcer quotaEnforcer,
+    ICurrentUser currentUser) : IVolumeService
 {
     /// <inheritdoc />
     public async Task<IReadOnlyList<Volume>> ListAsync(
@@ -62,6 +90,48 @@ public sealed class EfVolumeService(
         NewVolumeInput input,
         CancellationToken cancellationToken = default)
     {
+        // Single transaction: both quota reservations + the volume
+        // INSERT commit (or roll back) together. Both contexts share
+        // the same NpgsqlDataSource via the PlexorDataSourceExtensions
+        // composition root; the InMemory provider used by handler unit
+        // tests is skipped (no transaction support).
+        await using var transaction =
+            await db.Database.BeginTransactionIfSupportedAsync(cancellationToken);
+
+        // Reserve storage.volumes.count at the org scope (count = 1).
+        // ActorUserId flows into the QuotaScope so the audit emitter
+        // can attach the caller to any UsageExceeded / LimitApproaching
+        // event.
+        var countCheck = await quotaEnforcer.CheckAndReserveAsync(
+            QuotaScope.Org(input.OrgId, currentUser.UserId),
+            QuotaDefinitionKey.VolumesCount,
+            amount: 1,
+            cancellationToken);
+        if (countCheck is QuotaCheckResult.Denied countDenied)
+        {
+            throw new QuotaExceededException(
+                countDenied.Limit,
+                countDenied.Used,
+                countDenied.Requested);
+        }
+
+        // Reserve storage.volumes.gb at the org scope (amount = the
+        // new volume's SizeGb). Both reservations ride the same open
+        // transaction; a Denied here rolls back the count reservation
+        // on dispose before the exception propagates.
+        var sizeCheck = await quotaEnforcer.CheckAndReserveAsync(
+            QuotaScope.Org(input.OrgId, currentUser.UserId),
+            QuotaDefinitionKey.VolumesGb,
+            amount: input.SizeGb,
+            cancellationToken);
+        if (sizeCheck is QuotaCheckResult.Denied sizeDenied)
+        {
+            throw new QuotaExceededException(
+                sizeDenied.Limit,
+                sizeDenied.Used,
+                sizeDenied.Requested);
+        }
+
         var now = clock.GetUtcNow();
         var entity = new Volume
         {
@@ -76,6 +146,10 @@ public sealed class EfVolumeService(
         };
         await db.Volumes.AddAsync(entity, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
         return entity;
     }
 
