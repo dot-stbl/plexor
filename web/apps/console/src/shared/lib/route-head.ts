@@ -5,6 +5,11 @@ import { APP_NAME } from './app-name';
  * `<title>` reads `<page> · ${APP_NAME}` (all lowercase) without per-route
  * boilerplate.
  *
+ * TanStack Router's `head()` returns `{ links?, scripts?, meta? }` —
+ * `meta` is a `MetaDescriptor[]` and `{ title: string }` is a valid
+ * descriptor. Returning `{ title }` at the top level is not assignable,
+ * so we wrap the title in `meta: [{ title }]`.
+ *
  * Usage:
  *   export const Route = createFileRoute('/vms/')({
  *     component: VmsPage,
@@ -15,7 +20,7 @@ export function routeHead(page: string | null) {
   const title = page ? `${page.toLowerCase()} · ${APP_NAME}` : APP_NAME;
   return {
     head: () => ({
-      title,
+      meta: [{ title }],
     }),
   };
 }
