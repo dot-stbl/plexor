@@ -76,6 +76,7 @@
          network.load_balancers.count). -->
     <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Application\Plexor.Modules.Network.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Infrastructure\Plexor.Modules.Network.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Api\Plexor.Modules.Network.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>
