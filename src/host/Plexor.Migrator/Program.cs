@@ -79,6 +79,14 @@ builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
 builder.Services.AddScoped<IAuditDbContext>(sp => sp.GetRequiredService<AuditDbContext>());
 
+// Realm auth-providers (4.6.1) — wired BEFORE Sigil infrastructure.
+// Sigil.Infrastructure.OidcTokenClient + ExternalOidcAuthProvider
+// resolve IOrgAuthProviderConfigReader at request time, so the seam
+// has to be in the container before AddSigilInfrastructureCore runs.
+// Same ordering rationale as Plexor.Host (Realm → Sigil matches the
+// architecture rules + keeps ValidateOnBuild honest).
+builder.Services.AddRealmAuthProviders();
+
 builder.Services.AddSigilInfrastructureCore();
 
 // Audit retention (Phase 5.3) — bind AuditOptions so any future
@@ -99,15 +107,6 @@ builder.Services
 // resolved. RateLimitCleanupService is a no-op during the typical
 // one-shot migrate cycle (no hourly sweep boundary falls inside).
 builder.Services.AddQuotasInfrastructureCore();
-
-// Realm auth-providers (4.6.1) — wires the IOrgAuthProviderSeeder
-// EF implementation + the first-boot hosted service so the migrator
-// seeds a default Sigil row for every existing org right after the
-// InitAuthProviders migration applies. Idempotent on re-run. The
-// RealmApplication layer isn't needed here — the installer only
-// registers Application-layer + Infrastructure-layer services that
-// can be resolved against the Migrator's service collection.
-builder.Services.AddRealmAuthProviders();
 
 // Branding infrastructure — needed for BrandingGlobalSeederHostedService
 // and its IBrandingService dependency. The singleton seeder runs on
