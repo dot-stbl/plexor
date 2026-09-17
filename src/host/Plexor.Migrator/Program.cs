@@ -79,6 +79,14 @@ builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
 builder.Services.AddScoped<IAuditDbContext>(sp => sp.GetRequiredService<AuditDbContext>());
 
+// Realm auth-providers (4.6.1) — wired BEFORE Sigil infrastructure.
+// Sigil.Infrastructure.OidcTokenClient + ExternalOidcAuthProvider
+// resolve IOrgAuthProviderConfigReader at request time, so the seam
+// has to be in the container before AddSigilInfrastructureCore runs.
+// Same ordering rationale as Plexor.Host (Realm → Sigil matches the
+// architecture rules + keeps ValidateOnBuild honest).
+builder.Services.AddRealmAuthProviders();
+
 builder.Services.AddSigilInfrastructureCore();
 
 // Audit retention (Phase 5.3) — bind AuditOptions so any future

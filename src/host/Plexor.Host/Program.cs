@@ -201,6 +201,17 @@ var contextCount = 7;
 builder.Services.AddFiltering()
     .AddFilterableEntity<AuditEntry>();
 
+// ----------------------------------------------------------------------------
+// Realm auth-providers (4.6.1) — wired BEFORE Sigil infrastructure.
+// Sigil.Infrastructure.OidcTokenClient + ExternalOidcAuthProvider
+// resolve IOrgAuthProviderConfigReader at request time, so the seam
+// has to be in the container before AddSigilInfrastructureCore runs.
+// The runtime only requires per-request resolution (DI builds the
+// graph lazily), but registering in dependency order keeps the
+// ValidateOnBuild / scope-validation paths honest and matches the
+// architecture rules (Realm → Sigil).
+builder.Services.AddRealmAuthProviders();
+
 // Sigil module — auth contracts + impls. Phase 3.2-3.5 wires the
 // PBKDF2 password hasher + the per-request ICurrentUser reader.
 // The bearer handler that populates claims lands in Phase 3.6;
@@ -231,14 +242,6 @@ builder.Services.AddQuotasInfrastructureCore();
 // Api-layer DI registrations. Mirrors AddPlexorSigilApi for the
 // Sigil module.
 builder.Services.AddQuotasApiCore();
-
-// Realm auth-providers (4.6.1) — wires the IOrgAuthProviderSeeder
-// implementation + the first-boot hosted service that ensures every
-// org has a default Sigil row in realm.org_auth_provider_configs.
-// Idempotent on re-run. The OrgAuthProvidersController lives in
-// this assembly (Plexor.Host/Controllers/) and is discovered by
-// AddControllers() automatically.
-builder.Services.AddRealmAuthProviders();
 
 // Realm auth-providers (4.6.1) — purpose-bound IDataProtector for
 // the OIDC client secret. The controller resolves the
