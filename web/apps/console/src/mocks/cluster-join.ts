@@ -54,7 +54,7 @@ const FAKE_TOKENS: JoinToken[] = [
  *  `POST /api/v1/compute/clusters/{id}/tokens` with a generated UUID
  *  and the standard 7-day TTL. */
 export function mockIssueToken(
-  clusterId: string,
+  _clusterId: string,
   args: { label: string; intendedRole: NodeRole; ttlDays?: number },
 ): JoinToken {
   const now = new Date();
@@ -74,13 +74,13 @@ export function mockIssueToken(
 }
 
 /** Revoke a token. Mirrors `POST /api/v1/compute/clusters/{id}/tokens/{tid}/revoke`. */
-export function mockRevokeToken(clusterId: string, tokenId: string): void {
+export function mockRevokeToken(_clusterId: string, tokenId: string): void {
   const t = FAKE_TOKENS.find((x) => x.id === tokenId);
   if (t) t.status = 'revoked';
 }
 
 /** List tokens for a cluster. Mirrors
  *  `GET /api/v1/compute/clusters/{id}/tokens`. */
-export function mockListTokens(clusterId: string): JoinToken[] {
+export function mockListTokens(_clusterId: string): JoinToken[] {
   return FAKE_TOKENS.slice();
 }
