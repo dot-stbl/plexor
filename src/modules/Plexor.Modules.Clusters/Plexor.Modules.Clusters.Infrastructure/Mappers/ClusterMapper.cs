@@ -21,6 +21,9 @@
 //   flagged for caller-completion.
 // - [MapProperty]: connects an additional method parameter to a
 //   target member by name (case-insensitive).
+//
+// Node tracking moved to Plexor.Modules.Outpost. The
+// <c>ToNodeSummary</c> mapping lives in Outpost's mapper now.
 // ==========================================================================
 
 using Plexor.Modules.Clusters.Application.Clusters;
@@ -42,27 +45,18 @@ public partial class ClusterMapper : IClusterMapper
     /// <summary>
     ///     Map <see cref="Cluster" /> to <see cref="ClusterSummary" />.
     ///     All positional fields are mapped 1:1 by name from the
-    ///     source. <see cref="ClusterSummary.NodeCounts" /> has no
-    ///     source counterpart in the entity — callers compute the
-    ///     aggregate from a separate <c>NodesByClusterSpec</c> query
-    ///     and overwrite it via <c>with</c>-expression if needed (for
-    ///     list views where the summary page already has the count
-    ///     pre-aggregated client-side).
+    ///     source. Node counts and node summaries moved to
+    ///     Plexor.Modules.Outpost; the list view populates them
+    ///     client-side from the Outpost read API.
     /// </summary>
-    [MapperIgnoreTarget(nameof(ClusterSummary.NodeCounts))]
     public partial ClusterSummary ToSummary(Cluster source);
 
     /// <summary>
     ///     Map <see cref="Cluster" /> to <see cref="ClusterDetail" />,
     ///     using the supplied <paramref name="nodes" /> for the
-    ///     embedded collection. <c>nodes</c> comes from a separate
-    ///     repository call.
+    ///     embedded collection. <c>nodes</c> is populated by the
+    ///     Outpost-side read handler; this mapper passes through
+    ///     whatever the caller supplies (empty for v0.1).
     /// </summary>
-    public partial ClusterDetail ToDetail(Cluster source, IReadOnlyList<NodeSummary> nodes);
-
-    /// <summary>
-    ///     Map <see cref="Node" /> to <see cref="NodeSummary" />. All
-    ///     fields are positional 1:1 matches.
-    /// </summary>
-    public partial NodeSummary ToNodeSummary(Node source);
+    public partial ClusterDetail ToDetail(Cluster source, IReadOnlyList<ClusterNodeSummary> nodes);
 }

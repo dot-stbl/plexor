@@ -23,7 +23,6 @@
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Configuration\Plexor.Shared.Configuration.csproj" />
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Http\Plexor.Shared.Http.csproj" />
     <ProjectReference Include="..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
-    <ProjectReference Include="..\..\shared\persistence\Plexor.Shared.Filtering.Core\Plexor.Shared.Filtering.Core.csproj" />
     <ProjectReference Include="..\..\shared\persistence\Plexor.Shared.Filtering.Web\Plexor.Shared.Filtering.Web.csproj" />
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj" />
     <ProjectReference Include="..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj" />
@@ -36,7 +35,14 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />
-    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj" />
+    <!-- Outpost module — host-side node registry. Application hosts
+         commands + ports; Infrastructure hosts OutpostDbContext
+         + INodeRegistry impl + heartbeat evaluator; Api hosts
+         NodesController (/api/v1/nodes/*). 5.x — flat registry,
+         cluster-scoped reads via /nodes?clusterId=X. -->
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Outpost\Plexor.Modules.Outpost.Application\Plexor.Modules.Outpost.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Outpost\Plexor.Modules.Outpost.Infrastructure\Plexor.Modules.Outpost.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Outpost\Plexor.Modules.Outpost.Api\Plexor.Modules.Outpost.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

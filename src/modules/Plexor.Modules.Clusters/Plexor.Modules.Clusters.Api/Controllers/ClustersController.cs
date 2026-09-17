@@ -31,7 +31,6 @@ namespace Plexor.Modules.Clusters.Api.Controllers;
 /// <param name="getHandler"></param>
 /// <param name="listHandler"></param>
 /// <param name="rotateHandler"></param>
-/// <param name="listNodesHandler"></param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/compute/clusters")]
 [Tags(["compute", "clusters"])]
@@ -42,8 +41,7 @@ public sealed class ClustersController(
     ICommandHandler<DeleteClusterCommand, Unit> deleteHandler,
     ICommandHandler<GetClusterQuery, ClusterDetail> getHandler,
     ICommandHandler<ListClustersQuery, PageResult<ClusterSummary>> listHandler,
-    ICommandHandler<RotateJoinTokenCommand, JoinTokenResult> rotateHandler,
-    ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>> listNodesHandler) : ControllerBase
+    ICommandHandler<RotateJoinTokenCommand, JoinTokenResult> rotateHandler) : ControllerBase
 {
     /// <summary>
     ///     <c>POST /api/v1/compute/clusters</c> — provision a new cluster.
@@ -149,41 +147,22 @@ public sealed class ClustersController(
         return NoContent();
     }
 
-    /// <summary>
-    ///     <c>POST /api/v1/compute/clusters/{clusterId}/rotate-join-token</c>
-    ///     — revoke the old token, issue a new one (7-day TTL).
-    /// </summary>
-    /// <param name="clusterId"></param>
-    /// <param name="cancellationToken"></param>
-    [HttpPost("{clusterId}/rotate-join-token", Name = "clusters-rotate-join-token")]
-    [EndpointSummary("Rotate the cluster's join token")]
-    [RequirePermission(ClusterPermissions.Update)]
-    [ProducesResponseType<JoinTokenResult>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<JoinTokenResult>> RotateJoinTokenAsync(
-        [FromRoute] ClusterId clusterId,
-        CancellationToken cancellationToken)
-    {
-        return Ok(await rotateHandler.HandleAsync(
-            new RotateJoinTokenCommand(clusterId),
-            cancellationToken));
-    }
-
-    /// <summary>
-    ///     <c>GET /api/v1/compute/clusters/{clusterId}/nodes</c> —
-    ///     list nodes joined to this cluster.
-    /// </summary>
-    /// <param name="clusterId"></param>
-    /// <param name="cancellationToken"></param>
-    [HttpGet("{clusterId}/nodes", Name = "clusters-list-nodes")]
-    [EndpointSummary("List nodes in one cluster")]
-    [RequirePermission(ClusterPermissions.NodesRead)]
-    [ProducesResponseType<IReadOnlyList<NodeSummary>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<NodeSummary>>> ListNodesAsync(
-        [FromRoute] ClusterId clusterId,
-        CancellationToken cancellationToken)
-    {
-        return Ok(await listNodesHandler.HandleAsync(
-            new ListNodesQuery(clusterId),
-            cancellationToken));
-    }
+/// <summary>
+///     <c>POST /api/v1/compute/clusters/{clusterId}/rotate-join-token</c>
+///     — revoke the old token, issue a new one (7-day TTL).
+/// </summary>
+/// <param name="clusterId"></param>
+/// <param name="cancellationToken"></param>
+[HttpPost("{clusterId}/rotate-join-token", Name = "clusters-rotate-join-token")]
+[EndpointSummary("Rotate the cluster's join token")]
+[RequirePermission(ClusterPermissions.Update)]
+[ProducesResponseType<JoinTokenResult>(StatusCodes.Status200OK)]
+public async Task<ActionResult<JoinTokenResult>> RotateJoinTokenAsync(
+    [FromRoute] ClusterId clusterId,
+    CancellationToken cancellationToken)
+{
+    return Ok(await rotateHandler.HandleAsync(
+        new RotateJoinTokenCommand(clusterId),
+        cancellationToken));
+}
 }

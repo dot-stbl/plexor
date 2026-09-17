@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+
+    <ProjectReference Include="..\Plexor.Modules.Outpost.Application\Plexor.Modules.Outpost.Application.csproj" />
+    <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Authorization\Plexor.Shared.Authorization.csproj" />
+    <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
+</Project>

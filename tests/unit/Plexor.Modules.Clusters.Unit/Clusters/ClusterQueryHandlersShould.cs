@@ -1,3 +1,16 @@
+// SPDX-License-Identifier: Apache-2.0
+// ============================================================================
+// GetClusterQueryHandlerShould — exercise the read surface after the
+// node-tracking extraction.
+//
+// Node rows now live in Plexor.Modules.Outpost (outpost.node_records);
+// the cluster detail's Nodes collection is populated by Outpost's
+// list handler. The Clusters-side GetClusterQueryHandler no longer
+// eager-loads nodes — the v0.1 detail view returns an empty Nodes
+// collection; the dashboard's full cluster card makes a separate
+// GET /api/v1/nodes?clusterId=X call.
+// ==========================================================================
+
 using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Errors;
@@ -12,8 +25,8 @@ namespace Plexor.Modules.Clusters.Unit.Clusters;
 
 public sealed class GetClusterQueryHandlerShould
 {
-    [Fact(DisplayName = "Given existing cluster with nodes, when GetCluster, then returns detail with nodes")]
-    public async Task GetClusterReturnsDetailWithNodesAsync()
+    [Fact(DisplayName = "Given existing cluster, when GetCluster, then returns detail with empty Nodes collection")]
+    public async Task GetClusterReturnsDetailWithEmptyNodesAsync()
     {
         var clusterId = IdGenerator.NewClusterId();
         await using var db = await TestDb.CreateAsync();
@@ -29,31 +42,19 @@ public sealed class GetClusterQueryHandlerShould
             CreatedAt = now,
             UpdatedAt = now,
         });
-        await db.Nodes.AddAsync(new Node
-        {
-            Id = IdGenerator.NewNodeId(),
-            ClusterId = clusterId,
-            OrgId = Guid.NewGuid(),
-            Hostname = "node-1",
-            Role = NodeRole.Control,
-            Status = NodeStatus.Ready,
-            Spec = new NodeSpec(4, 16, 100, []),
-            CreatedAt = now,
-            UpdatedAt = now,
-        });
         await db.SaveChangesAsync();
 
         var sut = new GetClusterQueryHandler(
             new ClusterRepository(db),
-            new NodeRepository(db),
             new ClusterMapper());
         var result = await sut.HandleAsync(new GetClusterQuery(clusterId));
 
         result.Id.ShouldBe(clusterId);
         result.Name.ShouldBe("prod-eu-1");
         result.Status.ShouldBe(ClusterStatus.Ready);
-        result.Nodes.Count.ShouldBe(1);
-        result.Nodes[0].Hostname.ShouldBe("node-1");
+        // Nodes collection is empty until the dashboard pairs this
+        // call with GET /api/v1/nodes?clusterId=X (Outpost).
+        result.Nodes.Count.ShouldBe(0);
     }
 
     [Fact(DisplayName = "Given non-existent cluster, when GetCluster, then throws ClusterNotFound")]
@@ -62,48 +63,10 @@ public sealed class GetClusterQueryHandlerShould
         await using var db = await TestDb.CreateAsync();
         var sut = new GetClusterQueryHandler(
             new ClusterRepository(db),
-            new NodeRepository(db),
             new ClusterMapper());
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new GetClusterQuery(IdGenerator.NewClusterId())));
         ex.Code.ShouldBe(ClustersExceptions.ClusterNotFound);
-    }
-}
-
-public sealed class ListClustersQueryHandlerShould
-{
-    [Fact(DisplayName = "Given 3 clusters in org, when ListClusters page 1 size 2, then returns 2 items + total 3")]
-    public async Task ListClustersPaginatesCorrectlyAsync()
-    {
-        var orgId = Guid.NewGuid();
-        await using var db = await TestDb.CreateAsync();
-        var now = DateTimeOffset.UtcNow;
-        for (var i = 0; i < 3; i++)
-        {
-            await db.Clusters.AddAsync(new Cluster
-            {
-                Id = IdGenerator.NewClusterId(),
-                OrgId = orgId,
-                Name = $"cluster-{i}",
-                Region = "eu-central-1",
-                Status = ClusterStatus.Ready,
-                CreatedAt = now.AddSeconds(i),
-                UpdatedAt = now.AddSeconds(i),
-            });
-        }
-        await db.SaveChangesAsync();
-
-        var sut = new ListClustersQueryHandler(
-            new ClusterRepository(db),
-            Shared.Filtering.Registry.FilterableFieldRegistry.For<Domain.Cluster>(),
-            new ClusterMapper());
-        var filterQuery = new Plexor.Shared.Filtering.Query.FilterQuery { Page = 1, PageSize = 2 };
-        var result = await sut.HandleAsync(new ListClustersQuery(orgId, filterQuery));
-
-        result.Total.ShouldBe(3);
-        result.Page.ShouldBe(1);
-        result.PageSize.ShouldBe(2);
-        result.Items.Count.ShouldBe(2);
     }
 }

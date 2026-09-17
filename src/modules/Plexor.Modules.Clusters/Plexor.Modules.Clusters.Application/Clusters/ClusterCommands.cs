@@ -170,7 +170,7 @@ public sealed class ClusterDetail
     public DateTimeOffset? JoinTokenExpiresAt { get; init; }
 
     /// <summary>Child nodes (empty if none joined).</summary>
-    public IReadOnlyList<NodeSummary> Nodes { get; init; } = [];
+    public IReadOnlyList<Plexor.Modules.Clusters.Domain.ClusterNodeSummary> Nodes { get; init; } = [];
 
     /// <summary>Creation time (UTC).</summary>
     public DateTimeOffset CreatedAt { get; init; }

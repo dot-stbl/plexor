@@ -16,7 +16,7 @@
 using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Domain;
-using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Outpost.Application.Abstractions;
 using Plexor.Shared.Identifiers;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Placement;
@@ -28,8 +28,8 @@ namespace Plexor.Modules.Clusters.Infrastructure.Placement;
 ///     orchestration-only (no private business logic — see
 ///     <c>code-shape.md §9</c>).
 /// </summary>
-/// <param name="db">The shared <c>forge</c> schema DbContext.</param>
-public sealed class PlacementCandidateLoader(ClusterDbContext db)
+/// <param name="nodeRegistry">Outpost's node registry (single source of truth for nodes post-extraction).</param>
+public sealed class PlacementCandidateLoader(INodeRegistry nodeRegistry)
 {
     /// <summary>
     ///     Read Ready nodes in <paramref name="clusterId" /> and
@@ -39,18 +39,20 @@ public sealed class PlacementCandidateLoader(ClusterDbContext db)
     ///     empty list when no Ready nodes exist in the cluster.
     /// </summary>
     /// <param name="clusterId">Target cluster.</param>
-    /// <param name="cancellationToken">Forwarded to the EF query.</param>
+    /// <param name="cancellationToken">Forwarded to the query.</param>
     public async Task<IReadOnlyList<NodeCandidate>> LoadAsync(
         ClusterId clusterId,
         CancellationToken cancellationToken = default)
     {
-        var nodes = await db.Nodes.AsNoTracking()
-            .Where(node => node.ClusterId == clusterId && node.Status == NodeStatus.Ready)
-            .ToListAsync(cancellationToken);
-
-        var candidates = new List<NodeCandidate>(nodes.Count);
-        foreach (var node in nodes)
+        var nodeRecords = await nodeRegistry.ListNodesAsync(clusterId, cancellationToken);
+        var candidates = new List<NodeCandidate>(nodeRecords.Count);
+        foreach (var node in nodeRecords)
         {
+            if (node.Status != Plexor.Modules.Outpost.Application.NodeStatus.Ready)
+            {
+                continue;
+            }
+
             // VmCount = capacity hint (how many workloads are
             // already on this node). Free RAM / disk aren't yet
             // tracked per-node in the control plane; pass 0 as a
@@ -59,7 +61,7 @@ public sealed class PlacementCandidateLoader(ClusterDbContext db)
             candidates.Add(new NodeCandidate(
                 NodeId: node.Id,
                 Hostname: node.Hostname,
-                Capabilities: [],
+                Capabilities: node.Spec.Providers,
                 ActiveVmCount: node.VmCount,
                 AvailableRamBytes: 0,
                 AvailableDiskBytes: 0));

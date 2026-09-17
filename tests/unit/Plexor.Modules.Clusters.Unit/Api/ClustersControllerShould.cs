@@ -47,9 +47,8 @@ public sealed class ClustersControllerShould
         var getHandler = Substitute.For<ICommandHandler<GetClusterQuery, ClusterDetail>>();
         var listHandler = Substitute.For<ICommandHandler<ListClustersQuery, PageResult<ClusterSummary>>>();
         var rotateHandler = Substitute.For<ICommandHandler<RotateJoinTokenCommand, JoinTokenResult>>();
-        var listNodesHandler = Substitute.For<ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>>();
         var sut = new ClustersController(
-            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler, listNodesHandler);
+            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler);
 
         var clusterId = IdGenerator.NewClusterId();
         var expected = new JoinTokenResult(
@@ -87,9 +86,9 @@ public sealed class ClustersControllerShould
         var getHandler = Substitute.For<ICommandHandler<GetClusterQuery, ClusterDetail>>();
         var listHandler = Substitute.For<ICommandHandler<ListClustersQuery, PageResult<ClusterSummary>>>();
         var rotateHandler = Substitute.For<ICommandHandler<RotateJoinTokenCommand, JoinTokenResult>>();
-        var listNodesHandler = Substitute.For<ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>>();
+
         var sut = new ClustersController(
-            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler, listNodesHandler);
+            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler);
 
         var query = new FilterQuery { Page = 1, PageSize = 25 };
         var expected = new PageResult<ClusterSummary>(
@@ -118,9 +117,9 @@ public sealed class ClustersControllerShould
         var getHandler = Substitute.For<ICommandHandler<GetClusterQuery, ClusterDetail>>();
         var listHandler = Substitute.For<ICommandHandler<ListClustersQuery, PageResult<ClusterSummary>>>();
         var rotateHandler = Substitute.For<ICommandHandler<RotateJoinTokenCommand, JoinTokenResult>>();
-        var listNodesHandler = Substitute.For<ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>>();
+
         var sut = new ClustersController(
-            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler, listNodesHandler);
+            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler);
 
         var clusterId = IdGenerator.NewClusterId();
         var expected = new ClusterDetail { Id = clusterId, Name = "prod-eu-1" };
@@ -145,9 +144,9 @@ public sealed class ClustersControllerShould
         var getHandler = Substitute.For<ICommandHandler<GetClusterQuery, ClusterDetail>>();
         var listHandler = Substitute.For<ICommandHandler<ListClustersQuery, PageResult<ClusterSummary>>>();
         var rotateHandler = Substitute.For<ICommandHandler<RotateJoinTokenCommand, JoinTokenResult>>();
-        var listNodesHandler = Substitute.For<ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>>();
+
         var sut = new ClustersController(
-            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler, listNodesHandler);
+            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler);
 
         var clusterId = IdGenerator.NewClusterId();
         var expected = new ClusterSummary { Id = clusterId, Name = "prod-eu-2" };
@@ -177,9 +176,9 @@ public sealed class ClustersControllerShould
         var getHandler = Substitute.For<ICommandHandler<GetClusterQuery, ClusterDetail>>();
         var listHandler = Substitute.For<ICommandHandler<ListClustersQuery, PageResult<ClusterSummary>>>();
         var rotateHandler = Substitute.For<ICommandHandler<RotateJoinTokenCommand, JoinTokenResult>>();
-        var listNodesHandler = Substitute.For<ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>>();
+
         var sut = new ClustersController(
-            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler, listNodesHandler);
+            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler);
 
         var clusterId = IdGenerator.NewClusterId();
 
@@ -203,9 +202,9 @@ public sealed class ClustersControllerShould
         var getHandler = Substitute.For<ICommandHandler<GetClusterQuery, ClusterDetail>>();
         var listHandler = Substitute.For<ICommandHandler<ListClustersQuery, PageResult<ClusterSummary>>>();
         var rotateHandler = Substitute.For<ICommandHandler<RotateJoinTokenCommand, JoinTokenResult>>();
-        var listNodesHandler = Substitute.For<ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>>();
+
         var sut = new ClustersController(
-            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler, listNodesHandler);
+            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler);
 
         var clusterId = IdGenerator.NewClusterId();
         var expected = new JoinTokenResult(
@@ -225,30 +224,6 @@ public sealed class ClustersControllerShould
             Arg.Any<CancellationToken>());
     }
 
-    [Fact(DisplayName = "Given a cluster id, when ListNodesAsync is called, then dispatches ListNodesQuery and returns 200 Ok with node summaries")]
-    public async Task ListNodesAsyncDispatchesAndReturnsOkAsync()
-    {
-        var createHandler = Substitute.For<ICommandHandler<CreateClusterCommand, JoinTokenResult>>();
-        var updateHandler = Substitute.For<ICommandHandler<UpdateClusterCommand, ClusterSummary>>();
-        var deleteHandler = Substitute.For<ICommandHandler<DeleteClusterCommand, UnitMarker>>();
-        var getHandler = Substitute.For<ICommandHandler<GetClusterQuery, ClusterDetail>>();
-        var listHandler = Substitute.For<ICommandHandler<ListClustersQuery, PageResult<ClusterSummary>>>();
-        var rotateHandler = Substitute.For<ICommandHandler<RotateJoinTokenCommand, JoinTokenResult>>();
-        var listNodesHandler = Substitute.For<ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>>();
-        var sut = new ClustersController(
-            createHandler, updateHandler, deleteHandler, getHandler, listHandler, rotateHandler, listNodesHandler);
-
-        var clusterId = IdGenerator.NewClusterId();
-        IReadOnlyList<NodeSummary> expected = [];
-        listNodesHandler.HandleAsync(Arg.Any<ListNodesQuery>(), Arg.Any<CancellationToken>())
-            .Returns(expected);
-
-        var actionResult = await sut.ListNodesAsync(clusterId, CancellationToken.None);
-
-        actionResult.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBe(expected);
-
-        await listNodesHandler.Received(1).HandleAsync(
-            Arg.Is<ListNodesQuery>(q => q.ClusterId == clusterId),
-            Arg.Any<CancellationToken>());
-    }
+    // ListNodes moved to Outpost module in #55; the equivalent
+    // endpoint test lives in tests/unit/Plexor.Modules.Outpost.Unit/Api/NodesControllerShould.cs.
 }
