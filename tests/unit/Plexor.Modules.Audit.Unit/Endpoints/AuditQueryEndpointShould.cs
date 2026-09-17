@@ -21,8 +21,8 @@ using NSubstitute;
 using Plexor.Modules.Audit.Api.Endpoints;
 using Plexor.Modules.Audit.Domain.Entities;
 using Plexor.Modules.Audit.Infrastructure.Persistence;
-using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Kernel.Audit;
+using Plexor.Shared.Kernel.Identity;
 using Shouldly;
 using Xunit;
 

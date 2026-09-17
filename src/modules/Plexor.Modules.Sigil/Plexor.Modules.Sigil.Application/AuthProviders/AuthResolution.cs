@@ -13,6 +13,7 @@
 // ============================================================================
 
 using Plexor.Modules.Sigil.Application.Abstractions;
+using Plexor.Shared.Kernel.Identity;
 
 namespace Plexor.Modules.Sigil.Application.AuthProviders;
 

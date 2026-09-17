@@ -4,7 +4,7 @@
 // every authenticated action. Lives in Plexor.Host (composition root)
 // because it crosses module boundaries:
 //   * IRateLimiter — Plexor.Modules.Quotas.Infrastructure (scoped, per-request)
-//   * ICurrentUser — Plexor.Modules.Sigil.Application.Abstractions (scoped)
+//   * ICurrentUser — Plexor.Shared.Kernel.Identity (scoped)
 //
 // MVC filters are registered globally via
 // `builder.Services.Configure<MvcOptions>(...)` in Program.cs — every
@@ -12,7 +12,7 @@
 // ============================================================================
 
 using Microsoft.AspNetCore.Mvc.Filters;
-using Plexor.Modules.Sigil.Application.Abstractions;
+using Plexor.Shared.Kernel.Identity;
 using Plexor.Shared.Kernel.Quotas;
 
 namespace Plexor.Host.Filters;

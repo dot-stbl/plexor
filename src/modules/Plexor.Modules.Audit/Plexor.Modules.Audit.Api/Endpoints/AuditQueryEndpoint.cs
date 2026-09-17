@@ -21,10 +21,10 @@ using Microsoft.EntityFrameworkCore;
 using Plexor.Modules.Audit.Api.Models;
 using Plexor.Modules.Audit.Domain.Entities;
 using Plexor.Modules.Audit.Infrastructure.Persistence;
-using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Kernel.Audit;
+using Plexor.Shared.Kernel.Identity;
 
 namespace Plexor.Modules.Audit.Api.Endpoints;
 
