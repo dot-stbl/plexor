@@ -59,6 +59,16 @@ using Plexor.Modules.Sigil.Api.Endpoints;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Modules.Network.Api.Endpoints;
+using Plexor.Modules.Network.Api.Installers;
+using Plexor.Modules.Network.Application.Installers;
+using Plexor.Modules.Network.Infrastructure.Installers;
+using Plexor.Modules.Network.Infrastructure.Persistence;
+using Plexor.Modules.Storage.Api.Endpoints;
+using Plexor.Modules.Storage.Api.Installers;
+using Plexor.Modules.Storage.Application.Installers;
+using Plexor.Modules.Storage.Infrastructure.Installers;
+using Plexor.Modules.Storage.Infrastructure.Persistence;
 using Plexor.Shared.Configuration;
 using Plexor.Shared.Filtering.DI;
 using Plexor.Shared.Mtls;
@@ -186,8 +196,10 @@ builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<StorageDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<NetworkDbContext>(plexorDataSource);
 builder.Services.AddScoped<IAuditDbContext>(sp => sp.GetRequiredService<AuditDbContext>());
-var contextCount = 7;
+var contextCount = 9;
 
 // Filterable entities — Plexor.Shared.Filtering registry. Each call to
 // AddFilterableEntity<T> marks the entity's properties for the filter
@@ -292,6 +304,28 @@ builder.Services
 builder.Services.AddAuditApplicationCore(builder.Configuration);
 builder.Services.AddAuditInfrastructureCore();
 builder.Services.AddAuditApiCore();
+
+// Storage module (Phase 4.5.d) — volumes + buckets in the `storage`
+// schema. The Application + Infrastructure installers wire the
+// IStorageQuotaReader seam the Quotas enforcer needs to read the
+// current org-scoped volume count + cumulative GiB. The Api installer
+// (commit 2) registers the FluentValidation validators for the
+// POST endpoints; the MapStorageEndpoints call below mounts the
+// minimal-API routes alongside the controllers.
+builder.Services.AddStorageApplicationCore(builder.Configuration);
+builder.Services.AddStorageInfrastructureCore();
+builder.Services.AddStorageApiCore();
+
+// Network module (Phase 4.5.d) — floating IPs + load balancers in
+// the `network` schema. The Application + Infrastructure installers
+// wire the INetworkQuotaReader seam the Quotas enforcer needs for
+// network.floating_ips.count + network.load_balancers.count. The
+// Api installer (commit 4) registers the FluentValidation
+// validators for the POST endpoints; the MapNetworkEndpoints call
+// below mounts the minimal-API routes alongside the controllers.
+builder.Services.AddNetworkApplicationCore(builder.Configuration);
+builder.Services.AddNetworkInfrastructureCore();
+builder.Services.AddNetworkApiCore();
 // Audit retention (Phase 5.3) — bind AuditOptions so the daily
 // sweep BackgroundService picks up RetentionDays / CleanupInterval /
 // BatchSize / SweepHourUtc. ValidateDataAnnotations + ValidateOnStart
@@ -398,6 +432,18 @@ app.UseStatusCodePages();
 app.UseMiddleware<MtlsAuthMiddleware>();
 
 app.MapControllers();
+
+// Storage module endpoints (Phase 4.5.d) — minimal-API surface for
+// volumes + buckets. The endpoints are NOT controller-discovered
+// (the .AddApplicationPart chain above only finds MVC controllers);
+// they're mapped explicitly here alongside the other minimal-API
+// endpoints (custom.css, OIDC flow, audit query).
+app.MapStorageEndpoints();
+
+// Network module endpoints (Phase 4.5.d) — minimal-API surface for
+// floating IPs + load balancers. Same minimal-API mapping pattern
+// as StorageEndpoints above.
+app.MapNetworkEndpoints();
 
 // Custom CSS endpoint — serves the operator's custom.css escape
 // hatch (commit 5). Mounted before MapControllers so it takes
