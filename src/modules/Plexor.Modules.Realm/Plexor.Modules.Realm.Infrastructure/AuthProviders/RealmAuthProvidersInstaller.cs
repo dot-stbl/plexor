@@ -73,7 +73,13 @@ public static class RealmAuthProvidersInstaller
         // Phase 4.6.3a — purpose-bound IDataProtector wrapper for the
         // OIDC client secret. Singleton — the underlying IDataProtector
         // is thread-safe and the wrapper holds no per-request state.
+        // Registered against the interface so callers outside the Realm
+        // module (Sigil.Infrastructure.OidcTokenClient) consume the seam
+        // rather than the concrete wrapper (Law 3 — modules don't
+        // reference each other's Infrastructure directly).
         services.AddSingleton<OrgAuthProviderSecretProtector>();
+        services.AddSingleton<IOrgAuthProviderSecretProtector>(
+            sp => sp.GetRequiredService<OrgAuthProviderSecretProtector>());
 
         return services;
     }

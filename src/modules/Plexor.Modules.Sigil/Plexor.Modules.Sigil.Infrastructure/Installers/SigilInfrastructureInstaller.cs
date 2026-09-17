@@ -128,8 +128,10 @@ public static class SigilInfrastructureInstaller
 
         // Phase 4.6.2a — IAuthProvider implementation for the local
         // email+password backend. Routed-to by the dispatcher (4.6.2c)
-        // for `iss == "plexor"` tokens. Scoped — it depends on a
-        // scoped DbContext (Realm) plus the per-request IUserLookup.
+        // for `iss == "plexor"` tokens. Scoped — it depends on the
+        // per-request IUserLookup + the scoped
+        // IOrgAuthProviderConfigReader (registered by
+        // AddRealmAuthProviders in the host composition root).
         // NOTE: kept as the `IAuthProvider` binding so callers that
         // took a dependency on `IAuthProvider.CanAuthenticateForAsync`
         // continue to work — `AuthProviderResolver` itself receives

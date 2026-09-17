@@ -5,11 +5,14 @@
 // authorization code for tokens (RFC 6749 §4.1.3 + RFC 7636 §4.6).
 //
 // Flow:
-//   1. Resolve the OrgAuthProviderConfig for the inbound org.
+//   1. Resolve the OrgAuthProviderConfig for the inbound org via
+//      IOrgAuthProviderConfigReader (the cross-module seam — Sigil
+//      does not touch RealmDbContext directly).
 //   2. Reject when the tenant isn't on the Oidc provider
 //      (return null — caller logs + 502s).
 //   3. Decrypt the per-tenant OIDC client secret via
-//      OrgAuthProviderSecretProtector.
+//      IOrgAuthProviderSecretProtector (the cross-module seam for
+//      the secret-protector wrapper).
 //   4. Mint an HTTP Basic auth header from clientId:secret.
 //   5. POST {authority}/protocol/openid-connect/token with
 //      application/x-www-form-urlencoded body:
@@ -35,7 +38,6 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Plexor.Modules.Realm.Application.AuthProviders;
 using Plexor.Modules.Realm.Domain.Entities;
-using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Shared.Kernel.AuthProviders;
 
 namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
@@ -59,13 +61,16 @@ namespace Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 /// </param>
 /// <param name="secretProtector">
 /// Decrypts <see cref="OrgAuthProviderConfig.OidcClientSecretProtected" />
-/// for the outbound Basic auth header. Singleton.
+/// for the outbound Basic auth header. Singleton — wraps the host's
+/// <c>IDataProtectionProvider</c> via the
+/// <see cref="IOrgAuthProviderSecretProtector" /> seam so this class
+/// never depends on Realm.Infrastructure directly (Law 3).
 /// </param>
 /// <param name="logger">Structured logger.</param>
 public sealed class OidcTokenClient(
     IHttpClientFactory httpClientFactory,
     IOrgAuthProviderConfigReader configReader,
-    OrgAuthProviderSecretProtector secretProtector,
+    IOrgAuthProviderSecretProtector secretProtector,
     ILogger<OidcTokenClient> logger) : IOidcTokenClient
 {
     /// <summary>

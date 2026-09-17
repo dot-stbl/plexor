@@ -2,10 +2,10 @@
 // ============================================================================
 // ExternalOidcAuthProviderShould — exercise the OIDC provider against
 // NSubstitute mocks for the JWKS fetcher + role + permission
-// resolvers, plus a real in-memory RealmDbContext for the per-tenant
-// routing decision. JWTs in the test fixtures are real RSA-signed
-// compact tokens (no mock handler) so the validation path is
-// exercised end-to-end: header → kid → JWKS → TokenValidationParameters.
+// resolvers + the per-tenant config reader. JWTs in the test fixtures
+// are real RSA-signed compact tokens (no mock handler) so the
+// validation path is exercised end-to-end: header → kid → JWKS →
+// TokenValidationParameters.
 // ============================================================================
 
 using System.Security.Claims;
@@ -14,12 +14,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using NSubstitute;
+using Plexor.Modules.Realm.Application.AuthProviders;
 using Plexor.Modules.Realm.Domain.Entities;
-using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.AuthProviders;
 using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
-using Plexor.Modules.Sigil.Unit.Realm;
 using Shouldly;
 using Xunit;
 
@@ -43,6 +42,31 @@ public sealed class ExternalOidcAuthProviderShould
 
     private static readonly string[] ViewerReadPermissions = ["*.read"];
 
+    /// <summary>
+    ///     Build a seeded <see cref="OrgAuthProviderConfig" /> row
+    ///     for the supplied tenant — the substitute reader returns it
+    ///     on every relevant call. Mirrors what the production EF
+    ///     reader does against <c>realm.org_auth_provider_configs</c>.
+    /// </summary>
+    /// <param name="orgId">Tenant id.</param>
+    /// <param name="issuer">OIDC issuer URL (matches <c>iss</c> claim).</param>
+    /// <param name="clientId">OIDC client id (audience).</param>
+    private static OrgAuthProviderConfig BuildConfig(Guid orgId, string issuer, string clientId)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return new OrgAuthProviderConfig
+        {
+            Id = Guid.NewGuid(),
+            OrgId = orgId,
+            Provider = OrgAuthProvider.Oidc,
+            OidcAuthority = issuer,
+            OidcClientId = clientId,
+            OidcScopes = ["openid", "profile", "email"],
+            CreatedAt = now,
+            UpdatedAt = now,
+        };
+    }
+
     /// <summary>Given a valid IDP-issued JWT and an OIDC-configured
     /// tenant, when resolving, then returns a populated
     /// AuthResolution with deterministic Plexor user id.</summary>
@@ -56,11 +80,12 @@ public sealed class ExternalOidcAuthProviderShould
         var (signingKey, publicJwk) = CreateSigningKey();
         var token = MintToken(signingKey, issuer, audience, sub, DateTime.UtcNow.AddMinutes(10),
             new Claim("realm_access.roles", "[\"admin\",\"viewer\"]"));
-        await using var realm = await RealmTestDb.CreateAsync();
-        await ConfigureOidcOrgAsync(realm, orgId, issuer, audience);
         var fetcher = Substitute.For<IJwksFetcher>();
         var roleResolver = Substitute.For<IRoleResolver>();
         var permissionResolver = Substitute.For<IPermissionResolver>();
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetByOidcIssuerAsync(issuer, Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, issuer, audience));
         fetcher.GetKeySetAsync(issuer, Arg.Any<CancellationToken>())
             .Returns(BuildKeySet(publicJwk));
         roleResolver.RolesByNamesForOrgAsync(orgId, Arg.Is<IReadOnlyCollection<string>>(names => names.Contains("admin")),
@@ -74,7 +99,7 @@ public sealed class ExternalOidcAuthProviderShould
         permissionResolver.PermissionsForRolesAsync(orgId, ViewerRole, Arg.Any<CancellationToken>())
             .Returns(ViewerReadPermissions);
         var provider = new ExternalOidcAuthProvider(
-            fetcher, roleResolver, permissionResolver, realm,
+            fetcher, roleResolver, permissionResolver, configReader,
             NullLogger<ExternalOidcAuthProvider>.Instance);
 
         var resolution = await provider.ResolveAsync(token, CancellationToken.None);
@@ -106,15 +131,16 @@ public sealed class ExternalOidcAuthProviderShould
         var orgId = Guid.NewGuid();
         var (signingKey, publicJwk) = CreateSigningKey();
         var token = MintToken(signingKey, "https://unknown.example.com", "plexor-cli", "external-user", DateTime.UtcNow.AddMinutes(10));
-        await using var realm = await RealmTestDb.CreateAsync();
-        await ConfigureOidcOrgAsync(realm, orgId, "https://kc.example.com/realms/plexor", "plexor-cli");
         var fetcher = Substitute.For<IJwksFetcher>();
         var roleResolver = Substitute.For<IRoleResolver>();
         var permissionResolver = Substitute.For<IPermissionResolver>();
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetByOidcIssuerAsync("https://kc.example.com/realms/plexor", Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, "https://kc.example.com/realms/plexor", "plexor-cli"));
         fetcher.GetKeySetAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(BuildKeySet(publicJwk));
         var provider = new ExternalOidcAuthProvider(
-            fetcher, roleResolver, permissionResolver, realm,
+            fetcher, roleResolver, permissionResolver, configReader,
             NullLogger<ExternalOidcAuthProvider>.Instance);
 
         var resolution = await provider.ResolveAsync(token, CancellationToken.None);
@@ -133,12 +159,15 @@ public sealed class ExternalOidcAuthProviderShould
         var (signingKey, publicJwk) = CreateSigningKey();
         var token = MintToken(signingKey, issuer, "plexor-cli", "external-user",
             DateTime.UtcNow.AddMinutes(-5));
-        await using var realm = await RealmTestDb.CreateAsync();
-        await ConfigureOidcOrgAsync(realm, orgId, issuer, "plexor-cli");
         var fetcher = Substitute.For<IJwksFetcher>();
         fetcher.GetKeySetAsync(issuer, Arg.Any<CancellationToken>())
             .Returns(BuildKeySet(publicJwk));
-        var provider = BuildProvider(fetcher, realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetByOidcIssuerAsync(issuer, Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, issuer, "plexor-cli"));
+        var provider = new ExternalOidcAuthProvider(
+            fetcher, Substitute.For<IRoleResolver>(), Substitute.For<IPermissionResolver>(),
+            configReader, NullLogger<ExternalOidcAuthProvider>.Instance);
 
         var resolution = await provider.ResolveAsync(token, CancellationToken.None);
 
@@ -156,12 +185,15 @@ public sealed class ExternalOidcAuthProviderShould
         // Sign with a DIFFERENT key (the JWKS only carries publicJwk's kid).
         var (otherSigningKey, _) = CreateSigningKey();
         var token = MintToken(otherSigningKey, issuer, "plexor-cli", "external-user", DateTime.UtcNow.AddMinutes(10));
-        await using var realm = await RealmTestDb.CreateAsync();
-        await ConfigureOidcOrgAsync(realm, orgId, issuer, "plexor-cli");
         var fetcher = Substitute.For<IJwksFetcher>();
         fetcher.GetKeySetAsync(issuer, Arg.Any<CancellationToken>())
             .Returns(BuildKeySet(publicJwk));
-        var provider = BuildProvider(fetcher, realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetByOidcIssuerAsync(issuer, Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, issuer, "plexor-cli"));
+        var provider = new ExternalOidcAuthProvider(
+            fetcher, Substitute.For<IRoleResolver>(), Substitute.For<IPermissionResolver>(),
+            configReader, NullLogger<ExternalOidcAuthProvider>.Instance);
 
         var resolution = await provider.ResolveAsync(token, CancellationToken.None);
 
@@ -178,12 +210,15 @@ public sealed class ExternalOidcAuthProviderShould
         const string issuer = "https://kc.example.com/realms/plexor";
         var (signingKey, publicJwk) = CreateSigningKey();
         var token = MintToken(signingKey, issuer, "different-client", "external-user", DateTime.UtcNow.AddMinutes(10));
-        await using var realm = await RealmTestDb.CreateAsync();
-        await ConfigureOidcOrgAsync(realm, orgId, issuer, "plexor-cli");
         var fetcher = Substitute.For<IJwksFetcher>();
         fetcher.GetKeySetAsync(issuer, Arg.Any<CancellationToken>())
             .Returns(BuildKeySet(publicJwk));
-        var provider = BuildProvider(fetcher, realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetByOidcIssuerAsync(issuer, Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, issuer, "plexor-cli"));
+        var provider = new ExternalOidcAuthProvider(
+            fetcher, Substitute.For<IRoleResolver>(), Substitute.For<IPermissionResolver>(),
+            configReader, NullLogger<ExternalOidcAuthProvider>.Instance);
 
         var resolution = await provider.ResolveAsync(token, CancellationToken.None);
 
@@ -196,9 +231,13 @@ public sealed class ExternalOidcAuthProviderShould
     public async Task CanAuthenticateForAsync_WithOidcConfiguredOrg_ReturnsTrueAsync()
     {
         var orgId = Guid.NewGuid();
-        await using var realm = await RealmTestDb.CreateAsync();
-        await ConfigureOidcOrgAsync(realm, orgId, "https://kc.example.com/realms/plexor", "plexor-cli");
-        var provider = BuildProvider(Substitute.For<IJwksFetcher>(), realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetForOrgAsync(orgId, Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, "https://kc.example.com/realms/plexor", "plexor-cli"));
+        var provider = new ExternalOidcAuthProvider(
+            Substitute.For<IJwksFetcher>(), Substitute.For<IRoleResolver>(),
+            Substitute.For<IPermissionResolver>(), configReader,
+            NullLogger<ExternalOidcAuthProvider>.Instance);
 
         var result = await provider.CanAuthenticateForAsync(
             orgId, CancellationToken.None);
@@ -212,10 +251,21 @@ public sealed class ExternalOidcAuthProviderShould
     public async Task CanAuthenticateForAsync_WithSigilConfiguredOrg_ReturnsFalseAsync()
     {
         var orgId = Guid.NewGuid();
-        await using var realm = await RealmTestDb.CreateAsync();
-        await SeedOrgAsync(realm, orgId);
-        await SeedOrgAuthProviderAsync(realm, orgId, OrgAuthProvider.Sigil);
-        var provider = BuildProvider(Substitute.For<IJwksFetcher>(), realm);
+        var now = DateTimeOffset.UtcNow;
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetForOrgAsync(orgId, Arg.Any<CancellationToken>())
+            .Returns(new OrgAuthProviderConfig
+            {
+                Id = Guid.NewGuid(),
+                OrgId = orgId,
+                Provider = OrgAuthProvider.Sigil,
+                CreatedAt = now,
+                UpdatedAt = now,
+            });
+        var provider = new ExternalOidcAuthProvider(
+            Substitute.For<IJwksFetcher>(), Substitute.For<IRoleResolver>(),
+            Substitute.For<IPermissionResolver>(), configReader,
+            NullLogger<ExternalOidcAuthProvider>.Instance);
 
         var result = await provider.CanAuthenticateForAsync(
             orgId, CancellationToken.None);
@@ -228,8 +278,11 @@ public sealed class ExternalOidcAuthProviderShould
     [Fact(DisplayName = "Given an unconfigured tenant, when CanAuthenticateForAsync runs, then returns false")]
     public async Task CanAuthenticateForAsync_WithUnconfiguredOrg_ReturnsFalseAsync()
     {
-        await using var realm = await RealmTestDb.CreateAsync();
-        var provider = BuildProvider(Substitute.For<IJwksFetcher>(), realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        var provider = new ExternalOidcAuthProvider(
+            Substitute.For<IJwksFetcher>(), Substitute.For<IRoleResolver>(),
+            Substitute.For<IPermissionResolver>(), configReader,
+            NullLogger<ExternalOidcAuthProvider>.Instance);
 
         var result = await provider.CanAuthenticateForAsync(
             Guid.NewGuid(), CancellationToken.None);
@@ -250,8 +303,6 @@ public sealed class ExternalOidcAuthProviderShould
         var token = MintToken(signingKey, issuer, audience, "external-user",
             DateTime.UtcNow.AddMinutes(10),
             new Claim("realm_access.roles", "[\"unknown-role-1\",\"unknown-role-2\"]"));
-        await using var realm = await RealmTestDb.CreateAsync();
-        await ConfigureOidcOrgAsync(realm, orgId, issuer, audience);
         var fetcher = Substitute.For<IJwksFetcher>();
         fetcher.GetKeySetAsync(issuer, Arg.Any<CancellationToken>())
             .Returns(BuildKeySet(publicJwk));
@@ -263,11 +314,14 @@ public sealed class ExternalOidcAuthProviderShould
         permissionResolver.PermissionsForRolesAsync(orgId, Arg.Any<IReadOnlyCollection<string>>(),
                 Arg.Any<CancellationToken>())
             .Returns([]);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetByOidcIssuerAsync(issuer, Arg.Any<CancellationToken>())
+            .Returns(BuildConfig(orgId, issuer, audience));
         var provider = new ExternalOidcAuthProvider(
             fetcher,
             roleResolver,
             permissionResolver,
-            realm,
+            configReader,
             NullLogger<ExternalOidcAuthProvider>.Instance);
 
         var resolution = await provider.ResolveAsync(token, CancellationToken.None);
@@ -275,16 +329,6 @@ public sealed class ExternalOidcAuthProviderShould
         resolution.ShouldNotBeNull();
         resolution.Roles.ShouldBeEmpty();
         resolution.Permissions.ShouldBeEmpty();
-    }
-
-    private static ExternalOidcAuthProvider BuildProvider(IJwksFetcher fetcher, RealmDbContext realm)
-    {
-        return new ExternalOidcAuthProvider(
-            fetcher,
-            Substitute.For<IRoleResolver>(),
-            Substitute.For<IPermissionResolver>(),
-            realm,
-            NullLogger<ExternalOidcAuthProvider>.Instance);
     }
 
     /// <summary>
@@ -340,51 +384,5 @@ public sealed class ExternalOidcAuthProviderShould
             SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.RsaSha256),
         };
         return handler.CreateToken(descriptor);
-    }
-
-    private static async Task ConfigureOidcOrgAsync(
-        RealmDbContext db,
-        Guid orgId,
-        string issuer,
-        string clientId)
-    {
-        await SeedOrgAsync(db, orgId);
-        await SeedOrgAuthProviderAsync(db, orgId, OrgAuthProvider.Oidc, issuer, clientId);
-    }
-
-    private static async Task SeedOrgAsync(RealmDbContext db, Guid orgId)
-    {
-        var now = DateTimeOffset.UtcNow;
-        var slug = $"org-{orgId.ToString()[..6]}";
-        await db.Organizations.AddAsync(new Organization
-        {
-            Id = orgId,
-            Name = slug,
-            Slug = slug,
-            Status = "active",
-            CreatedAt = now,
-        });
-        await db.SaveChangesAsync();
-    }
-
-    private static async Task SeedOrgAuthProviderAsync(
-        RealmDbContext db,
-        Guid orgId,
-        OrgAuthProvider provider,
-        string? oidcAuthority = null,
-        string? oidcClientId = null)
-    {
-        var now = DateTimeOffset.UtcNow;
-        await db.OrgAuthProviderConfigs.AddAsync(new OrgAuthProviderConfig
-        {
-            Id = Guid.NewGuid(),
-            OrgId = orgId,
-            Provider = provider,
-            OidcAuthority = oidcAuthority,
-            OidcClientId = oidcClientId,
-            CreatedAt = now,
-            UpdatedAt = now,
-        });
-        await db.SaveChangesAsync();
     }
 }

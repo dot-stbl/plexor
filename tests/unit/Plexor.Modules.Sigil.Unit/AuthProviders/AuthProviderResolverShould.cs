@@ -7,20 +7,19 @@
 //
 // Tests use NSubstitute stubs for the Sigil + OIDC providers'
 // dependencies (JWT signer, JWKS fetcher, role / permission resolvers)
-// and a real in-memory RealmDbContext for the OrgAuthProviderConfig
-// table. The resolver itself is real — every test exercises the
-// production algorithm.
+// and a substitute IOrgAuthProviderConfigReader for the
+// OrgAuthProviderConfig lookups. The resolver itself is real — every
+// test exercises the production algorithm.
 // ============================================================================
 
 using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using NSubstitute;
+using Plexor.Modules.Realm.Application.AuthProviders;
 using Plexor.Modules.Realm.Domain.Entities;
-using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.AuthProviders;
@@ -29,7 +28,6 @@ using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.ValueObjects;
 using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
 using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
-using Plexor.Modules.Sigil.Unit.Realm;
 using Shouldly;
 using Xunit;
 
@@ -67,13 +65,12 @@ public sealed class AuthProviderResolverShould
 
     /// <summary>
     ///     Wire the full resolver + both provider concretes with
-    ///     NSubstitute stubs + a real in-memory RealmDbContext. The
-    ///     default config table is empty — callers seed it when they
-    ///     want the OIDC routing to succeed.
+    ///     NSubstitute stubs. The default config reader returns
+    ///     null — callers configure it when they want the OIDC
+    ///     routing to succeed.
     /// </summary>
-    /// <param name="realm">In-memory realm DbContext for OrgAuthProviderConfig.</param>
     private static (AuthProviderResolver Resolver, NSubstituteMocks Mocks) BuildResolver(
-        RealmDbContext realm)
+        IOrgAuthProviderConfigReader configReader)
     {
         var mocks = new NSubstituteMocks(
             Substitute.For<IJwtSigningService>(),
@@ -87,24 +84,53 @@ public sealed class AuthProviderResolverShould
             mocks.UserLookup,
             mocks.RoleResolver,
             mocks.PermissionResolver,
-            realm,
+            configReader,
             NullLogger<SigilAuthProvider>.Instance);
 
         var oidcProvider = new ExternalOidcAuthProvider(
             mocks.JwksFetcher,
             mocks.RoleResolver,
             mocks.PermissionResolver,
-            realm,
+            configReader,
             NullLogger<ExternalOidcAuthProvider>.Instance);
 
         var cache = new MemoryCache(new MemoryCacheOptions());
         var resolver = new AuthProviderResolver(
             sigilProvider,
             oidcProvider,
-            realm,
+            configReader,
             cache,
             NullLogger<AuthProviderResolver>.Instance);
         return (resolver, mocks);
+    }
+
+    /// <summary>
+    ///     Build a seeded <see cref="OrgAuthProviderConfig" /> row
+    ///     for an OIDC-issuer lookup — the substitute reader
+    ///     returns it on every <c>GetByOidcIssuerAsync</c> call,
+    ///     mirroring the production EF read against
+    ///     <c>realm.org_auth_provider_configs</c>.
+    /// </summary>
+    /// <param name="orgId">Tenant id.</param>
+    /// <param name="oidcAuthority">OIDC issuer URL.</param>
+    /// <param name="oidcClientId">OIDC client id (audience).</param>
+    private static OrgAuthProviderConfig BuildOidcConfig(
+        Guid orgId,
+        string oidcAuthority,
+        string oidcClientId)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return new OrgAuthProviderConfig
+        {
+            Id = Guid.NewGuid(),
+            OrgId = orgId,
+            Provider = OrgAuthProvider.Oidc,
+            OidcAuthority = oidcAuthority,
+            OidcClientId = oidcClientId,
+            OidcScopes = ["openid", "profile", "email"],
+            CreatedAt = now,
+            UpdatedAt = now,
+        };
     }
 
     /// <summary>Given an empty credential, when resolving, then returns
@@ -112,8 +138,8 @@ public sealed class AuthProviderResolverShould
     [Fact(DisplayName = "Given an empty credential, when resolving, then returns null without consulting any provider")]
     public async Task ResolveAsync_WithEmptyCredential_ReturnsNullAsync()
     {
-        await using var realm = await RealmTestDb.CreateAsync();
-        var (resolver, mocks) = BuildResolver(realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        var (resolver, mocks) = BuildResolver(configReader);
 
         var resolution = await resolver.ResolveAsync(string.Empty, CancellationToken.None);
 
@@ -129,8 +155,8 @@ public sealed class AuthProviderResolverShould
     [Fact(DisplayName = "Given a whitespace credential, when resolving, then returns null")]
     public async Task ResolveAsync_WithWhitespaceCredential_ReturnsNullAsync()
     {
-        await using var realm = await RealmTestDb.CreateAsync();
-        var (resolver, _) = BuildResolver(realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        var (resolver, _) = BuildResolver(configReader);
 
         var resolution = await resolver.ResolveAsync("   ", CancellationToken.None);
 
@@ -142,8 +168,8 @@ public sealed class AuthProviderResolverShould
     [Fact(DisplayName = "Given a non-JWT credential (no dots), when resolving, then returns null")]
     public async Task ResolveAsync_WithMalformedCredential_ReturnsNullAsync()
     {
-        await using var realm = await RealmTestDb.CreateAsync();
-        var (resolver, _) = BuildResolver(realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        var (resolver, _) = BuildResolver(configReader);
 
         var resolution = await resolver.ResolveAsync("not-a-jwt", CancellationToken.None);
 
@@ -158,8 +184,8 @@ public sealed class AuthProviderResolverShould
         var orgId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var token = MintUnsignedJwt(SigilIssuerValue, audience: null, subject: null);
-        await using var realm = await RealmTestDb.CreateAsync();
-        var (resolver, mocks) = BuildResolver(realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        var (resolver, mocks) = BuildResolver(configReader);
         mocks.Signing.VerifyAsync(token, Arg.Any<CancellationToken>())
             .Returns(BuildSigilSuccess(userId, orgId));
         mocks.UserLookup.FindByIdAsync(userId, Arg.Any<CancellationToken>())
@@ -202,10 +228,10 @@ public sealed class AuthProviderResolverShould
         var (signingKey, publicJwk) = CreateSigningKey();
         var token = MintRsaSignedJwt(signingKey, TestOidcIssuer, clientId, "external-user-123",
             DateTime.UtcNow.AddMinutes(10));
-        await using var realm = await RealmTestDb.CreateAsync();
-        await SeedOrgAsync(realm, orgId);
-        await SeedOrgAuthProviderAsync(realm, orgId, OrgAuthProvider.Oidc, TestOidcIssuer, clientId);
-        var (resolver, mocks) = BuildResolver(realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetByOidcIssuerAsync(TestOidcIssuer, Arg.Any<CancellationToken>())
+            .Returns(BuildOidcConfig(orgId, TestOidcIssuer, clientId));
+        var (resolver, mocks) = BuildResolver(configReader);
         mocks.JwksFetcher.GetKeySetAsync(TestOidcIssuer, Arg.Any<CancellationToken>())
             .Returns(BuildKeySet(publicJwk));
         mocks.RoleResolver.RolesByNamesForOrgAsync(orgId, Arg.Any<IReadOnlyCollection<string>>(),
@@ -238,8 +264,8 @@ public sealed class AuthProviderResolverShould
         var (signingKey, _) = CreateSigningKey();
         var token = MintRsaSignedJwt(signingKey, rogueIssuer, "plexor-cli", "user",
             DateTime.UtcNow.AddMinutes(10));
-        await using var realm = await RealmTestDb.CreateAsync();
-        var (resolver, mocks) = BuildResolver(realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        var (resolver, mocks) = BuildResolver(configReader);
 
         var resolution = await resolver.ResolveAsync(token, CancellationToken.None);
 
@@ -254,10 +280,10 @@ public sealed class AuthProviderResolverShould
     /// resolving, then the second call serves from cache (no
     /// OrgAuthProviderConfig DB hit + no JWKS fetcher call).</summary>
     /// <remarks>
-    ///     <para>Implements the cache test by counting the DB
-    ///     queries against the in-memory realm — the second call
-    ///     must produce no EF query (the cache short-circuits the
-    ///     OrgAuthProviderConfig lookup).</para>
+    ///     <para>Implements the cache test by asserting that the
+    ///     substitute config reader is hit exactly once — the second
+    ///     call short-circuits on the (iss → provider) cache and
+    ///     never reaches the reader.</para>
     /// </remarks>
     [Fact(DisplayName = "Given the same OIDC issuer on a second resolve, when resolving, then serves from cache without re-querying OrgAuthProviderConfig")]
     public async Task ResolveAsync_CachesProviderByIssuer_SecondCallDoesNotQueryOrgAsync()
@@ -269,10 +295,10 @@ public sealed class AuthProviderResolverShould
             DateTime.UtcNow.AddMinutes(10));
         var secondToken = MintRsaSignedJwt(signingKey, TestOidcIssuer, clientId, "user-2",
             DateTime.UtcNow.AddMinutes(10));
-        await using var realm = await RealmTestDb.CreateAsync();
-        await SeedOrgAsync(realm, orgId);
-        await SeedOrgAuthProviderAsync(realm, orgId, OrgAuthProvider.Oidc, TestOidcIssuer, clientId);
-        var (resolver, mocks) = BuildResolver(realm);
+        var configReader = Substitute.For<IOrgAuthProviderConfigReader>();
+        configReader.GetByOidcIssuerAsync(TestOidcIssuer, Arg.Any<CancellationToken>())
+            .Returns(BuildOidcConfig(orgId, TestOidcIssuer, clientId));
+        var (resolver, mocks) = BuildResolver(configReader);
         mocks.JwksFetcher.GetKeySetAsync(TestOidcIssuer, Arg.Any<CancellationToken>())
             .Returns(BuildKeySet(publicJwk));
         mocks.RoleResolver.RolesByNamesForOrgAsync(orgId, Arg.Any<IReadOnlyCollection<string>>(),
@@ -290,12 +316,14 @@ public sealed class AuthProviderResolverShould
         first.ProviderId.ShouldBe(AuthProviderId.Oidc);
         second.ProviderId.ShouldBe(AuthProviderId.Oidc);
 
-        // JWKS fetcher called once — the second resolve served from
-        // the resolver's (iss → provider) cache and didn't need to
-        // confirm the OIDC routing again. The provider itself may
-        // re-fetch JWKS independently for the kid lookup; this test
-        // asserts only the resolver-level caching.
-        await mocks.JwksFetcher.Received(2).GetKeySetAsync(
+        // Cache hit on the second resolve — the resolver's (iss →
+        // provider) map is served from IMemoryCache, so the
+        // resolver's own reader call disappears on the second
+        // pass. The dispatched ExternalOidcAuthProvider still
+        // does its own per-call reader hit (one per ResolveAsync),
+        // so the total is 1 (resolver first resolve) + 2 (OIDC
+        // provider across both resolves) = 3.
+        await configReader.Received(3).GetByOidcIssuerAsync(
             TestOidcIssuer, Arg.Any<CancellationToken>());
     }
 
@@ -409,41 +437,5 @@ public sealed class AuthProviderResolverShould
             SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.RsaSha256),
         };
         return handler.CreateToken(descriptor);
-    }
-
-    private static async Task SeedOrgAsync(RealmDbContext db, Guid orgId)
-    {
-        var now = DateTimeOffset.UtcNow;
-        var slug = $"org-{orgId.ToString()[..6]}";
-        await db.Organizations.AddAsync(new Organization
-        {
-            Id = orgId,
-            Name = slug,
-            Slug = slug,
-            Status = "active",
-            CreatedAt = now,
-        });
-        await db.SaveChangesAsync();
-    }
-
-    private static async Task SeedOrgAuthProviderAsync(
-        RealmDbContext db,
-        Guid orgId,
-        OrgAuthProvider provider,
-        string? oidcAuthority = null,
-        string? oidcClientId = null)
-    {
-        var now = DateTimeOffset.UtcNow;
-        await db.OrgAuthProviderConfigs.AddAsync(new OrgAuthProviderConfig
-        {
-            Id = Guid.NewGuid(),
-            OrgId = orgId,
-            Provider = provider,
-            OidcAuthority = oidcAuthority,
-            OidcClientId = oidcClientId,
-            CreatedAt = now,
-            UpdatedAt = now,
-        });
-        await db.SaveChangesAsync();
     }
 }
