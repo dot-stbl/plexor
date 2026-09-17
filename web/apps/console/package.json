@@ -22,6 +22,7 @@
     "@hookform/resolvers": "3.10.0",
     "@hugeicons/core-free-icons": "^4.2.2",
     "@hugeicons/react": "^1.1.9",
+    "@iconify/react": "^6.0.2",
     "@kubb/plugin-client": "4.39.2",
     "@nine-thirty-five/material-symbols-react": "^2.1.4",
     "@shadcn/react": "^0.2.0",
