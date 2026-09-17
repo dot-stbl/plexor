@@ -59,6 +59,8 @@ using Plexor.Modules.Sigil.Api.Endpoints;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Modules.Network.Api.Endpoints;
+using Plexor.Modules.Network.Api.Installers;
 using Plexor.Modules.Network.Application.Installers;
 using Plexor.Modules.Network.Infrastructure.Installers;
 using Plexor.Modules.Network.Infrastructure.Persistence;
@@ -318,9 +320,12 @@ builder.Services.AddStorageApiCore();
 // the `network` schema. The Application + Infrastructure installers
 // wire the INetworkQuotaReader seam the Quotas enforcer needs for
 // network.floating_ips.count + network.load_balancers.count. The
-// Api project + REST endpoints land in commit 4.
+// Api installer (commit 4) registers the FluentValidation
+// validators for the POST endpoints; the MapNetworkEndpoints call
+// below mounts the minimal-API routes alongside the controllers.
 builder.Services.AddNetworkApplicationCore(builder.Configuration);
 builder.Services.AddNetworkInfrastructureCore();
+builder.Services.AddNetworkApiCore();
 // Audit retention (Phase 5.3) — bind AuditOptions so the daily
 // sweep BackgroundService picks up RetentionDays / CleanupInterval /
 // BatchSize / SweepHourUtc. ValidateDataAnnotations + ValidateOnStart
@@ -434,6 +439,11 @@ app.MapControllers();
 // they're mapped explicitly here alongside the other minimal-API
 // endpoints (custom.css, OIDC flow, audit query).
 app.MapStorageEndpoints();
+
+// Network module endpoints (Phase 4.5.d) — minimal-API surface for
+// floating IPs + load balancers. Same minimal-API mapping pattern
+// as StorageEndpoints above.
+app.MapNetworkEndpoints();
 
 // Custom CSS endpoint — serves the operator's custom.css escape
 // hatch (commit 5). Mounted before MapControllers so it takes

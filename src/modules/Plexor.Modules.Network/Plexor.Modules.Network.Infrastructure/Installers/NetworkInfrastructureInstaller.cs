@@ -12,7 +12,12 @@
 // ============================================================================
 
 using Microsoft.Extensions.DependencyInjection;
+using Plexor.Modules.Network.Application.FloatingIps;
+using Plexor.Modules.Network.Application.LoadBalancers;
 using Plexor.Modules.Network.Application.Network;
+using Plexor.Modules.Network.Infrastructure.FloatingIps;
+using Plexor.Modules.Network.Infrastructure.Installers;
+using Plexor.Modules.Network.Infrastructure.LoadBalancers;
 
 namespace Plexor.Modules.Network.Infrastructure.Installers;
 
@@ -43,6 +48,15 @@ public static class NetworkInfrastructureInstaller
         // implementation it binds. Scoped — shares the per-request
         // DbContext with the enforcer the read participates with.
         services.AddScoped<INetworkQuotaReader, EfNetworkQuotaReader>();
+
+        // IFloatingIpService — EF implementation. Scoped — shares the
+        // per-request DbContext with the API endpoint. Used by the
+        // REST endpoints mounted from NetworkEndpoints in commit 4.
+        services.AddScoped<IFloatingIpService, EfFloatingIpService>();
+
+        // ILoadBalancerService — EF implementation. Scoped — same
+        // pattern as IFloatingIpService.
+        services.AddScoped<ILoadBalancerService, EfLoadBalancerService>();
 
         return services;
     }

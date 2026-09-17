@@ -102,6 +102,7 @@
         <Project Path="src/modules/Plexor.Modules.Network/Plexor.Modules.Network.Domain/Plexor.Modules.Network.Domain.csproj" />
         <Project Path="src/modules/Plexor.Modules.Network/Plexor.Modules.Network.Application/Plexor.Modules.Network.Application.csproj" />
         <Project Path="src/modules/Plexor.Modules.Network/Plexor.Modules.Network.Infrastructure/Plexor.Modules.Network.Infrastructure.csproj" />
+        <Project Path="src/modules/Plexor.Modules.Network/Plexor.Modules.Network.Api/Plexor.Modules.Network.Api.csproj" />
     </Folder>
 
     <!-- ============ Hosts (entry points) =================================== -->
