@@ -21,6 +21,7 @@ import { Route as NetworksRouteImport } from './routes/networks'
 import { Route as VmsRouteRouteImport } from './routes/vms/route'
 import { Route as AdminAuditRouteImport } from './routes/admin/audit'
 import { Route as AdminBrandingRouteImport } from './routes/admin/branding'
+import { Route as AdminThemeMarketplaceRouteImport } from './routes/admin/theme-marketplace'
 import { Route as ClustersIndexRouteImport } from './routes/clusters/index'
 import { Route as ClustersIdRouteImport } from './routes/clusters/$id'
 import { Route as K8sIndexRouteImport } from './routes/k8s/index'
@@ -95,6 +96,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
 const AdminBrandingRoute = AdminBrandingRouteImport.update({
   id: '/admin/branding',
   path: '/admin/branding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminThemeMarketplaceRoute = AdminThemeMarketplaceRouteImport.update({
+  id: '/admin/theme-marketplace',
+  path: '/admin/theme-marketplace',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClustersIndexRoute = ClustersIndexRouteImport.update({
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/networks': typeof NetworksRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/branding': typeof AdminBrandingRoute
+  '/admin/theme-marketplace': typeof AdminThemeMarketplaceRoute
   '/clusters/$id': typeof ClustersIdRoute
   '/k8s/new': typeof K8sNewRoute
   '/lxc/new': typeof LxcNewRoute
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/networks': typeof NetworksRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/branding': typeof AdminBrandingRoute
+  '/admin/theme-marketplace': typeof AdminThemeMarketplaceRoute
   '/clusters/$id': typeof ClustersIdRoute
   '/k8s/new': typeof K8sNewRoute
   '/lxc/new': typeof LxcNewRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/networks': typeof NetworksRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/branding': typeof AdminBrandingRoute
+  '/admin/theme-marketplace': typeof AdminThemeMarketplaceRoute
   '/clusters/$id': typeof ClustersIdRoute
   '/k8s/new': typeof K8sNewRoute
   '/lxc/new': typeof LxcNewRoute
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/networks'
     | '/admin/audit'
     | '/admin/branding'
+    | '/admin/theme-marketplace'
     | '/clusters/$id'
     | '/k8s/new'
     | '/lxc/new'
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/networks'
     | '/admin/audit'
     | '/admin/branding'
+    | '/admin/theme-marketplace'
     | '/clusters/$id'
     | '/k8s/new'
     | '/lxc/new'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/networks'
     | '/admin/audit'
     | '/admin/branding'
+    | '/admin/theme-marketplace'
     | '/clusters/$id'
     | '/k8s/new'
     | '/lxc/new'
@@ -354,6 +366,7 @@ export interface RootRouteChildren {
   NetworksRoute: typeof NetworksRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBrandingRoute: typeof AdminBrandingRoute
+  AdminThemeMarketplaceRoute: typeof AdminThemeMarketplaceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -440,6 +453,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/branding'
       fullPath: '/admin/branding'
       preLoaderRoute: typeof AdminBrandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/theme-marketplace': {
+      id: '/admin/theme-marketplace'
+      path: '/admin/theme-marketplace'
+      fullPath: '/admin/theme-marketplace'
+      preLoaderRoute: typeof AdminThemeMarketplaceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clusters/': {
@@ -643,6 +663,7 @@ const rootRouteChildren: RootRouteChildren = {
   NetworksRoute: NetworksRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminBrandingRoute: AdminBrandingRoute,
+  AdminThemeMarketplaceRoute: AdminThemeMarketplaceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

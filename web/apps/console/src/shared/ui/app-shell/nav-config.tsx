@@ -20,6 +20,7 @@ import {
   Settings,
   ShowChart,
   Stacks,
+  Storefront,
   Token,
   VerifiedUser
 } from '@nine-thirty-five/material-symbols-react/rounded/700';
@@ -36,6 +37,7 @@ export type AppRoute =
   | '/audit'
   | '/clusters'
   | '/admin/branding'
+  | '/admin/theme-marketplace'
   | '/admin/audit';
 
 export type NavPage = {
@@ -135,6 +137,7 @@ export const SECTIONS: Section[] = [
     icon: Settings,
     pages: [
       { title: 'nav.brandingTitle', description: 'nav.brandingDesc', icon: Settings, to: '/admin/branding' },
+      { title: 'nav.themeMarketplaceTitle', description: 'nav.themeMarketplaceDesc', icon: Storefront, to: '/admin/theme-marketplace' },
       { title: 'nav.auditTitle', description: 'nav.auditDesc', icon: History, to: '/admin/audit' },
     ],
   },
