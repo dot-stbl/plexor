@@ -106,23 +106,23 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
           <header className="space-y-1">
             <h1
               className="flex items-center gap-2 text-base font-semibold text-foreground"
-              data-test="login-title"
+              data-testid="login-title"
             >
               <Shield className="size-4 text-primary" aria-hidden="true" />
               {t('auth.login.title')}
             </h1>
-            <p className="text-xs text-muted-foreground" data-test="login-subtitle">
+            <p className="text-xs text-muted-foreground" data-testid="login-subtitle">
               {t('auth.login.subtitle')}
             </p>
           </header>
 
           {formErrorKey !== null && (
-            <Alert variant="destructive" data-test="login-error">
+            <Alert variant="destructive" data-testid="login-error">
               <AlertDescription>{t(formErrorKey)}</AlertDescription>
             </Alert>
           )}
 
-          <form className="space-y-3" onSubmit={handleSubmit} noValidate data-test="login-form">
+          <form className="space-y-3" onSubmit={handleSubmit} noValidate data-testid="login-form">
             <div className="space-y-1.5">
               <Label htmlFor="login-email" className="text-xs font-medium">
                 {t('auth.login.email.label')}
@@ -142,14 +142,14 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
                 }}
                 aria-invalid={fieldErrors.email !== undefined}
                 disabled={isSubmitting}
-                data-test="login-email"
+                data-testid="login-email"
                 className={cn(
                   fieldErrors.email !== undefined &&
                     'border-destructive ring-2 ring-destructive/20',
                 )}
               />
               {fieldErrors.email !== undefined && (
-                <p className="text-xs text-destructive" data-test="login-email-error">
+                <p className="text-xs text-destructive" data-testid="login-email-error">
                   {t(fieldErrors.email)}
                 </p>
               )}
@@ -173,14 +173,14 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
                 }}
                 aria-invalid={fieldErrors.password !== undefined}
                 disabled={isSubmitting}
-                data-test="login-password"
+                data-testid="login-password"
                 className={cn(
                   fieldErrors.password !== undefined &&
                     'border-destructive ring-2 ring-destructive/20',
                 )}
               />
               {fieldErrors.password !== undefined && (
-                <p className="text-xs text-destructive" data-test="login-password-error">
+                <p className="text-xs text-destructive" data-testid="login-password-error">
                   {t(fieldErrors.password)}
                 </p>
               )}
@@ -193,7 +193,7 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
               className="w-full"
               disabled={isSubmitting}
               aria-busy={isSubmitting}
-              data-test="login-submit"
+              data-testid="login-submit"
             >
               {isSubmitting && <Spinner className="size-3.5" aria-hidden="true" />}
               {isSubmitting ? t('auth.login.submitting') : t('auth.login.submit')}
@@ -218,7 +218,7 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
             className="w-full"
             onClick={handleSso}
             disabled={isSubmitting}
-            data-test="login-sso"
+            data-testid="login-sso"
           >
             <LoginIcon className="size-3.5" aria-hidden="true" />
             {t('auth.login.sso')}
