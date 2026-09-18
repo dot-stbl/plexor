@@ -73,11 +73,20 @@ export interface ButtonProps
   type?: "button" | "submit" | "reset"
 }
 
-function composeRender(render: BaseRenderable, className: string): BaseRenderable {
+function composeRender(
+  render: BaseRenderable,
+  className: string,
+  children?: React.ReactNode,
+): BaseRenderable {
   const original = render.props
+  // Button's children win over whatever the render element already had —
+  // callers like `<Button render={<Link />}>{icon + label}</Button>` expect
+  // their JSX to land inside the cloned element, not be silently dropped.
+  // Falls back to the render element's own children when Button has none.
   const merged = {
     ...original,
     className: cn(original.className, className),
+    children: children ?? original.children,
   } as typeof original
   return React.cloneElement(render, merged)
 }
@@ -109,7 +118,11 @@ function Button({
   ...props
 }: ButtonProps) {
   if (render) {
-    return composeRender(render, cn(buttonVariants({ variant, size }), className))
+    return composeRender(
+      render,
+      cn(buttonVariants({ variant, size }), className),
+      children,
+    )
   }
 
   // Cast through unknown: RAC's onClick event type uses FocusableElement,

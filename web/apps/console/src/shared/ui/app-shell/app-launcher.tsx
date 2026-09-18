@@ -199,7 +199,10 @@ export function AppLauncher({
     <div
       data-od-id="launcher-portal"
       data-state={phase === 'exit' ? 'closed' : 'open'}
-      className="fixed inset-0 z-40"
+      // pointer-events-none so the sidebar underneath stays clickable.
+      // Children that need clicks (dim overlay below, launcher panel as a
+      // sibling inside this portal) keep their default pointer-events.
+      className="pointer-events-none fixed inset-0 z-40"
     >
       {/* Dim everything except the sidebar (left of this) and the menu cards.
           Covers the header (z-10) too → menu overlaps it. */}
