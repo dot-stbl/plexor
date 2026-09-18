@@ -175,7 +175,8 @@ function AdminThemeMarketplacePage() {
       onError: () => {
         setOptimisticActiveId(activeThemeId);
       },
-      onSuccess: (resolvedId) => {
+      onSuccess: (response) => {
+        const resolvedId = response.themeId;
         setOptimisticActiveId(resolvedId);
         const preset = getPreset(resolvedId);
         activateBuiltIn(preset);
@@ -185,7 +186,7 @@ function AdminThemeMarketplacePage() {
 
   const handleDeactivate = () => {
     setOptimisticActiveId(null);
-    deactivate.mutate(undefined, {
+    deactivate.mutate({
       onError: () => {
         setOptimisticActiveId(activeThemeId);
       },

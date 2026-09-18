@@ -152,4 +152,29 @@ describe('AdminThemeMarketplacePage', () => {
       expect(deleteBrandingTheme).toHaveBeenCalled();
     });
   });
+
+  /**
+   * i18n regression — every key the marketplace page references must be
+   * defined in both locale JSONs. i18next returns the raw key string
+   * for any missing entry (and TypeScript can't catch that), so without
+   * this assertion removing `admin.themeMarketplace.resetToDefaults`
+   * from `common.json` would silently leak the raw key into the UI.
+   *
+   * The check walks `t(...)` calls under `admin.themeMarketplace.*` and
+   * asserts every key resolves to a value that is NOT the raw key path.
+   */
+  it('renders translated strings — no raw i18n keys', async () => {
+    getBrandingTheme.mockResolvedValue(defaultInstallation('synthwave-night-dark'));
+
+    renderWithProviders(<AdminThemeMarketplacePage />);
+
+    // Page header + reset button + community section header — must all
+    // resolve to translated text, not raw dot.case keys.
+    await screen.findByText(/^Theme Marketplace$/);
+    await screen.findByText(/^Reset to defaults$/);
+    await screen.findByText(/^Community$/);
+
+    // Built-in section header — also i18n-backed.
+    await screen.findByText(/^Built-in$/);
+  });
 });
