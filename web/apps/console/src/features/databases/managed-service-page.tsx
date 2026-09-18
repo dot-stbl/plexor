@@ -38,7 +38,7 @@ export function ManagedServicePage({ engineId }: { engineId: string }) {
   return (
     <PageTemplate
       data-od-id={`managed-${engine.id}`}
-      width="full"
+      width="wide"
       title={engine.name}
       description={engine.blurb}
       actions={

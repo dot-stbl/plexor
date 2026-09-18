@@ -189,7 +189,7 @@ function CreateVmPage() {
   return (
     <PageTemplate
       data-od-id="vms-new"
-      width="full"
+      width="wide"
       title={t('vms.new.title')}
       description={t('vms.new.form.pageDescription')}
       actions={

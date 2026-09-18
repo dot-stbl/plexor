@@ -201,7 +201,7 @@ function AdminThemeMarketplacePage() {
     <PageTemplate
       title={t('admin.themeMarketplace.title')}
       description={t('admin.themeMarketplace.description')}
-      width="6xl"
+      width="default"
       data-od-id="admin-theme-marketplace"
       actions={
         <Button

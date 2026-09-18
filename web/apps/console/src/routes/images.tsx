@@ -55,7 +55,7 @@ function ImagesPage() {
     <>
       <PageTemplate
         data-od-id="images-list"
-        width="full"
+        width="wide"
         title={t('images.title')}
         description={
           <>

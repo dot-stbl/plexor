@@ -47,7 +47,7 @@ function K8sPage() {
     <>
       <PageTemplate
         data-od-id="k8s-list"
-        width="full"
+        width="wide"
         title={t('k8s.list.title')}
         description={
           <>
