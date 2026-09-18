@@ -37,7 +37,7 @@ function ClusterDetailPage() {
     return (
       <PageTemplate
         title={t('clusters.detail.notFound')}
-        width="6xl"
+        width="default"
         actions={
           <Button variant="ghost" nativeButton={false} render={<Link to="/clusters" />}>
             <ArrowBack />
@@ -68,7 +68,7 @@ function ClusterDetailPage() {
     <div data-od-id="cluster-detail">
       <PageTemplate
         title={cluster.name}
-        width="full"
+        width="wide"
         description={
           <>
             <span className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] uppercase">

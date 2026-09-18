@@ -17,7 +17,7 @@ function HomePage() {
   return (
     <PageTemplate
       title={t('home.title')}
-      width="full"
+      width="wide"
       data-od-id="home"
       description={t('home.description')}
     >

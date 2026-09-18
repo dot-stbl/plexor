@@ -116,7 +116,7 @@ function CreateClusterPage() {
   return (
     <PageTemplate
       data-od-id="managed-new"
-      width="full"
+      width="wide"
       title={engine ? t('managed.new.title', { engine: engine.name }) : t('managed.new.fallbackTitle')}
       description={t('managed.new.form.description')}
       actions={

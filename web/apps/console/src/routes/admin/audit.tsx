@@ -137,7 +137,7 @@ function AdminAuditPage() {
     <PageTemplate
       title={t('admin.audit.title')}
       description={t('admin.audit.description')}
-      width="full"
+      width="wide"
       data-od-id="admin-audit"
       actions={
         <Button

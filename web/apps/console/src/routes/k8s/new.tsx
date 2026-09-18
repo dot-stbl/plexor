@@ -168,7 +168,7 @@ function CreateK8sPage() {
   return (
     <PageTemplate
       data-od-id="k8s-new"
-      width="full"
+      width="wide"
       title={t('k8s.new.title')}
       description={t('k8s.new.description')}
       actions={

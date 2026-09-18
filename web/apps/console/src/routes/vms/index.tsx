@@ -87,7 +87,7 @@ function VmsPage() {
       <PageTemplate
         data-od-id="vms-list"
         title={t('vms.list.title')}
-        width="full"
+        width="wide"
         description={
           isPending ? (
             t('common.loading')

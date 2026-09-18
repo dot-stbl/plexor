@@ -29,7 +29,7 @@ function ClustersPage() {
   return (
     <PageTemplate
       title={t('clusters.list.title')}
-      width="full"
+      width="wide"
       data-od-id="clusters-list"
       description={t('clusters.list.summary', {
         clusters: totals.clusters,

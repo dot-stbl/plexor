@@ -52,7 +52,7 @@ function LxcPage() {
     <>
       <PageTemplate
         data-od-id="lxc-list"
-        width="full"
+        width="wide"
         title={t('lxc.list.title')}
         description={
           <>

@@ -189,7 +189,7 @@ function AdminBrandingPage() {
     <PageTemplate
       title={t('admin.branding.title')}
       description={t('admin.branding.description')}
-      width="6xl"
+      width="default"
       data-od-id="admin-branding"
       actions={
         <Button

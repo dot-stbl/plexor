@@ -165,7 +165,7 @@ function CreateLxcPage() {
   return (
     <PageTemplate
       data-od-id="lxc-new"
-      width="full"
+      width="wide"
       title={t('lxc.new.title')}
       description={t('lxc.new.form.pageDescription')}
       actions={
