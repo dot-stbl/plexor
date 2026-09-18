@@ -120,6 +120,46 @@ public sealed class WorkloadSummary
 // Paged list response uses Plexor.Shared.Contracts.Pagination.PageResult<T>
 // directly — no project-specific wrapper.
 
+// --- lifecycle commands (provider-driven) ---------------------------------
+
+/// <summary>
+///     Power on a previously provisioned workload. The host calls
+///     <see cref="Plexor.Shared.Kernel.Compute.IComputeProvider.StartVmAsync" />
+///     on the workload's <c>provider_vm_id</c>, then transitions
+///     <see cref="WorkloadLifecycleState.Stopped" /> →
+///     <see cref="WorkloadLifecycleState.Running" />. Throws when
+///     the workload is in a state that doesn't permit Start
+///     (e.g. <see cref="WorkloadLifecycleState.Deleted" />).
+/// </summary>
+/// <param name="ClusterId">Parent cluster (scope check).</param>
+/// <param name="WorkloadId">Target workload (must be in this cluster).</param>
+public sealed record StartWorkloadCommand(
+    ClusterId ClusterId,
+    WorkloadId WorkloadId);
+
+/// <summary>
+///     Gracefully power off a running workload. The host calls
+///     <see cref="Plexor.Shared.Kernel.Compute.IComputeProvider.StopVmAsync" />
+///     on the workload's <c>provider_vm_id</c>, then transitions
+///     <see cref="WorkloadLifecycleState.Running" /> →
+///     <see cref="WorkloadLifecycleState.Stopped" />. Resources
+///     stay allocated (the workload is stopped, not deleted).
+/// </summary>
+/// <param name="ClusterId">Parent cluster (scope check).</param>
+/// <param name="WorkloadId">Target workload (must be in this cluster).</param>
+public sealed record StopWorkloadCommand(
+    ClusterId ClusterId,
+    WorkloadId WorkloadId);
+
+/// <summary>
+///     Result of a successful <see cref="StartWorkloadCommand" /> or
+///     <see cref="StopWorkloadCommand" />. Carries the post-
+///     transition workload summary so the operator's POST response
+///     includes the updated state in one round-trip.
+/// </summary>
+/// <param name="Workload">Updated workload summary (post-transition).</param>
+public sealed record WorkloadLifecycleResult(WorkloadSummary Workload);
+
 // --- action commands (Tier 5) ----------------------------------------------
 
 /// <summary>Workload action verb — what the operator asked the agent to do.</summary>

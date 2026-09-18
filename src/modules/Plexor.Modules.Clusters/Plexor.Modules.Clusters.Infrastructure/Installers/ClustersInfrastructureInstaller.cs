@@ -62,6 +62,13 @@ public static class ClustersInfrastructureInstaller
         services.AddScoped<ICommandHandler<ListWorkloadsQuery, PageResult<WorkloadSummary>>, ListWorkloadsQueryHandler>();
         services.AddScoped<ICommandHandler<GetWorkloadQuery, WorkloadSummary>, GetWorkloadQueryHandler>();
 
+        // Lifecycle commands (provider-driven). The Start/Stop
+        // handlers return the post-transition WorkloadSummary so
+        // the operator's POST response carries the new state in
+        // one round-trip.
+        services.AddScoped<ICommandHandler<StartWorkloadCommand, WorkloadLifecycleResult>, StartWorkloadCommandHandler>();
+        services.AddScoped<ICommandHandler<StopWorkloadCommand, WorkloadLifecycleResult>, StopWorkloadCommandHandler>();
+
         // Tier 5: workload action commands (start / stop / restart).
         // Handler short-polls the per-node command queue (forge.commands)
         // for the agent's ack; control plane returns once the row

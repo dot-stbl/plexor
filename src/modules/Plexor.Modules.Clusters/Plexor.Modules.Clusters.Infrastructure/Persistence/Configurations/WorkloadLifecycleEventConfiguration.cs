@@ -71,6 +71,16 @@ internal sealed class WorkloadLifecycleEventConfiguration : IEntityTypeConfigura
             .HasColumnName("occurred_at")
             .IsRequired();
 
+        // Cascade-delete through the workload FK: deleting the
+        // parent workload row wipes its lifecycle audit trail too.
+        // The handlers add events explicitly via the DbSet (not via
+        // a navigation property) so this relationship is the sole
+        // FK declaration on the event side.
+        builder.HasOne<Workload>()
+            .WithMany()
+            .HasForeignKey(static evt => evt.WorkloadId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Timeline query: "show me every transition for this workload
         // in creation order". The Id (UUIDv7) is monotonic in time
         // so ORDER BY id is a valid substitute for ORDER BY occurred_at

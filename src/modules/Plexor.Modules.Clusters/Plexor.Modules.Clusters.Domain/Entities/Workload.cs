@@ -113,25 +113,29 @@ public sealed class Workload : IFilterableEntity, ICreatedAt, IUpdatedAt
 
     /// <summary>
     ///     Backing field for the <see cref="Events" /> collection.
-    ///     EF Core discovers this by name and appends directly to
-    ///     it during load (avoiding the cost of replacing the whole
-    ///     list when the query returns multiple rows). The public
-    ///     <see cref="Events" /> property exposes the same data as
-    ///     a read-only list.
+    ///     EF Core discovers this by name convention (private
+    ///     field named <c>_events</c>, public property named
+    ///     <c>Events</c>) and uses it as the change-tracking store
+    ///     for the relational provider. The InMemory provider has
+    ///     inconsistent collection-navigation tracking after the
+    ///     parent row is already tracked, so the handlers
+    ///     additionally <c>AddAsync</c> each new event to the
+    ///     <c>WorkloadLifecycleEvents</c> DbSet to guarantee the row
+    ///     is INSERTed. This field is the in-memory mirror that the
+    ///     <c>Mark*</c> methods maintain.
     /// </summary>
     private readonly List<WorkloadLifecycleEvent> _events = [];
 
     /// <summary>
     ///     Append-only audit trail of every successful lifecycle
-    ///     transition. Loaded by the per-workload timeline query;
-    ///     the per-row cardinality is small (typically 3–7 rows
-    ///     per workload over its lifetime) so eager-loading is
-    ///     fine for the single-workload detail endpoint.
+    ///     transition. Loaded by the per-workload timeline query
+    ///     (with an explicit <c>Include</c> on the relational
+    ///     provider; on InMemory the handler fetches events through
+    ///     <c>DbContext.WorkloadLifecycleEvents</c> directly).
     ///     Exposed as <see cref="IReadOnlyList{T}" /> to keep the
     ///     public surface append-only by convention — callers read
     ///     or test via the indexer but never insert / clear
-    ///     outside the aggregate. EF Core discovers the backing
-    ///     field by name and appends directly to it during load.
+    ///     outside the aggregate's <c>Mark*</c> methods.
     /// </summary>
     public IReadOnlyList<WorkloadLifecycleEvent> Events => _events;
 
@@ -164,13 +168,14 @@ public sealed class Workload : IFilterableEntity, ICreatedAt, IUpdatedAt
     /// </summary>
     /// <param name="providerVmId">Provider-assigned VM id.</param>
     /// <param name="occurredAt">Wall-clock the transition happened (handler-supplied clock).</param>
+    /// <returns>The <see cref="WorkloadLifecycleEvent" /> row appended to <see cref="Events" />.</returns>
     /// <exception cref="Errors.InvalidWorkloadLifecycleTransitionException">
     ///     Thrown when the current <see cref="LifecycleState" /> does
     ///     not allow a transition to <see cref="WorkloadLifecycleState.Provisioning" />.
     /// </exception>
-    public void MarkProvisioning(string providerVmId, DateTimeOffset occurredAt)
+    public WorkloadLifecycleEvent MarkProvisioning(string providerVmId, DateTimeOffset occurredAt)
     {
-        TransitionTo(
+        return TransitionTo(
             WorkloadLifecycleState.Provisioning,
             providerVmId,
             reason: null,
@@ -182,12 +187,13 @@ public sealed class Workload : IFilterableEntity, ICreatedAt, IUpdatedAt
     ///     Provider confirmed the VM exists / powered off.
     /// </summary>
     /// <param name="occurredAt">Wall-clock the transition happened.</param>
+    /// <returns>The <see cref="WorkloadLifecycleEvent" /> row appended to <see cref="Events" />.</returns>
     /// <exception cref="Errors.InvalidWorkloadLifecycleTransitionException">
     ///     Thrown when the current state does not allow Stopped.
     /// </exception>
-    public void MarkStopped(DateTimeOffset occurredAt)
+    public WorkloadLifecycleEvent MarkStopped(DateTimeOffset occurredAt)
     {
-        TransitionTo(WorkloadLifecycleState.Stopped, ProviderVmId, reason: null, occurredAt);
+        return TransitionTo(WorkloadLifecycleState.Stopped, ProviderVmId, reason: null, occurredAt);
     }
 
     /// <summary>
@@ -195,16 +201,18 @@ public sealed class Workload : IFilterableEntity, ICreatedAt, IUpdatedAt
     ///     powered on.
     /// </summary>
     /// <param name="occurredAt">Wall-clock the transition happened.</param>
+    /// <returns>The <see cref="WorkloadLifecycleEvent" /> row appended to <see cref="Events" />.</returns>
     /// <exception cref="Errors.InvalidWorkloadLifecycleTransitionException">
     ///     Thrown when the current state is not Stopped.
     /// </exception>
-    public void MarkRunning(DateTimeOffset occurredAt)
+    public WorkloadLifecycleEvent MarkRunning(DateTimeOffset occurredAt)
     {
-        TransitionTo(WorkloadLifecycleState.Running, ProviderVmId, reason: null, occurredAt);
+        return TransitionTo(WorkloadLifecycleState.Running, ProviderVmId, reason: null, occurredAt);
     }
 
     /// <summary>
-    ///     <c>* → Failed</c> (from <see cref="WorkloadLifecycleState.Provisioning" />,
+    ///     <c>* → Failed</c> (from <see cref="WorkloadLifecycleState.Pending" />,
+    ///     <see cref="WorkloadLifecycleState.Provisioning" />,
     ///     <see cref="WorkloadLifecycleState.Stopped" />, or
     ///     <see cref="WorkloadLifecycleState.Running" />). The row
     ///     stays for operator inspection; <see cref="MarkDeleting" />
@@ -212,12 +220,13 @@ public sealed class Workload : IFilterableEntity, ICreatedAt, IUpdatedAt
     /// </summary>
     /// <param name="reason">Provider's failure reason (safe to surface in audit; no PII).</param>
     /// <param name="occurredAt">Wall-clock the transition happened.</param>
+    /// <returns>The <see cref="WorkloadLifecycleEvent" /> row appended to <see cref="Events" />.</returns>
     /// <exception cref="Errors.InvalidWorkloadLifecycleTransitionException">
     ///     Thrown when the current state does not allow Failed.
     /// </exception>
-    public void MarkFailed(string reason, DateTimeOffset occurredAt)
+    public WorkloadLifecycleEvent MarkFailed(string reason, DateTimeOffset occurredAt)
     {
-        TransitionTo(WorkloadLifecycleState.Failed, ProviderVmId, reason, occurredAt);
+        return TransitionTo(WorkloadLifecycleState.Failed, ProviderVmId, reason, occurredAt);
     }
 
     /// <summary>
@@ -226,12 +235,13 @@ public sealed class Workload : IFilterableEntity, ICreatedAt, IUpdatedAt
     ///     is awaiting the provider's confirmation.
     /// </summary>
     /// <param name="occurredAt">Wall-clock the transition happened.</param>
+    /// <returns>The <see cref="WorkloadLifecycleEvent" /> row appended to <see cref="Events" />.</returns>
     /// <exception cref="Errors.InvalidWorkloadLifecycleTransitionException">
     ///     Thrown when the current state does not allow Deleting.
     /// </exception>
-    public void MarkDeleting(DateTimeOffset occurredAt)
+    public WorkloadLifecycleEvent MarkDeleting(DateTimeOffset occurredAt)
     {
-        TransitionTo(WorkloadLifecycleState.Deleting, ProviderVmId, reason: null, occurredAt);
+        return TransitionTo(WorkloadLifecycleState.Deleting, ProviderVmId, reason: null, occurredAt);
     }
 
     /// <summary>
@@ -239,12 +249,13 @@ public sealed class Workload : IFilterableEntity, ICreatedAt, IUpdatedAt
     ///     gone. Terminal state — no further Mark* calls succeed.
     /// </summary>
     /// <param name="occurredAt">Wall-clock the transition happened.</param>
+    /// <returns>The <see cref="WorkloadLifecycleEvent" /> row appended to <see cref="Events" />.</returns>
     /// <exception cref="Errors.InvalidWorkloadLifecycleTransitionException">
     ///     Thrown when the current state is not Deleting.
     /// </exception>
-    public void MarkDeleted(DateTimeOffset occurredAt)
+    public WorkloadLifecycleEvent MarkDeleted(DateTimeOffset occurredAt)
     {
-        TransitionTo(WorkloadLifecycleState.Deleted, ProviderVmId, reason: null, occurredAt);
+        return TransitionTo(WorkloadLifecycleState.Deleted, ProviderVmId, reason: null, occurredAt);
     }
 
     // ---- State machine internals --------------------------------------
@@ -257,9 +268,14 @@ public sealed class Workload : IFilterableEntity, ICreatedAt, IUpdatedAt
     ///     drive the transition directly when it needs to seed a
     ///     workload in a specific state without going through every
     ///     Mark* call. External callers (handlers) MUST use the
-    ///     public Mark* methods.
+    ///     public Mark* methods. Returns the new
+    ///     <see cref="WorkloadLifecycleEvent" /> row so the caller
+    ///     can explicitly register it with the DbContext (the
+    ///     InMemory provider doesn't auto-discover entries appended
+    ///     to a navigation collection after the parent row is
+    ///     already tracked).
     /// </summary>
-    internal void TransitionTo(
+    internal WorkloadLifecycleEvent TransitionTo(
         WorkloadLifecycleState toState,
         string? providerVmId,
         string? reason,
@@ -278,13 +294,15 @@ public sealed class Workload : IFilterableEntity, ICreatedAt, IUpdatedAt
         // transitions carry the provider's reason through it.
         LastMessage = reason;
 
-        _events.Add(new WorkloadLifecycleEvent(
+        var newEvent = new WorkloadLifecycleEvent(
             Guid.NewGuid(),
             Id,
             fromState,
             toState,
             providerVmId,
             reason,
-            occurredAt));
+            occurredAt);
+        _events.Add(newEvent);
+        return newEvent;
     }
 }
