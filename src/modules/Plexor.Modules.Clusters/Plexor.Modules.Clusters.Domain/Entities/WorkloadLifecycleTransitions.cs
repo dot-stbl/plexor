@@ -48,6 +48,7 @@ internal static class WorkloadLifecycleTransitions
         return (from, to) switch
         {
             (WorkloadLifecycleState.Pending, WorkloadLifecycleState.Provisioning) => true,
+            (WorkloadLifecycleState.Pending, WorkloadLifecycleState.Failed) => true,
             (WorkloadLifecycleState.Provisioning, WorkloadLifecycleState.Stopped) => true,
             (WorkloadLifecycleState.Provisioning, WorkloadLifecycleState.Failed) => true,
             (WorkloadLifecycleState.Stopped, WorkloadLifecycleState.Running) => true,

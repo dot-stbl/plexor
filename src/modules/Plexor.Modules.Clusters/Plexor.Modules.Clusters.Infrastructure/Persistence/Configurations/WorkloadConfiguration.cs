@@ -108,16 +108,20 @@ internal sealed class WorkloadConfiguration : IEntityTypeConfiguration<Workload>
         builder.Property(static workload => workload.LastReportedAt)
             .HasColumnName("last_reported_at");
 
-        // Lifecycle event trail — eager-loaded by the per-workload
-        // detail endpoint. FK declared explicitly (Workload doesn't
-        // expose Events as a navigation on the public API surface
-        // beyond the property itself, but EF needs the relationship
-        // declared so it can emit the FK + cascade). Cascade delete
-        // keeps the audit trail with the workload row.
-        builder.HasMany(static workload => workload.Events)
-            .WithOne()
-            .HasForeignKey(static evt => evt.WorkloadId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // The Events collection is intentionally NOT configured as a
+        // navigation here — the InMemory provider has inconsistent
+        // collection-navigation tracking after the parent row is
+        // already tracked, and the handlers explicitly AddAsync each
+        // new event to the WorkloadLifecycleEvents DbSet. The
+        // aggregate's Mark* methods still populate the in-memory
+        // _events list so the entity's public Events property stays
+        // a coherent view of the row's transitions (used by tests
+        // and by any future read that opts into Include). The
+        // WorkloadLifecycleEvent entity itself is configured in
+        // WorkloadLifecycleEventConfiguration — its WorkloadId
+        // column matches forge.workloads.id with the same
+        // varchar(64) converter, so cascade-delete semantics still
+        // apply via the FK relationship declared there.
 
         builder.Property(static creation => creation.CreatedAt)
             .HasColumnName("created_at")
