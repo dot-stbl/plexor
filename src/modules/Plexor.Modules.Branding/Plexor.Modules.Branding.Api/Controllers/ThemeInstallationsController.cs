@@ -31,6 +31,7 @@ using Plexor.Modules.Branding.Application.Branding;
 using Plexor.Modules.Branding.Infrastructure.Branding;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
+using Plexor.Shared.Kernel.Audit;
 using Plexor.Shared.Kernel.Branding;
 using Plexor.Shared.Kernel.Identity;
 
@@ -71,6 +72,13 @@ file static class ThemeInstallationRouteNames
 /// the host doesn't have to trust a client-supplied id.</param>
 /// <param name="currentUser">Scoped <see cref="ICurrentUser" />
 /// — supplies the caller's <c>TenantId</c> + <c>UserId</c>.</param>
+/// <param name="auditEmitter">
+///     Scoped <see cref="IAuditEmitter" /> — emits the
+///     <c>theme_installed.activated</c> / <c>deactivated</c>
+///     audit events on every successful PUT / DELETE
+///     (Phase 5+). Fire-and-forget: an emit failure is logged
+///     at critical level inside the emitter and never breaks
+///     the user request.</param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/branding/theme")]
 [Tags(["branding"])]
@@ -78,7 +86,8 @@ file static class ThemeInstallationRouteNames
 public sealed class ThemeInstallationsController(
     IThemeInstallationService service,
     CommunityThemeRegistry registry,
-    ICurrentUser currentUser) : ControllerBase
+    ICurrentUser currentUser,
+    IAuditEmitter auditEmitter) : ControllerBase
 {
     /// <summary>
     ///     <c>GET /api/v1/branding/theme</c> — read the per-org
@@ -151,6 +160,16 @@ public sealed class ThemeInstallationsController(
                 request.ThemeId,
                 currentUser.UserId,
                 cancellationToken);
+
+            // Phase 5+ — emit theme_installed.activated so the
+            // admin audit log captures every activation per-org.
+            // Fire-and-forget: EmitAsync never throws.
+            await ThemeInstallationsControllerHelpers.EmitThemeActivatedAsync(
+                auditEmitter,
+                row,
+                currentUser.UserId,
+                cancellationToken);
+
             return Ok(ThemeInstallationsControllerHelpers.ToResponse(row, registry));
         }
         catch (UnknownThemeException ex)
@@ -176,7 +195,28 @@ public sealed class ThemeInstallationsController(
     {
         var orgId = currentUser.TenantId;
 
-        await service.DeleteAsync(orgId, cancellationToken);
+        // Capture the theme id BEFORE the delete — the service's
+        // DeleteAsync only returns a boolean. We need the id for
+        // the audit payload so the admin timeline can render
+        // "deactivated X". A no-op delete (no row present) is
+        // idempotent and does NOT emit — the audit trail records
+        // successful deactivations, not call attempts.
+        var existing = await service.GetForOrgAsync(orgId, cancellationToken);
+
+        var removed = await service.DeleteAsync(orgId, cancellationToken);
+        if (removed && existing is not null)
+        {
+            // Phase 5+ — emit theme_installed.deactivated so the
+            // admin audit log captures every deactivation per-org.
+            // Fire-and-forget: EmitAsync never throws.
+            await ThemeInstallationsControllerHelpers.EmitThemeDeactivatedAsync(
+                auditEmitter,
+                orgId,
+                existing.ThemeId,
+                currentUser.UserId,
+                cancellationToken);
+        }
+
         return NoContent();
     }
 }
