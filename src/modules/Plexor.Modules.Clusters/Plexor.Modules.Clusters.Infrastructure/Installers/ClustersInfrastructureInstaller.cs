@@ -18,10 +18,12 @@ using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
+using Plexor.Modules.Clusters.Infrastructure.Compute;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Contracts.Pagination;
 using Plexor.Shared.Filtering.Registry;
+using Plexor.Shared.Kernel.Compute;
 using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Installers;
@@ -81,6 +83,13 @@ public static class ClustersInfrastructureInstaller
         // NSubstitute mocks.
         services.AddSingleton<IClusterMapper, ClusterMapper>();
         services.AddSingleton<IWorkloadMapper, WorkloadMapper>();
+
+        // Compute provider seam — NoOp is the v1 default until a
+        // real provider (libvirt / k3s / docker-compose) lands as
+        // a separate module. Singleton — providers are
+        // stateless / thread-safe by contract; the implementation
+        // owns no per-workload mutable state.
+        services.AddSingleton<IComputeProvider, NoOpComputeProvider>();
 
         // Per-entity filter fields — repository reflection-builds the
         // schema once and caches. Singleton = built once, immutable.
