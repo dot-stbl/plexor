@@ -99,6 +99,8 @@
     "adminCaption": "Operator-only controls",
     "brandingTitle": "Branding",
     "brandingDesc": "Theme + brand surface",
+    "themeMarketplaceTitle": "Theme Marketplace",
+    "themeMarketplaceDesc": "Browse + activate community themes",
     "auditTitle": "Audit log",
     "auditDesc": "Tenant-scoped audit timeline + retention"
   },
@@ -835,6 +837,19 @@
       "error": {
         "fetch": "Failed to load the audit log."
       }
+    },
+    "themeMarketplace": {
+      "title": "Theme Marketplace",
+      "description": "Browse community themes and activate one for this browser. Durability across devices and per-org persistence land in Phase 5+.",
+      "community": "Community",
+      "builtIn": "Built-in",
+      "activeTheme": "Active",
+      "activate": "Activate",
+      "author": "Author",
+      "version": "Version",
+      "empty": "No community themes are registered for this build.",
+      "loadError": "Failed to load the theme marketplace.",
+      "brandingHint": "for operator-level defaults (logo, accent, favicon) that affect every user."
     }
   }
 }
