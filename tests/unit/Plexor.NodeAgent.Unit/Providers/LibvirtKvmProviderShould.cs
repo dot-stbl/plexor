@@ -127,6 +127,24 @@ public sealed class LibvirtKvmProviderShould
         list.ShouldBeEmpty();
     }
 
+    [Fact(DisplayName = "Given an unknown workload id, when ReadSerialConsoleAsync, then throws InvalidOperationException (virsh missing on Windows is the same path)")]
+    public async Task ReadSerialConsoleAsyncThrowsOnUnknownIdAsync()
+    {
+        var (sut, _, _, _) = NewProvider(out _);
+
+        // Two failure paths surface here: 1) unknown id (always)
+        // and 2) virsh missing (only on Windows / hosts without
+        // virsh). Both are observable as InvalidOperationException
+        // via the enumeration's MoveNextAsync.
+        await Should.ThrowAsync<InvalidOperationException>(async () =>
+        {
+            await foreach (var _ in sut.ReadSerialConsoleAsync(Guid.NewGuid(), CancellationToken.None))
+            {
+                // never reached
+            }
+        });
+    }
+
     private static (LibvirtKvmProvider Sut, IVolumeBackend Volumes, INetworkBackend Networks, TimeProvider Clock) NewProvider(
         out List<VolumeSpec> volumeCalls)
     {

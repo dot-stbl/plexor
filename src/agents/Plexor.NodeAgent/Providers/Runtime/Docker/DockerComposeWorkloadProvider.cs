@@ -244,4 +244,17 @@ public sealed class DockerComposeWorkloadProvider(
         return Task.FromResult(snapshot);
     }
 
+    /// <summary>
+    ///     Docker Compose workloads don't expose a libvirt-style
+    ///     serial console. Callers should fetch logs via
+    ///     <c>docker logs</c> instead — out of scope for v0.1.
+    /// </summary>
+    public IAsyncEnumerable<string> ReadSerialConsoleAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        throw new NotSupportedException(
+            $"DockerComposeWorkloadProvider: serial console is not supported for kind '{Kind.Name}'. Use 'docker logs' instead.");
+    }
+
 }

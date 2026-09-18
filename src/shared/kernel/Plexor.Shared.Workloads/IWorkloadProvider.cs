@@ -68,4 +68,30 @@ public interface IWorkloadProvider
     /// </summary>
     /// <param name="cancellationToken"></param>
     public Task<IReadOnlyList<LocalWorkload>> ListAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     Stream the workload's serial console output line by
+    ///     line. The returned sequence completes when the
+    ///     underlying transport closes (e.g. <c>virsh console</c>
+    ///     exits because the VM shut down or the operator
+    ///     disconnected) or when <paramref name="cancellationToken" />
+    ///     fires — whichever comes first.
+    /// </summary>
+    /// <remarks>
+    ///     Providers without a serial console (k3s, docker-compose)
+    ///     throw <see cref="NotSupportedException" /> — callers
+    ///     should check <c>Kind</c> first. v0.1 only the libvirt
+    ///     providers implement this; runtime providers emit a
+    ///     stub failure so callers can branch on it.
+    /// </remarks>
+    /// <param name="id">Workload id (the agent's local Guid, not the libvirt domain name).</param>
+    /// <param name="cancellationToken">
+    ///     Cooperative cancellation. Cancelling the token kills
+    ///     the underlying transport process; the sequence ends
+    ///     with <see cref="OperationCanceledException" /> on the
+    ///     next yield.
+    /// </param>
+    public IAsyncEnumerable<string> ReadSerialConsoleAsync(
+        Guid id,
+        CancellationToken cancellationToken);
 }

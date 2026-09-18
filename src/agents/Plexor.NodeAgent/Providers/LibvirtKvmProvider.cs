@@ -27,6 +27,7 @@
 
 using Plexor.NodeAgent.Providers.Common;
 using Plexor.NodeAgent.Providers.Image.CloudInit;
+using Plexor.NodeAgent.Providers.Serial;
 using Plexor.Shared.Compute;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
@@ -265,6 +266,18 @@ public sealed class LibvirtKvmProvider(
     {
         return Task.FromResult<IReadOnlyList<LocalWorkload>>(
             workloads.Snapshot());
+    }
+
+    /// <inheritdoc />
+    public IAsyncEnumerable<string> ReadSerialConsoleAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var entry = workloads.GetOrThrow(id);
+        return LibvirtSerialConsoleReader.StreamAsync(
+            LibvirtUri,
+            entry,
+            cancellationToken);
     }
 
     /// <summary>
