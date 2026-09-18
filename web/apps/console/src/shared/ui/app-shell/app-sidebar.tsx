@@ -103,14 +103,11 @@ export function AppSidebar() {
                 </span>
                 <span className="flex items-center gap-1 font-mono text-[10px] leading-tight text-muted-foreground/70">
                   by
-                  <svg
-                    viewBox="0 0 64 64"
-                    className="inline-block size-2.5"
-                    aria-hidden="true"
-                  >
-                    <rect width="64" height="64" className="fill-foreground" />
-                    <rect x="16" y="16" width="32" height="32" className="fill-background" />
-                  </svg>
+                  <img
+                    src="https://raw.githubusercontent.com/dot-stbl/.github/main/assets/logo.svg"
+                    alt=""
+                    className="inline-block h-2.5 w-auto"
+                  />
                   stbl
                 </span>
               </div>
