@@ -5,10 +5,11 @@
 // that the API layer depends on (not on the DbContext directly).
 //
 // Lifetime: Scoped — shares the per-request DbContext with the controller
-// the action handler wraps. The CreateVolume handler does NOT call
-// IQuotaEnforcer in v0.1 — the API-layer validation guards size + name +
-// cluster; the quota path is wired in a follow-up when the resource-create
-// handler lands in the Storage.Application layer (4.5.c/d follow-up).
+// the action handler wraps. Quota enforcement lives in the service
+// implementation (4.5.c/d): <c>CreateAsync</c> reserves
+// <c>storage.volumes.count</c> + <c>storage.volumes.gb</c> at create
+// time; <c>UpdateSizeAsync</c> reserves the growth delta against
+// <c>storage.volumes.gb</c> on resize.
 // ============================================================================
 
 using Plexor.Modules.Storage.Domain.Entities;
@@ -60,10 +61,13 @@ public interface IVolumeService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    ///     Resize an existing volume. The caller (the API layer)
-    ///     is responsible for enforcing the <c>storage.volumes.gb</c>
-    ///     quota delta — this method only writes the new SizeGb +
-    ///     bumps UpdatedAt.
+    ///     Resize an existing volume. Enforces the
+    ///     <c>storage.volumes.gb</c> quota delta against the caller's
+    ///     org scope — a grow beyond the effective limit throws
+    ///     <see cref="Plexor.Shared.Kernel.Quotas.QuotaExceededException" />
+    ///     (the global error handler maps it to 429). Shrinking or
+    ///     no-change resizes skip the enforcer entirely (a negative or
+    ///     zero delta never fails on a capacity quota).
     /// </summary>
     /// <param name="volumeId">Volume id.</param>
     /// <param name="orgId">Tenant scope.</param>
