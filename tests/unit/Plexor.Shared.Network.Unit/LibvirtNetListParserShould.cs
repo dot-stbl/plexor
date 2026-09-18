@@ -6,7 +6,6 @@
 // in the integration test suite.
 // ==========================================================================
 
-using Plexor.Shared.Network;
 using Shouldly;
 using Xunit;
 

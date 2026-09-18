@@ -31,7 +31,6 @@ using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Application.CreateVm;
 using Plexor.Modules.Clusters.Application.Flavors;
 using Plexor.Modules.Clusters.Application.Images;
-using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
@@ -73,16 +72,11 @@ public sealed class CreateVmHandler(
         }
 
         // 1. Resolve Flavor (default = first catalog entry).
-        var flavor = CreateVmHandlerHelpers.ResolveFlavor(flavorCatalog, command.FlavorName);
-
-        if (flavor is null)
-        {
-            throw new ClustersException(
+        var flavor = CreateVmHandlerHelpers.ResolveFlavor(flavorCatalog, command.FlavorName) ?? throw new ClustersException(
                 ClustersExceptions.InvalidWorkloadSpec,
                 command.FlavorName is null
                     ? "Flavor catalog is empty; cannot provision a VM without a flavor seed."
                     : $"Unknown flavor '{command.FlavorName}'.");
-        }
 
         // 2. Resolve Image — three-way override order:
         //    a) ImageName provided → catalog lookup
@@ -170,7 +164,7 @@ public sealed class CreateVmHandler(
             Name = command.Name,
             Kind = "vm",
             SpecJson = resolvedJson,
-            State = Plexor.Shared.Workloads.WorkloadState.Provisioning,
+            State = Shared.Workloads.WorkloadState.Provisioning,
             LastMessage = null,
             LastReportedAt = null,
             CreatedAt = now,
@@ -237,6 +231,8 @@ file static class CreateVmHandlerHelpers
     ///     to the catalog's first entry when no name was supplied.
     ///     Pure function — no DI, no I/O.
     /// </summary>
+    /// <param name="catalog"></param>
+    /// <param name="requestedName"></param>
     public static Flavor? ResolveFlavor(IFlavorCatalog catalog, string? requestedName)
     {
         if (requestedName is not null)

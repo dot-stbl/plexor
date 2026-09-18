@@ -9,7 +9,6 @@
 // ==========================================================================
 
 using Microsoft.Extensions.Logging.Abstractions;
-using Plexor.Shared.Network;
 using Shouldly;
 using Xunit;
 

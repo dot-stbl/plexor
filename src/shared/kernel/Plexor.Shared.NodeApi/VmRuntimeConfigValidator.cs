@@ -28,7 +28,7 @@ namespace Plexor.Shared.NodeApi;
 ///     state; tests construct no object, they just call
 ///     <see cref="Validate" />.
 /// </summary>
-public static class VmRuntimeConfigValidator
+public static partial class VmRuntimeConfigValidator
 {
     /// <summary>Minimum vCPU count (inclusive).</summary>
     public const int MinVcpu = 1;
@@ -54,9 +54,7 @@ public static class VmRuntimeConfigValidator
     ///     for our use (we don't allow dots because libvirt's default
     ///     'default' is fine and we never need FQDN-shaped names).
     /// </summary>
-    private static readonly Regex NetworkNamePattern = new(
-        "^[a-zA-Z0-9_-]{1,16}$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex NetworkNamePattern = MyRegex();
 
     /// <summary>
     ///     Run every rule against <paramref name="config" /> and
@@ -112,4 +110,7 @@ public static class VmRuntimeConfigValidator
             IsValid: errors.Count == 0,
             Errors: errors);
     }
+
+    [GeneratedRegex("^[a-zA-Z0-9_-]{1,16}$", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    private static partial Regex MyRegex();
 }

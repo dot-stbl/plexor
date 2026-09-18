@@ -45,7 +45,7 @@ public sealed class LibvirtNetworkProvider(
     [ExcludeFromCodeCoverage] // requires a Linux host with libvirt; coverage via integration suite
     public async Task<IReadOnlyList<string>> ListNetworksAsync(CancellationToken cancellationToken = default)
     {
-        EnsureLinuxHost();
+        LibvirtNetworkProviderHelpers.EnsureLinuxHost();
 
         var stdout = await LibvirtRunner.RunAsync(libvirtUri, "net-list --all", cancellationToken);
         var names = LibvirtNetListParser.ParseNames(stdout);
@@ -62,7 +62,7 @@ public sealed class LibvirtNetworkProvider(
     [ExcludeFromCodeCoverage] // requires a Linux host with libvirt; coverage via integration suite
     public async Task<string?> ResolveBridgeNameAsync(CancellationToken cancellationToken = default)
     {
-        EnsureLinuxHost();
+        LibvirtNetworkProviderHelpers.EnsureLinuxHost();
 
         var names = await ListNetworksAsync(cancellationToken);
         if (names.Count == 0)
@@ -95,7 +95,7 @@ public sealed class LibvirtNetworkProvider(
         string dhcpRange,
         CancellationToken cancellationToken = default)
     {
-        EnsureLinuxHost();
+        LibvirtNetworkProviderHelpers.EnsureLinuxHost();
 
         // Idempotent: if the network already exists, do nothing.
         // The existing definition might have a different shape
@@ -144,14 +144,26 @@ public sealed class LibvirtNetworkProvider(
 
         return true;
     }
+}
 
+/// <summary>
+///     Pure-function helpers for <see cref="LibvirtNetworkProvider" />.
+///     File-scoped per the class-decomposition rule (no
+///     <c>private static</c> on production classes — pure logic
+///     lives in a <c>file static class</c> next to the consumer).
+/// </summary>
+file static class LibvirtNetworkProviderHelpers
+{
     /// <summary>
     ///     Throws <see cref="PlatformNotSupportedException" /> on
     ///     non-Linux hosts. Called at the entry point of every
     ///     method that shells out so callers fail fast on Windows
     ///     CI before the OS-specific Process.Start blows up.
     /// </summary>
-    private static void EnsureLinuxHost()
+    /// <exception cref="PlatformNotSupportedException">
+    ///     Thrown when the runtime OS is not Linux.
+    /// </exception>
+    public static void EnsureLinuxHost()
     {
         if (!OperatingSystem.IsLinux())
         {

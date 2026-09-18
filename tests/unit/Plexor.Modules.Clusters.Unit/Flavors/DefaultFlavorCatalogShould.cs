@@ -5,7 +5,6 @@
 // ==========================================================================
 
 using Plexor.Modules.Clusters.Application.Flavors;
-using Plexor.Shared.NodeApi;
 using Shouldly;
 using Xunit;
 
@@ -21,7 +20,7 @@ public sealed class DefaultFlavorCatalogShould
         var flavors = sut.List();
 
         flavors.Count.ShouldBe(3);
-        flavors.Select(flavor => flavor.Name)
+        flavors.Select(static flavor => flavor.Name)
                .ShouldBe(["small", "medium", "large"], ignoreOrder: false);
     }
 
@@ -66,7 +65,7 @@ public sealed class DefaultFlavorCatalogShould
 
         var flavors = sut.List();
 
-        flavors.ShouldAllBe(flavor => flavor.Default.ImageRef == "ubuntu-22.04-cloud");
+        flavors.ShouldAllBe(static flavor => flavor.Default.ImageRef == "ubuntu-22.04-cloud");
     }
 
     [Fact(DisplayName = "Given two calls to List, when compared, then return the same singleton array")]

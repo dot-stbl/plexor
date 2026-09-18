@@ -45,7 +45,7 @@ public sealed class DefaultImageCatalog : IImageCatalog
         var filtered = new List<ImageRef>(Images.Count);
         foreach (var image in Images)
         {
-            if (TagsContainAll(image.Tags, tags))
+            if (DefaultImageCatalogHelpers.TagsContainAll(image.Tags, tags))
             {
                 filtered.Add(image);
             }
@@ -67,14 +67,25 @@ public sealed class DefaultImageCatalog : IImageCatalog
 
         return null;
     }
+}
 
+/// <summary>
+///     Pure-function helpers for <see cref="DefaultImageCatalog" />.
+///     File-scoped per the class-decomposition rule (no
+///     <c>private static</c> on production classes — pure logic
+///     lives in a <c>file static class</c> next to the consumer).
+/// </summary>
+file static class DefaultImageCatalogHelpers
+{
     /// <summary>
     ///     True when <paramref name="imageTags" /> contains every
     ///     tag in <paramref name="filter" /> (logical AND). Used by
-    ///     <see cref="List" /> to intersect the catalog with the
-    ///     caller's filter.
+    ///     <see cref="DefaultImageCatalog.List" /> to intersect the
+    ///     catalog with the caller's filter.
     /// </summary>
-    private static bool TagsContainAll(IReadOnlyList<string> imageTags, IReadOnlyList<string> filter)
+    /// <param name="imageTags">Tags carried by the image entry.</param>
+    /// <param name="filter">Tags the caller asked for (null/empty = no filter).</param>
+    public static bool TagsContainAll(IReadOnlyList<string> imageTags, IReadOnlyList<string> filter)
     {
         foreach (var required in filter)
         {

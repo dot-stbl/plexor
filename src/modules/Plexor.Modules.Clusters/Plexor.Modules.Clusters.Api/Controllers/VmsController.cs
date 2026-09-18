@@ -15,10 +15,8 @@ using Plexor.Modules.Clusters.Api.Models;
 using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Application.Authorization;
 using Plexor.Modules.Clusters.Application.CreateVm;
-using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
-using Plexor.Shared.Identifiers;
 using Plexor.Shared.NodeApi;
 
 namespace Plexor.Modules.Clusters.Api.Controllers;

@@ -5,7 +5,6 @@
 // real virsh invocation is covered by the integration suite.
 // ==========================================================================
 
-using Plexor.Shared.Network;
 using Shouldly;
 using Xunit;
 

@@ -9,7 +9,6 @@
 
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Application.CreateVm;
 using Plexor.Modules.Clusters.Application.Flavors;
 using Plexor.Modules.Clusters.Application.Images;
@@ -25,8 +24,6 @@ using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
 using Shouldly;
 using Xunit;
-
-using HandlerMarker = Plexor.Modules.Clusters.Application.Clusters.WorkloadActionResult;
 
 namespace Plexor.Modules.Clusters.Unit.CreateVm;
 
@@ -294,7 +291,7 @@ public sealed class CreateVmHandlerShould
         result.WorkloadId.Value.ShouldNotBe(Guid.Empty);
 
         var enqueued = await db.Commands.AsNoTracking()
-            .FirstOrDefaultAsync(c => c.NodeId.Value != Guid.Empty);
+            .FirstOrDefaultAsync(static c => c.NodeId.Value != Guid.Empty);
         enqueued.ShouldBeNull();
     }
 
@@ -365,8 +362,8 @@ file static class NodeRecordHelper
             ClusterId = new ClusterId(Guid.Empty),
             Hostname = $"node-{Guid.NewGuid():N}"[..14],
             IpAddress = "10.0.0.1",
-            Role = Plexor.Shared.Identifiers.NodeRole.Compute,
-            Status = Plexor.Modules.Outpost.Application.NodeStatus.Ready,
+            Role = NodeRole.Compute,
+            Status = Outpost.Application.NodeStatus.Ready,
             Spec = new Plexor.Modules.Outpost.Application.NodeSpec(
                 Vcpu: 16,
                 RamGb: 64,

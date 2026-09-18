@@ -89,7 +89,7 @@ public sealed class VmsControllerShould
 
         await createHandler.Received(1).HandleAsync(
             Arg.Is<CreateVmCommand>(
-                cmd => cmd.FlavorName == null && cmd.ImageName == null),
+                static cmd => cmd.FlavorName == null && cmd.ImageName == null),
             Arg.Any<CancellationToken>());
     }
 

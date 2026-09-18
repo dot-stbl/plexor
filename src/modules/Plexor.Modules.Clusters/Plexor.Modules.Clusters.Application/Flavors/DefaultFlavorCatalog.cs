@@ -31,8 +31,8 @@ public sealed class DefaultFlavorCatalog : IFlavorCatalog
     ///     request loop doesn't reallocate the array on every
     ///     <see cref="List" /> call.
     /// </summary>
-    private static readonly IReadOnlyList<Flavor> Flavors = new Flavor[]
-    {
+    private static readonly IReadOnlyList<Flavor> Flavors =
+    [
         new(
             Name: "small",
             Default: new VmRuntimeConfig(
@@ -57,7 +57,7 @@ public sealed class DefaultFlavorCatalog : IFlavorCatalog
                 DiskBytes: 80L * 1024 * 1024 * 1024,
                 ImageRef: "ubuntu-22.04-cloud",
                 NetworkName: null)),
-    };
+    ];
 
     /// <inheritdoc />
     public IReadOnlyList<Flavor> List()

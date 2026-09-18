@@ -25,7 +25,7 @@ public interface IImageCatalog
     /// <param name="tags">
     ///     Optional filter — null / empty = no filter. Otherwise
     ///     every returned image has every supplied tag.
-/// </param>
+    /// </param>
     public IReadOnlyList<ImageRef> List(IReadOnlyList<string>? tags = null);
 
     /// <summary>

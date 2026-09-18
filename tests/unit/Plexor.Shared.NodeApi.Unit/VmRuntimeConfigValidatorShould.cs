@@ -6,7 +6,6 @@
 // static Validate(...) entry point.
 // ==========================================================================
 
-using Plexor.Shared.NodeApi;
 using Shouldly;
 using Xunit;
 
@@ -92,7 +91,7 @@ public sealed class VmRuntimeConfigValidatorShould
         var result = VmRuntimeConfigValidator.Validate(config);
 
         result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.Contains("ImageRef"));
+        result.Errors.ShouldContain(static e => e.Contains("ImageRef"));
     }
 
     [Fact(DisplayName = "Given NetworkName with invalid chars, when Validate, then IsValid is false")]
@@ -103,7 +102,7 @@ public sealed class VmRuntimeConfigValidatorShould
         var result = VmRuntimeConfigValidator.Validate(config);
 
         result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.Contains("NetworkName"));
+        result.Errors.ShouldContain(static e => e.Contains("NetworkName"));
     }
 
     [Fact(DisplayName = "Given NetworkName longer than 16 chars, when Validate, then IsValid is false")]
@@ -114,7 +113,7 @@ public sealed class VmRuntimeConfigValidatorShould
         var result = VmRuntimeConfigValidator.Validate(config);
 
         result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(e => e.Contains("NetworkName"));
+        result.Errors.ShouldContain(static e => e.Contains("NetworkName"));
     }
 
     [Theory(DisplayName = "Given a valid NetworkName, when Validate, then IsValid is true")]
@@ -152,12 +151,12 @@ public sealed class VmRuntimeConfigValidatorShould
 
         result.IsValid.ShouldBeFalse();
         result.Errors.Count.ShouldBe(6);
-        result.Errors.ShouldContain(e => e.Contains("Vcpu"));
-        result.Errors.ShouldContain(e => e.Contains("RamBytes"));
-        result.Errors.ShouldContain(e => e.Contains("DiskBytes"));
-        result.Errors.ShouldContain(e => e.Contains("ImageRef"));
-        result.Errors.ShouldContain(e => e.Contains("NetworkName"));
-        result.Errors.ShouldContain(e => e.Contains("SshKeyFingerprint"));
+        result.Errors.ShouldContain(static e => e.Contains("Vcpu"));
+        result.Errors.ShouldContain(static e => e.Contains("RamBytes"));
+        result.Errors.ShouldContain(static e => e.Contains("DiskBytes"));
+        result.Errors.ShouldContain(static e => e.Contains("ImageRef"));
+        result.Errors.ShouldContain(static e => e.Contains("NetworkName"));
+        result.Errors.ShouldContain(static e => e.Contains("SshKeyFingerprint"));
     }
 
     private static VmRuntimeConfig NewValidConfig()
