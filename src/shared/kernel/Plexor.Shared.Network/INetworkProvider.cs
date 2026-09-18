@@ -50,4 +50,38 @@ public interface INetworkProvider
     /// </summary>
     /// <param name="cancellationToken">Forwarded to the virsh invocations.</param>
     public Task<string?> ResolveBridgeNameAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    ///     Define and start a private bridge on the node if one
+    ///     with <paramref name="name" /> doesn't already exist.
+    ///     Idempotent: an existing bridge of the same name is left
+    ///     alone (no re-define, no restart). The bridge gets a
+    ///     /24 subnet (<paramref name="subnet" />.0/24) with a
+    ///     DHCP range <paramref name="subnet" />.2..<paramref name="dhcpRange" />.254
+    ///     and libvirt's built-in dnsmasq serves DNS + DHCP.
+    /// </summary>
+    /// <param name="name">
+    ///     Network name (must match <c>^[a-zA-Z0-9_-]{1,16}$</c>;
+    ///     the underlying bridge device is named <c>virbr{name}</c>).
+    /// </param>
+    /// <param name="subnet">
+    ///     /24 prefix; only the first three octets are used
+    ///     (e.g. <c>"10.42.0"</c> → <c>10.42.0.0/24</c>).
+    /// </param>
+    /// <param name="dhcpRange">
+    ///     Third octet of the DHCP range's last address. With
+    ///     <paramref name="subnet" /> = <c>"10.42.0"</c> and
+    ///     <paramref name="dhcpRange" /> = <c>"10.42.0"</c>, the
+    ///     range is <c>10.42.0.2 .. 10.42.0.254</c>.
+    /// </param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>
+    ///     True when the network was newly defined; false when it
+    ///     already existed (idempotent path).
+    /// </returns>
+    public Task<bool> EnsurePrivateBridgeAsync(
+        string name,
+        string subnet,
+        string dhcpRange,
+        CancellationToken cancellationToken = default);
 }

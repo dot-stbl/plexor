@@ -87,6 +87,64 @@ public sealed class LibvirtNetworkProvider(
         return names[0];
     }
 
+    /// <inheritdoc />
+    [ExcludeFromCodeCoverage] // requires a Linux host with libvirt; coverage via integration suite
+    public async Task<bool> EnsurePrivateBridgeAsync(
+        string name,
+        string subnet,
+        string dhcpRange,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureLinuxHost();
+
+        // Idempotent: if the network already exists, do nothing.
+        // The existing definition might have a different shape
+        // than what we'd generate — that's the operator's choice,
+        // not ours to override.
+        var existing = await ListNetworksAsync(cancellationToken);
+        foreach (var candidate in existing)
+        {
+            if (string.Equals(candidate, name, StringComparison.Ordinal))
+            {
+                logger.LogInformation(
+                    "LibvirtNetworkProvider: network {Name} already defined on {Uri}; leaving untouched",
+                    name,
+                    libvirtUri);
+                return false;
+            }
+        }
+
+        // Network doesn't exist. Write the XML, then net-define +
+        // net-start + net-autostart. Each step is idempotent on
+        // its own (net-define errors if defined; net-start is a
+        // no-op when running; net-autostart is a no-op when
+        // already set), but running the whole sequence once is
+        // the contract.
+        var xml = LibvirtPrivateBridgeXml.BuildNetworkXml(name, subnet, dhcpRange);
+
+        await LibvirtRunner.RunAsync(
+            libvirtUri,
+            $"net-define {xml}",
+            cancellationToken);
+        await LibvirtRunner.RunAsync(
+            libvirtUri,
+            $"net-start {name}",
+            cancellationToken);
+        await LibvirtRunner.RunAsync(
+            libvirtUri,
+            $"net-autostart {name}",
+            cancellationToken);
+
+        logger.LogInformation(
+            "LibvirtNetworkProvider: defined + started + autostarted private bridge {Name} (subnet={Subnet}, dhcpRange={DhcpRange}) on {Uri}",
+            name,
+            subnet,
+            dhcpRange,
+            libvirtUri);
+
+        return true;
+    }
+
     /// <summary>
     ///     Throws <see cref="PlatformNotSupportedException" /> on
     ///     non-Linux hosts. Called at the entry point of every

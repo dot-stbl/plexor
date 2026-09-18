@@ -67,4 +67,18 @@ public sealed class LibvirtNetworkProviderShould
         // surface grows.
         sut.ShouldNotBeNull();
     }
+
+    [Fact(DisplayName = "Given a Windows host, when EnsurePrivateBridgeAsync, then throws PlatformNotSupportedException")]
+    public void EnsurePrivateBridgeAsyncThrowsOnNonLinux()
+    {
+        if (OperatingSystem.IsLinux())
+        {
+            return;
+        }
+
+        var sut = new LibvirtNetworkProvider(logger: NullLogger<LibvirtNetworkProvider>.Instance);
+
+        Should.ThrowAsync<PlatformNotSupportedException>(
+            () => sut.EnsurePrivateBridgeAsync("prod", "10.42.0", "10.42.0", CancellationToken.None));
+    }
 }
