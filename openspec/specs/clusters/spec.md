@@ -162,6 +162,306 @@ SHALL warn (log + audit event) but SHALL NOT reject — the
 operator may be mid-upgrade. Hard rejection is reserved for
 wire-format-breaking changes (Phase 7+).
 
+### Requirement: WorkloadLifecycleState state machine
+
+The system SHALL route every state transition on a `Workload`
+row through `WorkloadStateMachine`
+(`Plexor.Modules.Clusters.Application.Workloads.WorkloadStateMachine`).
+
+The state machine SHALL recognize five states:
+
+- `Pending` — workload created but not yet scheduled.
+- `Provisioning` — NodeAgent accepted the work; the runtime
+  is allocating.
+- `Running` — active on the runtime.
+- `Stopped` — stopped (preserved on disk).
+- `Failed` — provisioning or runtime error.
+
+The state machine SHALL enforce the transition graph:
+
+- `Pending` → `Provisioning` — operator Start.
+- `Pending` → `Failed` — operator delete (cancelled).
+- `Provisioning` → `Running` — NodeAgent reports success
+  (`LocalId` populated).
+- `Provisioning` → `Failed` — NodeAgent reports failure.
+- `Running` → `Stopped` — operator Stop.
+- `Running` → `Failed` — NodeAgent reports runtime error.
+- `Stopped` → `Pending` — operator Restart.
+
+A transition that is not in the graph SHALL be rejected
+with a stable error code
+(`compute.workload.invalid_transition`). The state machine
+is the **only** place `Workload.State` is mutated; direct
+assignments are a code-review reject.
+
+### Requirement: IComputeProvider seam
+
+The system SHALL expose `IComputeProvider`
+(`Plexor.Shared.Kernel.Compute.IComputeProvider`) with the
+following surface:
+
+```csharp
+public interface IComputeProvider
+{
+    string ProviderId { get; }
+    Task<ComputeWorkloadHandle> StartAsync(ComputeWorkloadSpec spec, CancellationToken ct);
+    Task StopAsync(ComputeWorkloadHandle handle, CancellationToken ct);
+    Task<ComputeWorkloadState> GetStateAsync(ComputeWorkloadHandle handle, CancellationToken ct);
+    Task DeleteAsync(ComputeWorkloadHandle handle, CancellationToken ct);
+}
+```
+
+The interface is the seam every compute backend
+implements. `ComputeWorkloadHandle` carries the
+provider-specific runtime handle (libvirt UUID, k3s pod
+name, or — for the NoOp provider — a synthetic GUID).
+
+`IComputeProvider` is owned by
+`Plexor.Shared.Kernel.Compute` so NodeAgent + the cluster
+module both depend on it.
+
+### Requirement: NoOpComputeProvider default
+
+The system SHALL ship `NoOpComputeProvider`
+(`Plexor.Shared.Kernel.Compute.NoOpComputeProvider`) as
+the v0.1 default implementation:
+
+- `ProviderId = "noop"`.
+- `StartAsync` mints a `ComputeWorkloadHandle` with
+  `LocalId = Guid.NewGuid()` and returns.
+- `StopAsync` and `DeleteAsync` are no-ops (return
+  `Task.CompletedTask`).
+- `GetStateAsync` always returns `Running`.
+
+The FE SHALL display a "no-op provider" badge next to
+workloads backed by `NoOpComputeProvider` so operators
+don't confuse "Running" with "actually exists".
+
+The NodeAgent registers `NoOpComputeProvider` as the
+default in v0.1. Real providers (libvirt, k3s) replace
+the registration via
+`services.AddSingleton<IComputeProvider, LibvirtComputeProvider>()`
+in `Plexor.NodeAgent/Program.cs`.
+
+### Requirement: ComputeWorkloadSpec vs Workload.SpecJson
+
+The NodeAgent SHALL parse the opaque `Workload.SpecJson`
+into a typed `ComputeWorkloadSpec`
+(`Plexor.Shared.Kernel.Compute.ComputeWorkloadSpec`)
+before forwarding to `IComputeProvider.StartAsync`.
+
+`ComputeWorkloadSpec` SHALL carry at minimum:
+
+- `Kind : string` — `vm` | `lxc` | `k8s.pod` | `container`.
+- `Image : string?` — image name (libvirt / QEMU volume
+  source).
+- `Cpu : int` — vCPU count.
+- `RamGb : int` — RAM in GiB.
+- `DiskGb : int` — root disk in GiB.
+- `ExtraJson : string?` — provider-specific extra config
+  (passed through unchanged).
+
+`Workload.SpecJson` remains the operator-facing surface;
+provider-specific extras live there for backends that
+need them (e.g. KVM's `<os><type arch="...">`, k3s's
+`resources.limits`).
+
+### Requirement: WorkloadStateChanged audit event
+
+The system SHALL publish a `WorkloadStateChanged` domain
+event on every successful transition. The audit module
+SHALL consume the event and write an
+`atlas.audit_entries` row:
+
+- `action = "workload.state.changed"`.
+- `target_type = "Workload"`.
+- `target_id = <workload id>`.
+- `payload_json = { "from": "<state>", "to": "<state>",
+  "actorUserId": "..." }`.
+
+A consumer who wants the full timeline for a workload
+queries
+`GET /api/v1/audit?actionPrefix=workload.state.*&targetId=X`.
+
+### Requirement: Start / Stop / Delete commands route through IComputeProvider
+
+The control plane SHALL route every
+`StartWorkloadCommand`, `StopWorkloadCommand`, and
+`DeleteWorkloadCommand` through `IComputeProvider`:
+
+- `StartWorkloadCommandHandler` →
+  `IComputeProvider.StartAsync(spec, ct)`. The returned
+  `ComputeWorkloadHandle.LocalId` is persisted on the
+  `Workload` row.
+- `StopWorkloadCommandHandler` →
+  `IComputeProvider.StopAsync(handle, ct)`. The state
+  transitions `Running` → `Stopped`.
+- `DeleteWorkloadCommandHandler` →
+  `IComputeProvider.DeleteAsync(handle, ct)`. The workload
+  row is deleted.
+
+The NodeAgent's command-dispatch pipeline
+(`/nodes/{id}/commands/poll`) SHALL poll the control
+plane, look up the workload's `LocalId`, and call the
+provider on the agent host.
+
+### Requirement: LibvirtComputeProvider
+
+The system SHALL ship `LibvirtComputeProvider`
+(`Plexor.NodeAgent.Compute.LibvirtComputeProvider`) as
+the libvirt implementation of `IComputeProvider`.
+
+`LibvirtComputeProvider` SHALL:
+
+- `ProviderId = "libvirt"`.
+- `StartAsync(spec, ct)` — build a `virt-install` command
+  line from `ComputeWorkloadSpec`
+  (`--name`, `--uuid`, `--vcpus`, `--ram`, `--disk size=`,
+  `--import`, `--os-variant`), run it via the shell
+  helper, and return a `ComputeWorkloadHandle` with
+  `LocalId = <libvirt-uuid>`. Timeout:
+  `LibvirtComputeOptions.StartTimeoutSeconds` (default
+  300, range 60–1800).
+- `StopAsync(handle, ct)` — `virsh shutdown <uuid>` with
+  grace-period fallback. After
+  `LibvirtComputeOptions.StopGracePeriodSeconds` (default
+  30, range 5–120), the provider falls back to
+  `virsh destroy <uuid>`.
+- `GetStateAsync(handle, ct)` — `virsh dominfo <uuid>`,
+  parses the `State:` line, maps to
+  `ComputeWorkloadState` (`running` / `shut off` /
+  `paused` / `crashed` / `pmsuspended`).
+- `DeleteAsync(handle, ct)` — `virsh undefine <uuid>
+  --nvram` (NVRAM cleanup for UEFI guests) + `virsh
+  vol-delete` for the backing storage if the volume was
+  provisioned by Plexor. A failed undefine is logged; the
+  workload row is deleted regardless (best-effort
+  cleanup).
+
+### Requirement: LibvirtShell helper
+
+The system SHALL ship `LibvirtShell`
+(`Plexor.NodeAgent.Compute.LibvirtShell`) — an
+`internal static class` that wraps every `virsh` /
+`virt-install` invocation:
+
+```csharp
+public static Task<LibvirtCommandResult> RunAsync(
+    string[] args, TimeSpan timeout, CancellationToken ct);
+```
+
+`LibvirtShell` SHALL:
+
+- Use `Process.Start` with `UseShellExecute = false` (per
+  `cross-platform.md` §8).
+- Kill the process tree on cancellation.
+- Surface full `stderr` on non-zero exit (no truncation).
+- Log every invocation at `LogLevel.Debug` with the full
+  arg list (no secrets — `virt-install` arguments don't
+  carry secrets).
+
+`LibvirtCommandResult` is a record
+`(ExitCode : int, Stdout : string, Stderr : string)`.
+
+### Requirement: LibvirtComputeOptions
+
+The system SHALL expose `LibvirtComputeOptions`
+(`Plexor.NodeAgent.Configuration.LibvirtComputeOptions`,
+`SectionName = "Clusters:Compute:Libvirt"`):
+
+- `LibvirtUri : string` (default `"qemu:///system"`).
+- `DefaultPool : string` (default `"default"`).
+- `BaseImageDir : string`
+  (default `"/var/lib/libvirt/images"`).
+- `StartTimeoutSeconds : int` (range 60–1800, default
+  300).
+- `StopGracePeriodSeconds : int` (range 5–120, default
+  30).
+
+`ComputeInstaller.AddComputeProvider` SHALL bind +
+validate the options with
+`ValidateDataAnnotations().ValidateOnStart()`. A missing
+or malformed section fails the NodeAgent boot, not the
+first workload start.
+
+### Requirement: Conditional DI registration
+
+The NodeAgent SHALL register `LibvirtComputeProvider` as
+the `IComputeProvider` implementation ONLY when the
+`[Clusters:Compute:Libvirt]` config section is present.
+Otherwise the `NoOpComputeProvider` default stays
+registered.
+
+The conditional registration lives in
+`Plexor.NodeAgent.Installers.ComputeInstaller.AddComputeProvider`:
+the installer reads the section via
+`config.GetSection(LibvirtComputeOptions.SectionName).Exists()`,
+branches, and registers the appropriate provider.
+
+### Requirement: Base image provisioner
+
+The system SHALL ship `BaseImageProvisioner`
+(`Plexor.NodeAgent.Compute.BaseImageProvisioner`) that
+ensures a libvirt volume exists for a given image
+reference:
+
+```csharp
+public Task<LocalImageHandle> EnsureBaseImageAsync(
+    string imageRef, CancellationToken ct);
+```
+
+The provisioner SHALL:
+
+1. Compute the SHA-256 of the published image.
+2. Check the local libvirt pool for a volume with the
+   matching checksum.
+3. On a hit, return the existing volume handle.
+4. On a miss, download the image from
+   `[Clusters:Compute:ImageRegistry]` via the default
+   `IHttpClientFactory` resilience pipeline, verify the
+   checksum, and create a libvirt volume from the file.
+5. Return the new volume handle.
+
+The first workload that references a new image pays the
+download cost; subsequent workloads reuse the volume.
+The download path uses `IHttpClientFactory` with a
+5-minute timeout. Authenticated pulls are Phase 5+.
+
+### Requirement: Graceful shutdown vs forced destroy
+
+The system SHALL prefer ACPI shutdown (`virsh shutdown`)
+to forced destroy (`virsh destroy`). The provider runs
+the ACPI shutdown first; if the guest is still running
+after `StopGracePeriodSeconds`, the provider invokes
+`virsh destroy` as a fallback.
+
+The grace period is configurable per-host via
+`LibvirtComputeOptions.StopGracePeriodSeconds`. An
+operator who knows their workload is ACPI-broken can
+shorten the grace (min 5s); an operator with
+slow-shutdown guests can extend it (max 120s). The
+default of 30s is the right balance for typical Linux
+guests.
+
+### Requirement: NVRAM cleanup for UEFI guests
+
+The system SHALL pass `--nvram` to `virsh undefine` so
+NVRAM storage is deleted alongside the domain definition.
+A failed undefine (e.g. NVRAM file locked by a stuck
+qemu) is logged at `LogLevel.Warning` and the workload
+row is deleted regardless (the libvirt domain is
+best-effort cleanup; the workload row is the source of
+truth).
+
+### Requirement: Workload.LocalId equals the libvirt UUID
+
+The system SHALL mint a UUID v7 in C# and pass it via
+`virt-install --uuid <UUID>`. The provider populates
+`Workload.LocalId` with the same UUID — Plexor's row and
+the libvirt domain are the same string, no translation
+table. `virsh domuuid <name>` returns the same value if
+verified post-create.
+
 ## Key Entities
 
 ### `Cluster`
