@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { GridView, Logout, Settings } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { Logout, Settings } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import {
   Sidebar,
   SidebarContent,
@@ -120,7 +120,11 @@ export function AppSidebar() {
           <SidebarMenu>
             <SidebarMenuItem className="group/menu-item relative">
               <SidebarMenuButton onClick={() => setLauncherOpen(true)} className="font-medium">
-                <GridView />
+                <img
+                  src="https://raw.githubusercontent.com/dot-stbl/.github/main/assets/logo.svg"
+                  alt=""
+                  className="size-4 shrink-0"
+                />
                 <span>{t('shell.applications')}</span>
               </SidebarMenuButton>
               <span aria-hidden="true" className={railPill}>
