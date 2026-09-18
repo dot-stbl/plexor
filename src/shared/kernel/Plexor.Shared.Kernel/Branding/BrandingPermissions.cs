@@ -49,4 +49,16 @@ public static class BrandingPermissions
     ///     <c>currentUser.OrgId</c>).
     /// </summary>
     public const string Update = "branding.update";
+
+    /// <summary>
+    ///     Install / reset the marketplace theme for the caller's
+    ///     own tenant
+    ///     (<c>PUT</c> + <c>DELETE /api/v1/branding/theme</c>).
+    ///     Distinct from <see cref="Update" /> because the
+    ///     marketplace endpoints take a signed manifest payload
+    ///     and persist a publisher identity — a future publisher
+    ///     flow may want to split the operator-level row from
+    ///     the marketplace row entirely.
+    /// </summary>
+    public const string ThemeUpdate = "branding.theme.update";
 }

@@ -33,12 +33,19 @@ public sealed class BrandingDbContext(DbContextOptions<BrandingDbContext> option
     /// per org with optional per-tenant overrides.</summary>
     public DbSet<OrgThemeConfig> OrgThemeConfig => Set<OrgThemeConfig>();
 
+    /// <summary>ThemeInstallation (branding.theme_installations) —
+    /// one row per org recording the marketplace theme the
+    /// operator has activated. Distinct from OrgThemeConfig because
+    /// it carries the publisher-signed manifest + signature.</summary>
+    public DbSet<ThemeInstallation> ThemeInstallations => Set<ThemeInstallation>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(DatabaseInformation.Schemes.Branding)
             .ApplyConfiguration(new GlobalThemeConfigConfiguration())
-            .ApplyConfiguration(new OrgThemeConfigConfiguration());
+            .ApplyConfiguration(new OrgThemeConfigConfiguration())
+            .ApplyConfiguration(new ThemeInstallationConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

@@ -37,5 +37,12 @@ public static class DatabaseInformation
         /// (<c>branding.org_theme_config</c>) — one row per
         /// <c>realm.organizations.id</c>.</summary>
         public const string OrgThemeConfig = "org_theme_config";
+
+        /// <summary>Theme-marketplace installation rows
+        /// (<c>branding.theme_installations</c>) — one row per
+        /// <c>realm.organizations.id</c>. UNIQUE on <c>org_id</c>;
+        /// the marketplace PUT endpoint upserts, the DELETE
+        /// endpoint removes (caller reverts to operator defaults).</summary>
+        public const string ThemeInstallations = "theme_installations";
     }
 }

@@ -165,6 +165,9 @@ builder.Services
         // BrandingController (GET /api/v1/branding/*) lives in the
         // Branding.Api assembly; AddApplicationPart makes it
         // discoverable alongside the Quotas controllers above.
+        // ThemeInstallationsController (GET/PUT/DELETE
+        // /api/v1/branding/theme) lives in the same assembly and is
+        // picked up by the same AddApplicationPart call.
         .AddApplicationPart(typeof(Plexor.Modules.Branding.Api.Controllers.BrandingController).Assembly);
 
 // Persistence — single shared NpgsqlDataSource + schema-per-module DbContexts.

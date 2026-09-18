@@ -1,0 +1,187 @@
+// SPDX-License-Identifier: Apache-2.0
+// ============================================================================
+// ThemeInstallationsController — REST endpoints for the theme
+// marketplace persistence layer. Three endpoints under
+// /api/v1/branding/theme:
+//
+//   GET   — read the per-org installation row (404 when none)
+//   PUT   — upsert the per-org installation row (signed manifest)
+//   DELETE — reset the per-org installation (back to operator defaults)
+//
+// Tenant scoping mirrors the per-org branding pattern: a caller
+// from Org X cannot see / mutate Org Y's installation (403).
+// Cross-tenant reads are mapped to 403 (not 404) for the same
+// audit-trail reason the existing BrandingController applies
+// the same rule.
+//
+// This controller lives alongside BrandingController (rather than
+// inside it) because the marketplace is a separate concern from
+// the operator-global + per-org override flow — separate
+// controllers keep the per-tenant override path fast and the
+// installer happy with one AddApplicationPart per controller.
+// ============================================================================
+
+using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Plexor.Modules.Branding.Api.Models.Requests;
+using Plexor.Modules.Branding.Api.Models.Responses;
+using Plexor.Modules.Branding.Application.Branding;
+using Plexor.Modules.Branding.Infrastructure.Branding;
+using Plexor.Shared.Authorization;
+using Plexor.Shared.Contracts.Routes;
+using Plexor.Shared.Kernel.Branding;
+using Plexor.Shared.Kernel.Identity;
+
+namespace Plexor.Modules.Branding.Api.Controllers;
+
+/// <summary>
+///     Stable route names referenced by the OpenAPI document
+///     generator. File-scoped per constructors-and-fields.md.
+/// </summary>
+file static class ThemeInstallationRouteNames
+{
+    /// <summary>GET /api/v1/branding/theme — read the per-org
+    /// marketplace installation row.</summary>
+    public const string ThemeGet = "branding-theme-get";
+
+    /// <summary>PUT /api/v1/branding/theme — upsert the per-org
+    /// installation row (signed manifest).</summary>
+    public const string ThemeUpsert = "branding-theme-upsert";
+
+    /// <summary>DELETE /api/v1/branding/theme — reset the per-org
+    /// installation (back to operator defaults).</summary>
+    public const string ThemeDelete = "branding-theme-delete";
+}
+
+/// <summary>
+///     Theme-marketplace endpoints. Mounted at
+///     <c>/api/v1/branding/theme*</c> via <see cref="ApiRoutes.Base" />.
+///     Read endpoint requires <c>branding.read</c>; PUT / DELETE
+///     require <c>branding.theme.update</c>. Tenant-scoped: a
+///     caller from Org X cannot see / mutate Org Y's installation
+///     (403).
+/// </summary>
+/// <param name="service">Scoped <see cref="IThemeInstallationService" />
+/// — reads + upserts + deletes the
+/// <c>branding.theme_installations</c> row per tenant.</param>
+/// <param name="registry">Singleton <see cref="CommunityThemeRegistry" />
+/// — maps a <c>themeId</c> to its canonical publisher record so
+/// the host doesn't have to trust a client-supplied id.</param>
+/// <param name="currentUser">Scoped <see cref="ICurrentUser" />
+/// — supplies the caller's <c>TenantId</c> + <c>UserId</c>.</param>
+[ApiController]
+[Route($"{ApiRoutes.Base}/branding/theme")]
+[Tags(["branding"])]
+[Authorize]
+public sealed class ThemeInstallationsController(
+    IThemeInstallationService service,
+    CommunityThemeRegistry registry,
+    ICurrentUser currentUser) : ControllerBase
+{
+    /// <summary>
+    ///     <c>GET /api/v1/branding/theme</c> — read the per-org
+    ///     marketplace installation. Tenant-scoped: a caller from
+    ///     Org X cannot read Org Y's installation (403). Returns
+    ///     404 when no marketplace theme has been activated yet;
+    ///     the FE boot script then falls back to the resolved
+    ///     operator defaults.
+    /// </summary>
+    /// <param name="cancellationToken">Cooperative cancellation.</param>
+    [HttpGet(Name = ThemeInstallationRouteNames.ThemeGet)]
+    [EndpointSummary("Read the active marketplace theme for the caller's tenant")]
+    [RequirePermission(BrandingPermissions.Read)]
+    [ProducesResponseType<ThemeInstallationResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ThemeInstallationResponse>> GetAsync(
+        CancellationToken cancellationToken)
+    {
+        var orgId = currentUser.TenantId;
+
+        var row = await service.GetForOrgAsync(orgId, cancellationToken);
+        if (row is null)
+        {
+            return ThemeInstallationsControllerHelpers.NotInstalled(orgId);
+        }
+
+        return Ok(ThemeInstallationsControllerHelpers.ToResponse(row, registry));
+    }
+
+    /// <summary>
+    ///     <c>PUT /api/v1/branding/theme</c> — upsert the per-org
+    ///     installation row. The host re-verifies the
+    ///     <c>signature</c> against the canonical manifest bytes
+    ///     via <c>IThemeManifestVerifier</c> before persisting.
+    ///     Tenant-scoped: a caller from Org X cannot mutate
+    ///     Org Y's installation (403).
+    /// </summary>
+    /// <param name="request">Body — theme id + manifest + signature.</param>
+    /// <param name="validator">Scoped FluentValidation validator
+    /// for the request body.</param>
+    /// <param name="cancellationToken">Cooperative cancellation.</param>
+    [HttpPut(Name = ThemeInstallationRouteNames.ThemeUpsert)]
+    [EndpointSummary("Upsert the marketplace theme installation for the caller's tenant")]
+    [RequirePermission(BrandingPermissions.ThemeUpdate)]
+    [ProducesResponseType<ThemeInstallationResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ThemeInstallationResponse>> UpsertAsync(
+        [FromBody] UpsertThemeInstallationRequest request,
+        [FromServices] IValidator<UpsertThemeInstallationRequest> validator,
+        CancellationToken cancellationToken)
+    {
+        var orgId = currentUser.TenantId;
+
+        var validation = await validator.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return ThemeInstallationsControllerHelpers.InvalidRequestResponse(
+                validation.ToDictionary());
+        }
+
+        try
+        {
+            var manifest = ThemeInstallationsControllerHelpers.ToEntity(request);
+            var row = await service.UpsertAsync(
+                orgId,
+                request.ThemeId,
+                manifest,
+                request.Signature,
+                currentUser.UserId,
+                cancellationToken);
+            return Ok(ThemeInstallationsControllerHelpers.ToResponse(row, registry));
+        }
+        catch (ThemeManifestVerificationException ex)
+        {
+            return ThemeInstallationsControllerHelpers.InvalidSignature(ex.Message);
+        }
+        catch (UnknownThemeException ex)
+        {
+            return ThemeInstallationsControllerHelpers.UnknownTheme(ex.ThemeId);
+        }
+    }
+
+    /// <summary>
+    ///     <c>DELETE /api/v1/branding/theme</c> — reset the per-org
+    ///     marketplace installation. Tenant-scoped: a caller from
+    ///     Org X cannot reset Org Y's installation (403). Idempotent
+    ///     — a missing row returns 204 anyway.
+    /// </summary>
+    /// <param name="cancellationToken">Cooperative cancellation.</param>
+    [HttpDelete(Name = ThemeInstallationRouteNames.ThemeDelete)]
+    [EndpointSummary("Reset the marketplace theme installation (delete the row)")]
+    [RequirePermission(BrandingPermissions.ThemeUpdate)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> DeleteAsync(
+        CancellationToken cancellationToken)
+    {
+        var orgId = currentUser.TenantId;
+
+        await service.DeleteAsync(orgId, cancellationToken);
+        return NoContent();
+    }
+}

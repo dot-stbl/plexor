@@ -15,9 +15,11 @@ namespace Plexor.Modules.Branding.Api.Installers;
 /// <summary>
 ///     DI registration for the Branding API layer. The
 ///     <see cref="Plexor.Modules.Branding.Api.Controllers.BrandingController" />
-///     is discovered by <c>AddApplicationPart</c> in the host
+///     +
+///     <see cref="Plexor.Modules.Branding.Api.Controllers.ThemeInstallationsController" />
+///     are discovered by <c>AddApplicationPart</c> in the host
 ///     (mirrors <c>QuotasController</c>); this installer wires the
-///     request-body validators that the controller resolves via
+///     request-body validators that the controllers resolve via
 ///     <c>[FromServices]</c>.
 /// </summary>
 public static class BrandingApiInstaller
@@ -31,6 +33,7 @@ public static class BrandingApiInstaller
     {
         services.AddScoped<IValidator<UpsertGlobalThemeConfigRequest>, UpsertGlobalThemeConfigRequestValidator>();
         services.AddScoped<IValidator<UpsertOrgThemeConfigRequest>, UpsertOrgThemeConfigRequestValidator>();
+        services.AddScoped<IValidator<UpsertThemeInstallationRequest>, UpsertThemeInstallationRequestValidator>();
         return services;
     }
 }
