@@ -46,7 +46,7 @@ jobs:
   smoke:
     name: libvirt smoke test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
 
     # Skip when:
     #   - Manual trigger always runs.
@@ -210,6 +210,75 @@ jobs:
               exit "$rc"
             fi
 
+      # ============================================================
+      # Phase 4 acceptance gate (P4-3: hardware-smoke + SLA gate)
+      # ------------------------------------------------------------
+      # Steps below copy the new lifecycle scripts to the VM and
+      # run acceptance-gate.sh, which wraps hardware-smoke.sh and
+      # asserts the boot-to-reachable SLA (< 30s by default).
+      #
+      # Both scripts are idempotent: re-running replaces the staged
+      # copies in /tmp/plexor-smoke and the VM-side smoke + gate
+      # scripts trap EXIT to clean up any leftover domain/disk.
+      # ============================================================
+
+      - name: Copy hardware-smoke to VM
+        if: steps.status.outputs.deployed == 'true' && steps.secrets.outputs.ready == '1'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_VM_HOST }}
+          username: ${{ secrets.TEST_VM_USER }}
+          key: ${{ secrets.TEST_VM_SSH_KEY }}
+          source: 'deploy/scripts/hardware-smoke.sh'
+          target: '/tmp/plexor-smoke/hardware-smoke.sh'
+
+      - name: Copy acceptance-gate to VM
+        if: steps.status.outputs.deployed == 'true' && steps.secrets.outputs.ready == '1'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.TEST_VM_HOST }}
+          username: ${{ secrets.TEST_VM_USER }}
+          key: ${{ secrets.TEST_VM_SSH_KEY }}
+          source: 'deploy/scripts/acceptance-gate.sh'
+          target: '/tmp/plexor-smoke/acceptance-gate.sh'
+
+      - name: Run acceptance gate
+        if: steps.status.outputs.deployed == 'true' && steps.secrets.outputs.ready == '1'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.TEST_VM_HOST }}
+          username: ${{ secrets.TEST_VM_USER }}
+          key: ${{ secrets.TEST_VM_SSH_KEY }}
+          command_timeout: 20m
+          script: |
+            set -euo pipefail
+
+            sudo mkdir -p /tmp/plexor-smoke
+            sudo chmod 0755 /tmp/plexor-smoke
+
+            # Stage under "run-*" aliases so the operator can tell at
+            # a glance which script just ran (and so chmod mode sits
+            # on the operator's copy, not the deploy user's).
+            sudo install -m 0755 /tmp/plexor-smoke/hardware-smoke.sh /tmp/plexor-smoke/run-smoke.sh
+            sudo install -m 0755 /tmp/plexor-smoke/acceptance-gate.sh /tmp/plexor-smoke/run-gate.sh
+
+            # The gate owns the JSONL artifact; the smoke writes its
+            # own intermediate NDJSON via PLEXOR_SMOKE_RESULTS_FILE.
+            echo "Running Phase 4 acceptance gate (deploy ${{ steps.status.outputs.commit }} on ${{ steps.status.outputs.host }})..."
+            if sudo PLEXOR_GATE_RESULTS_FILE=/tmp/plexor-smoke/gate.jsonl \
+                 /tmp/plexor-smoke/run-gate.sh; then
+              echo "GATE: PASS"
+              [ -f /tmp/plexor-smoke/gate.jsonl ] && cat /tmp/plexor-smoke/gate.jsonl
+            else
+              rc=$?
+              echo "GATE: FAIL (exit $rc)"
+              [ -f /tmp/plexor-smoke/gate.jsonl ] && cat /tmp/plexor-smoke/gate.jsonl || true
+              # Surface the VM state on failure for the operator to
+              # clean up by hand if the trap-on-EXIT didn't run.
+              sudo virsh list --all 2>/dev/null || true
+              exit "$rc"
+            fi
+
       - name: Build summary
         if: always()
         run: |
@@ -222,4 +291,18 @@ jobs:
             echo "Status: ⚠️ skipped — secrets not configured" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "Status: ✅ smoke test passed against ${{ steps.status.outputs.host }}" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Acceptance gate (P4-3)" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.status.outputs.deployed }}" != 'true' ]; then
+            echo "Status: ⚠️ skipped — deploy was skipped" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.secrets.outputs.ready }}" != '1' ]; then
+            echo "Status: ⚠️ skipped — secrets not configured" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.run-acceptance-gate.conclusion }}" = 'success' ]; then
+            echo "Status: ✅ boot-to-reachable within SLA against ${{ steps.status.outputs.host }}" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.run-acceptance-gate.conclusion }}" = 'failure' ]; then
+            echo "Status: ❌ gate failed (boot-to-reachable exceeded SLA, or smoke script errored) against ${{ steps.status.outputs.host }}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Status: ⚠️ outcome: ${{ steps.run-acceptance-gate.conclusion }}" >> "$GITHUB_STEP_SUMMARY"
           fi
