@@ -12,6 +12,7 @@
     "typecheck": "bun --filter '@plexor/console' typecheck"
   },
   "dependencies": {
-    "@tanstack/react-table": "^8.21.3"
+    "@tanstack/react-table": "^8.21.3",
+    "react-aria-components": "^1.21.1"
   }
 }
