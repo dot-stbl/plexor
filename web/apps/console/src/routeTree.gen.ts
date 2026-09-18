@@ -15,6 +15,7 @@ import { Route as BillingRouteImport } from './routes/billing'
 import { Route as ClustersRouteRouteImport } from './routes/clusters/route'
 import { Route as ImagesRouteImport } from './routes/images'
 import { Route as K8sRouteRouteImport } from './routes/k8s/route'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as LxcRouteRouteImport } from './routes/lxc/route'
 import { Route as ManagedRouteRouteImport } from './routes/managed/route'
 import { Route as NetworksRouteImport } from './routes/networks'
@@ -66,6 +67,11 @@ const ImagesRoute = ImagesRouteImport.update({
 const K8sRouteRoute = K8sRouteRouteImport.update({
   id: '/k8s',
   path: '/k8s',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LxcRouteRoute = LxcRouteRouteImport.update({
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
   '/images': typeof ImagesRoute
+  '/login': typeof LoginRoute
   '/networks': typeof NetworksRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/branding': typeof AdminBrandingRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
   '/images': typeof ImagesRoute
+  '/login': typeof LoginRoute
   '/networks': typeof NetworksRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/branding': typeof AdminBrandingRoute
@@ -245,6 +253,7 @@ export interface FileRoutesById {
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
   '/images': typeof ImagesRoute
+  '/login': typeof LoginRoute
   '/networks': typeof NetworksRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/branding': typeof AdminBrandingRoute
@@ -277,6 +286,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/billing'
     | '/images'
+    | '/login'
     | '/networks'
     | '/admin/audit'
     | '/admin/branding'
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/billing'
     | '/images'
+    | '/login'
     | '/networks'
     | '/admin/audit'
     | '/admin/branding'
@@ -332,6 +343,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/billing'
     | '/images'
+    | '/login'
     | '/networks'
     | '/admin/audit'
     | '/admin/branding'
@@ -363,6 +375,7 @@ export interface RootRouteChildren {
   AuditRoute: typeof AuditRoute
   BillingRoute: typeof BillingRoute
   ImagesRoute: typeof ImagesRoute
+  LoginRoute: typeof LoginRoute
   NetworksRoute: typeof NetworksRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBrandingRoute: typeof AdminBrandingRoute
@@ -411,6 +424,13 @@ declare module '@tanstack/react-router' {
       path: '/k8s'
       fullPath: '/k8s'
       preLoaderRoute: typeof K8sRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lxc': {
@@ -660,6 +680,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuditRoute: AuditRoute,
   BillingRoute: BillingRoute,
   ImagesRoute: ImagesRoute,
+  LoginRoute: LoginRoute,
   NetworksRoute: NetworksRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminBrandingRoute: AdminBrandingRoute,

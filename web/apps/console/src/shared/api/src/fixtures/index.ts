@@ -35,6 +35,7 @@ export { createNodeJoinResponse } from "./createNodeJoinResponse.ts";
 export { createOrgAuthProviderConfigResponse } from "./createOrgAuthProviderConfigResponse.ts";
 export { createOrgAuthProviderTestResult } from "./createOrgAuthProviderTestResult.ts";
 export { createOrgBrandingConfigResponse } from "./createOrgBrandingConfigResponse.ts";
+export { createPostAuthLogin200, createPostAuthLogin401, createPostAuthLoginError, createPostAuthLoginMutationRequest, createPostAuthLoginMutationResponse } from "./createPostAuthLogin.ts";
 export { createPostOidcLogout204, createPostOidcLogoutError, createPostOidcLogoutMutationResponse } from "./createPostOidcLogout.ts";
 export { createProblemDetails } from "./createProblemDetails.ts";
 export { createProvisionVm201, createProvisionVm422, createProvisionVmError, createProvisionVmMutationRequest, createProvisionVmMutationResponse } from "./createProvisionVm.ts";

@@ -51,6 +51,11 @@ import {
   getOrgAuthProviderHandler,
   updateOrgAuthProviderHandler,
   testOrgAuthProviderHandler,
+  // Login (1 — kubb skipped this in the MSW pass; see kz note in
+  // msw/postAuthLoginHandler.ts. Returns 200 + kubb-generated faker
+  // fixture so the FE's postAuthLogin() always resolves with a
+  // mock-shaped body in dev:mock mode.)
+  postAuthLoginHandler,
   // OIDC (3 — see note below)
   getOidcAuthorizeHandler,
   getOidcCallbackHandler,
@@ -73,6 +78,7 @@ import {
   createAuditQueryResponse,
   createOrgAuthProviderConfigResponse,
   createOrgAuthProviderTestResult,
+  createPostAuthLogin200,
 } from '@/shared/api';
 
 // Deterministic mocks — same data every reload (stable UI + screenshots).
@@ -177,17 +183,27 @@ export const handlers: RequestHandler[] = [
   updateOrgAuthProviderHandler(createOrgAuthProviderConfigResponse()),
   testOrgAuthProviderHandler(createOrgAuthProviderTestResult({ ok: true })),
 
+  // ───────────────────────── Login (1) ─────────────────────────
+  //
+  // Phase 4.6 endpoint — kubb skipped it in the MSW + faker pass
+  // (kz note in msw/postAuthLoginHandler.ts). 200 with a hand-crafted
+  // token + user triple so postAuthLogin() in dev:mock mode always
+  // resolves with a mock-shaped body. Tokens come from faker so
+  // each reload is fresh; matches the dev:mock session-bearer contract.
+  postAuthLoginHandler(createPostAuthLogin200()),
+
   // ───────────────────────── OIDC (3) ─────────────────────────
   //
   // The OIDC endpoints return 302 in the OpenAPI contract; kubb's
   // generator emits 200 by default. The dev:mock worker never reaches
   // these — the FE uses `window.location.assign` to navigate, which
   // bypasses the service worker — so wiring them with a static 200
-  // body is enough to keep an accidental `fetch('/auth/oidc/...')`
-  // call from crashing. A real browser-driven flow would need a
-  // 302; mark these `x-passthrough: true` in the contract when the
-  // backend lands.
+  // body (and a `redirectUrl` field so the FE has something to read if
+  // it ever does call them) is enough to keep an accidental
+  // `fetch('/auth/oidc/...')` from crashing. A real browser-driven flow
+  // would need a 302; mark these `x-passthrough: true` in the contract
+  // when the backend lands.
   getOidcAuthorizeHandler({ redirectUrl: 'https://mock-idp.example.com/authorize' }),
-  getOidcCallbackHandler({ status: 'ok' }),
+  getOidcCallbackHandler({ status: 'ok', redirectUrl: '/?access_token=mock-idp-callback-token' }),
   postOidcLogoutHandler(),
 ];

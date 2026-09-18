@@ -20,6 +20,7 @@ export { nodeCommandPollHandler, nodeCommandPollHandlerResponse200 } from "./nod
 export { nodeCommandResultHandler, nodeCommandResultHandlerResponse200, nodeCommandResultHandlerResponse400 } from "./nodeCommandResultHandler.ts";
 export { nodeHeartbeatHandler, nodeHeartbeatHandlerResponse200, nodeHeartbeatHandlerResponse400 } from "./nodeHeartbeatHandler.ts";
 export { nodeJoinHandler, nodeJoinHandlerResponse201, nodeJoinHandlerResponse400 } from "./nodeJoinHandler.ts";
+export { postAuthLoginHandler, postAuthLoginHandlerResponse200, postAuthLoginHandlerResponse401 } from "./postAuthLoginHandler.ts";
 export { postOidcLogoutHandler, postOidcLogoutHandlerResponse204 } from "./postOidcLogoutHandler.ts";
 export { provisionVmHandler, provisionVmHandlerResponse201, provisionVmHandlerResponse422 } from "./provisionVmHandler.ts";
 export { startVmHandler, startVmHandlerResponse200 } from "./startVmHandler.ts";

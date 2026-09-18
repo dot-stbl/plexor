@@ -35,6 +35,7 @@ export type { NodeJoinResponse } from "./NodeJoinResponse.ts";
 export type { OrgAuthProviderConfigResponse, OrgAuthProviderConfigResponseProviderEnumKey } from "./OrgAuthProviderConfigResponse.ts";
 export type { OrgAuthProviderTestResult } from "./OrgAuthProviderTestResult.ts";
 export type { OrgBrandingConfigResponse } from "./OrgBrandingConfigResponse.ts";
+export type { PostAuthLogin200, PostAuthLogin401, PostAuthLoginError, PostAuthLoginMutation, PostAuthLoginMutationRequest, PostAuthLoginMutationResponse } from "./PostAuthLogin.ts";
 export type { PostOidcLogout204, PostOidcLogoutError, PostOidcLogoutMutation, PostOidcLogoutMutationResponse } from "./PostOidcLogout.ts";
 export type { ProblemDetails } from "./ProblemDetails.ts";
 export type { ProvisionVm201, ProvisionVm422, ProvisionVmError, ProvisionVmMutation, ProvisionVmMutationRequest, ProvisionVmMutationResponse } from "./ProvisionVm.ts";

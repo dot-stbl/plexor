@@ -150,4 +150,47 @@ describe('MSW handler coverage — admin-page mount surface', () => {
     const res = await fetch('/branding/theme', { method: 'DELETE' });
     expect(res.status).toBe(204);
   });
+
+  // ───────────────────────── Login (1) ─────────────────────────
+  // Phase 4.6 endpoint — kubb skipped this in the MSW + faker pass
+  // (kz note in msw/postAuthLoginHandler.ts). The dev:mock worker
+  // returns 200 + a kubb-shaped login response so the login page's
+  // postAuthLogin() always resolves with a usable mock triple.
+
+  it('covers POST /api/v1/auth/login (login page mount)', async () => {
+    const res = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'demo@plexor.test', password: 'mock-password' }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toHaveProperty('accessToken');
+    expect(body).toHaveProperty('refreshToken');
+    expect(body).toHaveProperty('expiresIn');
+    expect(body.user).toMatchObject({ email: expect.any(String) });
+  });
+
+  // ───────────────────────── OIDC (302 kubb-stubbed as 200) ─────────────────────────
+  // The OIDC endpoints return 302 in the OpenAPI contract; kubb's
+  // generator emits 200 by default. The dev:mock worker mirrors that
+  // with a static 200 body so any accidental `fetch('/auth/oidc/...')`
+  // gets a usable body. A real browser-driven flow would need a 302;
+  // mark these `x-passthrough: true` in the contract when the backend
+  // lands.
+
+  it('covers GET /api/v1/auth/oidc/authorize with a redirect URL', async () => {
+    const res = await fetch('/auth/oidc/authorize?org=00000000-0000-0000-0000-000000000001');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toHaveProperty('redirectUrl');
+    expect(typeof body.redirectUrl).toBe('string');
+  });
+
+  it('covers GET /api/v1/auth/oidc/callback with a status field', async () => {
+    const res = await fetch('/auth/oidc/callback?code=mock-code&state=mock-state');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toHaveProperty('status');
+  });
 });
