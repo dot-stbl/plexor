@@ -470,6 +470,73 @@ paths:
         default:
           $ref: '#/components/responses/Problem'
 
+  /branding/theme:
+    get:
+      operationId: getBrandingTheme
+      tags: [branding]
+      summary: Read the active marketplace theme
+      description: >
+        Tenant-scoped (OrgId comes from the caller's bearer token
+        — path-less on purpose). 404 when no marketplace theme has
+        been activated yet. `branding.read` permission.
+      responses:
+        '200':
+          description: The active marketplace installation.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ThemeInstallationResponse' }
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+    put:
+      operationId: updateBrandingTheme
+      tags: [branding]
+      summary: Upsert the marketplace theme installation
+      description: >
+        Body is `{ themeId }` only — the host looks up the canonical
+        manifest in its bundled CommunityThemeRegistry and signs
+        it with the purpose-bound IThemeManifestVerifier before
+        persisting. Tenant-scoped. `branding.theme.update`
+        permission. A real publisher feed (Phase 5+) would extend
+        the request to carry a signed manifest body.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpsertThemeInstallationRequest' }
+      responses:
+        '200':
+          description: The upserted installation row.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ThemeInstallationResponse' }
+        '400':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+    delete:
+      operationId: deleteBrandingTheme
+      tags: [branding]
+      summary: Reset the marketplace theme installation
+      description: >
+        Idempotent — a missing row is a no-op. After the delete
+        the tenant reverts to the operator defaults.
+        `branding.theme.update` permission.
+      responses:
+        '204':
+          description: Reset (or already absent).
+        '403':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
   /branding/org/{orgId}:
     parameters:
       - name: orgId
@@ -1171,6 +1238,46 @@ components:
         brandName: { type: string, nullable: true, maxLength: 128 }
         brandLogoUrl: { type: string, format: uri, nullable: true }
         brandFaviconUrl: { type: string, format: uri, nullable: true }
+
+    UpsertThemeInstallationRequest:
+      type: object
+      description: >
+        Wire shape for PUT /branding/theme. The host looks the
+        theme up in its bundled CommunityThemeRegistry and signs
+        the canonical manifest with the purpose-bound
+        IThemeManifestVerifier before persisting.
+      required: [themeId]
+      properties:
+        themeId:
+          type: string
+          maxLength: 64
+          description: Marketplace id from the host-side CommunityThemeRegistry.
+          example: synthwave-night-dark
+
+    ThemeInstallationResponse:
+      type: object
+      description: Active marketplace theme + the signature the FE boot script re-verifies.
+      required: [orgId, themeId, name, version, author, manifestSignature, activatedAt, activatedBy]
+      properties:
+        orgId: { type: string, format: uuid }
+        themeId:
+          type: string
+          maxLength: 64
+          example: synthwave-night-dark
+        name:
+          type: string
+          maxLength: 128
+          example: Synthwave Night — Dark
+        version: { type: string, maxLength: 64, example: 0.1.0 }
+        author: { type: string, maxLength: 128, example: plexor-themes }
+        manifestSignature:
+          type: string
+          minLength: 64
+          maxLength: 64
+          pattern: '^[0-9a-fA-F]{64}$'
+          description: Hex-encoded HMAC-SHA256 persisted on the row.
+        activatedAt: { type: string, format: date-time }
+        activatedBy: { type: string, format: uuid }
 
     # ───────────────────────── audit ─────────────────────────
     AuditQueryResponse:

@@ -147,25 +147,26 @@ async function applyBootPreset() {
 }
 
 // Community-theme activation — runs as a parallel bootstrap task with
-// `applyBootPreset`. Reads the operator's chosen community theme id
-// from localStorage and applies it before first paint so the page
-// renders under the chosen palette with no flash. Idempotent: if no
-// community theme was activated, no work happens.
+// `applyBootPreset`. Fetches the per-org marketplace installation
+// from the kubb-generated `getBrandingTheme` client and applies the
+// tokens before first paint so the page renders under the chosen
+// palette with no flash. Idempotent: a 404 (no theme activated
+// yet) is a no-op.
 async function applyBootCommunityTheme() {
   try {
-    const { getActiveThemeId } = await import('@/features/themes/theme-activation');
-    const { getPreset } = await import('@/shared/lib/themes/registry');
+    const { getBrandingTheme } = await import('@/shared/api');
+    const { listCommunityThemes } = await import('@/shared/lib/themes/registry');
     const { applyPreset } = await import('@/shared/lib/themes/apply-tokens');
-    const themeId = getActiveThemeId();
-    if (!themeId) return;
-    const preset = getPreset(themeId);
-    if (preset) {
-      applyPreset(preset);
+    const installation = await getBrandingTheme();
+    const themes = listCommunityThemes();
+    const theme = themes.find((entry) => entry.id === installation.themeId);
+    if (theme) {
+      applyPreset(theme);
     }
   } catch (err) {
-    // community-themes module isn't bundled, or the registry has no
-    // matching theme (older build). Either way: stay on the operator
-    // default; don't crash the boot.
+    // No marketplace theme installed (404), or the backend is
+    // unreachable. Either way: stay on the operator default;
+    // don't crash the boot.
     console.warn('boot: failed to apply community theme', err);
   }
 }
