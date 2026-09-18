@@ -44,6 +44,26 @@ public static class ClustersExceptions
     /// <summary>Workload name missing, kind unknown, or spec malformed.</summary>
     public const string InvalidWorkloadSpec = "clusters.workload.invalid_spec";
 
+    /// <summary>
+    ///     Workload lifecycle state machine rejected a transition
+    ///     (e.g. caller asked to <c>Start</c> a <c>Deleted</c>
+    ///     workload, or to <c>Stop</c> a workload in <c>Pending</c>
+    ///     before <c>Create</c> has been confirmed). Mapped to
+    ///     HTTP 409 Conflict — the request was well-formed but
+    ///     conflicts with the current state.
+    /// </summary>
+    public const string InvalidLifecycleTransition = "clusters.workload.lifecycle.illegal_transition";
+
+    /// <summary>
+    ///     Compute provider raised an unrecoverable error
+    ///     (<see cref="Plexor.Shared.Kernel.Compute.ComputeProviderException" />)
+    ///     during a lifecycle operation. Wraps the provider's code
+    ///     so the operator sees the typed failure reason (duplicate
+    ///     name, resource exhaustion, network partition) instead of
+    ///     a generic 500.
+    /// </summary>
+    public const string ComputeProviderFailed = "clusters.workload.compute_provider_failed";
+
     /// <summary>Cluster-level runtime id is null, empty, or not in the closed set.</summary>
     public const string InvalidRuntimeId = "clusters.cluster.invalid_runtime_id";
 }
