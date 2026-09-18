@@ -1,18 +1,24 @@
 "use client"
 
-import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
+import * as React from "react"
+import { ProgressBar as RACProgressBar } from "react-aria-components"
 
 import { cn } from "@/lib/utils"
 
-function Progress({
-  className,
-  children,
-  value,
-  ...props
-}: ProgressPrimitive.Root.Props) {
+export interface ProgressProps extends React.ComponentProps<typeof RACProgressBar> {
+  /** base-ui compat: alias for RAC's value. */
+  value?: number
+  /** base-ui compat: alias for RAC's maxValue. */
+  max?: number
+  className?: string
+  children?: React.ReactNode
+}
+
+function Progress({ className, children, value, max, ...props }: ProgressProps) {
   return (
-    <ProgressPrimitive.Root
+    <RACProgressBar
       value={value}
+      maxValue={max}
       data-slot="progress"
       className={cn("flex flex-wrap gap-3", className)}
       {...props}
@@ -21,29 +27,28 @@ function Progress({
       <ProgressTrack>
         <ProgressIndicator />
       </ProgressTrack>
-    </ProgressPrimitive.Root>
+    </RACProgressBar>
   )
 }
 
-function ProgressTrack({ className, ...props }: ProgressPrimitive.Track.Props) {
+function ProgressTrack({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <ProgressPrimitive.Track
+    <div
+      data-slot="progress-track"
       className={cn(
         "relative flex h-1 w-full items-center overflow-x-hidden rounded-md bg-muted",
         className
       )}
-      data-slot="progress-track"
       {...props}
-    />
+    >
+      {children}
+    </div>
   )
 }
 
-function ProgressIndicator({
-  className,
-  ...props
-}: ProgressPrimitive.Indicator.Props) {
+function ProgressIndicator({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <ProgressPrimitive.Indicator
+    <div
       data-slot="progress-indicator"
       className={cn("h-full bg-primary transition-all", className)}
       {...props}
@@ -51,24 +56,21 @@ function ProgressIndicator({
   )
 }
 
-function ProgressLabel({ className, ...props }: ProgressPrimitive.Label.Props) {
+function ProgressLabel({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <ProgressPrimitive.Label
-      className={cn("text-xs/relaxed font-medium", className)}
+    <div
       data-slot="progress-label"
+      className={cn("text-xs/relaxed font-medium", className)}
       {...props}
     />
   )
 }
 
-function ProgressValue({ className, ...props }: ProgressPrimitive.Value.Props) {
+function ProgressValue({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <ProgressPrimitive.Value
-      className={cn(
-        "ml-auto text-xs/relaxed text-muted-foreground tabular-nums",
-        className
-      )}
+    <div
       data-slot="progress-value"
+      className={cn("ml-auto text-xs/relaxed text-muted-foreground tabular-nums", className)}
       {...props}
     />
   )
