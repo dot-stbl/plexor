@@ -39,6 +39,7 @@ using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
 using Plexor.Shared.Configuration;
 using Plexor.Shared.Filtering.DI;
+using Plexor.Shared.IntegrationEvents.Installers;
 using Plexor.Shared.Mtls;
 using Plexor.Shared.Mtls.Persistence;
 using Plexor.Shared.Persistence;
@@ -143,6 +144,13 @@ var contextCount = 5;
 // the transformer can run today; without it, every schema is non-
 // filterable.
 builder.Services.AddFiltering();
+
+// Integration-event bus (#45) — publisher + subscriber ports, in-process
+// adapter for v0.1. Modules depend only on IIntegrationEventPublisher /
+// IIntegrationEventSubscriber; this is the single host-side wire-up.
+// Phase 3 swaps the in-process adapter for a NATS / Kafka transport
+// without touching the modules.
+builder.Services.AddPlexorIntegrationEvents();
 
 // Sigil module — auth contracts + impls. Phase 3.2-3.5 wires the
 // PBKDF2 password hasher + the per-request ICurrentUser reader.

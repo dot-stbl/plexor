@@ -135,18 +135,3 @@ public sealed class InProcessIntegrationEventPublisherShould
             PartitionKey: partitionKey);
     }
 }
-
-/// <summary>
-///     Synthetic integration event used by the in-process publisher tests.
-///     Implements the four required envelope members end-to-end so the
-///     adapter has something concrete to dispatch.
-/// </summary>
-/// <param name="EventId"></param>
-/// <param name="OccurredAt"></param>
-/// <param name="EventType"></param>
-/// <param name="PartitionKey"></param>
-public sealed record TestEvent(
-    Guid EventId,
-    DateTimeOffset OccurredAt,
-    string EventType,
-    string PartitionKey) : Plexor.Shared.IntegrationEvents.Events.IIntegrationEvent;
