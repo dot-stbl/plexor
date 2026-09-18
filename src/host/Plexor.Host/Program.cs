@@ -237,8 +237,13 @@ builder.Services.AddSigilInfrastructureCore();
 builder.Services.AddPlexorSigilApi();
 
 // Clusters module — control-plane fleet (Cluster + Node aggregates +
-// NodeAgent join/heartbeat endpoints). Phase 5.
-builder.Services.AddClustersInfrastructureCore();
+// NodeAgent join/heartbeat endpoints). Phase 5. The infrastructure
+// installer inspects the host configuration for a
+// [Clusters:Compute:Libvirt] section — when present, registers the
+// real LibvirtComputeProvider; when absent, registers NoOp as the
+// default. The LibvirtComputeOptions binding + ValidateOnStart live
+// in the installer so a malformed section fails the host startup.
+builder.Services.AddClustersInfrastructureCore(builder.Configuration);
 builder.Services.AddExceptionHandler<Plexor.Modules.Clusters.Infrastructure.Errors.ClustersExceptionHandler>();
 
 // Quotas module — Phase 4.5.b ships the enforcer + scope resolver +
