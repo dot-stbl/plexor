@@ -23,6 +23,9 @@
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.7.0"/>
     <PackageReference Include="Refit" Version="12.1.0"/>
     <PackageReference Include="Refit.HttpClientFactory" Version="12.1.0"/>
+    <!-- DiscUtils — ISO 9660 builder for the cloud-init cidata
+         CD-ROM (P1 #9). See Directory.Packages.props. -->
+    <PackageReference Include="DiscUtils" Version="0.16.13" />
     <PackageReference Remove="Meziantou.Analyzer" />
   </ItemGroup>
 

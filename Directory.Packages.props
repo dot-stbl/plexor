@@ -140,6 +140,13 @@
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
 
+    <!-- ============ Plexor.NodeAgent (compute node) ============ -->
+    <!-- DiscUtils — ISO 9660 builder for the cloud-init cidata
+         CD-ROM (P1 #9). The Iso9660 namespace ships inside the
+         DiscUtils umbrella; no separate package needed. Pinned
+         to a recent stable release. -->
+    <PackageVersion Include="DiscUtils" Version="0.16.13" />
+
   </ItemGroup>
 
 </Project>

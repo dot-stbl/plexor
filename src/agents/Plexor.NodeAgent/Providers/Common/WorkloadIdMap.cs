@@ -58,20 +58,29 @@ public sealed class WorkloadIdMap(TimeProvider clock)
     ///     <see cref="INetworkBackend.DetachAsync" /> on
     ///     workload delete.
     /// </param>
+    /// <param name="cidataIsoPath">
+    ///     Optional path to a cloud-init NoCloud cidata ISO
+    ///     attached as a CD-ROM at create-time. When non-null,
+    ///     the provider deletes the ISO on workload teardown
+    ///     so the agent doesn't leak files on
+    ///     <c>/var/lib/plexor/cidata/</c>.
+    /// </param>
     /// <exception cref="InvalidOperationException"></exception>
     public void Register(
         Guid localId,
         string domainName,
         WorkloadKind kind,
         VolumeHandle volumeHandle,
-        NetworkInterfaceHandle networkHandle)
+        NetworkInterfaceHandle networkHandle,
+        string? cidataIsoPath = null)
     {
         var entry = new WorkloadIdMapEntry(
             domainName,
             kind,
             WorkloadState.Provisioning,
             volumeHandle,
-            networkHandle);
+            networkHandle,
+            cidataIsoPath);
 
         if (!entries.TryAdd(localId, entry))
         {
@@ -154,9 +163,17 @@ public sealed class WorkloadIdMap(TimeProvider clock)
 ///     Network handle issued by the network backend at create-
 ///     time. Passed back to the backend on workload delete.
 /// </param>
+/// <param name="CidataIsoPath">
+///     Optional path to a cloud-init cidata ISO attached to the
+///     domain at create-time. Cleared by the provider on workload
+///     delete so the agent doesn't leak ISO files. Null when no
+///     cidata was attached (the workload doesn't need cloud-init
+///     or the operator didn't supply an SSH key).
+/// </param>
 public sealed record WorkloadIdMapEntry(
     string DomainName,
     WorkloadKind Kind,
     WorkloadState State,
     VolumeHandle VolumeHandle,
-    NetworkInterfaceHandle NetworkHandle);
+    NetworkInterfaceHandle NetworkHandle,
+    string? CidataIsoPath = null);

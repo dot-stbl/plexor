@@ -26,6 +26,7 @@
 // ==========================================================================
 
 using Plexor.NodeAgent.Providers.Common;
+using Plexor.NodeAgent.Providers.Image.CloudInit;
 using Plexor.Shared.Compute;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
@@ -98,17 +99,30 @@ public sealed class LibvirtKvmProvider(
             Kind: NetworkKind.LinuxBridge);
         var networkHandle = await networks.AttachAsync(networkSpec, cancellationToken);
 
-        // cidataIsoPath is null in #8 (CidataBuilder lands in #9).
-        // The provider wires the public SSH key through cloud-init
-        // by pre-building a NoCloud ISO and passing the path
-        // here; when the operator didn't request a key, the
-        // domain has no cidata CD-ROM device at all.
+        // cidata CD-ROM. Only built when the operator supplied a
+        // public SSH key — without a key there's nothing for
+        // cloud-init to inject, and skipping the CD-ROM keeps
+        // the domain minimal. The deterministic instance-id
+        // guarantees cloud-init treats subsequent boots as a
+        // no-op (otherwise it would re-run user-data on every
+        // boot).
+        string? cidataIsoPath = null;
+        if (!string.IsNullOrWhiteSpace(config.SshPublicKey))
+        {
+            cidataIsoPath = CidataBuilder.ResolveIsoPath(spec.Name);
+            CidataBuilder.Build(
+                cidataIsoPath,
+                hostname: CidataBuilder.SanitiseHostname(spec.Name),
+                sshPublicKey: config.SshPublicKey,
+                instanceId: CidataBuilder.DeterministicInstanceId(spec.Name));
+        }
+
         var xml = LibvirtKvmXmlBuilder.BuildDomainXml(
             spec,
             id,
             volumePath: volumeHandle.Reference,
             networkBridge: networkHandle.Reference,
-            cidataIsoPath: null);
+            cidataIsoPath: cidataIsoPath);
         var xmlPath = $"/tmp/plexor-{id}.xml";
 
         try
@@ -126,7 +140,9 @@ public sealed class LibvirtKvmProvider(
             // we just allocated. We don't try to undefine the
             // (possibly partially-defined) domain — virsh undefine
             // on a domain that's already gone is harmless and
-            // skipping it avoids a second race.
+            // skipping it avoids a second race. The cidata ISO is
+            // deleted last because it's filesystem-local and
+            // doesn't depend on libvirt.
             try
             {
                 await volumes.DeleteAsync(volumeHandle, CancellationToken.None);
@@ -151,6 +167,8 @@ public sealed class LibvirtKvmProvider(
                     networkHandle.Reference);
             }
 
+            CidataCleanup.TryDelete(cidataIsoPath);
+
             throw;
         }
         finally
@@ -169,7 +187,13 @@ public sealed class LibvirtKvmProvider(
         }
 
         var now = clock.GetUtcNow();
-        workloads.Register(id, spec.Name, Kind, volumeHandle, networkHandle);
+        workloads.Register(
+            id,
+            spec.Name,
+            Kind,
+            volumeHandle,
+            networkHandle,
+            cidataIsoPath: cidataIsoPath);
         return new LocalWorkload(
             id,
             spec.Name,
@@ -215,6 +239,11 @@ public sealed class LibvirtKvmProvider(
         // semantics the control plane expects).
         await volumes.DeleteAsync(entry.VolumeHandle, cancellationToken);
         await networks.DetachAsync(entry.NetworkHandle, cancellationToken);
+
+        // Best-effort cidata cleanup — not blocking. The ISO is
+        // small (a few KiB) and rebuilding it on the next
+        // workload with the same name is cheap.
+        CidataCleanup.TryDelete(entry.CidataIsoPath);
 
         if (!workloads.Remove(id))
         {
