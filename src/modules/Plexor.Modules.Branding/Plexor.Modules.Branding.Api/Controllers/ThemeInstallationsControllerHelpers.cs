@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Plexor.Modules.Branding.Api.Models.Requests;
 using Plexor.Modules.Branding.Api.Models.Responses;
-using Plexor.Modules.Branding.Application.Branding;
 using Plexor.Modules.Branding.Domain.Entities;
 using Plexor.Modules.Branding.Infrastructure.Branding;
 
@@ -41,29 +40,6 @@ internal static class ThemeInstallationsControllerHelpers
             Detail = $"No marketplace theme installed for org '{orgId}'; falling back to operator defaults.",
         };
         return new NotFoundObjectResult(problem)
-        {
-            ContentTypes = { "application/problem+json" },
-        };
-    }
-
-    /// <summary>
-    ///     400 ProblemDetails for the case where the manifest
-    ///     signature doesn't match the canonical manifest bytes.
-    ///     Stable <c>code</c> extension so clients can branch on
-    ///     <c>code</c> rather than the human Detail string.
-    /// </summary>
-    /// <param name="reason">Human-readable cause from the
-    /// verifier.</param>
-    public static BadRequestObjectResult InvalidSignature(string reason)
-    {
-        var problem = new ProblemDetails
-        {
-            Status = StatusCodes.Status400BadRequest,
-            Title = "Manifest signature invalid",
-            Detail = reason,
-            Extensions = { ["code"] = "branding.manifest.invalid_signature" },
-        };
-        return new BadRequestObjectResult(problem)
         {
             ContentTypes = { "application/problem+json" },
         };
@@ -110,30 +86,6 @@ internal static class ThemeInstallationsControllerHelpers
         {
             ContentTypes = { "application/problem+json" },
         };
-    }
-
-    /// <summary>
-    ///     Map an <see cref="UpsertThemeInstallationRequest" /> to
-    ///     the application-layer <see cref="ThemeManifest" />
-    ///     record. The token dictionary is converted to a
-    ///     case-sensitive string map — token names are
-    ///     canonicalised by the FE publisher.
-    /// </summary>
-    /// <param name="request">Wire shape.</param>
-    public static ThemeManifest ToEntity(UpsertThemeInstallationRequest request)
-    {
-        var tokens = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var kvp in request.Manifest.TokenValues)
-        {
-            tokens[kvp.Key] = kvp.Value;
-        }
-
-        return new ThemeManifest(
-            ThemeId: request.Manifest.ThemeId,
-            Name: request.Manifest.Name,
-            Version: request.Manifest.Version,
-            Author: request.Manifest.Author,
-            TokenValues: tokens);
     }
 
     /// <summary>

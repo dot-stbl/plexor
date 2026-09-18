@@ -496,9 +496,12 @@ paths:
       tags: [branding]
       summary: Upsert the marketplace theme installation
       description: >
-        Re-verifies the publisher signature against the canonical
-        manifest bytes via IThemeManifestVerifier before persisting.
-        Tenant-scoped. `branding.theme.update` permission.
+        Body is `{ themeId }` only — the host looks up the canonical
+        manifest in its bundled CommunityThemeRegistry and signs
+        it with the purpose-bound IThemeManifestVerifier before
+        persisting. Tenant-scoped. `branding.theme.update`
+        permission. A real publisher feed (Phase 5+) would extend
+        the request to carry a signed manifest body.
       requestBody:
         required: true
         content:
@@ -1236,66 +1239,20 @@ components:
         brandLogoUrl: { type: string, format: uri, nullable: true }
         brandFaviconUrl: { type: string, format: uri, nullable: true }
 
-    ThemeManifestRequest:
-      type: object
-      description: >
-        Publisher-supplied canonical manifest embedded in the PUT
-        /branding/theme body. The host re-derives the canonical
-        bytes (declared-order JSON via JsonSerializerOptions.Web
-        → UTF-8) and verifies the HMAC-SHA256 signature against
-        them before persisting.
-      required: [themeId, name, version, author, tokenValues]
-      properties:
-        themeId:
-          type: string
-          maxLength: 64
-          description: Stable marketplace id (must match the request's themeId).
-          example: synthwave-night-dark
-        name:
-          type: string
-          maxLength: 128
-          description: Human label shown in the marketplace UI.
-          example: Synthwave Night — Dark
-        version:
-          type: string
-          maxLength: 64
-          description: Publisher-supplied SemVer string.
-          example: 0.1.0
-        author:
-          type: string
-          maxLength: 128
-          description: Publisher handle or org name.
-          example: plexor-themes
-        tokenValues:
-          type: object
-          description: Full token vocabulary the FE boot script applies.
-          additionalProperties: { type: string }
-          example:
-            background: oklch(15% 0.04 270)
-            foreground: oklch(94% 0.02 270)
-            accent: oklch(72% 0.22 340)
-
     UpsertThemeInstallationRequest:
       type: object
       description: >
-        Wire shape for PUT /branding/theme. The host re-verifies
-        `signature` against the canonical `manifest` bytes; a bad
-        signature surfaces as 400.
-      required: [themeId, manifest, signature]
+        Wire shape for PUT /branding/theme. The host looks the
+        theme up in its bundled CommunityThemeRegistry and signs
+        the canonical manifest with the purpose-bound
+        IThemeManifestVerifier before persisting.
+      required: [themeId]
       properties:
         themeId:
           type: string
           maxLength: 64
           description: Marketplace id from the host-side CommunityThemeRegistry.
           example: synthwave-night-dark
-        manifest: { $ref: '#/components/schemas/ThemeManifestRequest' }
-        signature:
-          type: string
-          minLength: 64
-          maxLength: 64
-          pattern: '^[0-9a-fA-F]{64}$'
-          description: Hex-encoded HMAC-SHA256 over the canonical manifest bytes.
-          example: 4a3f...
 
     ThemeInstallationResponse:
       type: object

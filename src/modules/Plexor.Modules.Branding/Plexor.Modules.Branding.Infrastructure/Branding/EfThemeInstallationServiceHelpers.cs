@@ -53,11 +53,6 @@ internal static class EfThemeInstallationServiceHelpers
     ///     The supplied <paramref name="themeId" /> doesn't match
     ///     any entry in the registry (mapped to 404).
     /// </exception>
-    /// <exception cref="PlexorThemeManifestVerificationException">
-    ///     The supplied <paramref name="signature" /> does not
-    ///     match a fresh HMAC over the canonical manifest bytes
-    ///     (mapped to 400).
-    /// </exception>
     public static async Task<ThemeInstallation> UpsertInternalAsync(
         BrandingDbContext db,
         TimeProvider clock,
@@ -65,27 +60,28 @@ internal static class EfThemeInstallationServiceHelpers
         IThemeManifestVerifier verifier,
         Guid orgId,
         string themeId,
-        PlexorThemeManifest manifest,
-        string signature,
         Guid actorUserId,
         CancellationToken cancellationToken)
     {
         // Theme must exist in the host registry. The FE bundle
         // and the host registry stay in lock-step so the host
         // doesn't have to trust a client-supplied id.
-        if (registry.TryFind(themeId) is null)
-        {
-            throw new PlexorUnknownThemeException(themeId);
-        }
+        var registeredTheme = registry.TryFind(themeId)
+            ?? throw new PlexorUnknownThemeException(themeId);
 
-        // Verifier runs second — verifyManifest throws on a bad
-        // signature, so no DB write ever reaches SaveChanges when
-        // the signature doesn't match. The ThemeManifest we pass
-        // here is the canonical record the FE signed; the
-        // hub-side verifier never re-reads the manifest from
-        // disk before re-signing, so the canonical bytes are
-        // exactly what the publisher signed.
-        verifier.VerifyManifest(manifest, signature);
+        // Build the canonical publisher-metadata manifest from
+        // the registry, sign it with the host's purpose-bound
+        // HMAC verifier, and persist the signature alongside the
+        // id. The token vocabulary stays in the FE bundle — a
+        // future publisher feed (Phase 5+) would extend this
+        // manifest to carry token values and have the FE ship
+        // a signed body instead.
+        var manifest = new PlexorThemeManifest(
+            ThemeId: registeredTheme.Id,
+            Name: registeredTheme.Name,
+            Version: registeredTheme.Version,
+            Author: registeredTheme.Author);
+        var signature = verifier.SignManifest(manifest);
 
         var now = clock.GetUtcNow();
         var existing = await db.ThemeInstallations

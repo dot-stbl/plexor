@@ -1,45 +1,40 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
 // ThemeManifest — canonical wire shape for a marketplace community
-// theme manifest. The host re-validates the publisher's signature
-// against this canonical byte form before persisting the
-// installation, so verifier and FE signer must agree on the
-// canonicalisation order.
+// theme manifest. The host signs and verifies the publisher's
+// identity against this canonical byte form before persisting the
+// installation. Lives in Application so the IThemeInstallationService
+// interface doesn't have to reach into Infrastructure.
 //
-// Canonical form: `System.Text.Json` defaults of the manifest
-// (declared-order PascalCase JSON via JsonSerializerOptions.Web),
-// then UTF-8 bytes. Lives in Application so the
-// IThemeInstallationService interface doesn't have to reach into
-// Infrastructure.
+// v1 simplification: only the publisher metadata (id + name +
+// version + author) is canonicalised; the token vocabulary stays
+// in the FE bundle because Phase 5+ doesn't have a publisher feed
+// to ship tokens server-side yet. A future commit that wires a real
+// publisher feed would extend this record with the tokenValues
+// field and have the FE ship a signed manifest body.
 // ============================================================================
 
 namespace Plexor.Modules.Branding.Application.Branding;
 
 /// <summary>
-///     Canonical manifest describing a marketplace community theme.
-///     The <see cref="ThemeId" /> is the stable id from the registry
-///     (<c>"synthwave-night-dark"</c>, <c>"paper-light"</c>, ...);
-///     <see cref="TokenValues" /> carries the oklch token vocabulary
-///     keyed by the design-system token name
-///     (<c>"background"</c>, <c>"foreground"</c>, <c>"accent"</c>, ...).
-///     The signer adds <see cref="Author" /> + <see cref="Version" />
-///     so a downstream verifier can detect a manifest reissue with
-///     the same id but a different bundle.
+///     Canonical publisher-metadata manifest for a marketplace
+///     community theme. The host signs and verifies the publisher's
+///     identity against this canonical byte form before persisting
+///     the installation.
 /// </summary>
-/// <param name="ThemeId">Stable marketplace id of the theme.</param>
-/// <param name="Name">Human label shown in the marketplace UI.</param>
+/// <param name="ThemeId">Stable marketplace id of the theme
+/// (<c>"synthwave-night-dark"</c>, <c>"paper-light"</c>, ...).</param>
+/// <param name="Name">Human label shown in the marketplace UI
+/// (<c>"Synthwave Night — Dark"</c>).</param>
 /// <param name="Version">Publisher-supplied SemVer string
 /// (<c>"0.1.0"</c>).</param>
 /// <param name="Author">Publisher handle or org name
 /// (<c>"plexor-themes"</c>).</param>
-/// <param name="TokenValues">The full token vocabulary + values
-/// the boot script applies. Keyed by design-system token name.</param>
 public sealed record ThemeManifest(
     string ThemeId,
     string Name,
     string Version,
-    string Author,
-    IReadOnlyDictionary<string, string> TokenValues);
+    string Author);
 
 /// <summary>
 ///     Raised by <c>IThemeManifestVerifier.VerifyManifest</c>
