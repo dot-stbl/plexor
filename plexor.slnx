@@ -107,6 +107,9 @@
 
     <!-- ============ Tests =================================================== -->
     <Folder Name="/tests/" />
+    <Folder Name="/tests/integration/">
+        <Project Path="tests/integration/Plexor.NodeAgent.Integration/Plexor.NodeAgent.Integration.csproj" />
+    </Folder>
     <Folder Name="/tests/unit/">
         <Project Path="tests/unit/Plexor.ArchitectureTests/Plexor.ArchitectureTests.csproj" />
         <Project Path="tests/unit/Plexor.Host.UnitTests/Plexor.Host.UnitTests.csproj" />

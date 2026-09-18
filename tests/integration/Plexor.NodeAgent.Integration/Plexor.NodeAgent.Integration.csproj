@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Plexor.NodeAgent.Integration — integration tests for the
+    libvirt-KVM provider pipeline.
+
+    Boot-proof tests (P1 #12) require a Linux host with KVM +
+    qemu-img + libvirt + a downloaded cloud image (Alpine or
+    Ubuntu). On Windows the tests skip via Skip = "..." (set
+    automatically by the IsLinuxHost fact guard). On Linux
+    CI runners without /dev/kvm the per-test skip takes over.
+
+    The project is added to plexor.slnx so `dotnet build` /
+    `dotnet test` cover the integration test code path on every
+    build — broken compile or analyzer violations don't slip
+    past CI.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <NoWarn>$(NoWarn);CS1591;CS0436</NoWarn>
+    <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1"/>
+    <PackageReference Include="Shouldly" Version="4.3.0"/>
+    <PackageReference Include="xunit" Version="2.9.3"/>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2"/>
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\agents\Plexor.NodeAgent\Plexor.NodeAgent.csproj" />
+  </ItemGroup>
+
+</Project>

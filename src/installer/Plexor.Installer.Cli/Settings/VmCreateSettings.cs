@@ -12,10 +12,11 @@
 //   --target-node   <NODE_ID>   optional manual placement pin (forward-compat; v0.1 host ignores)
 //
 // The CLI constructs PascalCase JSON matching LibvirtKvmConfig on the
-// agent side: {"RamBytes":..., "CpuCores":..., "NetworkName":"default",
-// "BaseImageRef":...}. The control plane stores SpecJson verbatim
-// and forwards it to the NodeAgent's libvirt-KVM provider, which
-// deserialises it with default JsonSerializerOptions (PascalCase).
+// agent side: {"RamBytes":..., "Vcpu":..., "DiskBytes":...,
+// "NetworkName":"default", "BaseImageRef":...}. The control plane stores
+// SpecJson verbatim and forwards it to the NodeAgent's libvirt-KVM
+// provider, which deserialises it with default JsonSerializerOptions
+// (PascalCase).
 // ============================================================================
 
 using System.ComponentModel;

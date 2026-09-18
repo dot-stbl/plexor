@@ -241,4 +241,17 @@ public sealed class K3sWorkloadProvider(
         return Task.FromResult(snapshot);
     }
 
+    /// <summary>
+    ///     K3s workloads don't expose a libvirt-style serial
+    ///     console. Callers should use <c>kubectl logs</c>
+    ///     instead — out of scope for v0.1.
+    /// </summary>
+    public IAsyncEnumerable<string> ReadSerialConsoleAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        throw new NotSupportedException(
+            $"K3sWorkloadProvider: serial console is not supported for kind '{Kind.Name}'. Use 'kubectl logs' instead.");
+    }
+
 }

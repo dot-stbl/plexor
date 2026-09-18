@@ -228,4 +228,18 @@ public sealed class PodmanQuadletWorkloadProvider(
         return Task.FromResult(snapshot);
     }
 
+    /// <summary>
+    ///     Podman quadlet workloads don't expose a libvirt-style
+    ///     serial console. Callers should use
+    ///     <c>journalctl -u &lt;unit&gt;</c> instead — out of
+    ///     scope for v0.1.
+    /// </summary>
+    public IAsyncEnumerable<string> ReadSerialConsoleAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        throw new NotSupportedException(
+            $"PodmanQuadletWorkloadProvider: serial console is not supported for kind '{Kind.Name}'. Use 'journalctl -u <unit>' instead.");
+    }
+
 }

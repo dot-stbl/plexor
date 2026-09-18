@@ -8,17 +8,19 @@
 //
 // Catalogue lives in configuration under
 // NodeAgent:Images:Http:Catalog — a map of operator-facing
-// image refs (e.g. "ubuntu-22.04-cloud") to absolute URLs. A
-// separate NodeAgent:Images:Http:CacheDirectory key controls
-// where downloads land.
+// image refs (e.g. "ubuntu-22.04-cloud") to a record with URL +
+// optional SHA-256 + optional Format. The SHA-256 is the
+// authoritative trust anchor (P1 #10); when supplied, every
+// download is hashed and mismatches throw before the file
+// enters the cache.
 //
-// v0.1: trust on first download. There is no signature
-// verification yet — when the control plane gains a signed
-// image registry (Phase 2+), this becomes a DownloadOptions
-// pass-through with expectedSha256 etc.
+// v0.2+: signed-manifest catalogue entries will move the
+// trust root from the operator-configured URL to the
+// control plane's signed image registry.
 // ==========================================================================
 
 using Microsoft.Extensions.Options;
+using Plexor.NodeAgent.Providers.Image.Fetch;
 using Plexor.Shared.Compute;
 
 namespace Plexor.NodeAgent.Providers.Image;
@@ -44,10 +46,46 @@ public sealed class HttpImageRegistryOptions
     public string CacheDirectory { get; set; } = "/var/lib/plexor/images-cache";
 
     /// <summary>
-    ///     Map of image ref → download URL. Empty map = every
-    ///     ref lookup throws <see cref="UnknownImageException" />.
+    ///     Map of image ref → download descriptor. Each entry
+    ///     carries the URL plus optional SHA-256 / Format. When
+    ///     the SHA-256 is set, the registry hashes the
+    ///     downloaded bytes and rejects mismatches before
+    ///     materialising the cache file. Empty map = every ref
+    ///     lookup throws <see cref="UnknownImageException" />.
     /// </summary>
-    public Dictionary<string, string> Catalog { get; set; } = [];
+    public Dictionary<string, ImageCatalogueEntry> Catalog { get; set; } = [];
+}
+
+/// <summary>
+///     One image catalogue entry. Held by
+///     <see cref="HttpImageRegistryOptions.Catalog" /> so the
+///     fetcher can verify + convert at download time.
+/// </summary>
+/// <param name="Url">Absolute http/https URL.</param>
+/// <param name="Sha256">
+///     Optional lowercase hex SHA-256 of the downloaded bytes.
+///     When supplied, the fetcher hashes the file and rejects
+///     mismatches. Validated via <see cref="ImageFetcher.ValidateSha256" />
+///     on construction.
+/// </param>
+/// <param name="Format">
+///     Optional wire-format of the downloaded bytes. Defaults
+///     to <see cref="ImageFormat.Qcow2" /> when null — the
+///     fetcher skips the conversion step.
+/// </param>
+public sealed record ImageCatalogueEntry(
+    string Url,
+    string? Sha256 = null,
+    ImageFormat? Format = null)
+{
+    /// <summary>
+    ///     Public parameterless ctor + property-style initialisers
+    ///     so the binder can populate <c>Url</c> + <c>Sha256</c> +
+    ///     <c>Format</c> from the TOML/JSON catalogue. The
+    ///     positional ctor is kept for the in-process registry
+    ///     fixture (ImageFetcher tests).
+    /// </summary>
+    public ImageCatalogueEntry() : this(Url: string.Empty) { }
 }
 
 /// <summary>
@@ -85,78 +123,45 @@ public sealed class HttpImageRegistry(
     /// <inheritdoc />
     public async Task<string> EnsureLocalAsync(string imageRef, CancellationToken cancellationToken)
     {
-        if (!options.Value.Catalog.TryGetValue(imageRef, out var url))
+        if (!options.Value.Catalog.TryGetValue(imageRef, out var entry))
         {
             throw new UnknownImageException(imageRef);
         }
 
+        if (string.IsNullOrWhiteSpace(entry.Url))
+        {
+            // The catalogue entry exists but its URL is missing
+            // or empty — operator-config error. Surface as
+            // UnknownImage so the failure shape matches every
+            // other "image not found" path.
+            throw new UnknownImageException(imageRef);
+        }
+
+        // Validate the SHA-256 at lookup time, not at
+        // download time. Operator typos in the catalogue
+        // fail fast on first EnsureLocalAsync rather than
+        // half-way through a 2GB download.
+        if (!string.IsNullOrWhiteSpace(entry.Sha256))
+        {
+            ImageFetcher.ValidateSha256(entry.Sha256);
+        }
+
         var cachedPath = ResolveCachePath(imageRef);
 
-        if (File.Exists(cachedPath))
-        {
-            // Trust the cache. A future revision can verify the
-            // cached file's hash against a manifest; for v0.1 the
-            // operator-managed URL is the trust root.
-            return cachedPath;
-        }
-
-        Directory.CreateDirectory(options.Value.CacheDirectory);
-
-        // Download to a .partial file in the cache dir, then
-        // rename into place once the stream completes. The
-        // rename is atomic on POSIX (the only supported OS for
-        // compute nodes) so a reader of the path sees either the
-        // old file or the new file — never a half-written one.
-        var partialPath = cachedPath + ".partial";
         var httpClient = httpClientFactory.CreateClient(HttpClientName);
+        var source = new ImageSource(
+            new Uri(entry.Url),
+            ExpectedSha256: entry.Sha256,
+            Format: entry.Format);
 
         logger.LogInformation(
-            "HttpImageRegistry: downloading {Ref} from {Url} to {Path}",
+            "HttpImageRegistry: ensuring {Ref} ({Url}, sha256={HasHash}, format={Format})",
             imageRef,
-            url,
-            cachedPath);
+            entry.Url,
+            !string.IsNullOrWhiteSpace(entry.Sha256),
+            entry.Format?.ToString() ?? "qcow2");
 
-        try
-        {
-            using var response = await httpClient.GetAsync(
-                url,
-                HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken);
-
-            response.EnsureSuccessStatusCode();
-
-            await using var source = await response.Content.ReadAsStreamAsync(cancellationToken);
-            await using (var destination = File.Create(partialPath))
-            {
-                await source.CopyToAsync(destination, cancellationToken);
-            }
-
-            File.Move(partialPath, cachedPath, overwrite: false);
-        }
-        catch
-        {
-            // Best-effort cleanup on partial-file scenarios. We
-            // don't want to leave a stale .partial that blocks
-            // the next download — the file-exists short-circuit
-            // would skip re-download.
-            try
-            {
-                File.Delete(partialPath);
-            }
-            catch (FileNotFoundException)
-            {
-                // Partial never landed — fine.
-            }
-            catch (DirectoryNotFoundException)
-            {
-                // Cache directory vanished mid-flight (operator
-                // unmounted a tmpfs?). Can't do anything useful.
-            }
-
-            throw;
-        }
-
-        return cachedPath;
+        return await ImageFetcher.DownloadAsync(httpClient, source, cachedPath, cancellationToken);
     }
 
     /// <summary>
@@ -175,7 +180,7 @@ public sealed class HttpImageRegistry(
         // ".." segments so a stray ref can't escape the cache
         // directory. Underscores and dashes are common and stay;
         // whitespace / control chars never appear in valid refs.
-        var safe = string.Concat(imageRef.Where(c =>
+        var safe = string.Concat(imageRef.Where(static c =>
             char.IsLetterOrDigit(c) || c is '-' or '_' or '.'));
 
         // Defensive: if sanitisation emptied the string (e.g. ref
@@ -188,6 +193,7 @@ public sealed class HttpImageRegistry(
                     System.Text.Encoding.UTF8.GetBytes(imageRef)));
         }
 
-        return Path.Combine(options.Value.CacheDirectory, safe + ".img");
+        return Path.Combine(options.Value.CacheDirectory, safe + ".qcow2");
     }
 }
+

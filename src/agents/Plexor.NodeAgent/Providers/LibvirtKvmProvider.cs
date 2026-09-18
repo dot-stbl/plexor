@@ -25,7 +25,11 @@
 // item 6 — extracted from this provider's private helpers).
 // ==========================================================================
 
+using System.Diagnostics;
 using Plexor.NodeAgent.Providers.Common;
+using Plexor.NodeAgent.Providers.Image.CloudInit;
+using Plexor.NodeAgent.Providers.Serial;
+using Plexor.NodeAgent.Telemetry;
 using Plexor.Shared.Compute;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
@@ -75,101 +79,179 @@ public sealed class LibvirtKvmProvider(
     /// <inheritdoc />
     public async Task<LocalWorkload> CreateAsync(WorkloadSpec spec, CancellationToken cancellationToken)
     {
-        var config = LibvirtConfigDeserializer.TryDeserialize(spec.Config, () => new LibvirtKvmConfig(), out var c)
-                ? c
-                : new LibvirtKvmConfig();
-
-        var id = Guid.NewGuid();
-
-        // Storage + network through the abstractions. Backend
-        // choice happens in DI — v0.1 has exactly one of each.
-        var volumeSpec = new VolumeSpec(
-            Name: spec.Name,
-            SizeBytes: config.RamBytes * 4,
-            BaseImageRef: config.BaseImageRef,
-            Format: VolumeFormat.Qcow2);
-        var volumeHandle = await volumes.CreateAsync(volumeSpec, cancellationToken);
-
-        var networkSpec = new NetworkSpec(
-            Name: config.NetworkName,
-            Kind: NetworkKind.LinuxBridge);
-        var networkHandle = await networks.AttachAsync(networkSpec, cancellationToken);
-
-        var xml = LibvirtKvmXmlBuilder.BuildDomainXml(spec, id, volumeHandle.Reference, networkHandle.Reference);
-        var xmlPath = $"/tmp/plexor-{id}.xml";
+        // OTel: span around the full CreateAsync, recorded
+        // regardless of outcome (the using block disposes the
+        // span, which stamps its end time + status). The histogram
+        // observation lands in the finally below — failure paths
+        // still feed the latency distribution so ops can spot a
+        // stuck create.
+        using var span = WorkloadTelemetry.ActivitySource.StartActivity(
+            "Plexor.NodeAgent.Workload.create",
+            ActivityKind.Internal);
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
         try
         {
-            // Write the domain XML to disk, define it, then start it.
-            // Two-step so the agent can re-define without starting on
-            // create-time errors.
-            await File.WriteAllTextAsync(xmlPath, xml, cancellationToken);
-            await LibvirtRunner.RunAsync(LibvirtUri, $"define {xmlPath}", cancellationToken);
-            await LibvirtRunner.RunAsync(LibvirtUri, $"start {spec.Name}", cancellationToken);
-        }
-        catch
-        {
-            // Best-effort cleanup: tear down the volume + network
-            // we just allocated. We don't try to undefine the
-            // (possibly partially-defined) domain — virsh undefine
-            // on a domain that's already gone is harmless and
-            // skipping it avoids a second race.
-            try
+            var config = LibvirtConfigDeserializer.TryDeserialize(spec.Config, () => new LibvirtKvmConfig(), out var c)
+                    ? c
+                    : new LibvirtKvmConfig();
+
+            // Tag the span with the workload identity before
+            // any I/O — a failure that throws before the tags
+            // land is still captured (span ends on dispose),
+            // just with fewer attributes. Tagging later would
+            // also work but loses the tag on early throws.
+            span?.SetTag("workload.kind", Kind.Name);
+            span?.SetTag("workload.name", spec.Name);
+            if (config.BaseImageRef is { } imageRef)
             {
-                await volumes.DeleteAsync(volumeHandle, CancellationToken.None);
+                span?.SetTag("workload.base_image", imageRef);
             }
-            catch (Exception cleanupEx)
+
+            var id = Guid.NewGuid();
+
+            // Storage + network through the abstractions. Backend
+            // choice happens in DI — v0.1 has exactly one of each.
+            // Disk size falls back to RAM * 4 when the control plane
+            // didn't supply an explicit DiskBytes (the operator's
+            // --disk-gb CLI flag is the canonical source for v0.1).
+            var volumeSpec = new VolumeSpec(
+                Name: spec.Name,
+                SizeBytes: config.DiskBytes ?? config.RamBytes * 4,
+                BaseImageRef: config.BaseImageRef,
+                Format: VolumeFormat.Qcow2);
+            var volumeHandle = await volumes.CreateAsync(volumeSpec, cancellationToken);
+
+            var networkSpec = new NetworkSpec(
+                Name: config.NetworkName,
+                Kind: NetworkKind.LinuxBridge);
+            var networkHandle = await networks.AttachAsync(networkSpec, cancellationToken);
+
+            // cidata CD-ROM. Only built when the operator supplied a
+            // public SSH key — without a key there's nothing for
+            // cloud-init to inject, and skipping the CD-ROM keeps
+            // the domain minimal. The deterministic instance-id
+            // guarantees cloud-init treats subsequent boots as a
+            // no-op (otherwise it would re-run user-data on every
+            // boot).
+            string? cidataIsoPath = null;
+            if (!string.IsNullOrWhiteSpace(config.SshPublicKey))
             {
-                logger.LogWarning(
-                    cleanupEx,
-                    "Best-effort cleanup of volume {Volume} after failed create failed",
-                    volumeHandle.Reference);
+                cidataIsoPath = CidataBuilder.ResolveIsoPath(spec.Name);
+                CidataBuilder.Build(
+                    cidataIsoPath,
+                    hostname: CidataBuilder.SanitiseHostname(spec.Name),
+                    sshPublicKey: config.SshPublicKey,
+                    instanceId: CidataBuilder.DeterministicInstanceId(spec.Name));
             }
+
+            var xml = LibvirtKvmXmlBuilder.BuildDomainXml(
+                spec,
+                id,
+                volumePath: volumeHandle.Reference,
+                networkBridge: networkHandle.Reference,
+                cidataIsoPath: cidataIsoPath);
+            var xmlPath = $"/tmp/plexor-{id}.xml";
 
             try
             {
-                await networks.DetachAsync(networkHandle, CancellationToken.None);
+                // Write the domain XML to disk, define it, then start it.
+                // Two-step so the agent can re-define without starting on
+                // create-time errors.
+                await File.WriteAllTextAsync(xmlPath, xml, cancellationToken);
+                await LibvirtRunner.RunAsync(LibvirtUri, $"define {xmlPath}", cancellationToken);
+                await LibvirtRunner.RunAsync(LibvirtUri, $"start {spec.Name}", cancellationToken);
             }
-            catch (Exception cleanupEx)
+            catch
             {
-                logger.LogWarning(
-                    cleanupEx,
-                    "Best-effort cleanup of network {Network} after failed create failed",
-                    networkHandle.Reference);
+                // Best-effort cleanup: tear down the volume + network
+                // we just allocated. We don't try to undefine the
+                // (possibly partially-defined) domain — virsh undefine
+                // on a domain that's already gone is harmless and
+                // skipping it avoids a second race. The cidata ISO is
+                // deleted last because it's filesystem-local and
+                // doesn't depend on libvirt.
+                try
+                {
+                    await volumes.DeleteAsync(volumeHandle, CancellationToken.None);
+                }
+                catch (Exception cleanupEx)
+                {
+                    logger.LogWarning(
+                        cleanupEx,
+                        "Best-effort cleanup of volume {Volume} after failed create failed",
+                        volumeHandle.Reference);
+                }
+
+                try
+                {
+                    await networks.DetachAsync(networkHandle, CancellationToken.None);
+                }
+                catch (Exception cleanupEx)
+                {
+                    logger.LogWarning(
+                        cleanupEx,
+                        "Best-effort cleanup of network {Network} after failed create failed",
+                        networkHandle.Reference);
+                }
+
+                CidataCleanup.TryDelete(cidataIsoPath);
+
+                throw;
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(xmlPath);
+                }
+                catch (Exception cleanup)
+                {
+                    logger.LogDebug(
+                        cleanup,
+                        "Could not delete temp xml {Path}; leaving in /tmp",
+                        xmlPath);
+                }
             }
 
-            throw;
+            var now = clock.GetUtcNow();
+            workloads.Register(
+                id,
+                spec.Name,
+                Kind,
+                volumeHandle,
+                networkHandle,
+                cidataIsoPath: cidataIsoPath);
+            return new LocalWorkload(
+                id,
+                spec.Name,
+                Kind,
+                WorkloadState.Running,
+                now,
+                now);
         }
         finally
         {
-            try
-            {
-                File.Delete(xmlPath);
-            }
-            catch (Exception cleanup)
-            {
-                logger.LogDebug(
-                    cleanup,
-                    "Could not delete temp xml {Path}; leaving in /tmp",
-                    xmlPath);
-            }
+            // Observe the latency regardless of success /
+            // failure / cancellation. The histogram's per-try
+            // bucket captures the worst-case stuck-create
+            // signal that the success/failure split would hide.
+            WorkloadTelemetry.CreateDuration.Record(
+                stopwatch.Elapsed.TotalSeconds);
         }
-
-        var now = clock.GetUtcNow();
-        workloads.Register(id, spec.Name, Kind, volumeHandle, networkHandle);
-        return new LocalWorkload(
-            id,
-            spec.Name,
-            Kind,
-            WorkloadState.Running,
-            now,
-            now);
     }
 
     /// <inheritdoc />
     public async Task<LocalWorkload> StartAsync(Guid id, CancellationToken cancellationToken)
     {
+        using var span = WorkloadTelemetry.ActivitySource.StartActivity(
+            "Plexor.NodeAgent.Workload.start",
+            ActivityKind.Internal);
+
         var entry = workloads.GetOrThrow(id);
+        span?.SetTag("workload.kind", Kind.Name);
+        span?.SetTag("workload.name", entry.DomainName);
+
         await LibvirtRunner.RunAsync(LibvirtUri, $"start {entry.DomainName}", cancellationToken);
         workloads.SetState(id, WorkloadState.Running);
         return Snapshot(id, clock.GetUtcNow());
@@ -203,6 +285,11 @@ public sealed class LibvirtKvmProvider(
         await volumes.DeleteAsync(entry.VolumeHandle, cancellationToken);
         await networks.DetachAsync(entry.NetworkHandle, cancellationToken);
 
+        // Best-effort cidata cleanup — not blocking. The ISO is
+        // small (a few KiB) and rebuilding it on the next
+        // workload with the same name is cheap.
+        CidataCleanup.TryDelete(entry.CidataIsoPath);
+
         if (!workloads.Remove(id))
         {
             throw new InvalidOperationException(
@@ -223,6 +310,18 @@ public sealed class LibvirtKvmProvider(
     {
         return Task.FromResult<IReadOnlyList<LocalWorkload>>(
             workloads.Snapshot());
+    }
+
+    /// <inheritdoc />
+    public IAsyncEnumerable<string> ReadSerialConsoleAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var entry = workloads.GetOrThrow(id);
+        return LibvirtSerialConsoleReader.StreamAsync(
+            LibvirtUri,
+            entry,
+            cancellationToken);
     }
 
     /// <summary>
