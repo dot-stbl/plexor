@@ -19,6 +19,7 @@ import {
   useCommunityThemes,
   useActivateTheme,
 } from '@/features/themes/use-community-themes';
+import { getActiveThemeId } from '@/features/themes/theme-activation';
 
 /**
  * AdminThemeMarketplacePage — operator-only console surface for
@@ -43,17 +44,6 @@ export const Route = createFileRoute('/admin/theme-marketplace')({
   component: AdminThemeMarketplacePage,
   ...routeHead('Theme Marketplace'),
 });
-
-const STORAGE_KEY = 'plexor.theme.activation';
-
-function readActiveThemeId(): string | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    return window.localStorage.getItem(STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
 
 function activateBuiltIn(preset: ThemePreset) {
   applyPreset(preset);
@@ -170,13 +160,13 @@ function AdminThemeMarketplacePage() {
   // Local "active theme id" mirror of localStorage so the highlight
   // updates immediately on click. Read once on mount, then refresh on
   // every successful activate.
-  const [activeThemeId, setActiveThemeId] = useState<string | null>(() => readActiveThemeId());
+  const [activeThemeId, setActiveThemeId] = useState<string | null>(() => getActiveThemeId());
   const [activeCommunityId, setActiveCommunityId] = useState<string | null>(
-    () => readActiveThemeId(),
+    () => getActiveThemeId(),
   );
 
   useEffect(() => {
-    setActiveCommunityId(readActiveThemeId());
+    setActiveCommunityId(getActiveThemeId());
   }, [activate.isPending]);
 
   const handleActivate = (id: string) => {

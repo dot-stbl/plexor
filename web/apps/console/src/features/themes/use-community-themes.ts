@@ -2,16 +2,13 @@
  * useCommunityThemes — TanStack Query surface for the theme marketplace.
  *
  * In v1 the marketplace is local: the community themes ship inside the
- * bundle (`@/shared/lib/themes/community-themes`), and "Activate" writes
- * the chosen theme id to localStorage. There is no server roundtrip —
- * these hooks exist as the contract the marketplace UI binds to so
- * that the Phase 5+ switch to a kubb-generated client and a real
- * publisher feed is a one-file swap (the rest of the UI imports
+ * bundle (`@/shared/lib/themes/community-themes`), and "Activate"
+ * writes the chosen theme id to localStorage via
+ * `./theme-activation`. There is no server roundtrip — these hooks
+ * exist as the contract the marketplace UI binds to so that the
+ * Phase 5+ switch to a kubb-generated client and a real publisher
+ * feed is a one-file swap (the rest of the UI imports
  * `useCommunityThemes` + `useActivateTheme` and doesn't change).
- *
- * Local-storage key is hard-coded here in commit 2; commit 3 extracts
- * it into `@/features/themes/theme-activation` so the boot script
- * (`main.tsx`) can read the same key without an import cycle.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -19,8 +16,10 @@ import {
   getCommunityTheme,
   type CommunityTheme,
 } from '@/shared/lib/themes';
-
-const THEME_ACTIVATION_KEY = 'plexor.theme.activation';
+import {
+  getActiveThemeId,
+  setActiveThemeId,
+} from './theme-activation';
 
 /** Query key factory — keeps cache invalidation paths honest. */
 export const themeMarketplaceQueryKeys = {
@@ -42,7 +41,7 @@ export function useCommunityThemes() {
 
 /**
  * Activate a community theme. The mutation writes the theme id to
- * localStorage under `plexor.theme.activation`; the boot script in
+ * localStorage (via `./theme-activation`); the boot script in
  * `main.tsx` reads the same key on the next reload and applies the
  * preset before first paint.
  *
@@ -54,24 +53,25 @@ export function useActivateTheme() {
   const queryClient = useQueryClient();
   return useMutation<string, Error, string>({
     mutationFn: async (themeId: string) => {
-      if (typeof window === 'undefined') {
-        throw new Error('localStorage unavailable');
-      }
       const theme = getCommunityTheme(themeId);
       if (!theme) {
         throw new Error(`Unknown theme id: ${themeId}`);
       }
-      try {
-        window.localStorage.setItem(THEME_ACTIVATION_KEY, theme.id);
-      } catch {
-        // localStorage may be unavailable (private mode, quota). The
-        // marketplace still completes — the next reload just won't
-        // auto-apply — but the in-page mutation should not throw.
-      }
+      setActiveThemeId(theme.id);
       return theme.id;
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: themeMarketplaceQueryKeys.active() });
     },
   });
+}
+
+/**
+ * Hook that reads the active theme id from localStorage. Returns
+ * `null` when no theme has been activated yet; the boot script in
+ * `main.tsx` writes the value before React mounts, so on first render
+ * the lookup is already populated.
+ */
+export function useActiveThemeId(): string | null {
+  return getActiveThemeId();
 }
