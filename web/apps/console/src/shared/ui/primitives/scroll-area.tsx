@@ -1,62 +1,62 @@
-import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area"
+"use client"
+
+import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-type ScrollAreaProps = ScrollAreaPrimitive.Root.Props & {
+/**
+ * Plexor ScrollArea — react-aria-components does not ship a ScrollArea
+ * primitive. We compose a styled viewport with native browser scrollbars,
+ * matching the visual design of the previous base-ui version.
+ */
+type ScrollAreaProps = React.HTMLAttributes<HTMLDivElement> & {
   viewportClassName?: string
   scrollBarClassName?: string
 }
 
-function ScrollArea({
-  className,
-  viewportClassName,
-  scrollBarClassName,
-  children,
-  ...props
-}: ScrollAreaProps) {
+const ScrollArea = React.forwardRef<HTMLDivElement, ScrollAreaProps>(function ScrollArea(
+  { className, viewportClassName, scrollBarClassName, children, ...props },
+  ref,
+) {
   return (
-    <ScrollAreaPrimitive.Root
+    <div
+      ref={ref}
       data-slot="scroll-area"
-      className={cn("relative", className)}
+      className={cn("relative overflow-auto", className)}
       {...props}
     >
-      <ScrollAreaPrimitive.Viewport
+      <div
         data-slot="scroll-area-viewport"
         className={cn(
-          "size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1",
+          "size-full rounded-[inherit] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1",
           viewportClassName
         )}
       >
         {children}
-      </ScrollAreaPrimitive.Viewport>
-      <ScrollBar className={scrollBarClassName} />
-      <ScrollAreaPrimitive.Corner />
-    </ScrollAreaPrimitive.Root>
+      </div>
+      <style dangerouslySetInnerHTML={{ __html: scrollBarStyles(scrollBarClassName) }} />
+    </div>
   )
-}
+})
 
-function ScrollBar({
-  className,
-  orientation = "vertical",
-  ...props
-}: ScrollAreaPrimitive.Scrollbar.Props) {
-  return (
-    <ScrollAreaPrimitive.Scrollbar
-      data-slot="scroll-area-scrollbar"
-      data-orientation={orientation}
-      orientation={orientation}
-      className={cn(
-        "flex touch-none p-px transition-colors select-none data-horizontal:h-2.5 data-horizontal:flex-col data-horizontal:border-t data-horizontal:border-t-transparent data-vertical:h-full data-vertical:w-2.5 data-vertical:border-l data-vertical:border-l-transparent",
-        className
-      )}
-      {...props}
-    >
-      <ScrollAreaPrimitive.Thumb
-        data-slot="scroll-area-thumb"
-        className="relative flex-1 rounded-full bg-border"
-      />
-    </ScrollAreaPrimitive.Scrollbar>
-  )
+const ScrollBar = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { orientation?: "vertical" | "horizontal" }>(
+  function ScrollBar({ className, orientation: _orientation = "vertical", ...props }, _ref) {
+    // Custom scrollbars rely on the inline styles applied by `scrollBarStyles`;
+    // this element is a no-op marker for backwards compatibility with consumers
+    // that referenced <ScrollBar> for layout.
+    return <div data-slot="scroll-area-scrollbar" data-orientation={_orientation} className={cn("hidden", className)} {...props} />
+  },
+)
+
+function scrollBarStyles(className: string | undefined): string {
+  const sel = ".plexor-scroll-area-host"
+  return `
+${sel} { scrollbar-color: oklch(var(--border) / 1) transparent; scrollbar-width: thin; }
+${sel}::-webkit-scrollbar { width: 8px; height: 8px; }
+${sel}::-webkit-scrollbar-track { background: transparent; }
+${sel}::-webkit-scrollbar-thumb { background: oklch(var(--border) / 1); border-radius: 4px; }
+${className ? ` ${sel} { ${className} }` : ""}
+`
 }
 
 export { ScrollArea, ScrollBar }

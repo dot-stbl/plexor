@@ -1,16 +1,17 @@
 import * as React from "react"
-import { Menu as MenuPrimitive } from "@base-ui/react/menu"
-import { Menubar as MenubarPrimitive } from "@base-ui/react/menubar"
+import { Toolbar as RACToolbar } from "react-aria-components"
 
 import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuSub,
@@ -18,12 +19,12 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/shared/ui/primitives/dropdown-menu"
-import { Check } from '@nine-thirty-five/material-symbols-react/rounded/700';function Menubar({ className, ...props }: MenubarPrimitive.Props) {
+import { Check } from '@nine-thirty-five/material-symbols-react/rounded/700';function Menubar({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <MenubarPrimitive
+    <RACToolbar
       data-slot="menubar"
       className={cn("flex h-9 items-center rounded-lg border p-1", className)}
-      {...props}
+      {...(props as Omit<React.ComponentProps<typeof RACToolbar>, "className">)}
     />
   )
 }
@@ -104,28 +105,31 @@ function MenubarCheckboxItem({
   children,
   checked,
   inset,
+  onCheckedChange,
+  disabled,
   ...props
-}: MenuPrimitive.CheckboxItem.Props & {
+}: React.HTMLAttributes<HTMLDivElement> & {
   inset?: boolean
+  checked?: boolean
+  onCheckedChange?: (checked: boolean) => void
+  disabled?: boolean
 }) {
   return (
-    <MenuPrimitive.CheckboxItem
+    <DropdownMenuCheckboxItem
       data-slot="menubar-checkbox-item"
       data-inset={inset}
       className={cn(
-        "relative flex min-h-7 cursor-default items-center gap-2 rounded-md py-1.5 pr-2 pl-7.5 text-xs outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground data-inset:pl-7.5 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "group/menubar-item min-h-7 gap-2 rounded-md px-2 py-1 text-xs/relaxed focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7.5",
         className
       )}
       checked={checked}
+      onCheckedChange={onCheckedChange}
+      disabled={disabled}
       {...props}
     >
-      <span className="pointer-events-none absolute left-2 flex size-4 items-center justify-center [&_svg:not([class*='size-'])]:size-4">
-        <MenuPrimitive.CheckboxItemIndicator>
-          <Check strokeWidth={2}  />
-        </MenuPrimitive.CheckboxItemIndicator>
-      </span>
+      <Check strokeWidth={2} className="size-3.5" />
       {children}
-    </MenuPrimitive.CheckboxItem>
+    </DropdownMenuCheckboxItem>
   )
 }
 
@@ -139,27 +143,32 @@ function MenubarRadioItem({
   className,
   children,
   inset,
+  selected,
+  onSelect,
+  disabled,
   ...props
-}: MenuPrimitive.RadioItem.Props & {
+}: React.HTMLAttributes<HTMLDivElement> & {
   inset?: boolean
+  selected?: boolean
+  onSelect?: () => void
+  disabled?: boolean
 }) {
   return (
-    <MenuPrimitive.RadioItem
+    <DropdownMenuRadioItem
       data-slot="menubar-radio-item"
       data-inset={inset}
       className={cn(
-        "relative flex min-h-7 cursor-default items-center gap-2 rounded-md py-1.5 pr-2 pl-7.5 text-xs outline-hidden select-none focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground data-inset:pl-7.5 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
+        "min-h-7 gap-2 rounded-md px-2 py-1 text-xs/relaxed data-inset:pl-7.5",
         className
       )}
+      selected={selected}
+      onSelect={onSelect}
+      disabled={disabled}
       {...props}
     >
-      <span className="pointer-events-none absolute left-2 flex size-4 items-center justify-center [&_svg:not([class*='size-'])]:size-4">
-        <MenuPrimitive.RadioItemIndicator>
-          <Check strokeWidth={2}  />
-        </MenuPrimitive.RadioItemIndicator>
-      </span>
+      <Check strokeWidth={2} className="size-3.5" />
       {children}
-    </MenuPrimitive.RadioItem>
+    </DropdownMenuRadioItem>
   )
 }
 
