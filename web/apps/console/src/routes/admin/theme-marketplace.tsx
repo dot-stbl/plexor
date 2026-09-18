@@ -224,9 +224,9 @@ function AdminThemeMarketplacePage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="p-6 text-sm text-muted-foreground">{t('common.loading')}</div>
+            <div className="text-sm text-muted-foreground">{t('common.loading')}</div>
           ) : hasError ? (
-            <div className="p-6 text-sm text-err-ink">
+            <div className="text-sm text-err-ink">
               {t('admin.themeMarketplace.loadError')}
             </div>
           ) : community.length === 0 ? (

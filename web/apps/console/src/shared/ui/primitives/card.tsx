@@ -2,6 +2,43 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Card primitive — Plexor console content surface.
+ *
+ * ## Padding convention
+ *
+ * The card and its children drive their internal padding from a single CSS
+ * variable, `--card-spacing`. `Card` sets the variable on the root
+ * (`py-(--card-spacing)`); `CardHeader`, `CardContent`, and `CardFooter`
+ * reference it for their horizontal / vertical padding. As a result, every
+ * `CardContent` already gets sensible padding without a utility class on
+ * `className`.
+ *
+ * | `size` prop  | `--card-spacing` | Resolved padding |
+ * |--------------|------------------|------------------|
+ * | `"default"`  | `--spacing(4)`   | 1rem (16px)      |
+ * | `"sm"`       | `--spacing(3)`   | 0.75rem (12px)   |
+ *
+ * Rules of thumb:
+ *
+ * - **Default content cards** — leave `CardContent` alone. The 1rem padding
+ *   is already applied via the CSS variable. Avoid `p-*` on `CardContent` —
+ *   it stacks on top of the variable and produces double padding (the bug
+ *   that motivated this convention).
+ * - **Edge-to-edge children** — set `CardContent className="p-0"` and put
+ *   padding on the inner element (e.g. `<div className="p-6">` for an
+ *   empty / loading / error state). This pattern keeps Tables flush with
+ *   the card border while still giving the empty state breathing room.
+ * - **Tighter cards** — use `<Card size="sm">` for compact forms (login,
+ *   short dialogs). Use the `size` prop, do not add `p-3` / `p-4` overrides.
+ * - **Spacious cards** — pass a single utility to override the variable
+ *   directly (`<Card className="[--card-spacing:--spacing(6)]">`). Reach for
+ *   this on hero / marketing surfaces, not on admin forms.
+ *
+ * Do not mix the `p-*` override approach with the `--card-spacing` variable
+ * on the same element. Pick one: override the variable, or set `p-0` and
+ * pad children explicitly.
+ */
 function Card({
   className,
   size = "default",
@@ -66,6 +103,15 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * CardContent — the body slot of a Card.
+ *
+ * Padding is provided by the `--card-spacing` CSS variable set on the
+ * enclosing `Card` (see the Card JSDoc for the convention). Do not add
+ * `p-*` classes here unless you are intentionally stacking on top of the
+ * variable — for edge-to-edge children, prefer `p-0` on `CardContent` with
+ * padding on the inner element instead.
+ */
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
