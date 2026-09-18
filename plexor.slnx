@@ -116,6 +116,7 @@
         <Project Path="tests/unit/Plexor.Modules.Sigil.Unit/Plexor.Modules.Sigil.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Filtering.Unit/Plexor.Shared.Filtering.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Kernel.Unit/Plexor.Shared.Kernel.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Shared.NodeApi.Unit/Plexor.Shared.NodeApi.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Contracts.Unit/Plexor.Shared.Contracts.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Persistence.Unit/Plexor.Shared.Persistence.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Telemetry.Unit/Plexor.Shared.Telemetry.Unit.csproj" />
