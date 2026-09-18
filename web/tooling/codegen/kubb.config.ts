@@ -2,6 +2,25 @@
 // Run: cd web/tooling/codegen && bun run generate
 // Reads:  ../../../artifacts/openapi.json (built by `dotnet build` of Plexor.Host)
 // Writes:  ../../apps/console/src/shared/api/src/{types,client,hooks,schemas,fixtures,msw,filters}
+//
+// IMPORTANT — single source of truth for mock coverage:
+//   The `paths:` block in `contracts/plexor.openapi.yaml` drives BOTH the
+//   kubb regen (types, client, hooks, schemas, fixtures, MSW) AND the
+//   `web/apps/console/src/shared/api/mocks/handlers.ts` wiring that powers
+//   the dev:mock worker. Adding an endpoint requires updating both:
+//
+//     1. Add the path + operation to `contracts/plexor.openapi.yaml`.
+//     2. `cd web/tooling/codegen && bun run generate` (regen everything).
+//     3. Add a wiring line in `apps/console/src/shared/api/mocks/handlers.ts`
+//        for the new handler factory + fixture (e.g.
+//        `getNewThingHandler(createNewThing200())`).
+//     4. Add a smoke-test line in
+//        `apps/console/src/shared/api/src/msw/msw.test.ts`.
+//
+//   If kubb silently skips the endpoint in the MSW + faker pass (as it
+//   did with /branding/theme in kubb 4.39.2), hand-mirror the handler +
+//   fixture files in apps/console/src/shared/api/src/{msw,fixtures} and
+//   add a `kz` note in the handler header explaining why.
 
 import { defineConfig } from '@kubb/core';
 import { pluginOas } from '@kubb/plugin-oas';

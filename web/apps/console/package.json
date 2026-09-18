@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mock": "VITE_USE_MOCKS=true vite",
     "build": "vite build",
+    "build:mock": "VITE_USE_MOCKS=true vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:mocks": "VITE_USE_MOCKS=true vitest run",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "gen:tech-icons": "node scripts/gen-tech-icons.cjs"
