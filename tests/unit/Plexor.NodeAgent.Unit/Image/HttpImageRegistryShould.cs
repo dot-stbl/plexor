@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
 // HttpImageRegistry unit tests — exercise the surface contract
-// (cache-hit short-circuit, error paths, name sanitisation)
+// (cache-hit short-circuit, error paths, name sanitisation,
+// SHA-256 verification, host-rejection of malformed digests)
 // without hitting the network. The mock handler is a
 // DelegatingHandler that intercepts requests and returns
 // either a fixture stream (success) or an error response.
@@ -10,9 +11,11 @@
 // ==========================================================================
 
 using System.Net;
+using System.Security.Cryptography;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Plexor.NodeAgent.Providers.Image;
+using Plexor.NodeAgent.Providers.Image.Fetch;
 using Plexor.Shared.Compute;
 using Shouldly;
 using Xunit;
@@ -31,15 +34,17 @@ public sealed class HttpImageRegistryShould
             statusCode: HttpStatusCode.OK);
         var sut = NewRegistry(
             cacheDir,
-            new Dictionary<string, string>
+            new Dictionary<string, ImageCatalogueEntry>
             {
-                ["ubuntu-22.04"] = "https://example.invalid/ubuntu-22.04.qcow2"
+                ["ubuntu-22.04"] = new ImageCatalogueEntry(
+                    Url: "https://example.invalid/ubuntu-22.04.qcow2")
             },
             handler);
 
         var path = await sut.EnsureLocalAsync("ubuntu-22.04", CancellationToken.None);
 
         path.ShouldStartWith(cacheDir);
+        path.ShouldEndWith(".qcow2");
         File.Exists(path).ShouldBeTrue();
         (await File.ReadAllTextAsync(path)).ShouldBe("fake-qcow2-bytes");
         handler.RequestCount.ShouldBe(1);
@@ -49,7 +54,7 @@ public sealed class HttpImageRegistryShould
     public async Task CacheHitShortCircuitsAsync()
     {
         var cacheDir = TempDir();
-        var cachedPath = Path.Combine(cacheDir, "ubuntu-22.04.img");
+        var cachedPath = Path.Combine(cacheDir, "ubuntu-22.04.qcow2");
         await File.WriteAllTextAsync(cachedPath, "already-here");
 
         var handler = new FixtureHandler(
@@ -58,9 +63,10 @@ public sealed class HttpImageRegistryShould
             statusCode: HttpStatusCode.OK);
         var sut = NewRegistry(
             cacheDir,
-            new Dictionary<string, string>
+            new Dictionary<string, ImageCatalogueEntry>
             {
-                ["ubuntu-22.04"] = "https://example.invalid/ubuntu-22.04.qcow2"
+                ["ubuntu-22.04"] = new ImageCatalogueEntry(
+                    Url: "https://example.invalid/ubuntu-22.04.qcow2")
             },
             handler);
 
@@ -92,9 +98,10 @@ public sealed class HttpImageRegistryShould
             statusCode: HttpStatusCode.NotFound);
         var sut = NewRegistry(
             TempDir(),
-            new Dictionary<string, string>
+            new Dictionary<string, ImageCatalogueEntry>
             {
-                ["missing"] = "https://example.invalid/missing.qcow2"
+                ["missing"] = new ImageCatalogueEntry(
+                    Url: "https://example.invalid/missing.qcow2")
             },
             handler);
 
@@ -111,9 +118,10 @@ public sealed class HttpImageRegistryShould
             statusCode: HttpStatusCode.OK);
         var sut = NewRegistry(
             TempDir(),
-            new Dictionary<string, string>
+            new Dictionary<string, ImageCatalogueEntry>
             {
-                ["../../etc/passwd"] = "https://example.invalid/x.qcow2"
+                ["../../etc/passwd"] = new ImageCatalogueEntry(
+                    Url: "https://example.invalid/x.qcow2")
             },
             handler);
 
@@ -129,9 +137,84 @@ public sealed class HttpImageRegistryShould
         handler.RequestCount.ShouldBe(1);
     }
 
+    [Fact(DisplayName = "Given a ref with a correct SHA-256, when EnsureLocalAsync, then the download succeeds")]
+    public async Task MatchingSha256IsAcceptedAsync()
+    {
+        var cacheDir = TempDir();
+        var payload = "fake-qcow2-bytes";
+        // SHA256.HashData over a tiny in-memory fixture is
+        // acceptably synchronous in test code (a few bytes — far
+        // below the threading-analyzer's threshold for "would
+        // block"); the alternative HashDataAsync only accepts
+        // streams, which is the wrong shape for a one-shot byte
+        // array.
+#pragma warning disable VSTHRD103 // acceptable in test
+        var sha256 = Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(payload)))
+            .ToLowerInvariant();
+#pragma warning restore VSTHRD103
+
+        var handler = new FixtureHandler(
+            "https://example.invalid/ubuntu-22.04.qcow2",
+            payload: payload,
+            statusCode: HttpStatusCode.OK);
+        var sut = NewRegistry(
+            cacheDir,
+            new Dictionary<string, ImageCatalogueEntry>
+            {
+                ["ubuntu-22.04"] = new ImageCatalogueEntry(
+                    Url: "https://example.invalid/ubuntu-22.04.qcow2",
+                    Sha256: sha256)
+            },
+            handler);
+
+        var path = await sut.EnsureLocalAsync("ubuntu-22.04", CancellationToken.None);
+
+        File.Exists(path).ShouldBeTrue();
+        handler.RequestCount.ShouldBe(1);
+    }
+
+    [Fact(DisplayName = "Given a ref with a wrong SHA-256, when EnsureLocalAsync, then throws ImageHashMismatchException")]
+    public async Task MismatchedSha256ThrowsAsync()
+    {
+        var cacheDir = TempDir();
+        var handler = new FixtureHandler(
+            "https://example.invalid/ubuntu-22.04.qcow2",
+            payload: "actual-bytes",
+            statusCode: HttpStatusCode.OK);
+        var sut = NewRegistry(
+            cacheDir,
+            new Dictionary<string, ImageCatalogueEntry>
+            {
+                ["ubuntu-22.04"] = new ImageCatalogueEntry(
+                    Url: "https://example.invalid/ubuntu-22.04.qcow2",
+                    Sha256: "0000000000000000000000000000000000000000000000000000000000000000")
+            },
+            handler);
+
+        await Should.ThrowAsync<ImageHashMismatchException>(
+            () => sut.EnsureLocalAsync("ubuntu-22.04", CancellationToken.None));
+    }
+
+    [Fact(DisplayName = "Given a catalogue entry with malformed SHA-256, when EnsureLocalAsync, then throws ArgumentException at lookup")]
+    public async Task MalformedSha256ThrowsAtLookupAsync()
+    {
+        var sut = NewRegistry(
+            TempDir(),
+            new Dictionary<string, ImageCatalogueEntry>
+            {
+                ["bad-sha"] = new ImageCatalogueEntry(
+                    Url: "https://example.invalid/anything",
+                    Sha256: "not-hex")
+            },
+            new FixtureHandler("", "", HttpStatusCode.OK));
+
+        await Should.ThrowAsync<ArgumentException>(
+            () => sut.EnsureLocalAsync("bad-sha", CancellationToken.None));
+    }
+
     private static HttpImageRegistry NewRegistry(
         string cacheDir,
-        Dictionary<string, string> catalog,
+        Dictionary<string, ImageCatalogueEntry> catalog,
         HttpMessageHandler handler)
     {
         var opts = Options.Create(new HttpImageRegistryOptions
