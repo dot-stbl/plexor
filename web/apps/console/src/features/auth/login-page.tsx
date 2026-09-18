@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
-import { Login as LoginIcon, Shield } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { Login as LoginIcon } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Input } from '@/shared/ui/primitives/input';
 import { PasswordInput } from '@/shared/ui/primitives/password-input';
 import { Button } from '@/shared/ui/primitives/button';
@@ -98,24 +98,11 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
 
   return (
     <div
-      className="flex min-h-[calc(100dvh-4rem)] items-center justify-center bg-background p-4"
+      className="flex min-h-dvh items-center justify-center bg-background p-4"
       data-od-id="login"
     >
       <Card className="w-full max-w-sm border-border bg-card shadow-sm" data-od-id="login-card">
-        <CardContent className="space-y-4 p-5">
-          <header className="space-y-1">
-            <h1
-              className="flex items-center gap-2 text-base font-semibold text-foreground"
-              data-testid="login-title"
-            >
-              <Shield className="size-4 text-primary" aria-hidden="true" />
-              {t('auth.login.title')}
-            </h1>
-            <p className="text-xs text-muted-foreground" data-testid="login-subtitle">
-              {t('auth.login.subtitle')}
-            </p>
-          </header>
-
+        <CardContent className="space-y-3 p-6">
           {formErrorKey !== null && (
             <Alert variant="destructive" data-testid="login-error">
               <AlertDescription>{t(formErrorKey)}</AlertDescription>
@@ -200,21 +187,10 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
             </Button>
           </form>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-card px-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-                or
-              </span>
-            </div>
-          </div>
-
           <Button
             type="button"
-            variant="outline"
-            size="default"
+            variant="ghost"
+            size="sm"
             className="w-full"
             onClick={handleSso}
             disabled={isSubmitting}

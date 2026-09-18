@@ -81,14 +81,28 @@ describe('LoginPage', () => {
   it('renders email + password fields + SSO button', () => {
     renderLoginPage();
 
-    expect(screen.getByTestId('login-title').textContent).toBe('Sign in to Plexor');
-    expect(screen.getByTestId('login-subtitle').textContent).toBe(
-      'Use your work email or single sign-on',
-    );
+    // Title and subtitle are intentionally absent — the form is the single focus.
+    expect(screen.queryByTestId('login-title')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('login-subtitle')).not.toBeInTheDocument();
+
     expect(screen.getByTestId('login-email')).toBeInTheDocument();
     expect(screen.getByTestId('login-password')).toBeInTheDocument();
     expect(screen.getByTestId('login-sso')).toHaveTextContent('Continue with SSO');
     expect(screen.getByTestId('login-submit')).toHaveTextContent('Sign in');
+  });
+
+  it('renders without a Card header or footer', () => {
+    const { container } = renderLoginPage();
+    const card = screen.getByTestId('login-card');
+
+    // Card primitives expose their slots as data-slot attributes; the
+    // header and footer slots must be absent so the form is the only
+    // thing inside the card.
+    expect(card.querySelector('[data-slot="card-header"]')).toBeNull();
+    expect(card.querySelector('[data-slot="card-footer"]')).toBeNull();
+    // The "or" divider is gone too — the SSO button sits directly
+    // below the form with no separator.
+    expect(container.querySelector('hr, [data-slot="separator"]')).toBeNull();
   });
 
   it('shows validation errors when submitting with empty fields', async () => {
