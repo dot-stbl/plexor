@@ -41,11 +41,11 @@ bearing. Confusing them is the #1 source of agent mistakes in this repo.
 | Schema | C# module project | Entities owned |
 |--------|-------------------|-----------------|
 | `sigil` | `Plexor.Modules.Sigil` | `User`, `Role`, `RoleBinding`, `ApiKey`, `SshKey`, `RefreshToken`, `SigningKey` |
-| `realm` | `Plexor.Modules.Organizations` | `Organization`, `Team`, `Folder` |
+| `realm` | `Plexor.Modules.Realm` | `Organization`, `Team`, `Folder` |
 | `atlas` | `Plexor.Modules.Audit` | `AuditEntry` |
+| `forge` | `Plexor.Modules.Clusters` | `Cluster`, `Workload`, `NodeCommand`, `JoinToken` |
+| `outpost` | `Plexor.Modules.Outpost` | `NodeRecord` |
 | `ledger` | `Plexor.Modules.Billing` | (planned) `Invoice`, `MeteringRecord` |
-| `forge` | (planned) cluster fleet module | (planned) `Cluster` |
-| `outpost` | (planned) node registry module | (planned) `NodeRecord` |
 | `shard` | (planned) workloads module | (planned) `Workload` |
 
 When you see `realm.x` in SQL or `Schemes.Realm` in C# — that's the
@@ -117,8 +117,11 @@ FK-dependency order on startup:
 2. `sigil` (Identity) — FKs into `realm.organizations.id`.
 3. `atlas` (Audit) — FKs into both `sigil.users.id` (actor) and
    `realm.organizations.id` (tenant scope).
-4. (future) `ledger`, `forge`, `outpost`, `shard` — each depends on
-   the modules above it.
+4. `forge` (Clusters) and `outpost` (Outpost) — already shipped; both
+   depend on `realm` and `sigil` being present (multi-tenant + identity
+   resolution come from there). The Plexor.Migrator applies them
+   alongside `sigil` once `realm` is up.
+5. (future) `ledger`, `shard` — each depends on the modules above it.
 
 When generating a new migration with `dotnet ef migrations add`, make
 sure the target DbContext's dependencies (FKs) have already been
