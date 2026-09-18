@@ -80,4 +80,27 @@ public static class AuditActions
     ///     <c>old_provider</c>, <c>new_provider</c>.
     /// </summary>
     public const string OrgAuthProviderChanged = "org.auth_provider.changed";
+
+    // -------------------------------------------------------------------
+    // Theme marketplace (Phase 5+)
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    ///     <c>PUT /api/v1/branding/theme</c> activated or re-activated
+    ///     a community theme for the caller's tenant. Emitted by
+    ///     <c>ThemeInstallationsController.UpsertAsync</c>. Payload
+    ///     keys: <c>theme_id</c>, <c>signature</c>.
+    /// </summary>
+    public const string ThemeInstalledActivated = "theme_installed.activated";
+
+    /// <summary>
+    ///     <c>DELETE /api/v1/branding/theme</c> removed the
+    ///     per-tenant community-theme installation (the tenant
+    ///     reverts to the resolved operator defaults). Emitted by
+    ///     <c>ThemeInstallationsController.DeleteAsync</c> only
+    ///     when a row was actually removed — idempotent no-op
+    ///     deletes (no row present) do not emit. Payload keys:
+    ///     <c>theme_id</c>.
+    /// </summary>
+    public const string ThemeInstalledDeactivated = "theme_installed.deactivated";
 }
