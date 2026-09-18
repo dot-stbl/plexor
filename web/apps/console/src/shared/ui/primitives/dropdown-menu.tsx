@@ -113,6 +113,7 @@ function DropdownMenuContent({ className, children, side = "bottom", sideOffset 
       {...(align ? { align } : {})}
       className={cn(
         "z-50 max-h-(--available-height) w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none",
+        "data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         "data-entering:animate-in data-entering:fade-in-0 data-entering:zoom-in-95",
         "data-exiting:animate-out data-exiting:overflow-hidden data-exiting:fade-out-0 data-exiting:zoom-out-95",
         className
@@ -167,7 +168,7 @@ function DropdownMenuItem({
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
         "data-inset:pl-7.5",
-        variant === "destructive" && "data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:*:[svg]:text-destructive",
+        variant === "destructive" && "data-[variant=destructive]:text-destructive data-[variant=destructive]:data-[focused=true]:bg-destructive/10 data-[variant=destructive]:data-[focused=true]:text-destructive dark:data-[variant=destructive]:data-[focused=true]:bg-destructive/20 data-[variant=destructive]:*:[svg]:text-destructive",
         className
       )}
       {...props}
@@ -343,6 +344,7 @@ function DropdownMenuSubContent({ className, children }: DropdownMenuContentProp
       data-slot="dropdown-menu-sub-content"
       className={cn(
         "z-50 w-auto min-w-32 rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100",
+        "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         "data-entering:animate-in data-entering:fade-in-0 data-entering:zoom-in-95",
         "data-exiting:animate-out data-exiting:fade-out-0 data-exiting:zoom-out-95",
         className

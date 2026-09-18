@@ -8,6 +8,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetOverlay,
   SheetTitle,
 } from "./sheet"
 
@@ -68,5 +69,72 @@ describe("Sheet", () => {
     )
     // SheetHeader isn't rendered (no children), but ensure the title isn't broken.
     expect(screen.getByText("T")).toBeInTheDocument()
+  })
+
+  it("SheetContent applies slide-from-right translate when data-side=right", () => {
+    render(
+      <Sheet open onOpenChange={() => {}}>
+        <SheetContent side="right" data-testid="sheet-content">
+          <SheetTitle>R</SheetTitle>
+        </SheetContent>
+      </Sheet>,
+    )
+    const cls = screen.getByTestId("sheet-content").className
+    expect(cls).toContain("data-[side=right]:data-entering:translate-x-[2.5rem]")
+    expect(cls).toContain("data-[side=right]:data-exiting:translate-x-[2.5rem]")
+  })
+
+  it("SheetContent applies slide-from-left translate when data-side=left", () => {
+    render(
+      <Sheet open onOpenChange={() => {}}>
+        <SheetContent side="left" data-testid="sheet-content">
+          <SheetTitle>L</SheetTitle>
+        </SheetContent>
+      </Sheet>,
+    )
+    const cls = screen.getByTestId("sheet-content").className
+    expect(cls).toContain("data-[side=left]:data-entering:translate-x-[-2.5rem]")
+    expect(cls).toContain("data-[side=left]:data-exiting:translate-x-[-2.5rem]")
+  })
+
+  it("SheetContent applies slide-from-top translate when data-side=top", () => {
+    render(
+      <Sheet open onOpenChange={() => {}}>
+        <SheetContent side="top" data-testid="sheet-content">
+          <SheetTitle>T</SheetTitle>
+        </SheetContent>
+      </Sheet>,
+    )
+    const cls = screen.getByTestId("sheet-content").className
+    expect(cls).toContain("data-[side=top]:data-entering:translate-y-[-2.5rem]")
+    expect(cls).toContain("data-[side=top]:data-exiting:translate-y-[-2.5rem]")
+  })
+
+  it("SheetContent applies slide-from-bottom translate when data-side=bottom", () => {
+    render(
+      <Sheet open onOpenChange={() => {}}>
+        <SheetContent side="bottom" data-testid="sheet-content">
+          <SheetTitle>B</SheetTitle>
+        </SheetContent>
+      </Sheet>,
+    )
+    const cls = screen.getByTestId("sheet-content").className
+    expect(cls).toContain("data-[side=bottom]:data-entering:translate-y-[2.5rem]")
+    expect(cls).toContain("data-[side=bottom]:data-exiting:translate-y-[2.5rem]")
+  })
+
+  it("SheetOverlay applies data-entering/data-exiting opacity transitions", () => {
+    render(
+      <Sheet open onOpenChange={() => {}}>
+        <SheetOverlay />
+        <SheetContent>
+          <SheetTitle>T</SheetTitle>
+        </SheetContent>
+      </Sheet>,
+    )
+    const overlay = document.querySelector("[data-slot='sheet-overlay']")
+    expect(overlay).not.toBeNull()
+    expect(overlay?.className ?? "").toContain("data-entering:opacity-0")
+    expect(overlay?.className ?? "").toContain("data-exiting:opacity-0")
   })
 })

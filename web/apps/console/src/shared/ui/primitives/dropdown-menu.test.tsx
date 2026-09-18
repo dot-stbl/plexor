@@ -119,4 +119,63 @@ describe("DropdownMenu", () => {
     expect(it.className).toContain("min-h-7")
     expect(it.className).toContain("rounded-md")
   })
+
+  it("DropdownMenuItem uses RAC data-[focused=true] for focus state", async () => {
+    const user = userEvent.setup()
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <button type="button">Open</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem data-testid="it">X</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    )
+    await user.click(screen.getByRole("button", { name: "Open" }))
+    const it = await screen.findByTestId("it")
+    expect(it.className).toContain("data-[focused=true]:bg-accent")
+    expect(it.className).toContain("data-[focused=true]:text-accent-foreground")
+  })
+
+  it("DropdownMenuItem destructive variant uses RAC data-[focused=true]", async () => {
+    const user = userEvent.setup()
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <button type="button">Open</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem variant="destructive" data-testid="it">Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    )
+    await user.click(screen.getByRole("button", { name: "Open" }))
+    const it = await screen.findByTestId("it")
+    expect(it.className).toContain("data-[variant=destructive]:text-destructive")
+    expect(it.className).toContain("data-[variant=destructive]:data-[focused=true]:bg-destructive/10")
+    expect(it.className).toContain("data-[variant=destructive]:data-[focused=true]:text-destructive")
+  })
+
+  it("DropdownMenuContent applies slide-from-X classes for each side", async () => {
+    const user = userEvent.setup()
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <button type="button">Open</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>X</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    )
+    await user.click(screen.getByRole("button", { name: "Open" }))
+    const content = document.querySelector("[data-slot='dropdown-menu-content']") as HTMLElement | null
+    expect(content).not.toBeNull()
+    const cls = content?.className ?? ""
+    expect(cls).toContain("data-[side=bottom]:slide-in-from-top-2")
+    expect(cls).toContain("data-[side=left]:slide-in-from-right-2")
+    expect(cls).toContain("data-[side=right]:slide-in-from-left-2")
+    expect(cls).toContain("data-[side=top]:slide-in-from-bottom-2")
+  })
 })

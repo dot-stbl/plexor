@@ -92,7 +92,7 @@ function MenubarItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "group/menubar-item min-h-7 gap-2 rounded-md px-2 py-1 text-xs/relaxed focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7.5 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-3.5 data-[variant=destructive]:*:[svg]:text-destructive!",
+        "group/menubar-item min-h-7 gap-2 rounded-md px-2 py-1 text-xs/relaxed data-[focused=true]:bg-accent data-[focused=true]:text-accent-foreground data-[focused=true]:**:text-accent-foreground data-inset:pl-7.5 data-[variant=destructive]:text-destructive data-[variant=destructive]:data-[focused=true]:bg-destructive/10 data-[variant=destructive]:data-[focused=true]:text-destructive dark:data-[variant=destructive]:data-[focused=true]:bg-destructive/20 data-[disabled]:opacity-50 [&_svg:not([class*='size-'])]:size-3.5 data-[variant=destructive]:*:[svg]:text-destructive!",
         className
       )}
       {...props}
@@ -119,7 +119,7 @@ function MenubarCheckboxItem({
       data-slot="menubar-checkbox-item"
       data-inset={inset}
       className={cn(
-        "group/menubar-item min-h-7 gap-2 rounded-md px-2 py-1 text-xs/relaxed focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7.5",
+        "group/menubar-item min-h-7 gap-2 rounded-md px-2 py-1 text-xs/relaxed data-[focused=true]:bg-accent data-[focused=true]:text-accent-foreground data-[focused=true]:**:text-accent-foreground data-inset:pl-7.5",
         className
       )}
       checked={checked}
@@ -213,7 +213,7 @@ function MenubarShortcut({
     <DropdownMenuShortcut
       data-slot="menubar-shortcut"
       className={cn(
-        "ml-auto text-[0.625rem] tracking-widest text-muted-foreground group-focus/menubar-item:text-accent-foreground",
+        "ml-auto text-[0.625rem] tracking-widest text-muted-foreground group-data-[focused=true]/menubar-item:text-accent-foreground",
         className
       )}
       {...props}
@@ -239,7 +239,7 @@ function MenubarSubTrigger({
       data-slot="menubar-sub-trigger"
       data-inset={inset}
       className={cn(
-        "min-h-7 gap-2 rounded-md px-2 py-1 text-xs focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7.5 data-open:bg-accent data-open:text-accent-foreground [&_svg:not([class*='size-'])]:size-3.5",
+        "min-h-7 gap-2 rounded-md px-2 py-1 text-xs data-[focused=true]:bg-accent data-[focused=true]:text-accent-foreground data-[focused=true]:**:text-accent-foreground data-inset:pl-7.5 data-[open=true]:bg-accent data-[open=true]:text-accent-foreground [&_svg:not([class*='size-'])]:size-3.5",
         className
       )}
       {...props}
