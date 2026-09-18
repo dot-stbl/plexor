@@ -852,5 +852,35 @@
       "resetToDefaults": "Сбросить на умолчания",
       "brandingHint": "операторские умолчания (логотип, акцент, фавикон), влияющие на всех пользователей."
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Вход в Plexor",
+      "subtitle": "Используйте рабочую почту или единый вход",
+      "email": {
+        "label": "Email",
+        "placeholder": "вы@компания.ру"
+      },
+      "password": {
+        "label": "Пароль",
+        "placeholder": "••••••••"
+      },
+      "submit": "Войти",
+      "submitting": "Входим…",
+      "sso": "Войти через SSO",
+      "validation": {
+        "emailRequired": "Укажите email",
+        "emailInvalid": "Введите корректный email",
+        "emailTooLong": "Слишком длинный email",
+        "passwordRequired": "Укажите пароль",
+        "passwordTooLong": "Слишком длинный пароль"
+      },
+      "errors": {
+        "invalid": "Неверный email или пароль",
+        "network": "Ошибка сети — попробуйте ещё раз",
+        "config": "SSO не настроен для вашей организации",
+        "generic": "Не удалось войти — попробуйте ещё раз"
+      }
+    }
   }
 }

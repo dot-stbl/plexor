@@ -852,5 +852,35 @@
       "resetToDefaults": "Reset to defaults",
       "brandingHint": "for operator-level defaults (logo, accent, favicon) that affect every user."
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to Plexor",
+      "subtitle": "Use your work email or single sign-on",
+      "email": {
+        "label": "Email",
+        "placeholder": "you@company.com"
+      },
+      "password": {
+        "label": "Password",
+        "placeholder": "••••••••"
+      },
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "sso": "Continue with SSO",
+      "validation": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Enter a valid email address",
+        "emailTooLong": "Email is too long",
+        "passwordRequired": "Password is required",
+        "passwordTooLong": "Password is too long"
+      },
+      "errors": {
+        "invalid": "Invalid email or password",
+        "network": "Network error — please try again",
+        "config": "Single sign-on not configured for your organization",
+        "generic": "Sign-in failed — please try again"
+      }
+    }
   }
 }

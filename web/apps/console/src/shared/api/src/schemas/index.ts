@@ -33,6 +33,7 @@ export { nodeJoin201Schema, nodeJoin400Schema, nodeJoinMutationRequestSchema, no
 export { orgAuthProviderConfigResponseSchema } from "./orgAuthProviderConfigResponseSchema.ts";
 export { orgAuthProviderTestResultSchema } from "./orgAuthProviderTestResultSchema.ts";
 export { orgBrandingConfigResponseSchema } from "./orgBrandingConfigResponseSchema.ts";
+export { postAuthLogin200Schema, postAuthLogin401Schema, postAuthLoginErrorSchema, postAuthLoginMutationRequestSchema, postAuthLoginMutationResponseSchema } from "./postAuthLoginSchema.ts";
 export { postOidcLogout204Schema, postOidcLogoutErrorSchema, postOidcLogoutMutationResponseSchema } from "./postOidcLogoutSchema.ts";
 export { problemDetailsSchema } from "./problemDetailsSchema.ts";
 export { provisionVm201Schema, provisionVm422Schema, provisionVmErrorSchema, provisionVmMutationRequestSchema, provisionVmMutationResponseSchema } from "./provisionVmSchema.ts";

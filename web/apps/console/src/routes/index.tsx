@@ -1,10 +1,16 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { PageTemplate, SECTIONS, sectionPrimaryRoute } from '@/shared/ui/app-shell';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { routeHead } from '@/shared/lib/route-head';
+import { hasValidSession } from '@/features/auth/session-storage';
 
 export const Route = createFileRoute('/')({
+  beforeLoad: () => {
+    if (!hasValidSession()) {
+      throw redirect({ to: '/login' });
+    }
+  },
   component: HomePage,
   ...routeHead(null),
 });
