@@ -2,6 +2,7 @@ export { createAuditQueryResponse } from "./createAuditQueryResponse.ts";
 export { createBrandingBootConfig } from "./createBrandingBootConfig.ts";
 export { createCreateVmRequest } from "./createCreateVmRequest.ts";
 export { createDeleteBrandingOrg204, createDeleteBrandingOrg404, createDeleteBrandingOrgError, createDeleteBrandingOrgMutationResponse, createDeleteBrandingOrgPathParams } from "./createDeleteBrandingOrg.ts";
+export { createDeleteBrandingTheme204, createDeleteBrandingTheme403, createDeleteBrandingThemeMutationResponse } from "./createDeleteBrandingTheme.ts";
 export { createDeleteQuotaAssignment204, createDeleteQuotaAssignment404, createDeleteQuotaAssignmentError, createDeleteQuotaAssignmentMutationResponse, createDeleteQuotaAssignmentPathParams } from "./createDeleteQuotaAssignment.ts";
 export { createDeleteVm204, createDeleteVm404, createDeleteVmError, createDeleteVmMutationResponse, createDeleteVmPathParams } from "./createDeleteVm.ts";
 export { createEffectiveQuotaEntry } from "./createEffectiveQuotaEntry.ts";
@@ -12,6 +13,7 @@ export { createGetBrandingOrg200, createGetBrandingOrg404, createGetBrandingOrgE
 export { createGetOidcAuthorize302, createGetOidcAuthorizeError, createGetOidcAuthorizeQueryParams, createGetOidcAuthorizeQueryResponse } from "./createGetOidcAuthorize.ts";
 export { createGetOidcCallback302, createGetOidcCallbackError, createGetOidcCallbackQueryParams, createGetOidcCallbackQueryResponse } from "./createGetOidcCallback.ts";
 export { createGetOrgAuthProvider200, createGetOrgAuthProvider404, createGetOrgAuthProviderError, createGetOrgAuthProviderPathParams, createGetOrgAuthProviderQueryResponse } from "./createGetOrgAuthProvider.ts";
+export { createGetBrandingTheme200, createGetBrandingTheme403, createGetBrandingTheme404, createGetBrandingThemeQueryResponse } from "./createGetBrandingTheme.ts";
 export { createGetQuotaDefinitions200, createGetQuotaDefinitionsError, createGetQuotaDefinitionsQueryResponse } from "./createGetQuotaDefinitions.ts";
 export { createGetVm200, createGetVm404, createGetVmError, createGetVmPathParams, createGetVmQueryResponse } from "./createGetVm.ts";
 export { createGlobalThemeConfigResponse } from "./createGlobalThemeConfigResponse.ts";
@@ -43,9 +45,11 @@ export { createStartVm200, createStartVmError, createStartVmMutationResponse, cr
 export { createStopVm200, createStopVmError, createStopVmMutationResponse, createStopVmPathParams } from "./createStopVm.ts";
 export { createTestOrgAuthProvider200, createTestOrgAuthProvider404, createTestOrgAuthProviderError, createTestOrgAuthProviderMutationRequest, createTestOrgAuthProviderMutationResponse, createTestOrgAuthProviderPathParams } from "./createTestOrgAuthProvider.ts";
 export { createUpdateBrandingGlobal200, createUpdateBrandingGlobal400, createUpdateBrandingGlobalError, createUpdateBrandingGlobalMutationRequest, createUpdateBrandingGlobalMutationResponse } from "./createUpdateBrandingGlobal.ts";
+export { createUpdateBrandingTheme200, createUpdateBrandingTheme400, createUpdateBrandingTheme403, createUpdateBrandingTheme404, createUpdateBrandingThemeMutationRequest, createUpdateBrandingThemeMutationResponse } from "./createUpdateBrandingTheme.ts";
 export { createUpdateBrandingOrg200, createUpdateBrandingOrg400, createUpdateBrandingOrg404, createUpdateBrandingOrgError, createUpdateBrandingOrgMutationRequest, createUpdateBrandingOrgMutationResponse, createUpdateBrandingOrgPathParams } from "./createUpdateBrandingOrg.ts";
 export { createUpdateOrgAuthProvider200, createUpdateOrgAuthProvider400, createUpdateOrgAuthProvider404, createUpdateOrgAuthProviderError, createUpdateOrgAuthProviderMutationRequest, createUpdateOrgAuthProviderMutationResponse, createUpdateOrgAuthProviderPathParams } from "./createUpdateOrgAuthProvider.ts";
 export { createUpsertGlobalThemeConfigRequest } from "./createUpsertGlobalThemeConfigRequest.ts";
+export { createUpsertThemeInstallationRequest } from "./createUpsertThemeInstallationRequest.ts";
 export { createUpsertOrgAuthProviderRequest } from "./createUpsertOrgAuthProviderRequest.ts";
 export { createUpsertOrgBrandingRequest } from "./createUpsertOrgBrandingRequest.ts";
 export { createUpsertQuotaAssignment200, createUpsertQuotaAssignment400, createUpsertQuotaAssignmentError, createUpsertQuotaAssignmentMutationRequest, createUpsertQuotaAssignmentMutationResponse, createUpsertQuotaAssignmentQueryParams } from "./createUpsertQuotaAssignment.ts";
