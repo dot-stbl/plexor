@@ -141,11 +141,39 @@
     "title": "Overview",
     "description": "Project sections. Full service catalog — \"All services\" in the sidebar."
   },
+  "dashboard": {
+    "fleet": {
+      "total": "Total VMs",
+      "running": "Running",
+      "cpu": "Compute",
+      "ram": "Memory",
+      "ofTotal": "of {{total}} total"
+    },
+    "vmStatus": {
+      "title": "VMs by status"
+    },
+    "quotaUsage": {
+      "title": "Quota usage",
+      "used": "Used"
+    },
+    "audit": {
+      "title": "Recent activity",
+      "viewAll": "View all",
+      "justNow": "just now"
+    }
+  },
   "placeholder": {
     "inDevelopment": "Screen in development",
     "scaffoldReady": "Scaffold is ready — content will appear in the next pass."
   },
   "vms": {
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "error": "Error",
+      "provisioning": "Provisioning",
+      "idle": "Idle"
+    },
     "list": {
       "title": "Virtual machines",
       "create": "Create VM",

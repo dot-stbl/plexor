@@ -64,13 +64,11 @@ import {
   createNodeCommandResult,
   createQuotaDefinitionSummary,
   createQuotaAssignmentSummary,
-  createQuotaUsageEntry,
   createEffectiveQuotaEntry,
   createGlobalThemeConfigResponse,
   createBrandingBootConfig,
   createOrgBrandingConfigResponse,
   createGetBrandingTheme200,
-  createAuditQueryResponse,
   createOrgAuthProviderConfigResponse,
   createOrgAuthProviderTestResult,
 } from '@/shared/api';
@@ -89,6 +87,8 @@ const FLEET = [
   { id: 'vm-6f8d22b8', name: 'build-runner', status: 'error',        ip: '10.128.5.3',  zone: 'eu-central-1', vcpu: 4, ram: 8,  disk: 100 },
   { id: 'vm-1b9e4f73', name: 'staging-api',  status: 'stopped',      ip: '10.128.6.12', zone: 'eu-central-1', vcpu: 2, ram: 4,  disk: 40  },
   { id: 'vm-4d2a89e1', name: 'ml-trainer',   status: 'provisioning', ip: '10.128.7.4',  zone: 'eu-central-1', vcpu: 8, ram: 64, disk: 250 },
+  { id: 'vm-7c2e91a4', name: 'edge-amsterdam',status: 'running',     ip: '10.128.8.21', zone: 'eu-west-1',    vcpu: 4, ram: 16, disk: 120 },
+  { id: 'vm-0a5b8d63', name: 'edge-singapore',status: 'running',     ip: '10.128.9.5',  zone: 'ap-southeast-1',vcpu: 4, ram: 16, disk: 120 },
 ] as const;
 
 const fleet = FLEET.map((vm) => ({
@@ -111,6 +111,57 @@ const fleet = FLEET.map((vm) => ({
 const fleetById: Map<string, (typeof fleet)[number]> = new Map(
   fleet.map((vm) => [vm.id, vm]),
 );
+
+// Hand-curated quota usage so the dashboard widget renders real metric
+// names with `used < limit` (kubb's faker returns random strings +
+// arbitrary ints, which renders as noise). `metric` keys align with
+// `QuotaDefinitionSummary.metric` from the openapi contract.
+const QUOTA_USAGE = [
+  { metric: 'vm.count',         used: 10, limit: 50 },
+  { metric: 'vm.cpu_cores',     used: 38, limit: 128 },
+  { metric: 'vm.memory_gb',     used: 172, limit: 512 },
+  { metric: 'vm.disk_gb',       used: 1340, limit: 4096 },
+  { metric: 'network.fip',      used: 3, limit: 16 },
+  { metric: 'storage.buckets',  used: 5, limit: 25 },
+] as const;
+
+const quotaUsage = QUOTA_USAGE.map((q, idx) => ({
+  definitionId: `quota-def-${idx + 1}`,
+  metric: q.metric,
+  used: q.used,
+  limit: q.limit,
+  updatedAt: faker.date.recent({ days: 1 }).toISOString(),
+}));
+
+// Hand-curated audit timeline so the dashboard's recent-events list
+// shows real dot.case action verbs + target kinds. Timestamps are
+// descending (most-recent first) so the widget can render in order.
+const ORG_ID = '00000000-0000-0000-0000-000000000001';
+const ACTOR = '00000000-0000-0000-0000-0000000000aa';
+const now = Date.now();
+const auditEvents = [
+  { action: 'vm.lifecycle.started',  targetKind: 'vm',   targetId: 'vm-a8c91f2e', ageMin: 3  },
+  { action: 'vm.lifecycle.stopped',  targetKind: 'vm',   targetId: 'vm-1b9e4f73', ageMin: 12 },
+  { action: 'vm.lifecycle.failed',  targetKind: 'vm',   targetId: 'vm-6f8d22b8', ageMin: 27 },
+  { action: 'vm.provisioned',        targetKind: 'vm',   targetId: 'vm-4d2a89e1', ageMin: 45 },
+  { action: 'quotas.assignment.changed', targetKind: 'quota', targetId: 'quota-def-1', ageMin: 90 },
+  { action: 'node.joined',           targetKind: 'node', targetId: 'node-prod-eu-1-c', ageMin: 180 },
+  { action: 'node.draining',         targetKind: 'node', targetId: 'node-prod-eu-1-d', ageMin: 360 },
+  { action: 'branding.theme.activated', targetKind: 'theme', targetId: 'plexor-noir', ageMin: 720 },
+  { action: 'auth.session.signed_in',targetKind: 'session', targetId: null, ageMin: 24 * 60 },
+  { action: 'auth.api_key.created',  targetKind: 'api_key', targetId: 'apk-cicd-deployer', ageMin: 30 * 60 },
+] as const;
+
+const auditTimeline = auditEvents.map((e, idx) => ({
+  id: `audit-${idx + 1}`,
+  action: e.action,
+  orgId: ORG_ID,
+  actorUserId: ACTOR,
+  targetKind: e.targetKind,
+  targetId: e.targetId,
+  payload: {},
+  occurredAt: new Date(now - e.ageMin * 60_000).toISOString(),
+}));
 
 export const handlers: RequestHandler[] = [
   // ───────────────────────── VMs (6) ─────────────────────────
@@ -149,9 +200,7 @@ export const handlers: RequestHandler[] = [
   ),
   upsertQuotaAssignmentHandler(createQuotaAssignmentSummary()),
   deleteQuotaAssignmentHandler(),
-  listQuotaUsageHandler(
-    faker.helpers.multiple(() => createQuotaUsageEntry(), { count: 6 }),
-  ),
+  listQuotaUsageHandler(quotaUsage),
   listEffectiveQuotasHandler(
     faker.helpers.multiple(() => createEffectiveQuotaEntry(), { count: 6 }),
   ),
@@ -168,9 +217,7 @@ export const handlers: RequestHandler[] = [
   deleteBrandingThemeHandler(),
 
   // ───────────────────────── Audit (1) ─────────────────────────
-  getAuditHandler(
-    faker.helpers.multiple(() => createAuditQueryResponse(), { count: 12 }),
-  ),
+  getAuditHandler(auditTimeline),
 
   // ───────────────────────── Auth providers (3) ─────────────────────────
   getOrgAuthProviderHandler(createOrgAuthProviderConfigResponse()),
