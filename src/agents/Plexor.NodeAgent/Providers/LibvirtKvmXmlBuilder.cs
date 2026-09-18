@@ -22,19 +22,31 @@ internal static class LibvirtKvmXmlBuilder
 {
     /// <summary>
     ///     Build a KVM domain XML. v0.1: one disk, one network
-    ///     interface, no balloon device. Real impl reads additional
-    ///     config from <see cref="WorkloadSpec.Config" /> (opaque
-    ///     JSON the provider owns).
+    ///     interface, optional cloud-init cidata CD-ROM (when
+    ///     <paramref name="cidataIsoPath" /> is non-null), no
+    ///     balloon device. Real impl reads additional config
+    ///     from <see cref="WorkloadSpec.Config" /> (opaque JSON
+    ///     the provider owns).
     /// </summary>
     /// <param name="spec">Operator-supplied spec (config carries RAM / vCPU / network name / base image ref).</param>
     /// <param name="id">Agent-assigned local id for the new VM.</param>
     /// <param name="volumePath">Disk image path on the host filesystem. Comes from <c>VolumeHandle.Reference</c>.</param>
     /// <param name="networkBridge">Bridge name to attach the VM's NIC to. Comes from <c>NetworkInterfaceHandle.Reference</c>.</param>
+    /// <param name="cidataIsoPath">
+    ///     Absolute path to a pre-built cloud-init cidata ISO
+    ///     (see <c>CidataBuilder</c>). When non-null, attached
+    ///     as a CD-ROM device; when null, the domain has no
+    ///     cidata device. v0.1: a non-null value implies
+    ///     <c>Bus=Ide, Device=vdb</c> so cloud-init's NoCloud
+    ///     seed picks the right disk regardless of the boot disk
+    ///     order.
+    /// </param>
     public static string BuildDomainXml(
         WorkloadSpec spec,
         Guid id,
         string volumePath,
-        string networkBridge)
+        string networkBridge,
+        string? cidataIsoPath)
     {
         var config = LibvirtConfigDeserializer.TryDeserialize(spec.Config, static () => new LibvirtKvmConfig(), out var c)
                 ? c
@@ -43,7 +55,7 @@ internal static class LibvirtKvmXmlBuilder
         // v0.1: defaults if Config is missing fields. Future:
         // the control plane passes these explicitly.
         var ramKiB = config.RamBytes / 1024;
-        var vcpu = config.CpuCores;
+        var vcpu = config.Vcpu;
 
         var settings = new XmlWriterSettings
         {
@@ -97,6 +109,33 @@ internal static class LibvirtKvmXmlBuilder
             writer.WriteEndElement(); // target
             writer.WriteEndElement(); // disk
 
+            // Optional cloud-init cidata CD-ROM. Wired by the
+            // provider when the spec carries a public SSH key
+            // (see CidataBuilder in #9). We attach as a read-only
+            // IDE device on vdb — cloud-init's NoCloud datasource
+            // walks every disk and picks the one labelled
+            // "cidata"; we don't need to mark it explicitly.
+            if (cidataIsoPath is not null)
+            {
+                writer.WriteStartElement("disk");
+                writer.WriteAttributeString("type", "file");
+                writer.WriteAttributeString("device", "cdrom");
+                writer.WriteStartElement("driver");
+                writer.WriteAttributeString("name", "qemu");
+                writer.WriteAttributeString("type", "raw");
+                writer.WriteEndElement(); // driver
+                writer.WriteStartElement("source");
+                writer.WriteAttributeString("file", cidataIsoPath);
+                writer.WriteEndElement(); // source
+                writer.WriteStartElement("target");
+                writer.WriteAttributeString("dev", "vdb");
+                writer.WriteAttributeString("bus", "ide");
+                writer.WriteEndElement(); // target
+                writer.WriteStartElement("readonly");
+                writer.WriteEndElement(); // readonly
+                writer.WriteEndElement(); // disk (cdrom)
+            }
+
             writer.WriteStartElement("interface");
             writer.WriteAttributeString("type", "bridge");
             writer.WriteStartElement("source");
@@ -133,16 +172,50 @@ internal static class LibvirtKvmXmlBuilder
 ///     <see cref="WorkloadSpec.Config" />). v0.1: defaults if the
 ///     control plane doesn't supply a value, so the agent stays
 ///     functional even with empty Config.
+///
+///     <para>
+///     Wire-format JSON keys (PascalCase): <c>Vcpu</c>,
+///     <c>RamBytes</c>, <c>DiskBytes</c>, <c>NetworkName</c>,
+///     <c>BaseImageRef</c>, <c>SshPublicKey</c>,
+///     <c>SshKeyFingerprint</c>. Unknown keys are ignored by the
+///     deserialiser (System.Text.Json default).
+///     </para>
 /// </summary>
 /// <param name="RamBytes">RAM allocation in bytes.</param>
-/// <param name="CpuCores">Number of vCPUs.</param>
+/// <param name="Vcpu">Logical vCPU count.</param>
+/// <param name="DiskBytes">
+///     Root disk size in bytes. When <c>null</c> the provider
+///     derives the volume size from RAM (RAM * 4) so a missing
+///     field is still functional. The control plane passes an
+///     explicit value from the operator's <c>--disk-gb</c> flag.
+/// </param>
 /// <param name="NetworkName">Logical network name (matches libvirt network name).</param>
 /// <param name="BaseImageRef">Operator-facing image ref resolved via <c>IImageRegistry</c>.</param>
+/// <param name="SshPublicKey">
+///     OpenSSH public key content (one line, e.g.
+///     <c>"ssh-ed25519 AAAA… user@host"</c>). When non-null, the
+///     provider attaches a cloud-init cidata ISO that injects
+///     this key as the <c>root</c> user's authorized key
+///     (see <c>CidataBuilder</c>, added in P1 #9). Mutually
+///     compatible with <paramref name="SshKeyFingerprint" />:
+///     the fingerprint is logged for audit; the public key
+///     content is what cloud-init needs.
+/// </param>
+/// <param name="SshKeyFingerprint">
+///     Stable fingerprint of <paramref name="SshPublicKey" />.
+///     Logged for audit / operator traceability; the actual key
+///     content is what gets injected into cloud-init. When
+///     <paramref name="SshPublicKey" /> is null, the fingerprint
+///     is recorded but no key is injected.
+/// </param>
 public sealed record LibvirtKvmConfig(
     long RamBytes = 1L * 1024 * 1024 * 1024,
-    int CpuCores = 2,
+    int Vcpu = 2,
+    long? DiskBytes = null,
     string NetworkName = "default",
-    string? BaseImageRef = null)
+    string? BaseImageRef = null,
+    string? SshPublicKey = null,
+    string? SshKeyFingerprint = null)
 {
     /// <summary>
     ///     Public parameterless constructor — required by
@@ -155,9 +228,12 @@ public sealed record LibvirtKvmConfig(
     /// </summary>
     public LibvirtKvmConfig()
         : this(RamBytes: 1L * 1024 * 1024 * 1024,
-               CpuCores: 2,
+               Vcpu: 2,
+               DiskBytes: null,
                NetworkName: "default",
-               BaseImageRef: null)
+               BaseImageRef: null,
+               SshPublicKey: null,
+               SshKeyFingerprint: null)
     {
     }
 }

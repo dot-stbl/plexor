@@ -2,7 +2,7 @@
 // ============================================================================
 // VmCreateCommand — `plx vm create`. Builds a PascalCase JSON
 // payload matching the LibvirtKvmConfig record that the agent's
-// libvirt-KVM provider deserialises (RamBytes / CpuCores /
+// libvirt-KVM provider deserialises (RamBytes / Vcpu / DiskBytes /
 // NetworkName / BaseImageRef), then calls
 // `POST /api/v1/compute/clusters/{id}/workloads` and prints:
 //
@@ -69,6 +69,7 @@ public sealed class VmCreateCommand : AsyncCommand<VmCreateSettings>
             var specJson = VmSpecBuilder.Build(
                 settings.Vcpu,
                 settings.RamMb,
+                settings.DiskGb,
                 settings.Image);
             var request = new HostCreateWorkloadRequest(
                 settings.Name,
@@ -105,25 +106,31 @@ file static class VmSpecBuilder
 {
     /// <summary>
     ///     Construct the VM provider-specific config JSON. Shape
-    ///     matches <c>LibvirtKvmConfig(RamBytes, CpuCores,
+    ///     matches <c>LibvirtKvmConfig(RamBytes, Vcpu, DiskBytes,
     ///     NetworkName, BaseImageRef)</c>. PascalCase keys because
     ///     <c>LibvirtConfigDeserializer.TryDeserialize</c> uses
     ///     default <see cref="System.Text.Json.JsonSerializerOptions" />,
     ///     which is case-sensitive PascalCase. <paramref name="ramMb" />
     ///     is converted to bytes (× 1024 × 1024) to match the
-    ///     provider's long-bytes contract.
+    ///     provider's long-bytes contract; <paramref name="diskGb" />
+    ///     is converted to bytes (× 1024 × 1024 × 1024) and
+    ///     always emitted so the agent doesn't fall back to the
+    ///     RAM-derived default.
     /// </summary>
     /// <param name="vcpu">Logical vCPU count.</param>
     /// <param name="ramMb">RAM in MiB; converted to bytes.</param>
+    /// <param name="diskGb">Disk in GiB; converted to bytes.</param>
     /// <param name="imageRef">Image registry ref (e.g. <c>ubuntu-22.04-cloud</c>).</param>
     /// <returns>JSON string ready for the host's <c>SpecJson</c> slot.</returns>
-    public static string Build(int vcpu, int ramMb, string imageRef)
+    public static string Build(int vcpu, int ramMb, int diskGb, string imageRef)
     {
         var ramBytes = (long)ramMb * 1024L * 1024L;
+        var diskBytes = (long)diskGb * 1024L * 1024L * 1024L;
         return string.Concat(
             "{",
             $"\"RamBytes\":{ramBytes},",
-            $"\"CpuCores\":{vcpu},",
+            $"\"Vcpu\":{vcpu},",
+            $"\"DiskBytes\":{diskBytes},",
             "\"NetworkName\":\"default\",",
             $"\"BaseImageRef\":\"{EscapeJson(imageRef)}\"",
             "}");

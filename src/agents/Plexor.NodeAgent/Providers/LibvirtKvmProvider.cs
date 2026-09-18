@@ -83,9 +83,12 @@ public sealed class LibvirtKvmProvider(
 
         // Storage + network through the abstractions. Backend
         // choice happens in DI — v0.1 has exactly one of each.
+        // Disk size falls back to RAM * 4 when the control plane
+        // didn't supply an explicit DiskBytes (the operator's
+        // --disk-gb CLI flag is the canonical source for v0.1).
         var volumeSpec = new VolumeSpec(
             Name: spec.Name,
-            SizeBytes: config.RamBytes * 4,
+            SizeBytes: config.DiskBytes ?? config.RamBytes * 4,
             BaseImageRef: config.BaseImageRef,
             Format: VolumeFormat.Qcow2);
         var volumeHandle = await volumes.CreateAsync(volumeSpec, cancellationToken);
@@ -95,7 +98,17 @@ public sealed class LibvirtKvmProvider(
             Kind: NetworkKind.LinuxBridge);
         var networkHandle = await networks.AttachAsync(networkSpec, cancellationToken);
 
-        var xml = LibvirtKvmXmlBuilder.BuildDomainXml(spec, id, volumeHandle.Reference, networkHandle.Reference);
+        // cidataIsoPath is null in #8 (CidataBuilder lands in #9).
+        // The provider wires the public SSH key through cloud-init
+        // by pre-building a NoCloud ISO and passing the path
+        // here; when the operator didn't request a key, the
+        // domain has no cidata CD-ROM device at all.
+        var xml = LibvirtKvmXmlBuilder.BuildDomainXml(
+            spec,
+            id,
+            volumePath: volumeHandle.Reference,
+            networkBridge: networkHandle.Reference,
+            cidataIsoPath: null);
         var xmlPath = $"/tmp/plexor-{id}.xml";
 
         try
