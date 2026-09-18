@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from '@tanstack/react-router';
-import { Dialog } from '@base-ui/react/dialog';
 import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -8,7 +9,7 @@ import {
   KeyboardArrowRight,
   MenuBook,
   Settings,
-  Tune
+  Tune,
 } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import {
   Card,
@@ -111,21 +112,21 @@ function BlockCard({ section, onNavigate }: { section: Section; onNavigate: () =
   const BlockIcon = section.icon;
   return (
     <Card className="gap-0 overflow-visible py-0" data-od-id={`launcher-block-${section.id}`}>
-        <div className="flex flex-row items-center gap-2.5 border-b border-border p-3">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
-            <BlockIcon className="size-[18px]" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <CardTitle className="text-[13px]">{t(section.label)}</CardTitle>
-            <CardDescription className="text-[11px]">{t(section.caption)}</CardDescription>
-          </div>
-          {section.soon && <SoonTag />}
+      <div className="flex flex-row items-center gap-2.5 border-b border-border p-3">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
+          <BlockIcon className="size-[18px]" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <CardTitle className="text-[13px]">{t(section.label)}</CardTitle>
+          <CardDescription className="text-[11px]">{t(section.caption)}</CardDescription>
         </div>
-        <div className="grid grid-cols-1 gap-0.5 sm:grid-cols-2">
-          {section.pages.map((page) => (
-            <FnButton key={page.title} page={page} onNavigate={onNavigate} />
-          ))}
-        </div>
+        {section.soon && <SoonTag />}
+      </div>
+      <div className="grid grid-cols-1 gap-0.5 sm:grid-cols-2">
+        {section.pages.map((page) => (
+          <FnButton key={page.title} page={page} onNavigate={onNavigate} />
+        ))}
+      </div>
     </Card>
   );
 }
@@ -135,6 +136,12 @@ function BlockCard({ section, onNavigate }: { section: Section; onNavigate: () =
  * the sidebar stays clickable. The top region (4 hubs → 3 summary → 1 overview)
  * sits on one big backing card; the full service catalog floats below. Close
  * button sits inset above a custom scroll rail. Docked right of the sidebar.
+ *
+ * Implementation: plain React state + a portal to document.body. No base-ui
+ * Dialog — we manage open/close transitions ourselves via `data-state` so we
+ * stay independent of any overlay library. `useState(open)` is "what to render",
+ * `rendered` is "actually in the DOM" so we can animate the close transition
+ * before unmounting.
  */
 export function AppLauncher({
   open,
@@ -147,36 +154,83 @@ export function AppLauncher({
   // Dock flush against the sidebar's right edge, following its collapsed state.
   const { state } = useSidebar();
 
-  return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange} modal={false}>
-      <Dialog.Portal>
-        {/* Dim everything except the sidebar (left of this) and the menu cards
-            (above, z-40). Covers the header (z-10) too → menu overlaps it. */}
-        <div
-          aria-hidden="true"
-          onClick={close}
-          className={cn(
-            'fixed inset-y-0 right-0 z-30 bg-black/40 backdrop-blur-sm duration-200 animate-in fade-in-0',
-            state === 'collapsed' ? 'left-12' : 'left-64',
-          )}
-        />
-        <Dialog.Popup
-          data-od-id="launcher"
-          className={cn(
-            'fixed inset-y-0 z-40 flex h-full w-[min(760px,60vw)] flex-col bg-transparent outline-none transition-[left,transform,opacity] duration-200 ease-out data-ending-style:-translate-x-4 data-ending-style:opacity-0 data-starting-style:-translate-x-4 data-starting-style:opacity-0',
-            state === 'collapsed' ? 'left-12' : 'left-64',
-          )}
-        >
-          <Dialog.Title className="sr-only">Центр управления</Dialog.Title>
-          <Dialog.Description className="sr-only">Разделы проекта и быстрые переходы</Dialog.Description>
+  // Defer mounting so the enter animation can play; keep mounted briefly on
+  // close so the exit animation can play. Mirrors base-ui's
+  // `data-starting-style` / `data-ending-style` without depending on base-ui.
+  const [rendered, setRendered] = useState(open);
+  const [phase, setPhase] = useState<'enter' | 'idle' | 'exit'>(
+    open ? 'enter' : 'idle',
+  );
 
-          <div className="flex min-h-0 flex-1">
-            <ScrollArea
-              className="min-h-0 flex-1"
-              viewportClassName="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              scrollBarClassName="data-vertical:mt-3 data-vertical:mr-2 data-vertical:mb-3 data-vertical:rounded-full data-vertical:border-l-0 data-vertical:bg-border/20"
-            >
-              <div className="p-3.5 pr-0">
+  useEffect(() => {
+    if (open) {
+      setRendered(true);
+      setPhase('enter');
+      // Promote to 'idle' on the next frame so the entrance transition runs.
+      const id = requestAnimationFrame(() => setPhase('idle'));
+      return () => cancelAnimationFrame(id);
+    }
+    if (rendered) {
+      setPhase('exit');
+      const id = window.setTimeout(() => {
+        setRendered(false);
+        setPhase('idle');
+      }, 200);
+      return () => window.clearTimeout(id);
+    }
+    return undefined;
+  }, [open, rendered]);
+
+  // Close on Escape.
+  useEffect(() => {
+    if (!rendered) return undefined;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  if (!rendered || typeof document === 'undefined') return null;
+
+  const sideOffset = state === 'collapsed' ? 'left-12' : 'left-64';
+
+  return createPortal(
+    <div
+      data-od-id="launcher-portal"
+      data-state={phase === 'exit' ? 'closed' : 'open'}
+      className="fixed inset-0 z-40"
+    >
+      {/* Dim everything except the sidebar (left of this) and the menu cards.
+          Covers the header (z-10) too → menu overlaps it. */}
+      <div
+        aria-hidden="true"
+        onClick={close}
+        className={cn(
+          'fixed inset-y-0 right-0 z-30 bg-black/40 backdrop-blur-sm transition-opacity duration-200',
+          sideOffset,
+          phase === 'exit' ? 'opacity-0' : 'opacity-100',
+        )}
+      />
+      <div
+        data-od-id="launcher"
+        className={cn(
+          'fixed inset-y-0 z-40 flex h-full w-[min(760px,60vw)] flex-col bg-transparent outline-none transition-[transform,opacity] duration-200 ease-out',
+          sideOffset,
+          phase === 'enter' && '-translate-x-4 opacity-0',
+          phase === 'exit' && '-translate-x-4 opacity-0',
+        )}
+      >
+        <h2 className="sr-only">Центр управления</h2>
+        <p className="sr-only">Разделы проекта и быстрые переходы</p>
+
+        <div className="flex min-h-0 flex-1">
+          <ScrollArea
+            className="min-h-0 flex-1"
+            viewportClassName="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            scrollBarClassName="data-vertical:mt-3 data-vertical:mr-2 data-vertical:mb-3 data-vertical:rounded-full data-vertical:border-l-0 data-vertical:bg-border/20"
+          >
+            <div className="p-3.5 pr-0">
               {/* Top region on one big backing card. */}
               <Card className="mb-3 gap-2.5 p-3.5">
                 <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
@@ -230,22 +284,19 @@ export function AppLauncher({
             data-od-id="launcher-rail"
             className="flex w-10 shrink-0 items-start justify-center pt-2"
           >
-            <Dialog.Close
+            <Button
+              variant="ghost"
+              size="icon-sm"
               aria-label="Закрыть"
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="size-7 rounded-md text-muted-foreground"
-                />
-              }
+              onClick={close}
+              className="size-7 rounded-md text-muted-foreground"
             >
               <Close className="size-4" />
-            </Dialog.Close>
+            </Button>
           </div>
         </div>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+      </div>
+    </div>,
+    document.body,
   );
 }
