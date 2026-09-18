@@ -110,7 +110,7 @@ function ClusterDetailPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-wrap items-center gap-1.5 p-4">
+          <CardContent className="flex flex-wrap items-center gap-1.5">
             {cluster.installProviders.map((p) => (
               <Badge key={p} variant="secondary">
                 {p}
