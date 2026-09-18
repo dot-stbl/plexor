@@ -8,9 +8,11 @@
 // handler doesn't double-handle.
 // ============================================================================
 
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Plexor.NodeAgent.Abstractions;
+using Plexor.NodeAgent.Telemetry;
 using Plexor.Shared.NodeApi;
 using Plexor.Shared.Workloads;
 
@@ -41,6 +43,18 @@ public sealed class WorkloadCreateExecutor(
         CommandEnvelope envelope,
         CancellationToken cancellationToken)
     {
+        // OTel: host-side span wrapping the whole command
+        // handler. Distinct from the provider's CreateAsync
+        // span (which is nested under this one in the span
+        // tree when both fire). Tags carry the wire-side
+        // identity (command id, kind) so ops can correlate
+        // //nodes/heartbeat, //nodes/command, and //vm spans.
+        using var span = WorkloadTelemetry.ActivitySource.StartActivity(
+            "Plexor.NodeAgent.Executor.workload.create",
+            ActivityKind.Internal);
+        span?.SetTag("command.id", envelope.CommandId.ToString());
+        span?.SetTag("command.type", envelope.Type);
+
         try
         {
             if (await JsonSerializer.DeserializeAsync<CreateWorkloadPayload>(
@@ -51,6 +65,9 @@ public sealed class WorkloadCreateExecutor(
                 return ExecutorResult.Fail(
                     "workload.create payload deserialized to null");
             }
+
+            span?.SetTag("workload.kind", payload.Spec.Kind.Name);
+            span?.SetTag("workload.name", payload.Spec.Name);
 
             if (registry.GetProvider(payload.Spec.Kind) is not { } provider)
             {
@@ -64,6 +81,8 @@ public sealed class WorkloadCreateExecutor(
                 workload.Id,
                 workload.Kind,
                 workload.Name);
+
+            span?.SetTag("workload.local_id", workload.Id.ToString());
 
             // Tier 5: hand the LocalId back to the dispatcher so the
             // control plane can persist it on the workload row
