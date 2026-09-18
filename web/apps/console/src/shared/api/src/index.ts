@@ -140,6 +140,7 @@ export { createAuditQueryResponse } from "./fixtures/createAuditQueryResponse.ts
 export { createBrandingBootConfig } from "./fixtures/createBrandingBootConfig.ts";
 export { createCreateVmRequest } from "./fixtures/createCreateVmRequest.ts";
 export { createDeleteBrandingOrg204, createDeleteBrandingOrg404, createDeleteBrandingOrgError, createDeleteBrandingOrgMutationResponse, createDeleteBrandingOrgPathParams } from "./fixtures/createDeleteBrandingOrg.ts";
+export { createDeleteBrandingTheme204, createDeleteBrandingTheme403, createDeleteBrandingThemeMutationResponse } from "./fixtures/createDeleteBrandingTheme.ts";
 export { createDeleteQuotaAssignment204, createDeleteQuotaAssignment404, createDeleteQuotaAssignmentError, createDeleteQuotaAssignmentMutationResponse, createDeleteQuotaAssignmentPathParams } from "./fixtures/createDeleteQuotaAssignment.ts";
 export { createDeleteVm204, createDeleteVm404, createDeleteVmError, createDeleteVmMutationResponse, createDeleteVmPathParams } from "./fixtures/createDeleteVm.ts";
 export { createEffectiveQuotaEntry } from "./fixtures/createEffectiveQuotaEntry.ts";
@@ -147,6 +148,7 @@ export { createGetAudit200, createGetAuditError, createGetAuditQueryParams, crea
 export { createGetBrandingBoot200, createGetBrandingBootError, createGetBrandingBootQueryResponse } from "./fixtures/createGetBrandingBoot.ts";
 export { createGetBrandingGlobal200, createGetBrandingGlobalError, createGetBrandingGlobalQueryResponse } from "./fixtures/createGetBrandingGlobal.ts";
 export { createGetBrandingOrg200, createGetBrandingOrg404, createGetBrandingOrgError, createGetBrandingOrgPathParams, createGetBrandingOrgQueryResponse } from "./fixtures/createGetBrandingOrg.ts";
+export { createGetBrandingTheme200, createGetBrandingTheme403, createGetBrandingTheme404, createGetBrandingThemeQueryResponse } from "./fixtures/createGetBrandingTheme.ts";
 export { createGetOidcAuthorize302, createGetOidcAuthorizeError, createGetOidcAuthorizeQueryParams, createGetOidcAuthorizeQueryResponse } from "./fixtures/createGetOidcAuthorize.ts";
 export { createGetOidcCallback302, createGetOidcCallbackError, createGetOidcCallbackQueryParams, createGetOidcCallbackQueryResponse } from "./fixtures/createGetOidcCallback.ts";
 export { createGetOrgAuthProvider200, createGetOrgAuthProvider404, createGetOrgAuthProviderError, createGetOrgAuthProviderPathParams, createGetOrgAuthProviderQueryResponse } from "./fixtures/createGetOrgAuthProvider.ts";
@@ -182,8 +184,10 @@ export { createStopVm200, createStopVmError, createStopVmMutationResponse, creat
 export { createTestOrgAuthProvider200, createTestOrgAuthProvider404, createTestOrgAuthProviderError, createTestOrgAuthProviderMutationRequest, createTestOrgAuthProviderMutationResponse, createTestOrgAuthProviderPathParams } from "./fixtures/createTestOrgAuthProvider.ts";
 export { createUpdateBrandingGlobal200, createUpdateBrandingGlobal400, createUpdateBrandingGlobalError, createUpdateBrandingGlobalMutationRequest, createUpdateBrandingGlobalMutationResponse } from "./fixtures/createUpdateBrandingGlobal.ts";
 export { createUpdateBrandingOrg200, createUpdateBrandingOrg400, createUpdateBrandingOrg404, createUpdateBrandingOrgError, createUpdateBrandingOrgMutationRequest, createUpdateBrandingOrgMutationResponse, createUpdateBrandingOrgPathParams } from "./fixtures/createUpdateBrandingOrg.ts";
+export { createUpdateBrandingTheme200, createUpdateBrandingTheme400, createUpdateBrandingTheme403, createUpdateBrandingTheme404, createUpdateBrandingThemeMutationRequest, createUpdateBrandingThemeMutationResponse } from "./fixtures/createUpdateBrandingTheme.ts";
 export { createUpdateOrgAuthProvider200, createUpdateOrgAuthProvider400, createUpdateOrgAuthProvider404, createUpdateOrgAuthProviderError, createUpdateOrgAuthProviderMutationRequest, createUpdateOrgAuthProviderMutationResponse, createUpdateOrgAuthProviderPathParams } from "./fixtures/createUpdateOrgAuthProvider.ts";
 export { createUpsertGlobalThemeConfigRequest } from "./fixtures/createUpsertGlobalThemeConfigRequest.ts";
+export { createUpsertThemeInstallationRequest } from "./fixtures/createUpsertThemeInstallationRequest.ts";
 export { createUpsertOrgAuthProviderRequest } from "./fixtures/createUpsertOrgAuthProviderRequest.ts";
 export { createUpsertOrgBrandingRequest } from "./fixtures/createUpsertOrgBrandingRequest.ts";
 export { createUpsertQuotaAssignment200, createUpsertQuotaAssignment400, createUpsertQuotaAssignmentError, createUpsertQuotaAssignmentMutationRequest, createUpsertQuotaAssignmentMutationResponse, createUpsertQuotaAssignmentQueryParams } from "./fixtures/createUpsertQuotaAssignment.ts";
@@ -328,12 +332,14 @@ export { upsertQuotaAssignmentMutationKey } from "./hooks/useUpsertQuotaAssignme
 export { upsertQuotaAssignmentMutationOptions } from "./hooks/useUpsertQuotaAssignment.ts";
 export { useUpsertQuotaAssignment } from "./hooks/useUpsertQuotaAssignment.ts";
 export { deleteBrandingOrgHandler, deleteBrandingOrgHandlerResponse204, deleteBrandingOrgHandlerResponse404 } from "./msw/deleteBrandingOrgHandler.ts";
+export { deleteBrandingThemeHandler } from "./msw/deleteBrandingThemeHandler.ts";
 export { deleteQuotaAssignmentHandler, deleteQuotaAssignmentHandlerResponse204, deleteQuotaAssignmentHandlerResponse404 } from "./msw/deleteQuotaAssignmentHandler.ts";
 export { deleteVmHandler, deleteVmHandlerResponse204, deleteVmHandlerResponse404 } from "./msw/deleteVmHandler.ts";
 export { getAuditHandler, getAuditHandlerResponse200 } from "./msw/getAuditHandler.ts";
 export { getBrandingBootHandler, getBrandingBootHandlerResponse200 } from "./msw/getBrandingBootHandler.ts";
 export { getBrandingGlobalHandler, getBrandingGlobalHandlerResponse200 } from "./msw/getBrandingGlobalHandler.ts";
 export { getBrandingOrgHandler, getBrandingOrgHandlerResponse200, getBrandingOrgHandlerResponse404 } from "./msw/getBrandingOrgHandler.ts";
+export { getBrandingThemeHandler, getBrandingThemeHandlerResponse200 } from "./msw/getBrandingThemeHandler.ts";
 export { getOidcAuthorizeHandler } from "./msw/getOidcAuthorizeHandler.ts";
 export { getOidcCallbackHandler } from "./msw/getOidcCallbackHandler.ts";
 export { getOrgAuthProviderHandler, getOrgAuthProviderHandlerResponse200, getOrgAuthProviderHandlerResponse404 } from "./msw/getOrgAuthProviderHandler.ts";
@@ -354,6 +360,7 @@ export { stopVmHandler, stopVmHandlerResponse200 } from "./msw/stopVmHandler.ts"
 export { testOrgAuthProviderHandler, testOrgAuthProviderHandlerResponse200, testOrgAuthProviderHandlerResponse404 } from "./msw/testOrgAuthProviderHandler.ts";
 export { updateBrandingGlobalHandler, updateBrandingGlobalHandlerResponse200, updateBrandingGlobalHandlerResponse400 } from "./msw/updateBrandingGlobalHandler.ts";
 export { updateBrandingOrgHandler, updateBrandingOrgHandlerResponse200, updateBrandingOrgHandlerResponse400, updateBrandingOrgHandlerResponse404 } from "./msw/updateBrandingOrgHandler.ts";
+export { updateBrandingThemeHandler, updateBrandingThemeHandlerResponse200 } from "./msw/updateBrandingThemeHandler.ts";
 export { updateOrgAuthProviderHandler, updateOrgAuthProviderHandlerResponse200, updateOrgAuthProviderHandlerResponse400, updateOrgAuthProviderHandlerResponse404 } from "./msw/updateOrgAuthProviderHandler.ts";
 export { upsertQuotaAssignmentHandler, upsertQuotaAssignmentHandlerResponse200, upsertQuotaAssignmentHandlerResponse400 } from "./msw/upsertQuotaAssignmentHandler.ts";
 export { auditQueryResponseSchema } from "./schemas/auditQueryResponseSchema.ts";

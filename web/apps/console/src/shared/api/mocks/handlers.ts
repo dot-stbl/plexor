@@ -1,20 +1,81 @@
 // MSW request handlers — composed from kubb-generated per-operation factories,
-// fed with kubb-generated faker fixtures. Hand-maintained: add one line per new
-// endpoint (or regenerate + append). Survives codegen `clean:true` (lives outside ./src).
+// fed with kubb-generated faker fixtures.
+//
+// Coverage:
+//   29 handlers come from `bun run generate` (kubb); see
+//   `web/tooling/codegen/kubb.config.ts`.
+//   3 handlers (`getBrandingTheme`, `updateBrandingTheme`,
+//   `deleteBrandingTheme`) are hand-mirrored — kubb 4.39.2 skipped them in
+//   the MSW + faker pass; see `msw/getBrandingThemeHandler.ts` for the kz
+//   note. Survives codegen `clean: true` (this file lives outside `./src`).
+//
+// The OpenAPI contract is the source of truth for endpoint shapes — when
+// adding a new endpoint, regenerate via `web/tooling/codegen` and add one
+// line below (or, if kubb skipped it like /branding/theme, hand-mirror
+// the handler + fixture and add a `kz` note).
 import type { RequestHandler } from 'msw';
 import { faker } from '@faker-js/faker';
 import {
+  // VM endpoints (6)
   listVmsHandler,
   getVmHandler,
   provisionVmHandler,
   startVmHandler,
   stopVmHandler,
   deleteVmHandler,
+  // Node endpoints (4)
+  nodeJoinHandler,
+  nodeHeartbeatHandler,
+  nodeCommandPollHandler,
+  nodeCommandResultHandler,
+  // Quota endpoints (5)
+  getQuotaDefinitionsHandler,
+  listQuotaAssignmentsHandler,
+  upsertQuotaAssignmentHandler,
+  deleteQuotaAssignmentHandler,
+  listQuotaUsageHandler,
+  listEffectiveQuotasHandler,
+  // Branding endpoints (6 + theme hand-mirrored)
+  getBrandingGlobalHandler,
+  updateBrandingGlobalHandler,
+  getBrandingBootHandler,
+  getBrandingOrgHandler,
+  updateBrandingOrgHandler,
+  deleteBrandingOrgHandler,
+  getBrandingThemeHandler,
+  updateBrandingThemeHandler,
+  deleteBrandingThemeHandler,
+  // Audit (1)
+  getAuditHandler,
+  // Auth providers (3)
+  getOrgAuthProviderHandler,
+  updateOrgAuthProviderHandler,
+  testOrgAuthProviderHandler,
+  // OIDC (3 — see note below)
+  getOidcAuthorizeHandler,
+  getOidcCallbackHandler,
+  postOidcLogoutHandler,
+  // Fixtures
   createVmList,
   createVmDetail,
+  createNodeJoinResponse,
+  createNodeHeartbeat200,
+  createNodeCommandPollResponse,
+  createNodeCommandResult,
+  createQuotaDefinitionSummary,
+  createQuotaAssignmentSummary,
+  createQuotaUsageEntry,
+  createEffectiveQuotaEntry,
+  createGlobalThemeConfigResponse,
+  createBrandingBootConfig,
+  createOrgBrandingConfigResponse,
+  createGetBrandingTheme200,
+  createAuditQueryResponse,
+  createOrgAuthProviderConfigResponse,
+  createOrgAuthProviderTestResult,
 } from '@/shared/api';
 
-// Deterministic mocks: same data every reload (stable UI + screenshots).
+// Deterministic mocks — same data every reload (stable UI + screenshots).
 faker.seed(1337);
 
 // Hand-curated fleet so the list renders a realistic mix of statuses.
@@ -43,11 +104,90 @@ const fleet = FLEET.map((vm) => ({
   createdAt: faker.date.past().toISOString(),
 }));
 
+// Lookup table so getVmHandler resolves a hand-curated id to the fleet
+// entry (kubb's createVmDetail emits a fresh fake id every call — fine
+// for the smoke test, awkward for the VM detail page which URLs to a
+// specific id from the list).
+const fleetById: Map<string, (typeof fleet)[number]> = new Map(
+  fleet.map((vm) => [vm.id, vm]),
+);
+
 export const handlers: RequestHandler[] = [
+  // ───────────────────────── VMs (6) ─────────────────────────
   listVmsHandler(createVmList({ items: fleet, total: fleet.length, page: 1, pageSize: 20 })),
-  getVmHandler(createVmDetail()),
+  getVmHandler((info) => {
+    const id = String((info.params as { vmId: unknown }).vmId);
+    const vm = fleetById.get(id);
+    if (!vm) {
+      return new Response(JSON.stringify({ status: 404, title: 'Not Found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/problem+json' },
+      });
+    }
+    return new Response(JSON.stringify(createVmDetail({ ...vm })), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
   provisionVmHandler(createVmDetail()),
   startVmHandler(createVmDetail()),
   stopVmHandler(createVmDetail()),
   deleteVmHandler(),
+
+  // ───────────────────────── Nodes (4) ─────────────────────────
+  nodeJoinHandler(createNodeJoinResponse()),
+  nodeHeartbeatHandler(createNodeHeartbeat200()),
+  nodeCommandPollHandler(createNodeCommandPollResponse({ commands: [], nextCursor: 0 })),
+  nodeCommandResultHandler(createNodeCommandResult()),
+
+  // ───────────────────────── Quotas (5) ─────────────────────────
+  getQuotaDefinitionsHandler(
+    faker.helpers.multiple(() => createQuotaDefinitionSummary(), { count: 6 }),
+  ),
+  listQuotaAssignmentsHandler(
+    faker.helpers.multiple(() => createQuotaAssignmentSummary(), { count: 8 }),
+  ),
+  upsertQuotaAssignmentHandler(createQuotaAssignmentSummary()),
+  deleteQuotaAssignmentHandler(),
+  listQuotaUsageHandler(
+    faker.helpers.multiple(() => createQuotaUsageEntry(), { count: 6 }),
+  ),
+  listEffectiveQuotasHandler(
+    faker.helpers.multiple(() => createEffectiveQuotaEntry(), { count: 6 }),
+  ),
+
+  // ───────────────────────── Branding (9) ─────────────────────────
+  getBrandingGlobalHandler(createGlobalThemeConfigResponse()),
+  updateBrandingGlobalHandler(createGlobalThemeConfigResponse()),
+  getBrandingBootHandler(createBrandingBootConfig()),
+  getBrandingOrgHandler(createOrgBrandingConfigResponse()),
+  updateBrandingOrgHandler(createOrgBrandingConfigResponse()),
+  deleteBrandingOrgHandler(),
+  getBrandingThemeHandler(createGetBrandingTheme200()),
+  updateBrandingThemeHandler(createGetBrandingTheme200()),
+  deleteBrandingThemeHandler(),
+
+  // ───────────────────────── Audit (1) ─────────────────────────
+  getAuditHandler(
+    faker.helpers.multiple(() => createAuditQueryResponse(), { count: 12 }),
+  ),
+
+  // ───────────────────────── Auth providers (3) ─────────────────────────
+  getOrgAuthProviderHandler(createOrgAuthProviderConfigResponse()),
+  updateOrgAuthProviderHandler(createOrgAuthProviderConfigResponse()),
+  testOrgAuthProviderHandler(createOrgAuthProviderTestResult({ ok: true })),
+
+  // ───────────────────────── OIDC (3) ─────────────────────────
+  //
+  // The OIDC endpoints return 302 in the OpenAPI contract; kubb's
+  // generator emits 200 by default. The dev:mock worker never reaches
+  // these — the FE uses `window.location.assign` to navigate, which
+  // bypasses the service worker — so wiring them with a static 200
+  // body is enough to keep an accidental `fetch('/auth/oidc/...')`
+  // call from crashing. A real browser-driven flow would need a
+  // 302; mark these `x-passthrough: true` in the contract when the
+  // backend lands.
+  getOidcAuthorizeHandler({ redirectUrl: 'https://mock-idp.example.com/authorize' }),
+  getOidcCallbackHandler({ status: 'ok' }),
+  postOidcLogoutHandler(),
 ];
