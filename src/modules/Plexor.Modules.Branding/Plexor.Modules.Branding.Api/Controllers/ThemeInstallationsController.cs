@@ -111,13 +111,15 @@ public sealed class ThemeInstallationsController(
 
     /// <summary>
     ///     <c>PUT /api/v1/branding/theme</c> — upsert the per-org
-    ///     installation row. The host re-verifies the
-    ///     <c>signature</c> against the canonical manifest bytes
-    ///     via <c>IThemeManifestVerifier</c> before persisting.
-    ///     Tenant-scoped: a caller from Org X cannot mutate
-    ///     Org Y's installation (403).
+    ///     installation row. The host looks the theme up in its
+    ///     bundled <c>CommunityThemeRegistry</c>, signs the
+    ///     canonical manifest with the purpose-bound HMAC
+    ///     verifier, and persists the row. Tenant-scoped: a
+    ///     caller from Org X cannot mutate Org Y's
+    ///     installation (403).
     /// </summary>
-    /// <param name="request">Body — theme id + manifest + signature.</param>
+    /// <param name="request">Body — theme id (publisher
+    /// identity to install).</param>
     /// <param name="validator">Scoped FluentValidation validator
     /// for the request body.</param>
     /// <param name="cancellationToken">Cooperative cancellation.</param>
@@ -144,19 +146,12 @@ public sealed class ThemeInstallationsController(
 
         try
         {
-            var manifest = ThemeInstallationsControllerHelpers.ToEntity(request);
             var row = await service.UpsertAsync(
                 orgId,
                 request.ThemeId,
-                manifest,
-                request.Signature,
                 currentUser.UserId,
                 cancellationToken);
             return Ok(ThemeInstallationsControllerHelpers.ToResponse(row, registry));
-        }
-        catch (ThemeManifestVerificationException ex)
-        {
-            return ThemeInstallationsControllerHelpers.InvalidSignature(ex.Message);
         }
         catch (UnknownThemeException ex)
         {

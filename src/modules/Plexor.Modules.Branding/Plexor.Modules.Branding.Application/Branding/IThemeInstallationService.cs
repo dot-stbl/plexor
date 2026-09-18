@@ -37,28 +37,21 @@ public interface IThemeInstallationService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    ///     Upsert the per-org installation row. Re-validates the
-    ///     manifest signature via the host's verifier; an unknown
-    ///     <paramref name="themeId" /> or a bad signature surfaces
-    ///     as <see cref="ThemeManifestVerificationException" />
-    ///     (mapped to 400) or <see cref="UnknownThemeException" />
-    ///     (mapped to 404) respectively.
+    ///     Upsert the per-org installation row. Looks up the
+    ///     canonical manifest in the host registry, signs it with
+    ///     the purpose-bound HMAC verifier, and persists the row.
+    ///     An unknown <paramref name="themeId" /> surfaces as
+    ///     <see cref="UnknownThemeException" /> (mapped to 404).
     /// </summary>
     /// <param name="orgId">Tenant scope.</param>
     /// <param name="themeId">Stable marketplace id from the host
     /// registry.</param>
-    /// <param name="manifest">Canonical manifest bytes the caller
-    /// is attempting to install.</param>
-    /// <param name="signature">Hex-encoded HMAC the caller
-    /// computed over the manifest.</param>
     /// <param name="actorUserId">User that applied the activation
     /// (audit trail).</param>
     /// <param name="cancellationToken">Cooperative cancellation.</param>
     public Task<ThemeInstallation> UpsertAsync(
         Guid orgId,
         string themeId,
-        ThemeManifest manifest,
-        string signature,
         Guid actorUserId,
         CancellationToken cancellationToken = default);
 

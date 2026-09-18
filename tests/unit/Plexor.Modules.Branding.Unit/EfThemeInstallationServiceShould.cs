@@ -10,7 +10,6 @@
 
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
-using NSubstitute;
 using Plexor.Modules.Branding.Application.Branding;
 using Plexor.Modules.Branding.Infrastructure.Branding;
 using Plexor.Modules.Branding.Infrastructure.ThemeManifests;
@@ -29,25 +28,11 @@ public sealed class EfThemeInstallationServiceShould
     private static readonly DateTimeOffset FixedNow =
         new(2026, 9, 18, 12, 0, 0, TimeSpan.Zero);
 
-    private static ThemeManifest ManifestFor(string themeId = "synthwave-night-dark")
-    {
-        return new ThemeManifest(
-            ThemeId: themeId,
-            Name: "Synthwave Night — Dark",
-            Version: "0.1.0",
-            Author: "plexor-themes",
-            TokenValues: new Dictionary<string, string>(StringComparer.Ordinal)
-            {
-                ["background"] = "oklch(15% 0.04 270)",
-                ["accent"] = "oklch(72% 0.22 340)",
-            });
-    }
-
-    private static EfThemeInstallationService BuildService(out HmacThemeManifestVerifier verifier)
+    private static EfThemeInstallationService BuildService()
     {
         var clock = new FakeClock(FixedNow);
         var registry = CommunityThemeRegistryBuilderForTests.Build();
-        verifier = new HmacThemeManifestVerifier(TestDataProtectionProviderFactory.Create());
+        var verifier = new HmacThemeManifestVerifier(TestDataProtectionProviderFactory.Create());
         return new EfThemeInstallationService(
             BrandingTestDb.Create(),
             clock,
@@ -60,83 +45,70 @@ public sealed class EfThemeInstallationServiceShould
     [Fact(DisplayName = "Given empty DB, when GetForOrgAsync runs, then returns null")]
     public async Task GetForOrg_WhenEmpty_ReturnsNullAsync()
     {
-        var service = BuildService(out _);
+        var service = BuildService();
 
         var row = await service.GetForOrgAsync(Guid.NewGuid());
 
         row.ShouldBeNull();
     }
 
-    /// <summary>Given an upsert, when GetForOrgAsync runs, then
-    /// the upserted row is returned with the supplied signature
-    /// and the supplied actor.</summary>
-    [Fact(DisplayName = "Given an upsert, when GetForOrgAsync runs, then the row comes back with the supplied signature + actor")]
+    /// <summary>Given a valid upsert, when GetForOrgAsync runs,
+    /// then the row comes back with the persisted signature +
+    /// actor.</summary>
+    [Fact(DisplayName = "Given an upsert, when GetForOrgAsync runs, then the row comes back with the host-signed signature + actor")]
     public async Task Upsert_ThenGet_RoundTripsAsync()
     {
-        var service = BuildService(out var verifier);
+        var service = BuildService();
         var orgId = Guid.NewGuid();
         var actorId = Guid.NewGuid();
-        var manifest = ManifestFor();
-        var signature = verifier.SignManifest(manifest);
 
-        var upserted = await service.UpsertAsync(orgId, manifest.ThemeId, manifest, signature, actorId);
+        var upserted = await service.UpsertAsync(orgId, "synthwave-night-dark", actorId);
 
         upserted.OrgId.ShouldBe(orgId);
-        upserted.ThemeId.ShouldBe(manifest.ThemeId);
-        upserted.ManifestSignature.ShouldBe(signature);
+        upserted.ThemeId.ShouldBe("synthwave-night-dark");
+        upserted.ManifestSignature.ShouldNotBeNullOrWhiteSpace();
+        upserted.ManifestSignature.Length.ShouldBe(64);
         upserted.ActivatedBy.ShouldBe(actorId);
         upserted.ActivatedAt.ShouldBe(FixedNow);
 
         var readBack = await service.GetForOrgAsync(orgId);
         readBack.ShouldNotBeNull();
-        readBack.ManifestSignature.ShouldBe(signature);
+        readBack.ManifestSignature.ShouldBe(upserted.ManifestSignature);
     }
 
     /// <summary>Given an existing installation, when UpsertAsync
-    /// runs again with a new theme id + new signature, then the
-    /// row is updated in place (same row id, new values) — the
-    /// orchestrator surfaces the upserted row.</summary>
+    /// runs again with a new theme id, then the row updates in
+    /// place (same row id, new values).</summary>
     [Fact(DisplayName = "Given an existing installation, when UpsertAsync runs with a new themeId, then the row updates in place")]
     public async Task Upsert_ExistingInstallation_UpdatesInPlaceAsync()
     {
-        var service = BuildService(out var verifier);
+        var service = BuildService();
         var orgId = Guid.NewGuid();
         var actorId = Guid.NewGuid();
-        var firstManifest = ManifestFor("synthwave-night-dark");
-        var firstSignature = verifier.SignManifest(firstManifest);
 
-        var first = await service.UpsertAsync(orgId, firstManifest.ThemeId, firstManifest, firstSignature, actorId);
-
-        var secondManifest = ManifestFor("paper-light");
-        var secondSignature = verifier.SignManifest(secondManifest);
-
-        var second = await service.UpsertAsync(orgId, secondManifest.ThemeId, secondManifest, secondSignature, actorId);
+        var first = await service.UpsertAsync(orgId, "synthwave-night-dark", actorId);
+        var second = await service.UpsertAsync(orgId, "paper-light", actorId);
 
         second.Id.ShouldBe(first.Id);
         second.ThemeId.ShouldBe("paper-light");
-        second.ManifestSignature.ShouldBe(secondSignature);
+        second.ManifestSignature.ShouldNotBe(first.ManifestSignature);
     }
 
-    /// <summary>Given a tampered signature, when UpsertAsync runs,
-    /// then a ThemeManifestVerificationException is thrown and
-    /// no row is written to the database.</summary>
-    [Fact(DisplayName = "Given a tampered signature, when UpsertAsync runs, then verification throws and no row is written")]
-    public async Task Upsert_TamperedSignature_ThrowsAndWritesNothingAsync()
+    /// <summary>Given a published theme id, when UpsertAsync
+    /// runs, then the persisted signature is hex-encoded +
+    /// 64-char (HMAC-SHA256).</summary>
+    [Fact(DisplayName = "Given a published themeId, when UpsertAsync runs, then the persisted signature is a 64-char hex HMAC")]
+    public async Task Upsert_KnownTheme_PersistsValidHexSignatureAsync()
     {
-        var service = BuildService(out var verifier);
+        var service = BuildService();
         var orgId = Guid.NewGuid();
         var actorId = Guid.NewGuid();
-        var manifest = ManifestFor();
-        var goodSignature = verifier.SignManifest(manifest);
-        var tamperedBytes = Convert.FromHexString(goodSignature);
-        tamperedBytes[0] ^= 0xFF;
-        var tamperedSignature = Convert.ToHexString(tamperedBytes).ToLowerInvariant();
 
-        await Should.ThrowAsync<ThemeManifestVerificationException>(
-            () => service.UpsertAsync(orgId, manifest.ThemeId, manifest, tamperedSignature, actorId));
+        var row = await service.UpsertAsync(orgId, "synthwave-night-dark", actorId);
 
-        var readBack = await service.GetForOrgAsync(orgId);
-        readBack.ShouldBeNull();
+        row.ManifestSignature.ShouldNotBeNullOrWhiteSpace();
+        row.ManifestSignature.Length.ShouldBe(64);
+        row.ManifestSignature.ShouldMatch(@"^[0-9a-f]{64}$");
     }
 
     /// <summary>Given an unknown theme id, when UpsertAsync runs,
@@ -145,14 +117,12 @@ public sealed class EfThemeInstallationServiceShould
     [Fact(DisplayName = "Given an unknown themeId, when UpsertAsync runs, then UnknownThemeException is thrown")]
     public async Task Upsert_UnknownTheme_ThrowsAsync()
     {
-        var service = BuildService(out var verifier);
+        var service = BuildService();
         var orgId = Guid.NewGuid();
         var actorId = Guid.NewGuid();
-        var manifest = ManifestFor("not-a-real-theme");
-        var signature = verifier.SignManifest(manifest);
 
         var exception = await Should.ThrowAsync<UnknownThemeException>(
-            () => service.UpsertAsync(orgId, manifest.ThemeId, manifest, signature, actorId));
+            () => service.UpsertAsync(orgId, "not-a-real-theme", actorId));
 
         exception.ThemeId.ShouldBe("not-a-real-theme");
     }
@@ -163,12 +133,10 @@ public sealed class EfThemeInstallationServiceShould
     [Fact(DisplayName = "Given an existing installation, when DeleteAsync runs, then the row is removed")]
     public async Task Delete_RemovesRowAsync()
     {
-        var service = BuildService(out var verifier);
+        var service = BuildService();
         var orgId = Guid.NewGuid();
         var actorId = Guid.NewGuid();
-        var manifest = ManifestFor();
-        var signature = verifier.SignManifest(manifest);
-        await service.UpsertAsync(orgId, manifest.ThemeId, manifest, signature, actorId);
+        await service.UpsertAsync(orgId, "synthwave-night-dark", actorId);
 
         var removed = await service.DeleteAsync(orgId);
 
@@ -182,7 +150,7 @@ public sealed class EfThemeInstallationServiceShould
     [Fact(DisplayName = "Given no existing installation, when DeleteAsync runs, then returns false")]
     public async Task Delete_MissingRow_ReturnsFalseAsync()
     {
-        var service = BuildService(out _);
+        var service = BuildService();
 
         var removed = await service.DeleteAsync(Guid.NewGuid());
 

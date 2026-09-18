@@ -9,9 +9,11 @@
 //
 // Why HMAC-SHA256 (not a public-key signature): the verifier and
 // the publisher are the same trust zone — both ship with the host
-// bundle — so symmetric HMAC suffices. A publisher-feed world
-// (Phase 5+ future) would migrate to RSA / Ed25519 and swap this
-// implementation.
+// bundle — so symmetric HMAC suffices, and a sole-purpose key from
+// the data-protection ring is enough authority. A publisher-feed
+// world (Phase 5+ future) would migrate to RSA / Ed25519 and swap
+// this implementation for a separate Sign / Verify pair driven
+// off a publisher public key.
 //
 // Determinism. IDataProtector.Protect() embeds a random nonce per
 // call (so the same plaintext encrypts to a different ciphertext
@@ -19,12 +21,9 @@
 // pattern round-trips its own key differently on each call. The
 // cipher is, however, deterministic in the inverse direction:
 // Unprotect(Protect(x)) == x. The constructor caches one Protect
-// ciphertext at startup, then Unprotect()s it on every Sign/Verify
-// call so both operations see the same HMAC key. Singleton
-// lifetime guarantees a single instance per process; both call
-// sites (the in-process sign path during test + the in-process
-// verify path during the controller's PUT handler) hit the same
-// cached key.
+// ciphertext at startup, then Unprotect()s it on every Sign
+// call so the operation sees the same HMAC key. Singleton
+// lifetime guarantees a single instance per process.
 // ============================================================================
 
 using System.Security.Cryptography;
@@ -48,12 +47,13 @@ namespace Plexor.Modules.Branding.Infrastructure.ThemeManifests;
 ///     <see cref="JsonSerializerOptions.Web" /> (frozen, shared) into
 ///     a UTF-8 byte array; field order is the
 ///     <see cref="ThemeManifest" /> record's declaration order. The
-///     signer and the verifier must agree on the canonical bytes —
-///     changing either side silently invalidates every existing
+///     host signs once at install time so the persisted row
+///     carries a stable publisher identity; changing the
+///     canonicalisation form silently invalidates every existing
 ///     installation row.</para>
 ///     <para><b>Key extraction.</b> The HMAC key is a round-tripped
 ///     ciphertext under a constant seed (see class remarks). Both
-///     <see cref="SignManifest" /> and <see cref="VerifyManifest" />
+///     the constructor and every <see cref="SignManifest" /> call
 ///     hit the same singleton-scoped key buffer.</para>
 /// </remarks>
 public sealed class HmacThemeManifestVerifier : IThemeManifestVerifier
@@ -68,7 +68,7 @@ public sealed class HmacThemeManifestVerifier : IThemeManifestVerifier
     /// <see cref="IDataProtector.Protect(byte[])" /> once at startup;
     /// the resulting ciphertext is round-tripped through
     /// <see cref="IDataProtector.Unprotect(byte[])" /> on every
-    /// Sign / Verify call to recover the seed as the HMAC key.</summary>
+    /// Sign call to recover the seed as the HMAC key.</summary>
     private static readonly byte[] SeedSalt =
         Encoding.UTF8.GetBytes("Plexor.Host.ThemeManifest.Sign.v1");
 
@@ -82,14 +82,9 @@ public sealed class HmacThemeManifestVerifier : IThemeManifestVerifier
     ///     (one <see cref="IDataProtector.Protect(byte[])" /> +
     ///     <see cref="IDataProtector.Unprotect(byte[])" /> round
     ///     trip) so the constant seed becomes the deterministic
-    ///     key used by both <see cref="SignManifest" /> and
-    ///     <see cref="VerifyManifest" />. The round-trip is needed
-    ///     because the cipher is non-deterministic in the forward
-    ///     direction (random nonce) but deterministic in the
-    ///     inverse direction (Unprotect always returns the same
-    ///     plaintext for the same ciphertext). Singleton
-    ///     registration keeps a single instance per process; both
-    ///     call sites hit the same cached key.
+    ///     key used by every <see cref="SignManifest" /> call.
+    ///     Singleton registration keeps a single instance per
+    ///     process.
     /// </summary>
     /// <param name="provider">Host's data-protection provider. The
     /// purpose-scoped protector <c>"ThemeManifest.Sign"</c> is
@@ -107,45 +102,6 @@ public sealed class HmacThemeManifestVerifier : IThemeManifestVerifier
         var bytes = Canonicalise(manifest);
         var hash = HMACSHA256.HashData(hmacKey, bytes);
         return Convert.ToHexString(hash).ToLowerInvariant();
-    }
-
-    /// <inheritdoc />
-    public void VerifyManifest(ThemeManifest manifest, string signature)
-    {
-        if (string.IsNullOrWhiteSpace(signature))
-        {
-            throw new ThemeManifestVerificationException(
-                "Manifest signature is required.");
-        }
-
-        byte[] supplied;
-        try
-        {
-            supplied = Convert.FromHexString(signature);
-        }
-        catch (FormatException)
-        {
-            throw new ThemeManifestVerificationException(
-                "Manifest signature is not valid hex.");
-        }
-
-        if (supplied.Length is not 32)
-        {
-            throw new ThemeManifestVerificationException(
-                $"Manifest signature must be 32 bytes (got {supplied.Length}).");
-        }
-
-        var bytes = Canonicalise(manifest);
-        var expected = HMACSHA256.HashData(hmacKey, bytes);
-
-        // CryptographicOperations.FixedTimeEquals — constant-time
-        // so the API doesn't leak a timing oracle that an attacker
-        // could iterate byte-by-byte against.
-        if (!CryptographicOperations.FixedTimeEquals(supplied, expected))
-        {
-            throw new ThemeManifestVerificationException(
-                "Manifest signature does not match the canonical manifest bytes.");
-        }
     }
 
     /// <summary>
