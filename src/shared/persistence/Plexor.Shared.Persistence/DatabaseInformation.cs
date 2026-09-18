@@ -161,6 +161,16 @@ public static class DatabaseInformation
         public const string Workloads = "workloads";
 
         /// <summary>
+        ///     Clusters module — append-only audit trail of every
+        ///     workload lifecycle transition (one row per Mark* call
+        ///     on the Clusters-domain Workload aggregate). forge
+        ///     schema, snake_case <c>workload_lifecycle_events</c>
+        ///     table. Indexed by (workload_id, id) for the
+        ///     per-workload timeline query.
+        /// </summary>
+        public const string WorkloadLifecycleEvents = "workload_lifecycle_events";
+
+        /// <summary>
         ///     Clusters module — per-node command queue. The control
         ///     plane writes entries here when an action endpoint is
         ///     invoked; the NodeAgent's long-poll reads Pending

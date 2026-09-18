@@ -8,6 +8,7 @@
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Shared.Filtering.Query;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.Workloads;
 
 namespace Plexor.Modules.Clusters.Application.Clusters;
 
@@ -83,8 +84,28 @@ public sealed class WorkloadSummary
     /// <summary>Runtime identifier — vm / lxc / k8s.pod / container.</summary>
     public string Kind { get; init; } = string.Empty;
 
-    /// <summary>Current lifecycle state as reported by the NodeAgent.</summary>
-    public Plexor.Shared.Workloads.WorkloadState State { get; init; }
+    /// <summary>
+    ///     Current runtime state as reported by the NodeAgent.
+    ///     Independent of <see cref="LifecycleState" /> (which the
+    ///     host drives through Mark*) — the agent's runtime mirror
+    ///     vs the host's intent.
+    /// </summary>
+    public WorkloadState State { get; init; }
+
+    /// <summary>
+    ///     Host-driven lifecycle state. Tracks what the host has asked
+    ///     the compute provider to do and what the provider has
+    ///     acknowledged back. Updated by the Workload command
+    ///     handlers via the Workload.Mark* methods.
+    /// </summary>
+    public WorkloadLifecycleState LifecycleState { get; init; }
+
+    /// <summary>
+    ///     Provider-assigned VM id (libvirt domain UUID, k3s pod UID).
+    ///     Null until the provider's CreateVmAsync confirms the VM
+    ///     exists and the workload moves to Provisioning.
+    /// </summary>
+    public string? ProviderVmId { get; init; }
 
     /// <summary>When the agent last reported on this workload.</summary>
     public DateTimeOffset? LastReportedAt { get; init; }

@@ -79,12 +79,45 @@ internal sealed class WorkloadConfiguration : IEntityTypeConfiguration<Workload>
                 static state => state.ToString(),
                 static raw => Enum.Parse<WorkloadState>(raw));
 
+        // Host-side lifecycle state — driven by Workload.Mark* on
+        // every IComputeProvider confirmation. Independent of the
+        // agent-reported `state` column above: lifecycle_state is
+        // what the host asked the provider to do, state is what
+        // the agent reports the runtime is doing. They reconcile
+        // in the background; drift between them is a monitoring
+        // signal, not a hard error.
+        builder.Property(static workload => workload.LifecycleState)
+            .HasColumnName("lifecycle_state")
+            .HasMaxLength(32)
+            .IsRequired()
+            .HasConversion(
+                static state => state.ToString(),
+                static raw => Enum.Parse<WorkloadLifecycleState>(raw));
+
+        // Provider-assigned VM id (libvirt domain UUID, k3s pod
+        // UID, …). Null until MarkProvisioning lands the provider's
+        // CreateVmAsync handle.
+        builder.Property(static workload => workload.ProviderVmId)
+            .HasColumnName("provider_vm_id")
+            .HasMaxLength(128);
+
         builder.Property(static workload => workload.LastMessage)
             .HasColumnName("last_message")
             .HasMaxLength(1024);
 
         builder.Property(static workload => workload.LastReportedAt)
             .HasColumnName("last_reported_at");
+
+        // Lifecycle event trail — eager-loaded by the per-workload
+        // detail endpoint. FK declared explicitly (Workload doesn't
+        // expose Events as a navigation on the public API surface
+        // beyond the property itself, but EF needs the relationship
+        // declared so it can emit the FK + cascade). Cascade delete
+        // keeps the audit trail with the workload row.
+        builder.HasMany(static workload => workload.Events)
+            .WithOne()
+            .HasForeignKey(static evt => evt.WorkloadId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(static creation => creation.CreatedAt)
             .HasColumnName("created_at")

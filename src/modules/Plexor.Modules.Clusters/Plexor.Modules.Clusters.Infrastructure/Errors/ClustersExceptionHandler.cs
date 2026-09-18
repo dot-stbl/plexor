@@ -31,26 +31,39 @@ public sealed class ClustersExceptionHandler(ILogger<ClustersExceptionHandler> l
         CancellationToken cancellationToken)
     {
 
-        if (exception is not ClustersException clustersEx)
+        // Two exception families map through this handler:
+        //   - ClustersException — the canonical domain error
+        //   - InvalidWorkloadLifecycleTransitionException — a sibling
+        //     hierarchy for state-machine rejections (ClustersException
+        //     is sealed, so we couldn't subclass it). Both expose
+        //     .Code, so the status-mapping path is shared.
+        var code = exception switch
+        {
+            ClustersException clustersEx => clustersEx.Code,
+            InvalidWorkloadLifecycleTransitionException lifecycleEx => lifecycleEx.Code,
+            _ => null
+        };
+
+        if (code is null)
         {
             return false;
         }
 
-        var statusCode = MapStatus(clustersEx.Code);
+        var statusCode = MapStatus(code);
         httpContext.Response.StatusCode = statusCode;
 
         var problem = new ProblemDetails
         {
-            Type = $"/errors/{clustersEx.Code}",
-            Title = clustersEx.Code,
-            Detail = clustersEx.Message,
+            Type = $"/errors/{code}",
+            Title = code,
+            Detail = exception.Message,
             Status = statusCode,
             Instance = httpContext.Request.Path,
         };
 
         logger.LogDebug(
             "Clusters exception {Code} mapped to HTTP {Status} for {Path}.",
-            clustersEx.Code,
+            code,
             statusCode,
             httpContext.Request.Path);
 
@@ -76,6 +89,8 @@ public sealed class ClustersExceptionHandler(ILogger<ClustersExceptionHandler> l
             ClustersExceptions.InvalidJoinToken => StatusCodes.Status401Unauthorized,
             ClustersExceptions.JoinTokenConsumed => StatusCodes.Status409Conflict,
             ClustersExceptions.IllegalStatusTransition => StatusCodes.Status409Conflict,
+            ClustersExceptions.InvalidLifecycleTransition => StatusCodes.Status409Conflict,
+            ClustersExceptions.ComputeProviderFailed => StatusCodes.Status502BadGateway,
             _ => StatusCodes.Status400BadRequest,
         };
     }
