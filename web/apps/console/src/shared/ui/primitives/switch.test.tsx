@@ -41,4 +41,20 @@ describe("Switch", () => {
     await user.click(screen.getByLabelText("wifi"))
     expect(onCheckedChange).toHaveBeenCalledWith(true)
   })
+
+  it("applies data-selected:bg-primary (RAC state attribute)", () => {
+    render(<Switch checked aria-label="wifi" />)
+    const input = screen.getByLabelText("wifi")
+    const label = input.closest("label") as HTMLLabelElement | null
+    expect(label?.className ?? "").toContain("data-selected:bg-primary")
+  })
+
+  it("applies data-disabled state classes for both cursor and opacity", () => {
+    render(<Switch disabled aria-label="wifi" />)
+    const input = screen.getByLabelText("wifi")
+    const label = input.closest("label") as HTMLLabelElement | null
+    const cls = label?.className ?? ""
+    expect(cls).toContain("data-disabled:cursor-not-allowed")
+    expect(cls).toContain("data-disabled:opacity-50")
+  })
 })

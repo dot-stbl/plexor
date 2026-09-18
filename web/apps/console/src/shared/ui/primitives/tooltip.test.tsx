@@ -4,6 +4,8 @@
 import { describe, expect, it } from "vitest"
 import { render, screen } from "@testing-library/react"
 
+import { Kbd } from "./kbd"
+
 import {
   Tooltip,
   TooltipContent,
@@ -58,5 +60,40 @@ describe("Tooltip", () => {
     )
     const content = screen.getByTestId("tt")
     expect(content.className).toContain("z-50")
+  })
+
+  it("TooltipContent applies slide-from-X classes for each side", () => {
+    render(
+      <Tooltip open>
+        <TooltipTrigger>
+          <button type="button">Trigger</button>
+        </TooltipTrigger>
+        <TooltipContent data-testid="tt">Tip</TooltipContent>
+      </Tooltip>,
+    )
+    const cls = screen.getByTestId("tt").className
+    expect(cls).toContain("data-[side=bottom]:slide-in-from-top-2")
+    expect(cls).toContain("data-[side=left]:slide-in-from-right-2")
+    expect(cls).toContain("data-[side=right]:slide-in-from-left-2")
+    expect(cls).toContain("data-[side=top]:slide-in-from-bottom-2")
+    expect(cls).toContain("data-[side=inline-end]:slide-in-from-left-2")
+    expect(cls).toContain("data-[side=inline-start]:slide-in-from-right-2")
+  })
+
+  it("TooltipContent applies kbd child styling for slot=kbd", () => {
+    render(
+      <Tooltip open>
+        <TooltipTrigger>
+          <button type="button">Trigger</button>
+        </TooltipTrigger>
+        <TooltipContent data-testid="tt">
+          <Kbd>⌘K</Kbd>
+        </TooltipContent>
+      </Tooltip>,
+    )
+    const cls = screen.getByTestId("tt").className
+    expect(cls).toContain("**:data-[slot=kbd]:relative")
+    expect(cls).toContain("**:data-[slot=kbd]:z-50")
+    expect(cls).toContain("**:data-[slot=kbd]:rounded-sm")
   })
 })
