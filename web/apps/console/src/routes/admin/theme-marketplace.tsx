@@ -18,26 +18,29 @@ import {
 import {
   useCommunityThemes,
   useActivateTheme,
+  useDeactivateTheme,
+  useActiveThemeId,
 } from '@/features/themes/use-community-themes';
-import { getActiveThemeId } from '@/features/themes/theme-activation';
 
 /**
  * AdminThemeMarketplacePage — operator-only console surface for
- * browsing + activating community themes. The marketplace in v1 is
- * local: the themes ship inside the bundle and "Activate" writes the
- * theme id to localStorage. Phase 5+ replaces the bundle list with
- * a kubb-generated feed and the localStorage write with a backend
- * mutation; the page shape doesn't change.
+ * browsing + activating community themes. Phase 5+ persists
+ * activation in a per-org backend row
+ * (`branding.theme_installations`) via the kubb-generated
+ * `useUpdateBrandingTheme` mutation; the next page load reads
+ * the choice back through `useGetBrandingTheme()`.
  *
  * Page sections:
- *   1. Built-in presets — the same 3 the picker UI uses today
- *      (`plexor-default-light`, `plexor-default-dark`, `plexor-noir`).
- *      Listed for context, not editable here (use the existing 3-way
- *      light/dark/system picker in the user preferences).
- *   2. Community themes — the marketplace feed. Each card shows the
- *      theme name, author, version, preview swatches, and an Activate
- *      button. The currently-active theme (read from localStorage on
- *      first paint) is highlighted.
+ *   1. Community themes — the marketplace feed. Each card
+ *      shows the theme name, author, version, preview
+ *      swatches, and an Activate button. The currently-active
+ *      theme (read from the backend on first paint) is
+ *      highlighted.
+ *   2. Built-in presets — the same 3 the picker UI uses today
+ *      (`plexor-default-light`, `plexor-default-dark`,
+ *      `plexor-noir`). Listed for context, not editable here.
+ *   3. Reset button — calls `useDeactivateTheme` (DELETE on
+ *      the same path) to fall back to operator defaults.
  */
 
 export const Route = createFileRoute('/admin/theme-marketplace')({
@@ -71,9 +74,6 @@ function CommunityCard({
   onActivate,
   t,
 }: CommunityCardProps & { readonly t: ReturnType<typeof useTranslation>['t'] }) {
-  // Swatches chosen to match the existing :root semantic colour slots —
-  // background, foreground, accent — so the preview hints at what the
-  // page chrome would look like under the chosen theme.
   return (
     <Card
       data-od-id={`theme-marketplace-card-${preset.id}`}
@@ -156,26 +156,38 @@ function AdminThemeMarketplacePage() {
   const presets = useMemo<readonly ThemePreset[]>(() => listPresets(), []);
   const communityQuery = useCommunityThemes();
   const activate = useActivateTheme();
+  const deactivate = useDeactivateTheme();
+  const activeThemeId = useActiveThemeId();
 
-  // Local "active theme id" mirror of localStorage so the highlight
-  // updates immediately on click. Read once on mount, then refresh on
-  // every successful activate.
-  const [activeThemeId, setActiveThemeId] = useState<string | null>(() => getActiveThemeId());
-  const [activeCommunityId, setActiveCommunityId] = useState<string | null>(
-    () => getActiveThemeId(),
+  // Local "active theme id" mirror of the backend so the highlight
+  // updates immediately on click. Reset when the mutation settles.
+  const [optimisticActiveId, setOptimisticActiveId] = useState<string | null>(
+    activeThemeId,
   );
 
   useEffect(() => {
-    setActiveCommunityId(getActiveThemeId());
-  }, [activate.isPending]);
+    setOptimisticActiveId(activeThemeId);
+  }, [activeThemeId]);
 
   const handleActivate = (id: string) => {
+    setOptimisticActiveId(id);
     activate.mutate(id, {
+      onError: () => {
+        setOptimisticActiveId(activeThemeId);
+      },
       onSuccess: (resolvedId) => {
-        setActiveThemeId(resolvedId);
-        setActiveCommunityId(resolvedId);
+        setOptimisticActiveId(resolvedId);
         const preset = getPreset(resolvedId);
         activateBuiltIn(preset);
+      },
+    });
+  };
+
+  const handleDeactivate = () => {
+    setOptimisticActiveId(null);
+    deactivate.mutate(undefined, {
+      onError: () => {
+        setOptimisticActiveId(activeThemeId);
       },
     });
   };
@@ -230,7 +242,7 @@ function AdminThemeMarketplacePage() {
                   preset={theme}
                   author={theme.author}
                   version={theme.version}
-                  isActive={activeCommunityId === theme.id}
+                  isActive={optimisticActiveId === theme.id}
                   isPending={activate.isPending}
                   onActivate={() => {
                     handleActivate(theme.id);
@@ -238,6 +250,18 @@ function AdminThemeMarketplacePage() {
                   t={t}
                 />
               ))}
+            </div>
+          )}
+          {optimisticActiveId !== null && (
+            <div className="mt-4 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDeactivate}
+                disabled={deactivate.isPending}
+              >
+                {t('admin.themeMarketplace.resetToDefaults')}
+              </Button>
             </div>
           )}
         </CardContent>
@@ -253,7 +277,7 @@ function AdminThemeMarketplacePage() {
         <CardContent>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {presets.map((preset) => {
-              const active = activeThemeId === preset.id;
+              const active = optimisticActiveId === preset.id;
               return (
                 <button
                   key={preset.id}
