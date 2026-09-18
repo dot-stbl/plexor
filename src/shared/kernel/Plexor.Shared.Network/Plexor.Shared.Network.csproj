@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <!--
+      Plexor.Shared.Network — minimal host-side abstraction over
+      the libvirt `virsh net-*` command surface, plus the libvirt
+      reference implementation.
+
+      Sits beside Plexor.Shared.Compute (the per-node
+      INetworkBackend that does runtime attach/detach). This
+      library is the host-side cluster-provisioning surface: list
+      existing libvirt networks, pick a default bridge, define +
+      start a private bridge for a cluster.
+
+      Linux-only by design — libvirt doesn't exist on Windows. The
+      LibvirtNetworkProvider guards itself against Windows hosts
+      via OperatingSystem.IsLinux() so callers running unit tests
+      on Windows don't crash; integration is tested on Linux.
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
+</Project>

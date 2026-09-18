@@ -33,6 +33,7 @@
         <Project Path="src/shared/kernel/Plexor.Shared.NodeApi/Plexor.Shared.NodeApi.csproj" />
         <Project Path="src/shared/kernel/Plexor.Shared.Workloads/Plexor.Shared.Workloads.csproj" />
         <Project Path="src/shared/kernel/Plexor.Shared.Compute/Plexor.Shared.Compute.csproj" />
+        <Project Path="src/shared/kernel/Plexor.Shared.Network/Plexor.Shared.Network.csproj" />
     </Folder>
     <Folder Name="/src/shared/persistence/">
         <Project Path="src/shared/persistence/Plexor.Shared.Persistence/Plexor.Shared.Persistence.csproj" />
@@ -116,6 +117,8 @@
         <Project Path="tests/unit/Plexor.Modules.Sigil.Unit/Plexor.Modules.Sigil.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Filtering.Unit/Plexor.Shared.Filtering.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Kernel.Unit/Plexor.Shared.Kernel.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Shared.Network.Unit/Plexor.Shared.Network.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Shared.NodeApi.Unit/Plexor.Shared.NodeApi.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Contracts.Unit/Plexor.Shared.Contracts.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Persistence.Unit/Plexor.Shared.Persistence.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Telemetry.Unit/Plexor.Shared.Telemetry.Unit.csproj" />
