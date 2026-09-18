@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Plexor.Modules.Sigil.Application.Abstractions;
+using Plexor.Shared.Kernel.Identity;
 
 namespace Plexor.Modules.Sigil.Infrastructure.CurrentUser;
 

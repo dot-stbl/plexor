@@ -8,7 +8,7 @@ namespace Plexor.Modules.Sigil.Application.Auth;
 /// <summary>
 ///     Marker command for the "who am I?" query. Always returns
 ///     <see cref="MeResult" /> populated from the current
-///     <see cref="Plexor.Modules.Sigil.Application.Abstractions.ICurrentUser" />;
+///     <see cref="Plexor.Shared.Kernel.Identity.ICurrentUser" />;
 ///     never touches the DB on the hot path.
 /// </summary>
 public sealed record MeQuery;

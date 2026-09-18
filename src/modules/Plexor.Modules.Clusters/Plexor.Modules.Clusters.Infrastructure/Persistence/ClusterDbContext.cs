@@ -37,6 +37,8 @@ public sealed class ClusterDbContext(DbContextOptions<ClusterDbContext> options)
     public DbSet<JoinToken> JoinTokens => Set<JoinToken>();
     /// <summary>Workloads (forge.workloads) — control-plane view of every deployed workload.</summary>
     public DbSet<Workload> Workloads => Set<Workload>();
+    /// <summary>Workload lifecycle events (forge.workload_lifecycle_events) — append-only audit trail per Mark* transition.</summary>
+    public DbSet<WorkloadLifecycleEvent> WorkloadLifecycleEvents => Set<WorkloadLifecycleEvent>();
     /// <summary>NodeCommands (forge.commands) — per-node command queue; agent long-polls and posts results back.</summary>
     public DbSet<NodeCommand> Commands => Set<NodeCommand>();
 
@@ -48,6 +50,7 @@ public sealed class ClusterDbContext(DbContextOptions<ClusterDbContext> options)
             .ApplyConfiguration(new NodeConfiguration())
             .ApplyConfiguration(new JoinTokenConfiguration())
             .ApplyConfiguration(new WorkloadConfiguration())
+            .ApplyConfiguration(new WorkloadLifecycleEventConfiguration())
             .ApplyConfiguration(new NodeCommandConfiguration());
         base.OnModelCreating(modelBuilder);
     }

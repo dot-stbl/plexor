@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Plexor.Modules.Quotas.Application\Plexor.Modules.Quotas.Application.csproj" />
+    <ProjectReference Include="..\Plexor.Modules.Quotas.Domain\Plexor.Modules.Quotas.Domain.csproj" />
+    <!--
+      Cross-module seam (4.5.d) — IStorageQuotaReader lives in
+      Plexor.Modules.Storage.Application. The Quotas enforcer needs it
+      to gate the storage.volumes.count + storage.volumes.gb keys on
+      the *live* aggregate from storage.volumes (the snapshot path
+      doesn't track the storage physical state correctly). Per Law 3
+      the cross-module reference points at Application (the seam
+      namespace), NOT Storage.Infrastructure (where the EF plumbing
+      lives) — the architecture test
+      Plexor.Modules.Quotas.Infrastructure_does_not_reference_Storage_Infrastructure
+      enforces this.
+    -->
+    <ProjectReference Include="..\..\Plexor.Modules.Storage\Plexor.Modules.Storage.Application\Plexor.Modules.Storage.Application.csproj" />
+    <!--
+      Same shape for the network module — INetworkQuotaReader lives in
+      Plexor.Modules.Network.Application. The Quotas enforcer needs it
+      to gate network.floating_ips.count + network.load_balancers.count
+      on the *live* aggregate from network.*. Per Law 3 the
+      cross-module reference points at Application (the seam
+      namespace), NOT Network.Infrastructure (where the EF plumbing
+      lives) — the architecture test
+      Plexor.Modules.Quotas.Infrastructure_does_not_reference_Network_Infrastructure
+      enforces this.
+    -->
+    <ProjectReference Include="..\..\Plexor.Modules.Network\Plexor.Modules.Network.Application\Plexor.Modules.Network.Application.csproj" />
+    <ProjectReference Include="..\..\..\shared\security\Plexor.Shared.Authorization\Plexor.Shared.Authorization.csproj" />
+    <ProjectReference Include="..\..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\..\..\shared\infra\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
+    <ProjectReference Include="..\..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
+  <!-- EfQuotaCatalog + EfQuotaScopeResolver are public so the unit-test
+       project can construct them directly (the test asserts EF-query
+       semantics on the in-memory provider). EfQuotaEnforcer stays internal
+       because its raw-SQL path needs a real Postgres — tests go through
+       IQuotaEnforcer in 4.5.c/d when the integration test infra lands. -->
+
+</Project>

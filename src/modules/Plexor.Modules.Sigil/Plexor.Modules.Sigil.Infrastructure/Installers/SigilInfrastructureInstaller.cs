@@ -10,12 +10,18 @@
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
-using Plexor.Modules.Sigil.Application.Abstractions;
 using Plexor.Modules.Sigil.Application.Auth;
+using Plexor.Modules.Sigil.Application.AuthProviders;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Infrastructure.Auth;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Flows;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Oidc;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Provisioners;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Resolvers;
 using Plexor.Modules.Sigil.Infrastructure.CurrentUser;
 using Plexor.Shared.Authorization;
+using Plexor.Shared.Kernel.AuthProviders;
+using Plexor.Shared.Kernel.Identity;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Installers;
 
@@ -113,6 +119,78 @@ public static class SigilInfrastructureInstaller
         // and the JWT signing service so callers don't have to.
         services.AddScoped<IPermissionResolver, PermissionResolver>();
         services.AddSingleton<ITokenIssuer, TokenIssuer>();
+
+        // Phase 4 — role resolver. Same shape as IPermissionResolver
+        // but projects to role.Name (used by the `role` claims baked
+        // into the access token). Splitting permissions from roles
+        // avoids a join + select-many on the same table.
+        services.AddScoped<IRoleResolver, EfRoleResolver>();
+
+        // Phase 4.6.2a — IAuthProvider implementation for the local
+        // email+password backend. Routed-to by the dispatcher (4.6.2c)
+        // for `iss == "plexor"` tokens. Scoped — it depends on the
+        // per-request IUserLookup + the scoped
+        // IOrgAuthProviderConfigReader (registered by
+        // AddRealmAuthProviders in the host composition root).
+        // NOTE: kept as the `IAuthProvider` binding so callers that
+        // took a dependency on `IAuthProvider.CanAuthenticateForAsync`
+        // continue to work — `AuthProviderResolver` itself receives
+        // both concrete providers via primary ctor (see below).
+        services.AddScoped<IAuthProvider, SigilAuthProvider>();
+
+        // Phase 4.6.2b — external OIDC backend. Registered as a
+        // concrete type only (NOT as `IAuthProvider`) to avoid ASP.NET's
+        // last-wins semantics on multiple `IAuthProvider` bindings.
+        // The resolver (4.6.2c) consumes both SigilAuthProvider and
+        // ExternalOidcAuthProvider via primary ctor — no
+        // `IEnumerable<IAuthProvider>` enumeration needed for v1.
+        services.AddScoped<ExternalOidcAuthProvider>();
+
+        // Phase 4.6.2c — the auth provider resolver. Routes a raw
+        // bearer credential to the right IAuthProvider based on the
+        // JWT `iss` claim; caches the (iss → provider) map for 5
+        // minutes. Scoped (mirrors the providers it dispatches to);
+        // the IMemoryCache itself is the process-wide singleton
+        // registered a few lines below.
+        services.AddScoped<IAuthProviderResolver, AuthProviderResolver>();
+
+        // Phase 4.6.2b — JWKS fetch + 1h in-memory cache. Singleton
+        // because the fetcher holds no per-request state beyond the
+        // shared IMemoryCache. The named "Plexor-OidcDiscovery"
+        // HttpClient is registered in Plexor.Host/Program.cs
+        // (10s timeout, no auth, no retries).
+        services.AddMemoryCache();
+        services.AddSingleton<IJwksFetcher, JwksFetcher>();
+
+        // Phase 4.6.3a — PKCE generator (RFC 7636). Singleton;
+        // depends only on the OS CSPRNG, no per-request state.
+        services.AddSingleton<IPkceGenerator, PkceGenerator>();
+
+        // Phase 4.6.3a — outbound token-exchange client for the OIDC
+        // authorization-code flow (RFC 6749 §4.1.3). Singleton — the
+        // IHttpClientFactory, IOrgAuthProviderConfigReader, and
+        // OrgAuthProviderSecretProtector dependencies are all
+        // singleton-or-shared; the client holds no per-request state.
+        services.AddSingleton<IOidcTokenClient, OidcTokenClient>();
+
+        // Phase 4.6.3b — server-side state for the OIDC
+        // authorization-code + PKCE flow. Singleton — the underlying
+        // IMemoryCache is process-wide and the OidcFlowStateStore
+        // holds no per-request state. The PKCE verifier lives here
+        // until the callback leg consumes it (10-minute TTL,
+        // one-shot read+remove).
+        services.AddSingleton<IOidcFlowStateStore, OidcFlowStateStore>();
+
+        // Phase 4.6.3c — id_token validator for the OIDC callback
+        // leg. Scoped — same shape as ExternalOidcAuthProvider (the
+        // validator and the bearer-side provider share the
+        // ExternalOidcAuthProviderHelpers primitives).
+        services.AddScoped<IOidcIdTokenValidator, EfOidcIdTokenValidator>();
+
+        // Phase 4.6.3c — find-or-create the Plexor User row + a
+        // default viewer-role binding for a freshly-onboarded OIDC
+        // user. Scoped — IdentityDbContext is per-request.
+        services.AddScoped<IOidcUserProvisioner, EfOidcUserProvisioner>();
 
         // Revocation checker — JwtSigningService calls it after
         // signature + lifetime validation succeeds so a stolen,

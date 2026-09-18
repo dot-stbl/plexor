@@ -19,7 +19,7 @@ namespace Plexor.Shared.Persistence;
 ///     </para>
 ///     <para>
 ///         <b>Snake_case.</b> Registered by
-///         <see cref="PlexorPersistenceServiceCollectionExtensions.AddModuleDbContext{TContext}" />;
+///         <see cref="PlexorPersistenceServiceCollectionExtensions.AddModuleDbContext{TContext}(Microsoft.Extensions.DependencyInjection.IServiceCollection, Npgsql.NpgsqlDataSource)" />;
 ///         runtime safety-net for column + table names that don't carry an
 ///         explicit <c>HasColumnName(...)</c>. Design-time safety-net is
 ///         <c>HasColumnName("snake_case")</c> on every entity property.
@@ -33,7 +33,8 @@ namespace Plexor.Shared.Persistence;
 ///         <b>Connection string convention.</b> Each subclass carries
 ///         <c>[ConnectionString("...")]</c> pointing at its module's section
 ///         in <c>appsettings.json</c>. The host's composition root passes the
-///         resolved string into <see cref="PlexorPersistenceServiceCollectionExtensions.AddModuleDbContext{TContext}" />.
+///         resolved <see cref="Npgsql.NpgsqlDataSource" /> into
+///         <see cref="PlexorPersistenceServiceCollectionExtensions.AddModuleDbContext{TContext}(Microsoft.Extensions.DependencyInjection.IServiceCollection, Npgsql.NpgsqlDataSource)" />.
 ///     </para>
 /// </remarks>
 /// <remarks>

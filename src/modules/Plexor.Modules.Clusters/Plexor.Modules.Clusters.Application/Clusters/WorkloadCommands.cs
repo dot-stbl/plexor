@@ -8,6 +8,7 @@
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Shared.Filtering.Query;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.Workloads;
 
 namespace Plexor.Modules.Clusters.Application.Clusters;
 
@@ -83,8 +84,28 @@ public sealed class WorkloadSummary
     /// <summary>Runtime identifier — vm / lxc / k8s.pod / container.</summary>
     public string Kind { get; init; } = string.Empty;
 
-    /// <summary>Current lifecycle state as reported by the NodeAgent.</summary>
-    public Plexor.Shared.Workloads.WorkloadState State { get; init; }
+    /// <summary>
+    ///     Current runtime state as reported by the NodeAgent.
+    ///     Independent of <see cref="LifecycleState" /> (which the
+    ///     host drives through Mark*) — the agent's runtime mirror
+    ///     vs the host's intent.
+    /// </summary>
+    public WorkloadState State { get; init; }
+
+    /// <summary>
+    ///     Host-driven lifecycle state. Tracks what the host has asked
+    ///     the compute provider to do and what the provider has
+    ///     acknowledged back. Updated by the Workload command
+    ///     handlers via the Workload.Mark* methods.
+    /// </summary>
+    public WorkloadLifecycleState LifecycleState { get; init; }
+
+    /// <summary>
+    ///     Provider-assigned VM id (libvirt domain UUID, k3s pod UID).
+    ///     Null until the provider's CreateVmAsync confirms the VM
+    ///     exists and the workload moves to Provisioning.
+    /// </summary>
+    public string? ProviderVmId { get; init; }
 
     /// <summary>When the agent last reported on this workload.</summary>
     public DateTimeOffset? LastReportedAt { get; init; }
@@ -98,6 +119,46 @@ public sealed class WorkloadSummary
 
 // Paged list response uses Plexor.Shared.Contracts.Pagination.PageResult<T>
 // directly — no project-specific wrapper.
+
+// --- lifecycle commands (provider-driven) ---------------------------------
+
+/// <summary>
+///     Power on a previously provisioned workload. The host calls
+///     <see cref="Plexor.Shared.Kernel.Compute.IComputeProvider.StartVmAsync" />
+///     on the workload's <c>provider_vm_id</c>, then transitions
+///     <see cref="WorkloadLifecycleState.Stopped" /> →
+///     <see cref="WorkloadLifecycleState.Running" />. Throws when
+///     the workload is in a state that doesn't permit Start
+///     (e.g. <see cref="WorkloadLifecycleState.Deleted" />).
+/// </summary>
+/// <param name="ClusterId">Parent cluster (scope check).</param>
+/// <param name="WorkloadId">Target workload (must be in this cluster).</param>
+public sealed record StartWorkloadCommand(
+    ClusterId ClusterId,
+    WorkloadId WorkloadId);
+
+/// <summary>
+///     Gracefully power off a running workload. The host calls
+///     <see cref="Plexor.Shared.Kernel.Compute.IComputeProvider.StopVmAsync" />
+///     on the workload's <c>provider_vm_id</c>, then transitions
+///     <see cref="WorkloadLifecycleState.Running" /> →
+///     <see cref="WorkloadLifecycleState.Stopped" />. Resources
+///     stay allocated (the workload is stopped, not deleted).
+/// </summary>
+/// <param name="ClusterId">Parent cluster (scope check).</param>
+/// <param name="WorkloadId">Target workload (must be in this cluster).</param>
+public sealed record StopWorkloadCommand(
+    ClusterId ClusterId,
+    WorkloadId WorkloadId);
+
+/// <summary>
+///     Result of a successful <see cref="StartWorkloadCommand" /> or
+///     <see cref="StopWorkloadCommand" />. Carries the post-
+///     transition workload summary so the operator's POST response
+///     includes the updated state in one round-trip.
+/// </summary>
+/// <param name="Workload">Updated workload summary (post-transition).</param>
+public sealed record WorkloadLifecycleResult(WorkloadSummary Workload);
 
 // --- action commands (Tier 5) ----------------------------------------------
 

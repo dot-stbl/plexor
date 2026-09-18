@@ -30,7 +30,7 @@ export function mockGetOrgAuthProvider(): OrgAuthProviderConfig {
 /** Update the auth-provider config. Mirrors
  *  `PUT /api/v1/iam/orgs/{orgId}/auth-provider`. */
 export function mockUpdateOrgAuthProvider(
-  orgId: string,
+  _orgId: string,
   args: Omit<OrgAuthProviderConfig, 'oidcClientSecret'> & { oidcClientSecret: string | null },
 ): OrgAuthProviderConfig {
   if (args.provider === 'sigil') {
@@ -57,7 +57,7 @@ export function mockUpdateOrgAuthProvider(
 /** Pretend to test the OIDC connection. Mirrors
  *  `POST /api/v1/iam/orgs/{orgId}/auth-provider/test`. */
 export async function mockTestOIDCConnection(
-  orgId: string,
+  _orgId: string,
   args: { authority: string; clientId: string },
 ): Promise<{ ok: boolean; message: string }> {
   await new Promise((r) => setTimeout(r, 500));

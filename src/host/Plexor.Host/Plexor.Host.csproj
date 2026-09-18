@@ -15,6 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Plexor.Host.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- ============ Composition + shared ============ -->
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
@@ -34,6 +38,45 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Application\Plexor.Modules.Realm.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Realm\Plexor.Modules.Realm.Infrastructure\Plexor.Modules.Realm.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Sigil\Plexor.Modules.Sigil.Domain\Plexor.Modules.Sigil.Domain.csproj" />
+    <!-- Phase 4.5 — quotas enforcer + scope resolver (4.5.b). The
+         Application layer holds IQuotaCatalog; Infrastructure holds
+         IQuotaScopeResolver + IQuotaEnforcer + the DbContext; Api
+         holds the exception handler (4.5.g.1) and will hold the
+         controllers (4.5.g.2). -->
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Quotas\Plexor.Modules.Quotas.Application\Plexor.Modules.Quotas.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Quotas\Plexor.Modules.Quotas.Infrastructure\Plexor.Modules.Quotas.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Quotas\Plexor.Modules.Quotas.Api\Plexor.Modules.Quotas.Api.csproj" />
+    <!-- Branding module — operator-global + per-org branding.
+         Application hosts the BrandingGlobalSeeder; Infrastructure
+         wires the EF IBrandingService; Api hosts the controllers
+         + FluentValidation validators. -->
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Branding\Plexor.Modules.Branding.Application\Plexor.Modules.Branding.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Branding\Plexor.Modules.Branding.Infrastructure\Plexor.Modules.Branding.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Branding\Plexor.Modules.Branding.Api\Plexor.Modules.Branding.Api.csproj" />
+    <!-- Phase 5.1 — audit module. Application hosts the read endpoint
+         (5.2); Infrastructure hosts the IAuditEmitter (DbAuditEmitter)
+         + AuditDbContext. Api hosts the GET /api/v1/audit endpoint
+         (5.2) and the future admin UI surface (5.3). -->
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Application\Plexor.Modules.Audit.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Infrastructure\Plexor.Modules.Audit.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Audit\Plexor.Modules.Audit.Api\Plexor.Modules.Audit.Api.csproj" />
+    <!-- Phase 4.5.d — Storage module. Application layer holds the
+         IVolumeService / IBucketService contracts (commit 2);
+         Infrastructure wires StorageDbContext + EfStorageQuotaReader
+         (the seam the Quotas enforcer depends on). The Api layer
+         + the REST endpoints land in commit 2. -->
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Application\Plexor.Modules.Storage.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Infrastructure\Plexor.Modules.Storage.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Api\Plexor.Modules.Storage.Api.csproj" />
+    <!-- Phase 4.5.d — Network module. Application + Infrastructure
+         land in commit 3; the Api layer + the REST endpoints land in
+         commit 4. Infrastructure wires NetworkDbContext +
+         EfNetworkQuotaReader (the seam the Quotas enforcer
+         depends on for network.floating_ips.count +
+         network.load_balancers.count). -->
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Application\Plexor.Modules.Network.Application.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Infrastructure\Plexor.Modules.Network.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Api\Plexor.Modules.Network.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

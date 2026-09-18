@@ -6,10 +6,24 @@
 @custom-variant dark (&:is(.dark *));
 
 /* =========================================================================
- * Plexor Design System — tokens.
- * Source of truth: .agents/docs/design/styles.css
- * Strategy: override shadcn-ui slot values with Plexor DS, add status
- * semantics tokens. NO layout/typography tokens — use Tailwind utilities.
+ * Plexor Design System — non-themed utilities + first-paint baseline.
+ *
+ * Themed tokens (colors, surfaces, accents) live in
+ *   src/shared/lib/themes/presets.ts
+ * and are applied at runtime via applyPreset() in
+ *   src/shared/lib/themes/apply-tokens.ts
+ *
+ * Tailwind utility classes (bg-primary, text-muted, etc.) read these
+ * tokens through the @theme inline declarations below, which reference
+ * the runtime CSS custom properties.
+ *
+ * The `:root` and `.dark` blocks below carry the FIRST-PAINT BASELINE:
+ * the same OKLCH values as `plexor-default-light` / `plexor-default-dark`,
+ * so the initial paint is fully themed before any JS runs (and the
+ * preset application in PreferencesProvider is a no-op for these
+ * defaults). A future commit will replace them with an inline boot script
+ * that calls applyPreset synchronously; the registry values are the
+ * source of truth either way.
  * ========================================================================= */
 
 :root {
@@ -126,6 +140,13 @@
   --idle-soft: oklch(30% 0.006 250);
   --idle-ink: oklch(72% 0.01 250);
 
+  /* Charts are the shadcn gray scale — same in both modes by design. */
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -184,8 +205,6 @@
   --color-idle-soft: var(--idle-soft);
   --color-idle-ink: var(--idle-ink);
   --color-info: var(--info);
-  --color-info-soft: var(--info-soft);
-  --color-info-ink: var(--info-ink);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);

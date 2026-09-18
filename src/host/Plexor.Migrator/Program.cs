@@ -17,10 +17,19 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Plexor.Migrator;
+using Plexor.Modules.Audit.Application.Audit;
+using Plexor.Modules.Audit.Infrastructure.Persistence;
+using Plexor.Modules.Branding.Infrastructure.Installers;
+using Plexor.Modules.Branding.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Quotas.Infrastructure.Installers;
+using Plexor.Modules.Quotas.Infrastructure.Persistence;
+using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Modules.Network.Infrastructure.Persistence;
+using Plexor.Modules.Storage.Infrastructure.Persistence;
 using Plexor.Shared.Configuration;
 using Plexor.Shared.Mtls.Persistence;
 using Plexor.Shared.Persistence;
@@ -45,6 +54,12 @@ var migrationConnection =
     ?? throw new InvalidOperationException(
         "ConnectionStrings:Postgres (or MIGRATOR_CONNECTION env var) is not configured.");
 
+// Build the shared NpgsqlDataSource once. The migrator and the Host
+// use the same pool pattern so a design-time `dotnet ef database
+// update` from this directory resolves the same physical connection
+// as the running host.
+var plexorDataSource = builder.Services.AddPlexorDataSource(migrationConnection);
+
 // Explicit DbContext registration. Every PlexorDbContext subclass
 // owns its own table set + migrations; the migrator applies them
 // in the order declared below. Adding a new DbContext requires
@@ -54,15 +69,79 @@ var migrationConnection =
 // → Identity (users referenced by clusters.nodes) → Clusters
 // (FKs to sigil.users + realm.organizations) → Mtls RevokedCerts
 // (no FKs, kept last; shares forge schema with Clusters).
-builder.Services.AddModuleDbContext<RealmDbContext>(migrationConnection);
-builder.Services.AddModuleDbContext<IdentityDbContext>(migrationConnection);
-builder.Services.AddModuleDbContext<ClusterDbContext>(migrationConnection);
-builder.Services.AddModuleDbContext<RevokedCertsDbContext>(migrationConnection);
+// Quotas is isolated (polymorphic ScopeId, no FKs into Realm /
+// Sigil) — runs after them so a freshly-migrated quotas schema can
+// reference the catalog rows the seeder is about to insert.
+builder.Services.AddModuleDbContext<RealmDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<IdentityDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<ClusterDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<RevokedCertsDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<QuotasDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<StorageDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<NetworkDbContext>(plexorDataSource);
+builder.Services.AddScoped<IAuditDbContext>(sp => sp.GetRequiredService<AuditDbContext>());
+
+// Realm auth-providers (4.6.1) — wired BEFORE Sigil infrastructure.
+// Sigil.Infrastructure.OidcTokenClient + ExternalOidcAuthProvider
+// resolve IOrgAuthProviderConfigReader at request time, so the seam
+// has to be in the container before AddSigilInfrastructureCore runs.
+// Same ordering rationale as Plexor.Host (Realm → Sigil matches the
+// architecture rules + keeps ValidateOnBuild honest).
+builder.Services.AddRealmAuthProviders();
 
 builder.Services.AddSigilInfrastructureCore();
 
+// Audit retention (Phase 5.3) — bind AuditOptions so any future
+// sweep kicked off by the migrator's short lifetime honors the
+// configured retention window. ValidateOnStart enforces the
+// Range attributes (1..3650 retention, etc.) at startup.
+builder.Services
+    .AddOptions<AuditOptions>()
+    .Bind(builder.Configuration.GetSection(AuditOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+// Quotas infrastructure — needed for the OrgSeederHostedService (4.5.f)
+// and its IOrgSeeder dependency. Other Quotas services registered by
+// this installer (catalog / scope resolver / enforcer / rate limiter /
+// RateLimitCleanupService) are inert for the migrator's short
+// lifetime — only IOrgSeeder + OrgSeederHostedService are actually
+// resolved. RateLimitCleanupService is a no-op during the typical
+// one-shot migrate cycle (no hourly sweep boundary falls inside).
+builder.Services.AddQuotasInfrastructureCore();
+
+// Branding infrastructure — needed for BrandingGlobalSeederHostedService
+// and its IBrandingService dependency. The singleton seeder runs on
+// startup to ensure the global_theme_config row exists.
+builder.Services.AddBrandingInfrastructureCore();
+
+// OrgSeederHostedService (4.5.f) needs a way to enumerate the org ids
+// to seed. Same pattern as Plexor.Host — singleton delegate opens a
+// fresh scope so the scoped RealmDbContext lifetime is respected.
+// Non-async lambda body — the Realm query is a simple SELECT id, so
+// sync ToList is fine; wrapping in Task.FromResult avoids the
+// Task<List<T>> → Task<IReadOnlyCollection<T>> invariance issue that
+// trips the async-lambda form. In v0.1 the Realm query typically
+// returns zero rows (the migrator runs Realm migrations but does not
+// seed an org yet — that's a Phase 2 concern); the hosted service
+// no-ops gracefully in that case.
+builder.Services.AddSingleton<Func<CancellationToken, Task<IReadOnlyCollection<Guid>>>>(
+    static sp => async cancellationToken =>
+    {
+        await using var scope = sp.CreateAsyncScope();
+        var realm = scope.ServiceProvider.GetRequiredService<RealmDbContext>();
+        var ids = realm.Organizations
+            .Select(static organization => organization.Id)
+            .ToList();
+        return await Task.FromResult<IReadOnlyCollection<Guid>>(ids);
+    });
+
 builder.Services.AddHostedService<MigrationRunner>();
 builder.Services.AddHostedService<IdentityBootstrapper>();
+builder.Services.AddHostedService<QuotaDefinitionSeeder>();
+builder.Services.AddHostedService<Plexor.Modules.Branding.Application.Branding.BrandingGlobalSeederHostedService>();
 
 var app = builder.Build();
 app.Run();

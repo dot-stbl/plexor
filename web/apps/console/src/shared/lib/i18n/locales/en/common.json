@@ -94,7 +94,15 @@
     "kafkaTitle": "Kafka",
     "kafkaDesc": "Streaming",
     "registryTitle": "Container Registry",
-    "registryDesc": "Container images"
+    "registryDesc": "Container images",
+    "adminTitle": "Admin",
+    "adminCaption": "Operator-only controls",
+    "brandingTitle": "Branding",
+    "brandingDesc": "Theme + brand surface",
+    "themeMarketplaceTitle": "Theme Marketplace",
+    "themeMarketplaceDesc": "Browse + activate community themes",
+    "auditTitle": "Audit log",
+    "auditDesc": "Tenant-scoped audit timeline + retention"
   },
   "shell": {
     "appName": "Plexor",
@@ -764,5 +772,84 @@
       "zone": "Copy zone"
     },
     "openRow": "Open {{name}}"
+  },
+  "admin": {
+    "branding": {
+      "title": "Branding",
+      "description": "Operator-controlled theme + brand surface. Saved to Plexor.Host and reflected on next browser refresh.",
+      "globalTitle": "Operator defaults",
+      "globalDescription": "Applies to every org unless overridden. Visible after the next page reload.",
+      "presetLabel": "Theme preset",
+      "accentLabel": "Custom accent (OKLCH)",
+      "accentHelp": "Overrides the preset's accent. Leave empty to use the preset's value.",
+      "accentPlaceholder": "oklch(0.65 0.18 250)",
+      "brandNameLabel": "Brand name",
+      "brandNameHelp": "Shown in the sidebar header, page title, and favicon alt.",
+      "logoLabel": "Brand logo URL",
+      "logoHelp": "Replaces the default SVG mark. Leave empty to use the default.",
+      "faviconLabel": "Favicon URL",
+      "faviconHelp": "Loaded on boot. Leave empty to use the default.",
+      "save": "Save operator defaults",
+      "saving": "Saving…",
+      "saved": "Saved — reloading…",
+      "savedToast": "Operator defaults saved",
+      "resetToDefaults": "Reset to defaults",
+      "savedError": "Save failed",
+      "perOrgTitle": "Per-org overrides",
+      "perOrgDescription": "Each org can override the operator defaults. Inherits when blank.",
+      "overrideLabel": "Override per org",
+      "overrideEnable": "Override for this org",
+      "overrideDisable": "Use operator defaults",
+      "clearOverride": "Clear override",
+      "currentOrgLabel": "Current org",
+      "noOrgSelected": "Select an org",
+      "livePreview": "Live preview",
+      "livePreviewHelp": "Updates as you type — reflects what the operator + per-org config produces.",
+      "livePreviewBrandName": "Plexor",
+      "livePreviewAccent": "Accent",
+      "customCssTitle": "Custom CSS escape hatch",
+      "customCssDescription": "Operator-edited CSS file applied AFTER runtime theme tokens. Lets you override any token or add new selectors.",
+      "customCssFilePath": "File path",
+      "customCssOpen": "Open file",
+      "customCssNote": "This file is read on every page load. Edit + save + reload the browser to pick up changes.",
+      "customCssWarning": "The escape hatch can break the UI — use only when the preset registry isn't enough."
+    },
+    "audit": {
+      "title": "Audit log",
+      "description": "Tenant-scoped timeline of every audited action. The retention sweep deletes rows older than the configured window (default 90 days).",
+      "filters": {
+        "title": "Filters",
+        "actionLabel": "Action",
+        "actorLabel": "Actor (user id)",
+        "sinceLabel": "Since",
+        "apply": "Apply filters"
+      },
+      "table": {
+        "headers": {
+          "action": "Action",
+          "actor": "Actor",
+          "target": "Target",
+          "occurredAt": "Occurred at"
+        },
+        "empty": "No audit rows match the current filters."
+      },
+      "loadMore": "Load more",
+      "error": {
+        "fetch": "Failed to load the audit log."
+      }
+    },
+    "themeMarketplace": {
+      "title": "Theme Marketplace",
+      "description": "Browse community themes and activate one for this browser. Durability across devices and per-org persistence land in Phase 5+.",
+      "community": "Community",
+      "builtIn": "Built-in",
+      "activeTheme": "Active",
+      "activate": "Activate",
+      "author": "Author",
+      "version": "Version",
+      "empty": "No community themes are registered for this build.",
+      "loadError": "Failed to load the theme marketplace.",
+      "brandingHint": "for operator-level defaults (logo, accent, favicon) that affect every user."
+    }
   }
 }

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// Workload write-handlers — Create / Delete. Co-located in one file
-// because every handler depends on the same ClusterDbContext, the
-// IWorkloadMapper, and the bodies are < 80 lines each. Pattern
-// mirrors ClusterCommandHandlers.
+// Workload write-handlers — Create / Start / Stop / Delete. Co-located in
+// one file because every handler depends on the same ClusterDbContext, the
+// IWorkloadMapper, and the IComputeProvider; bodies are < 80 lines each.
+// Pattern mirrors ClusterCommandHandlers.
 // ==========================================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -14,23 +14,66 @@ using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.Kernel.Compute;
+using Plexor.Shared.Kernel.Identity;
+using Plexor.Shared.Kernel.Quotas;
+using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Clusters;
 
 /// <summary>
-///     Provision a new workload. Starts at
-///     <see cref="Plexor.Shared.Workloads.WorkloadState.Provisioning" />;
-///     the NodeAgent's drift-detection job (Phase D Tier 4) reports
-///     the runtime-side state back as the local lifecycle
-///     progresses. Returns the durable
-///     <see cref="WorkloadSummary" /> so the operator's
-///     <c>POST</c> response carries the wire id.
+///     Provision a new workload. Reserves quota, inserts the row
+///     in <see cref="WorkloadLifecycleState.Pending" />, then asks
+///     the <see cref="IComputeProvider" /> to create the VM. On a
+///     successful provider ack, transitions the workload through
+///     <c>Provisioning → Stopped</c> (the VM exists but is not yet
+///     powered on — power-on is a separate Start command). On
+///     provider failure, marks the workload
+///     <see cref="WorkloadLifecycleState.Failed" /> with the
+///     provider's reason and surfaces a typed
+///     <see cref="ClustersException" /> to the operator.
 /// </summary>
-/// <param name="db">EF Core context for the write.</param>
+/// <param name="db">EF Core context for the resource-create transaction.</param>
 /// <param name="mapper">Entity → DTO mapper (Mapperly-generated).</param>
+/// <param name="computeProvider">Compute backend that owns the VM lifecycle.</param>
+/// <param name="quotaEnforcer">
+///     Reserves <c>compute.workloads.count</c> capacity inside the same
+///     transaction as the workload INSERT.
+/// </param>
+/// <param name="currentUser">
+///     Caller identity forwarded into <see cref="QuotaScope" /> so
+///     the quota audit emitter can attach the actor.
+/// </param>
+/// <remarks>
+///     <para><b>OrgId lookup.</b> The quota is org-scoped (the
+///     workload catalog counts at the org level, not per cluster), so
+///     the handler fetches the parent cluster's <c>OrgId</c> via a
+///     single-column SELECT before calling the enforcer. A missing
+///     parent cluster throws <see cref="ClustersExceptions.ClusterNotFound" />
+///     before any quota is consumed.</para>
+///     <para><b>Why a transaction wraps the row INSERT (not the
+///     provider call).</b> The quota reservation + workload INSERT
+///     must commit atomically. The provider call is OUTSIDE the
+///     transaction — the provider manages its own resources
+///     (libvirt / k3s / ...) and can take seconds. A long-running
+///     provider call holding a Postgres advisory lock would starve
+///     every other quota enforcer on the cluster.</para>
+///     <para><b>Provider call failure path.</b> If <see cref="IComputeProvider.CreateVmAsync" />
+///     throws <see cref="ComputeProviderException" />, the workload row
+///     is already persisted. We mark it <c>Failed</c> + append a
+///     lifecycle event with the provider's reason, then rethrow as
+///     a <see cref="ClustersException" /> with
+///     <see cref="ClustersExceptions.ComputeProviderFailed" /> so the
+///     operator sees a 502 with the typed failure code (not a raw
+///     provider stack). The row stays for operator inspection /
+///     manual cleanup.</para>
+/// </remarks>
 public sealed class CreateWorkloadCommandHandler(
     ClusterDbContext db,
-    IWorkloadMapper mapper) : ICommandHandler<CreateWorkloadCommand, WorkloadSummary>
+    IWorkloadMapper mapper,
+    IComputeProvider computeProvider,
+    IQuotaEnforcer quotaEnforcer,
+    ICurrentUser currentUser) : ICommandHandler<CreateWorkloadCommand, WorkloadSummary>
 {
     /// <inheritdoc />
     public async Task<WorkloadSummary> HandleAsync(
@@ -51,6 +94,46 @@ public sealed class CreateWorkloadCommandHandler(
                 "Workload kind is required.");
         }
 
+        // Single transaction: enforcer UPDATE on quotas.quota_usage +
+        // workload INSERT commit (or roll back) together. Skipped
+        // against non-relational providers (e.g. the InMemory
+        // provider used by handler unit tests) — production runs
+        // always go through the transactional path.
+        await using var transaction =
+            await db.Database.BeginTransactionIfSupportedAsync(cancellationToken);
+
+        // Resolve the cluster's OrgId for the org-scoped quota lookup.
+        // The Workload row holds cluster_id but no FK (forge schema
+        // doesn't enforce it — see WorkloadConfiguration); fetching the
+        // parent cluster's OrgId also serves as a sanity check that
+        // the cluster exists before we burn quota.
+        var clusterOrgId = await db.Clusters.AsNoTracking()
+            .Where(cluster => cluster.Id == command.ClusterId)
+            .Select(static cluster => (Guid?)cluster.OrgId)
+            .FirstOrDefaultAsync(cancellationToken) ?? throw new ClustersException(
+                ClustersExceptions.ClusterNotFound,
+                $"Cluster '{command.ClusterId}' not found.");
+
+        // Pre-check + reserve compute.workloads.count at the org scope.
+        // ActorUserId flows into the QuotaScope so the audit emitter
+        // can attach the caller to any UsageExceeded / LimitApproaching
+        // event.
+        var quotaCheck = await quotaEnforcer.CheckAndReserveAsync(
+            QuotaScope.Org(clusterOrgId, currentUser.UserId),
+            QuotaDefinitionKey.WorkloadsCount,
+            amount: 1,
+            cancellationToken);
+
+        if (quotaCheck is QuotaCheckResult.Denied denied)
+        {
+            throw new QuotaExceededException(
+                denied.Limit,
+                denied.Used,
+                denied.Requested);
+        }
+
+        // Uniqueness check now runs inside the transaction so a
+        // duplicate-name collision rolls back the reserved quota.
         if (await db.Workloads.AsNoTracking().AnyAsync(
                 w => w.ClusterId == command.ClusterId && w.Name == command.Name,
                 cancellationToken))
@@ -71,6 +154,8 @@ public sealed class CreateWorkloadCommandHandler(
             Kind = command.Kind,
             SpecJson = command.SpecJson,
             State = Shared.Workloads.WorkloadState.Provisioning,
+            LifecycleState = WorkloadLifecycleState.Pending,
+            ProviderVmId = null,
             LastMessage = null,
             LastReportedAt = null,
             CreatedAt = now,
@@ -79,19 +164,207 @@ public sealed class CreateWorkloadCommandHandler(
 
         await db.Workloads.AddAsync(workload, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
+
+        // Provider call runs OUTSIDE the transaction (see remarks).
+        // On failure, mark Failed + surface a typed exception.
+        try
+        {
+            var providerVmId = await computeProvider.CreateVmAsync(
+                new CreateVmRequest(
+                    Name: command.Name,
+                    Vcpu: 1,
+                    MemoryBytes: 1024L * 1024L * 1024L,
+                    DiskPaths: [],
+                    NetworkNames: ["default"]),
+                cancellationToken);
+
+            // Pending → Provisioning (provider handle stored).
+            var provisioningEvent = workload.MarkProvisioning(providerVmId, DateTimeOffset.UtcNow);
+            await db.WorkloadLifecycleEvents.AddAsync(provisioningEvent, cancellationToken);
+
+            // Provisioning → Stopped (VM exists but not powered on —
+            // Start is a separate command from the operator).
+            var stoppedEvent = workload.MarkStopped(DateTimeOffset.UtcNow);
+            await db.WorkloadLifecycleEvents.AddAsync(stoppedEvent, cancellationToken);
+
+            db.Entry(workload).Property(static w => w.UpdatedAt).CurrentValue = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (ComputeProviderException providerEx)
+        {
+            // The row stays in Failed state for operator inspection.
+            // The reason is persisted on the LastMessage column + the
+            // WorkloadLifecycleEvent audit row, so the operator can
+            // diagnose without digging into logs.
+            var failedEvent = workload.MarkFailed(providerEx.Message, DateTimeOffset.UtcNow);
+            await db.WorkloadLifecycleEvents.AddAsync(failedEvent, CancellationToken.None);
+
+            db.Entry(workload).Property(static w => w.UpdatedAt).CurrentValue = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(CancellationToken.None);
+
+            throw new ClustersException(
+                ClustersExceptions.ComputeProviderFailed,
+                $"Compute provider rejected workload '{workload.Name}': {providerEx.Message}",
+                providerEx);
+        }
 
         return mapper.ToSummary(workload);
     }
 }
 
 /// <summary>
-///     Soft-delete a workload. The NodeAgent's next drift poll
-///     tears down the local runtime handle; the control-plane
-///     row stays in <c>forge.workloads</c> for audit + FK integrity.
+///     Start a previously provisioned workload. The handler looks
+///     up the workload's <c>provider_vm_id</c>, calls
+///     <see cref="IComputeProvider.StartVmAsync" />, then transitions
+///     <see cref="WorkloadLifecycleState.Stopped" /> →
+///     <see cref="WorkloadLifecycleState.Running" />. Throws on a
+///     workload in any state that doesn't permit Start
+///     (<c>Deleted</c>, <c>Pending</c>, <c>Provisioning</c>).
 /// </summary>
-/// <param name="db">EF Core context for the write.</param>
+/// <param name="db">EF Core context for the read + lifecycle-event write.</param>
+/// <param name="computeProvider">Compute backend that owns the VM lifecycle.</param>
+/// <param name="mapper">Entity → DTO mapper for the result envelope.</param>
+public sealed class StartWorkloadCommandHandler(
+    ClusterDbContext db,
+    IComputeProvider computeProvider,
+    IWorkloadMapper mapper) : ICommandHandler<StartWorkloadCommand, WorkloadLifecycleResult>
+{
+    /// <inheritdoc />
+    public async Task<WorkloadLifecycleResult> HandleAsync(
+        StartWorkloadCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var workload = await db.Workloads.FirstOrDefaultAsync(
+            w => w.ClusterId == command.ClusterId && w.Id == command.WorkloadId,
+            cancellationToken) ?? throw new ClustersException(
+                ClustersExceptions.WorkloadNotFound,
+                $"Workload '{command.WorkloadId}' not found in cluster '{command.ClusterId}'.");
+
+        if (workload.ProviderVmId is null)
+        {
+            throw new ClustersException(
+                ClustersExceptions.WorkloadNotFound,
+                $"Workload '{command.WorkloadId}' has no provider_vm_id — Create never confirmed.");
+        }
+
+        // MarkRunning validates the transition (Stopped → Running is
+        // the only legal source). Invalid transitions throw before
+        // we touch the provider.
+        var runningEvent = workload.MarkRunning(DateTimeOffset.UtcNow);
+        await db.WorkloadLifecycleEvents.AddAsync(runningEvent, cancellationToken);
+
+        try
+        {
+            await computeProvider.StartVmAsync(workload.ProviderVmId, cancellationToken);
+        }
+        catch (ComputeProviderException providerEx)
+        {
+            var failedEvent = workload.MarkFailed(providerEx.Message, DateTimeOffset.UtcNow);
+            await db.WorkloadLifecycleEvents.AddAsync(failedEvent, CancellationToken.None);
+
+            db.Entry(workload).Property(static w => w.UpdatedAt).CurrentValue = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(CancellationToken.None);
+
+            throw new ClustersException(
+                ClustersExceptions.ComputeProviderFailed,
+                $"Compute provider rejected Start on workload '{workload.Name}': {providerEx.Message}",
+                providerEx);
+        }
+
+        db.Entry(workload).Property(static w => w.UpdatedAt).CurrentValue = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+
+        return new WorkloadLifecycleResult(mapper.ToSummary(workload));
+    }
+}
+
+/// <summary>
+///     Gracefully stop a running workload. The handler calls
+///     <see cref="IComputeProvider.StopVmAsync" />, then transitions
+///     <see cref="WorkloadLifecycleState.Running" /> →
+///     <see cref="WorkloadLifecycleState.Stopped" />. Resources
+///     stay allocated (the workload is stopped, not deleted). Throws
+///     on a workload in any state that doesn't permit Stop
+///     (<c>Deleted</c>, <c>Pending</c>, <c>Provisioning</c>,
+///     <c>Stopped</c>).
+/// </summary>
+/// <param name="db">EF Core context for the read + lifecycle-event write.</param>
+/// <param name="computeProvider">Compute backend that owns the VM lifecycle.</param>
+/// <param name="mapper">Entity → DTO mapper for the result envelope.</param>
+public sealed class StopWorkloadCommandHandler(
+    ClusterDbContext db,
+    IComputeProvider computeProvider,
+    IWorkloadMapper mapper) : ICommandHandler<StopWorkloadCommand, WorkloadLifecycleResult>
+{
+    /// <inheritdoc />
+    public async Task<WorkloadLifecycleResult> HandleAsync(
+        StopWorkloadCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var workload = await db.Workloads.FirstOrDefaultAsync(
+            w => w.ClusterId == command.ClusterId && w.Id == command.WorkloadId,
+            cancellationToken) ?? throw new ClustersException(
+                ClustersExceptions.WorkloadNotFound,
+                $"Workload '{command.WorkloadId}' not found in cluster '{command.ClusterId}'.");
+
+        if (workload.ProviderVmId is null)
+        {
+            throw new ClustersException(
+                ClustersExceptions.WorkloadNotFound,
+                $"Workload '{command.WorkloadId}' has no provider_vm_id — Create never confirmed.");
+        }
+
+        // MarkStopped validates the transition (Running → Stopped is
+        // the only legal source state for a runtime-driven stop).
+        var stoppedEvent = workload.MarkStopped(DateTimeOffset.UtcNow);
+        await db.WorkloadLifecycleEvents.AddAsync(stoppedEvent, cancellationToken);
+
+        try
+        {
+            await computeProvider.StopVmAsync(workload.ProviderVmId, cancellationToken);
+        }
+        catch (ComputeProviderException providerEx)
+        {
+            var failedEvent = workload.MarkFailed(providerEx.Message, DateTimeOffset.UtcNow);
+            await db.WorkloadLifecycleEvents.AddAsync(failedEvent, CancellationToken.None);
+
+            db.Entry(workload).Property(static w => w.UpdatedAt).CurrentValue = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(CancellationToken.None);
+
+            throw new ClustersException(
+                ClustersExceptions.ComputeProviderFailed,
+                $"Compute provider rejected Stop on workload '{workload.Name}': {providerEx.Message}",
+                providerEx);
+        }
+
+        db.Entry(workload).Property(static w => w.UpdatedAt).CurrentValue = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+
+        return new WorkloadLifecycleResult(mapper.ToSummary(workload));
+    }
+}
+
+/// <summary>
+///     Tear down a workload's VM + transition the row to
+///     <see cref="WorkloadLifecycleState.Deleted" />. The handler calls
+///     <see cref="IComputeProvider.DeleteVmAsync" /> on the workload's
+///     <c>provider_vm_id</c>, then transitions through
+///     <c>* → Deleting → Deleted</c>. The row is preserved (not
+///     hard-deleted) for audit + reconciliation — the
+///     <c>forge.workloads</c> table keeps the operator-visible
+///     record of "this workload existed and was torn down at T".
+///     Throws on a workload already in
+///     <see cref="WorkloadLifecycleState.Deleted" />.
+/// </summary>
+/// <param name="db">EF Core context for the read + lifecycle-event write.</param>
+/// <param name="computeProvider">Compute backend that owns the VM lifecycle.</param>
 public sealed class DeleteWorkloadCommandHandler(
-    ClusterDbContext db) : ICommandHandler<DeleteWorkloadCommand, Unit>
+    ClusterDbContext db,
+    IComputeProvider computeProvider) : ICommandHandler<DeleteWorkloadCommand, Unit>
 {
     /// <inheritdoc />
     public async Task<Unit> HandleAsync(
@@ -103,7 +376,37 @@ public sealed class DeleteWorkloadCommandHandler(
             cancellationToken) ?? throw new ClustersException(
                 ClustersExceptions.WorkloadNotFound,
                 $"Workload '{command.WorkloadId}' not found in cluster '{command.ClusterId}'.");
-        db.Workloads.Remove(workload);
+
+        // MarkDeleting validates the transition. Legal source
+        // states: Stopped / Running / Failed. Deleted is terminal.
+        var deletingEvent = workload.MarkDeleting(DateTimeOffset.UtcNow);
+        await db.WorkloadLifecycleEvents.AddAsync(deletingEvent, cancellationToken);
+
+        try
+        {
+            if (workload.ProviderVmId is not null)
+            {
+                await computeProvider.DeleteVmAsync(workload.ProviderVmId, cancellationToken);
+            }
+        }
+        catch (ComputeProviderException providerEx)
+        {
+            var failedEvent = workload.MarkFailed(providerEx.Message, DateTimeOffset.UtcNow);
+            await db.WorkloadLifecycleEvents.AddAsync(failedEvent, CancellationToken.None);
+
+            db.Entry(workload).Property(static w => w.UpdatedAt).CurrentValue = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(CancellationToken.None);
+
+            throw new ClustersException(
+                ClustersExceptions.ComputeProviderFailed,
+                $"Compute provider rejected Delete on workload '{workload.Name}': {providerEx.Message}",
+                providerEx);
+        }
+
+        var deletedEvent = workload.MarkDeleted(DateTimeOffset.UtcNow);
+        await db.WorkloadLifecycleEvents.AddAsync(deletedEvent, cancellationToken);
+
+        db.Entry(workload).Property(static w => w.UpdatedAt).CurrentValue = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
@@ -184,7 +487,7 @@ public sealed class WorkloadActionCommandHandler(
 #pragma warning disable VSTHRD103 // Sync serialize — no I/O on a small string payload.
         var payloadJson = System.Text.Json.JsonSerializer.Serialize(
             new Plexor.Shared.NodeApi.WorkloadActionPayload(
-                LocalId: workload.LocalId!));
+                LocalId: workload.LocalId));
 #pragma warning restore VSTHRD103
 
         var now = DateTimeOffset.UtcNow;

@@ -17,8 +17,10 @@ import {
   Key,
   List,
   Package,
+  Settings,
   ShowChart,
   Stacks,
+  Storefront,
   Token,
   VerifiedUser
 } from '@nine-thirty-five/material-symbols-react/rounded/700';
@@ -33,7 +35,10 @@ export type AppRoute =
   | '/images'
   | '/networks'
   | '/audit'
-  | '/clusters';
+  | '/clusters'
+  | '/admin/branding'
+  | '/admin/theme-marketplace'
+  | '/admin/audit';
 
 export type NavPage = {
   /** i18n key for the title (resolved at render time with t()). */
@@ -123,6 +128,17 @@ export const SECTIONS: Section[] = [
       { title: 'nav.metricsTitle', description: 'nav.metricsDesc', icon: ShowChart },
       { title: 'nav.logsTitle', description: 'nav.logsDesc', icon: List },
       { title: 'nav.auditTitle', description: 'nav.auditDesc', icon: History, to: '/audit' },
+    ],
+  },
+  {
+    id: 'admin',
+    label: 'nav.adminTitle',
+    caption: 'nav.adminCaption',
+    icon: Settings,
+    pages: [
+      { title: 'nav.brandingTitle', description: 'nav.brandingDesc', icon: Settings, to: '/admin/branding' },
+      { title: 'nav.themeMarketplaceTitle', description: 'nav.themeMarketplaceDesc', icon: Storefront, to: '/admin/theme-marketplace' },
+      { title: 'nav.auditTitle', description: 'nav.auditDesc', icon: History, to: '/admin/audit' },
     ],
   },
   {

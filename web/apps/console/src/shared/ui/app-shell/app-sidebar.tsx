@@ -29,6 +29,7 @@ import {
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { toast } from 'sonner';
 import type { Icon } from '@nine-thirty-five/material-symbols-react';
+import { getBootConfig } from '@/shared/lib/config';
 import {
   SECTIONS,
   isActiveRoute,
@@ -62,6 +63,12 @@ export function AppSidebar() {
   const [launcherOpen, setLauncherOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  // Operator-controlled branding (TOML → window.__PLEXOR_CONFIG__ → here).
+  // Falls back to the Plexor defaults when the host hasn't shipped a
+  // boot config (vite dev, static export, etc).
+  const { brand } = getBootConfig();
+  const hasCustomLogo = brand.logoUrl !== null && brand.logoUrl !== '';
+
   const section = SECTIONS.find((s) => s.id === sectionIdForPathname(pathname));
 
   const groupLabel = section ? t(section.label) : t('shell.applications');
@@ -74,28 +81,33 @@ export function AppSidebar() {
       {/* group/rail: hovering the collapsed rail reveals all label pills. */}
       <Sidebar collapsible="icon" data-od-id="app-sidebar" className="group/rail">
         <SidebarHeader className="gap-2 p-2">
-          {/* Expanded: [P] Plexor / by ▪stbl …… [collapse]. Collapsed: just [P] (rest hidden). */}
+          {/* Expanded: [logo] brand.name / by ▪stbl …… [collapse]. Collapsed: just [logo] (rest hidden). */}
           <div className="flex items-center gap-2">
             <Link
               to="/"
               aria-label={t('shell.goHome')}
               className="flex items-center gap-2 rounded-md p-1 text-foreground outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
             >
-              <PlexorMark className="h-6 w-auto shrink-0 group-data-[collapsible=icon]:h-5" />
+              {hasCustomLogo ? (
+                <img
+                  src={brand.logoUrl ?? undefined}
+                  alt={brand.name}
+                  className="h-6 w-auto shrink-0 group-data-[collapsible=icon]:h-5"
+                />
+              ) : (
+                <PlexorMark className="h-6 w-auto shrink-0 group-data-[collapsible=icon]:h-5" />
+              )}
               <div className="flex flex-col group-data-[collapsible=icon]:hidden">
                 <span className="text-sm font-semibold tracking-tight leading-tight">
-                  Plexor
+                  {brand.name}
                 </span>
                 <span className="flex items-center gap-1 font-mono text-[10px] leading-tight text-muted-foreground/70">
                   by
-                  <svg
-                    viewBox="0 0 64 64"
-                    className="inline-block size-2.5"
-                    aria-hidden="true"
-                  >
-                    <rect width="64" height="64" className="fill-foreground" />
-                    <rect x="16" y="16" width="32" height="32" className="fill-background" />
-                  </svg>
+                  <img
+                    src="https://raw.githubusercontent.com/dot-stbl/.github/main/assets/logo.svg"
+                    alt=""
+                    className="inline-block h-2.5 w-auto"
+                  />
                   stbl
                 </span>
               </div>

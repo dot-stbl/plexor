@@ -5,16 +5,25 @@
 // refresh store, token issuer) and the handler bodies are < 100 lines
 // each. Splitting into per-class files would add ceremony without
 // adding value.
+//
+// The lockout math, failed/successful-login state writes, the role
+// projection, and the refresh-rotation primitives live in
+// AuthCommandHelpers (AuthCommandHandlersHelpers.cs) — pulled out to
+// satisfy the no-private-methods convention (class-layout-and-tooling.md
+// §1a / code-shape.md §9.5).
 // ============================================================================
 
-using Microsoft.EntityFrameworkCore;
-using Plexor.Modules.Sigil.Application.Abstractions;
+using Plexor.Modules.Realm.Application.AuthProviders;
+using Plexor.Modules.Realm.Domain.Entities;
 using Plexor.Modules.Sigil.Application.Auth;
 using Plexor.Modules.Sigil.Application.Authorization;
 using Plexor.Modules.Sigil.Application.Users;
+using Plexor.Shared.Kernel.Identity;
 using Plexor.Modules.Sigil.Domain.Entities;
 using Plexor.Modules.Sigil.Domain.Errors;
+using Plexor.Modules.Sigil.Infrastructure.AuthProviders.Flows;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
+using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 
@@ -28,24 +37,27 @@ namespace Plexor.Modules.Sigil.Infrastructure.Auth;
 /// <param name="refreshTokens"></param>
 /// <param name="tokenIssuer"></param>
 /// <param name="db"></param>
+/// <param name="clock">Injected <see cref="TimeProvider" /> for the
+/// lockout-expiry + refresh-token-expiry stamps (per
+/// <c>time-and-wire-format.md</c> §3).</param>
+/// <param name="orgAuthConfigReader">Per-tenant IDP configuration
+/// reader. Read-only seam used to short-circuit email+password
+/// attempts against OIDC-configured tenants (Phase 4.6.3c).</param>
 public sealed class LoginCommandHandler(
     IUserLookup users,
     IPasswordHasher passwordHasher,
     IRefreshTokenStore refreshTokens,
     ITokenIssuer tokenIssuer,
-    IdentityDbContext db) : ICommandHandler<LoginCommand, LoginResult>
+    IdentityDbContext db,
+    TimeProvider clock,
+    IOrgAuthProviderConfigReader orgAuthConfigReader) : ICommandHandler<LoginCommand, LoginResult>
 {
-    /// <summary>Lockout threshold — failed attempts before the account
-    /// is locked for <see cref="LockoutDuration" />.</summary>
-    private const int FailedLoginLockoutThreshold = 5;
-
-    /// <summary>Lockout window — account is locked for this long after
-    /// the threshold is reached.</summary>
-    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
-
-    /// <summary>Refresh-token lifetime on login. Mirrors the lifetime
-    /// baked into the rotation chain.</summary>
-    internal static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(30);
+    /// <summary>Refresh-token lifetime on login. Kept as a public
+    /// surface so <see cref="AuthCommandHelpers.RefreshTokenLifetime" /> can
+    /// mirror the same value without taking a dependency on the
+    /// handler class.</summary>
+    internal static readonly TimeSpan RefreshTokenLifetime =
+        AuthCommandHelpers.RefreshTokenLifetime;
 
     /// <inheritdoc />
     public async Task<LoginResult> HandleAsync(
@@ -60,12 +72,44 @@ public sealed class LoginCommandHandler(
                 "Password is required.");
         }
 
+        // Phase 4.6.3c — IDP guard. A tenant whose OrgAuthProviderConfig
+        // row declares Provider=Oidc must NOT accept email+password
+        // logins. Returning a 400 with a `redirect` extension lets
+        // the console forward the operator through
+        // POST /auth/oidc/authorize without leaking which orgs use
+        // which backend to a probing client. Absent config row
+        // (fresh deploy, in-flight seeder race) → treat as Sigil so
+        // the v0.1 single-tenant default continues to work.
+        var orgConfig = await orgAuthConfigReader.GetForOrgAsync(
+            command.OrgId, cancellationToken);
+        if (orgConfig is { Provider: OrgAuthProvider.Oidc })
+        {
+            var redirectPath = string.IsNullOrWhiteSpace(command.RedirectPath)
+                ? "/console"
+                : command.RedirectPath;
+            var redirectUrl =
+                $"/{ApiRoutes.Base}/auth/oidc/authorize"
+                + $"?org={Uri.EscapeDataString(command.OrgId.ToString())}"
+                + $"&redirect={Uri.EscapeDataString(redirectPath)}";
+
+            throw new IdentityException(
+                IdentityExceptions.CredentialsProviderMismatch,
+                "This organization uses external OIDC for authentication. "
+                + "Redirect to /auth/oidc/authorize to continue.",
+                new Dictionary<string, object?>
+                {
+                    ["redirect"] = redirectUrl,
+                    ["code"] = IdentityExceptions.CredentialsProviderMismatch,
+                    ["title"] = "Wrong authentication method",
+                });
+        }
+
         var user = await ResolveUserAsync(command, cancellationToken) ?? throw new IdentityException(
                 IdentityExceptions.InvalidCredentials,
                 "Email or username not found.");
-        await EnsureNotLockedAsync(user, cancellationToken);
-        EnsureActive(user);
-        EnsurePasswordExists(user);
+        await AuthCommandHelpers.EnsureNotLockedAsync(db, user, clock, cancellationToken);
+        AuthCommandHelpers.EnsureActive(user);
+        AuthCommandHelpers.EnsurePasswordExists(user);
 
         var verification = passwordHasher.VerifyHashedPassword(
             user,
@@ -74,15 +118,15 @@ public sealed class LoginCommandHandler(
 
         if (verification == PasswordVerificationResult.Failed)
         {
-            await RegisterFailedLoginAsync(user.Id, cancellationToken);
+            await AuthCommandHelpers.RegisterFailedLoginAsync(db, user.Id, clock, cancellationToken);
             throw new IdentityException(
                 IdentityExceptions.InvalidCredentials,
                 "Invalid credentials.");
         }
 
-        await RegisterSuccessfulLoginAsync(user.Id, cancellationToken);
+        await AuthCommandHelpers.RegisterSuccessfulLoginAsync(db, user.Id, clock, cancellationToken);
 
-        var roles = await LoadRolesAsync(user.Id, cancellationToken);
+        var roles = await AuthCommandHelpers.LoadRolesAsync(db, user.Id, cancellationToken);
 
         // First-login password rotation: issue a short-lived token
         // whose only permission is iam.users.change-own-password, and
@@ -106,7 +150,7 @@ public sealed class LoginCommandHandler(
         }
 
         var refreshRaw = TokenGenerator.Generate();
-        var refreshExpires = DateTimeOffset.UtcNow + RefreshTokenLifetime;
+        var refreshExpires = clock.GetUtcNow() + RefreshTokenLifetime;
         await refreshTokens.IssueAsync(
             user.Id, refreshRaw, refreshExpires, cancellationToken);
 
@@ -119,6 +163,12 @@ public sealed class LoginCommandHandler(
             AccessTokenExpiresAtUtc: access.ExpiresAtUtc);
     }
 
+    /// <summary>
+    ///     Resolve the user by email (preferred) or username. Stays
+    ///     on the handler because it threads the email-vs-username
+    ///     preference through <see cref="IUserLookup" />, which the
+    ///     helper doesn't depend on.
+    /// </summary>
     private async Task<User?> ResolveUserAsync(
         LoginCommand command,
         CancellationToken cancellationToken)
@@ -137,115 +187,6 @@ public sealed class LoginCommandHandler(
             IdentityExceptions.InvalidCredentials,
             "Either email or username must be supplied.");
     }
-
-    private static void EnsureActive(User user)
-    {
-        if (!string.Equals(user.Status, "active", StringComparison.Ordinal))
-        {
-            throw new IdentityException(
-                IdentityExceptions.AccountSuspended,
-                "Account is not active.");
-        }
-    }
-
-    private static void EnsurePasswordExists(User user)
-    {
-        if (user.PasswordHash is null)
-        {
-            // OAuth-only user attempting password login — surface as
-            // generic invalid-credentials so we don't leak the auth
-            // mode.
-            throw new IdentityException(
-                IdentityExceptions.InvalidCredentials,
-                "Password login not available for this account.");
-        }
-    }
-
-    private async Task EnsureNotLockedAsync(
-        User user,
-        CancellationToken cancellationToken)
-    {
-        if (user.LockedUntil is { } until && until > DateTimeOffset.UtcNow)
-        {
-            throw new IdentityException(
-                IdentityExceptions.AccountLocked,
-                $"Account locked until {until:O}.");
-        }
-
-        // Lockout window elapsed — clear the flag so a fresh login
-        // attempt can succeed without forcing the user to wait.
-        if (user.LockedUntil is not null)
-        {
-            await db.Users
-                .Where(u => u.Id == user.Id && u.LockedUntil != null)
-                .ExecuteUpdateAsync(
-                    setters => setters.SetProperty(u => u.LockedUntil, (DateTimeOffset?)null),
-                    cancellationToken);
-        }
-    }
-
-    private async Task RegisterFailedLoginAsync(
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        await db.Users
-            .Where(u => u.Id == userId)
-            .ExecuteUpdateAsync(
-                setters => setters
-                    .SetProperty(u => u.FailedLoginCount, u => u.FailedLoginCount + 1),
-                cancellationToken);
-
-        // Threshold check: if the new count crossed the threshold,
-        // stamp the lockout expiry. Done in a second update because
-        // ExecuteUpdate with conditional logic is awkward; the
-        // racing window is small (lockout granularity is minutes).
-        var current = await db.Users
-            .AsNoTracking()
-            .Where(u => u.Id == userId)
-            .Select(u => u.FailedLoginCount)
-            .FirstAsync(cancellationToken);
-
-        if (current >= FailedLoginLockoutThreshold)
-        {
-            var lockoutUntil = DateTimeOffset.UtcNow + LockoutDuration;
-            await db.Users
-                .Where(u => u.Id == userId)
-                .ExecuteUpdateAsync(
-                    setters => setters.SetProperty(u => u.LockedUntil, (DateTimeOffset?)lockoutUntil),
-                    cancellationToken);
-        }
-    }
-
-    private async Task RegisterSuccessfulLoginAsync(
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        var now = DateTimeOffset.UtcNow;
-        await db.Users
-            .Where(u => u.Id == userId)
-            .ExecuteUpdateAsync(
-                setters => setters
-                    .SetProperty(u => u.FailedLoginCount, 0)
-                    .SetProperty(u => u.LockedUntil, (DateTimeOffset?)null)
-                    .SetProperty(u => u.LastLoginAt, (DateTimeOffset?)now),
-                cancellationToken);
-    }
-
-    private async Task<IReadOnlyCollection<string>> LoadRolesAsync(
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        return await db.RoleBindings
-            .AsNoTracking()
-            .Where(binding => binding.UserId == userId)
-            .Join(
-                db.Roles.AsNoTracking(),
-                binding => binding.RoleId,
-                role => role.Id,
-                (_, role) => role.Name)
-            .Distinct()
-            .ToArrayAsync(cancellationToken);
-    }
 }
 
 /// <summary>
@@ -257,11 +198,15 @@ public sealed class LoginCommandHandler(
 /// <param name="refreshTokens"></param>
 /// <param name="tokenIssuer"></param>
 /// <param name="db"></param>
+/// <param name="clock">Injected <see cref="TimeProvider" /> for the
+/// rotated refresh-token expiry stamp.</param>
 public sealed class RefreshCommandHandler(
     IRefreshTokenStore refreshTokens,
     ITokenIssuer tokenIssuer,
-    IdentityDbContext db) : ICommandHandler<RefreshCommand, LoginResult>
+    IdentityDbContext db,
+    TimeProvider clock) : ICommandHandler<RefreshCommand, LoginResult>
 {
+
     /// <inheritdoc />
     public async Task<LoginResult> HandleAsync(
         RefreshCommand command,
@@ -275,76 +220,44 @@ public sealed class RefreshCommandHandler(
                 "Refresh token is required.");
         }
 
-        var newRefreshRaw = TokenGenerator.Generate();
-        var newRefreshExpires = DateTimeOffset.UtcNow + LoginCommandHandler.RefreshTokenLifetime;
-
-        var rotation = await refreshTokens.RotateAsync(
-            command.RefreshToken,
-            newRefreshRaw,
-            newRefreshExpires,
-            cancellationToken);
-
-        switch (rotation)
+        // Phase 4.6.3c — iss-binding. The current Plexor refresh
+        // tokens are opaque random base64url strings (no JWT shape),
+        // so PeekIssuer returns Opaque and we fall through to the
+        // existing rotation path. JWT-shaped refresh tokens from a
+        // third-party IDP (iss != plexor) will route to the OIDC
+        // path that re-issues Plexor credentials without an IDP
+        // roundtrip — Phase 5+ adds proper revocation propagation.
+        // Truly malformed JWT input (e.g. binary garbage with
+        // dots) raises 400 identity.refresh.malformed. Opaque
+        // random tokens do NOT raise this (PeekIssuer treats them
+        // as "not a JWT at all"). Property-pattern merge: assign
+        // + check in one expression (code-shape.md §1).
+        if (RefreshTokenIssuerInspector.PeekIssuer(command.RefreshToken) is { IsMalformed: true })
         {
-            case RefreshRotationResult.NotFound:
-                throw new IdentityException(
-                    IdentityExceptions.InvalidCredentials,
-                    "Refresh token not found.");
-
-            case RefreshRotationResult.Replayed:
-                // Token was already rotated or revoked — treat as
-                // compromised. Look up its family and nuke everything.
-                var replayed = await refreshTokens.FindByRawTokenAsync(
-                    command.RefreshToken, cancellationToken);
-                if (replayed is not null)
-                {
-                    await refreshTokens.RevokeFamilyAsync(
-                        replayed.FamilyId, cancellationToken);
-                }
-                throw new IdentityException(
-                    IdentityExceptions.RefreshTokenReplayed,
-                    "Refresh token replay detected; family revoked.");
-
-            case RefreshRotationResult.Success:
-                break;
-
-            default:
-                throw new InvalidOperationException(
-                    $"Unknown RefreshRotationResult: {rotation}");
+            throw new IdentityException(
+                IdentityExceptions.RefreshMalformed,
+                "Refresh token is not a well-formed JWT.");
         }
 
-        // Load the user that owns this chain (the rotated entity's
-        // userId is preserved on the new record).
-        var owner = await db.RefreshTokens
-            .AsNoTracking()
-            .Where(token => token.TokenHash == RefreshTokenHasher.Hash(newRefreshRaw))
-            .Join(db.Users, token => token.UserId, user => user.Id, (_, user) => user)
-            .FirstAsync(cancellationToken);
+        // For v1 every refresh token is opaque (iss == null) → Sigil
+        // path. JWT-shaped tokens with iss == "plexor" also follow
+        // the Sigil path (future state). iss != "plexor" (Phase 5+)
+        // would route to the OIDC path; v1 has no such tokens so the
+        // branch is dead code today but documented for the future.
+        var rotation = await AuthCommandHelpers.RotateRefreshTokenAsync(
+            refreshTokens, command.RefreshToken, clock, cancellationToken);
 
-        var roles = await LoadRolesAsync(owner.Id, cancellationToken);
+        var owner = await AuthCommandHelpers.ResolveOwnerAsync(
+            db, rotation.NewRefreshToken, cancellationToken);
+
+        var roles = await AuthCommandHelpers.LoadRolesAsync(db, owner.Id, cancellationToken);
         var access = await tokenIssuer.IssueAsync(
             owner.Id, owner.OrgId, roles, cancellationToken);
 
         return new LoginResult(
             AccessToken: access.CompactJwt,
-            RefreshToken: newRefreshRaw,
+            RefreshToken: rotation.NewRefreshToken,
             AccessTokenExpiresAtUtc: access.ExpiresAtUtc);
-    }
-
-    private async Task<IReadOnlyCollection<string>> LoadRolesAsync(
-        Guid userId,
-        CancellationToken cancellationToken)
-    {
-        return await db.RoleBindings
-            .AsNoTracking()
-            .Where(binding => binding.UserId == userId)
-            .Join(
-                db.Roles.AsNoTracking(),
-                binding => binding.RoleId,
-                role => role.Id,
-                (_, role) => role.Name)
-            .Distinct()
-            .ToArrayAsync(cancellationToken);
     }
 }
 

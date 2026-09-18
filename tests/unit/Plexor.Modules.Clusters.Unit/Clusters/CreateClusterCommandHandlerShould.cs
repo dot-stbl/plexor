@@ -1,9 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using NSubstitute;
 using Plexor.Modules.Clusters.Application.Clusters;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Errors;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
 using Plexor.Shared.Identifiers;
+using Plexor.Shared.Kernel.Identity;
+using Plexor.Shared.Kernel.Quotas;
 using Shouldly;
 using Xunit;
 
@@ -11,11 +14,13 @@ namespace Plexor.Modules.Clusters.Unit.Clusters;
 
 public sealed class CreateClusterCommandHandlerShould
 {
+    private static readonly Guid StubActorUserId = Guid.NewGuid();
+
     [Fact(DisplayName = "Given unique name, when CreateCluster, then returns join token + persists cluster")]
     public async Task CreateClusterPersistsClusterAndReturnsTokenAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, AllowedQuotaEnforcer(), StubCurrentUser());
         var command = new CreateClusterCommand(
             Guid.NewGuid(),
             "prod-eu-1",
@@ -57,7 +62,7 @@ public sealed class CreateClusterCommandHandlerShould
         });
         await db.SaveChangesAsync();
 
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, AllowedQuotaEnforcer(), StubCurrentUser());
         var command = new CreateClusterCommand(orgId, "prod-eu-1", "eu-west-1", NodeRole.Control);
 
         var ex = await Should.ThrowAsync<ClustersException>(() => sut.HandleAsync(command));
@@ -68,7 +73,7 @@ public sealed class CreateClusterCommandHandlerShould
     public async Task CreateClusterRejectsEmptyNameAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, AllowedQuotaEnforcer(), StubCurrentUser());
 
         var ex = await Should.ThrowAsync<ClustersException>(
             () => sut.HandleAsync(new CreateClusterCommand(Guid.NewGuid(), "", "eu-central-1", NodeRole.Control)));
@@ -84,7 +89,7 @@ public sealed class CreateClusterCommandHandlerShould
     public async Task CreateClusterRejectsInvalidRuntimeIdAsync(string? runtimeId)
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, AllowedQuotaEnforcer(), StubCurrentUser());
 
         var ex = await Should.ThrowAsync<ClustersException>(() =>
             sut.HandleAsync(new CreateClusterCommand(
@@ -103,7 +108,7 @@ public sealed class CreateClusterCommandHandlerShould
     public async Task CreateClusterPersistsSupportedRuntimeIdAsync(string runtimeId)
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, AllowedQuotaEnforcer(), StubCurrentUser());
         var name = $"cluster-{Guid.NewGuid().ToString("N")[..8]}";
 
         await sut.HandleAsync(new CreateClusterCommand(
@@ -121,7 +126,7 @@ public sealed class CreateClusterCommandHandlerShould
     public async Task CreateClusterDefaultsRuntimeIdAsync()
     {
         await using var db = await TestDb.CreateAsync();
-        var sut = new CreateClusterCommandHandler(db);
+        var sut = new CreateClusterCommandHandler(db, AllowedQuotaEnforcer(), StubCurrentUser());
         var name = $"cluster-{Guid.NewGuid().ToString("N")[..8]}";
 
         await sut.HandleAsync(new CreateClusterCommand(
@@ -133,5 +138,39 @@ public sealed class CreateClusterCommandHandlerShould
         var persisted = await db.Clusters.SingleAsync();
         persisted.RuntimeId.ShouldBe(Shared.NodeApi.ClusterRuntimeIds.Default);
         persisted.RuntimeId.ShouldBe(Shared.NodeApi.ClusterRuntimeIds.DockerCompose);
+    }
+
+    /// <summary>
+    ///     NSubstitute-backed <see cref="IQuotaEnforcer" /> that always
+    ///     returns <see cref="QuotaCheckResult.Allowed" />. Lets the
+    ///     existing cluster-handler tests stay focused on the cluster
+    ///     + join-token path without spinning up the EF enforcer
+    ///     (which requires a real Postgres). Tests that need to exercise
+    ///     the denied path can swap this for a customised substitute.
+    /// </summary>
+    private static IQuotaEnforcer AllowedQuotaEnforcer()
+    {
+        var enforcer = Substitute.For<IQuotaEnforcer>();
+        enforcer.CheckAndReserveAsync(
+            Arg.Any<QuotaScope>(),
+            Arg.Any<QuotaDefinitionKey>(),
+            Arg.Any<decimal>(),
+            Arg.Any<CancellationToken>())
+            .Returns(new QuotaCheckResult.Allowed());
+        return enforcer;
+    }
+
+    /// <summary>
+    ///     NSubstitute-backed <see cref="ICurrentUser" /> that returns a
+    ///     stable stub id. Added in 4.5.h so the handler can populate
+    ///     <see cref="QuotaScope.ActorUserId" /> when calling the
+    ///     enforcer — see
+    ///     <see cref="CreateClusterCommandHandler" /> remarks.
+    /// </summary>
+    private static ICurrentUser StubCurrentUser()
+    {
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.UserId.Returns(StubActorUserId);
+        return currentUser;
     }
 }

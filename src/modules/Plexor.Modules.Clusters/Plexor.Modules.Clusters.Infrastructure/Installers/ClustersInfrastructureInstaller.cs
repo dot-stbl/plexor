@@ -12,16 +12,20 @@
 // call. Re-registering here would double-register and cause
 // scope/conflict errors.
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Application.Clusters;
+using Plexor.Modules.Clusters.Application.Compute;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
+using Plexor.Modules.Clusters.Infrastructure.Compute;
 using Plexor.Modules.Clusters.Infrastructure.Mappers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
 using Plexor.Shared.Contracts.Pagination;
 using Plexor.Shared.Filtering.Registry;
+using Plexor.Shared.Kernel.Compute;
 using Plexor.Shared.Persistence;
 
 namespace Plexor.Modules.Clusters.Infrastructure.Installers;
@@ -38,9 +42,20 @@ public static class ClustersInfrastructureInstaller
     ///     <c>AddModuleDbContext&lt;T&gt;</c> — do not re-register here.
     /// </summary>
     /// <param name="services">The DI container.</param>
+    /// <param name="configuration">
+    ///     Host configuration. Read once to detect whether the
+    ///     <c>[Clusters:Compute:Libvirt]</c> section is present —
+    ///     its presence selects <see cref="LibvirtComputeProvider" />
+    ///     over <see cref="NoOpComputeProvider" /> as the active
+    ///     <see cref="IComputeProvider" />. The section's
+    ///     <see cref="LibvirtComputeOptions" /> binding is also
+    ///     registered here so a malformed section fails at startup
+    ///     via <c>ValidateOnStart</c>.
+    /// </param>
     /// <returns>The container, for chaining.</returns>
     public static IServiceCollection AddClustersInfrastructureCore(
-        this IServiceCollection services)
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
         services.AddScoped<ICommandHandler<CreateClusterCommand, JoinTokenResult>, CreateClusterCommandHandler>();
         services.AddScoped<ICommandHandler<UpdateClusterCommand, ClusterSummary>, UpdateClusterCommandHandler>();
@@ -59,6 +74,13 @@ public static class ClustersInfrastructureInstaller
         services.AddScoped<ICommandHandler<DeleteWorkloadCommand, Unit>, DeleteWorkloadCommandHandler>();
         services.AddScoped<ICommandHandler<ListWorkloadsQuery, PageResult<WorkloadSummary>>, ListWorkloadsQueryHandler>();
         services.AddScoped<ICommandHandler<GetWorkloadQuery, WorkloadSummary>, GetWorkloadQueryHandler>();
+
+        // Lifecycle commands (provider-driven). The Start/Stop
+        // handlers return the post-transition WorkloadSummary so
+        // the operator's POST response carries the new state in
+        // one round-trip.
+        services.AddScoped<ICommandHandler<StartWorkloadCommand, WorkloadLifecycleResult>, StartWorkloadCommandHandler>();
+        services.AddScoped<ICommandHandler<StopWorkloadCommand, WorkloadLifecycleResult>, StopWorkloadCommandHandler>();
 
         // Tier 5: workload action commands (start / stop / restart).
         // Handler short-polls the per-node command queue (forge.commands)
@@ -81,6 +103,41 @@ public static class ClustersInfrastructureInstaller
         // NSubstitute mocks.
         services.AddSingleton<IClusterMapper, ClusterMapper>();
         services.AddSingleton<IWorkloadMapper, WorkloadMapper>();
+
+        // Compute provider seam — selection between the real libvirt
+        // impl and the NoOp stub is driven by whether the host config
+        // carries a [Clusters:Compute:Libvirt] section. Presence of
+        // the section is the opt-in signal; absence (the default for
+        // dev / self-hosted deployments without a libvirt daemon)
+        // keeps the NoOp stub. Either way, the LibvirtComputeOptions
+        // binding is registered so a malformed section fails the
+        // host startup via ValidateOnStart instead of the first
+        // provision call.
+        var computeConfig = configuration.GetSection(LibvirtComputeOptions.SectionName);
+        services.AddOptions<LibvirtComputeOptions>()
+            .Bind(computeConfig)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        if (computeConfig.Exists())
+        {
+            // Real provider path — Process.Start / virt-install
+            // shell-out. The runner is the test seam; LibvirtComputeProvider
+            // is the registered interface impl. Both are singletons
+            // (the runner is stateless, the provider holds no per-VM
+            // mutable state).
+            services.AddSingleton<IVirshProcessRunner, VirshProcessRunner>();
+            services.AddSingleton<IComputeProvider, LibvirtComputeProvider>();
+        }
+        else
+        {
+            // Dev / self-hosted default — NoOp acks every call. The
+            // operator can still create workload rows for testing
+            // without a live libvirt daemon; the provider handle is
+            // a synthetic "noop-{guid}" so the audit trail records
+            // which workloads never hit a real provider.
+            services.AddSingleton<IComputeProvider, NoOpComputeProvider>();
+        }
 
         // Per-entity filter fields — repository reflection-builds the
         // schema once and caches. Singleton = built once, immutable.

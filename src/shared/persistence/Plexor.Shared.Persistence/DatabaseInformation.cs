@@ -111,6 +111,14 @@ public static class DatabaseInformation
         /// <summary>Organizations module — folder rows belong to an org (team optional for org-level folders).</summary>
         public const string Folders = "folders";
 
+        /// <summary>Organizations module (4.6.1) — one row per org,
+        /// declares the per-tenant authentication backend
+        /// (Sigil default or OIDC). UNIQUE on <c>org_id</c>.
+        /// Schema name <c>realm</c>; see the
+        /// <c>OrgAuthProviderConfig</c> entity in
+        /// <c>Plexor.Modules.Realm.Domain.Entities</c>.</summary>
+        public const string OrgAuthProviderConfigs = "org_auth_provider_configs";
+
         /// <summary>Identity module — user accounts.</summary>
         public const string Users = "users";
 
@@ -151,6 +159,16 @@ public static class DatabaseInformation
         ///     reported back through <c>local_id</c> + state.
         /// </summary>
         public const string Workloads = "workloads";
+
+        /// <summary>
+        ///     Clusters module — append-only audit trail of every
+        ///     workload lifecycle transition (one row per Mark* call
+        ///     on the Clusters-domain Workload aggregate). forge
+        ///     schema, snake_case <c>workload_lifecycle_events</c>
+        ///     table. Indexed by (workload_id, id) for the
+        ///     per-workload timeline query.
+        /// </summary>
+        public const string WorkloadLifecycleEvents = "workload_lifecycle_events";
 
         /// <summary>
         ///     Clusters module — per-node command queue. The control
