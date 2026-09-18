@@ -36,6 +36,17 @@ namespace Plexor.Modules.Storage.Infrastructure.Volumes;
 ///     <c>Denied</c> from either enforcer check throws
 ///     <see cref="QuotaExceededException" />, the open transaction
 ///     rolls back on dispose, and no row + no quota counter advances.</para>
+///     <para><b>Quota enforcement on resize (4.5.d follow-up).
+    ///     </b> <see cref="UpdateSizeAsync" /> opens the same shape of
+    ///     transaction as <see cref="CreateAsync" />. It reads the
+    ///     current <c>SizeGb</c> first, computes the delta
+    ///     (<c>newSizeGb</c> - current), and reserves only the delta
+    ///     against <c>storage.volumes.gb</c>. Shrinking or no-change
+    ///     resizes skip the enforcer entirely (a negative or zero
+    ///     delta never fails on a capacity quota). A <c>Denied</c> on
+    ///     the delta throws <see cref="QuotaExceededException" />;
+    ///     the open transaction rolls back on dispose and the
+    ///     volume's <c>SizeGb</c> stays at its prior value.</para>
 /// </remarks>
 /// <param name="db">Scoped <see cref="StorageDbContext" />.</param>
 /// <param name="clock">Injected <see cref="TimeProvider" /> for the row's
@@ -160,6 +171,13 @@ public sealed class EfVolumeService(
         int newSizeGb,
         CancellationToken cancellationToken = default)
     {
+        // Single transaction: the enforcer's UPDATE on quotas.quota_usage
+        // and the volume UPDATE commit (or roll back) together. Mirrors
+        // CreateAsync — the InMemory provider used by handler unit tests
+        // is skipped (no transaction support).
+        await using var transaction =
+            await db.Database.BeginTransactionIfSupportedAsync(cancellationToken);
+
         var volume = await db.Volumes
             .FirstOrDefaultAsync(
                 volume => volume.Id == volumeId && volume.OrgId == orgId,
@@ -169,9 +187,33 @@ public sealed class EfVolumeService(
             return null;
         }
 
+        // Only a positive delta needs a reservation — shrinking a
+        // volume frees capacity, no-change is a no-op write. The
+        // delta is signed (new - old), so the gate is straightforward.
+        var delta = newSizeGb - volume.SizeGb;
+        if (delta > 0)
+        {
+            var quotaCheck = await quotaEnforcer.CheckAndReserveAsync(
+                QuotaScope.Org(orgId, currentUser.UserId),
+                QuotaDefinitionKey.VolumesGb,
+                amount: delta,
+                cancellationToken);
+            if (quotaCheck is QuotaCheckResult.Denied denied)
+            {
+                throw new QuotaExceededException(
+                    denied.Limit,
+                    denied.Used,
+                    denied.Requested);
+            }
+        }
+
         volume.SizeGb = newSizeGb;
         volume.UpdatedAt = clock.GetUtcNow();
         await db.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
         return volume;
     }
 
