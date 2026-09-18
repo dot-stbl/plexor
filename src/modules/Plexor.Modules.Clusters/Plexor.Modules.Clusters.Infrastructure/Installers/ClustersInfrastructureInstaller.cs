@@ -15,6 +15,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Plexor.Modules.Clusters.Application.Abstractions;
 using Plexor.Modules.Clusters.Application.Clusters;
+using Plexor.Modules.Clusters.Application.CreateVm;
+using Plexor.Modules.Clusters.Application.Flavors;
+using Plexor.Modules.Clusters.Application.Images;
 using Plexor.Modules.Clusters.Domain;
 using Plexor.Modules.Clusters.Domain.Entities;
 using Plexor.Modules.Clusters.Infrastructure.Clusters;
@@ -64,6 +67,13 @@ public static class ClustersInfrastructureInstaller
         services.AddScoped<ICommandHandler<ListWorkloadsQuery, PageResult<WorkloadSummary>>, ListWorkloadsQueryHandler>();
         services.AddScoped<ICommandHandler<GetWorkloadQuery, WorkloadSummary>, GetWorkloadQueryHandler>();
 
+        // VM-specific provisioning (issue #6) — resolves Flavor +
+        // Image catalogs and Config overlay into a final
+        // VmRuntimeConfig, validates it, pins the target node via
+        // the placement scheduler, persists the Workload row, and
+        // enqueues a workload.create NodeCommand for the agent.
+        services.AddScoped<ICommandHandler<CreateVmCommand, CreateVmResult>, CreateVmHandler>();
+
         // Tier 5: workload action commands (start / stop / restart).
         // Handler short-polls the per-node command queue (forge.commands)
         // for the agent's ack; control plane returns once the row
@@ -97,6 +107,13 @@ public static class ClustersInfrastructureInstaller
         // NSubstitute mocks.
         services.AddSingleton<IClusterMapper, ClusterMapper>();
         services.AddSingleton<IWorkloadMapper, WorkloadMapper>();
+
+        // Flavor + Image catalogs (issue #5). Singleton — the v0.1
+        // list is immutable for the process lifetime; v0.2+ may
+        // swap to a DB-backed catalog that drops to Scoped to
+        // follow the DbContext lifetime.
+        services.AddSingleton<IFlavorCatalog, DefaultFlavorCatalog>();
+        services.AddSingleton<IImageCatalog, DefaultImageCatalog>();
 
         // Per-entity filter fields — repository reflection-builds the
         // schema once and caches. Singleton = built once, immutable.
