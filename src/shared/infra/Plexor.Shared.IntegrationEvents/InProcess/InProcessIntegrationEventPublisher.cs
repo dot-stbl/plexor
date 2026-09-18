@@ -40,7 +40,7 @@ public sealed class InProcessIntegrationEventPublisher(
     public async ValueTask PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default)
         where TEvent : IIntegrationEvent
     {
-        var snapshot = SnapshotHandlers<TEvent>();
+        var snapshot = handlersByType.GetValueOrDefault(typeof(TEvent));
         if (snapshot.IsDefaultOrEmpty)
         {
             return;
@@ -120,10 +120,5 @@ public sealed class InProcessIntegrationEventPublisher(
                 return ValueTask.CompletedTask;
             }
         }
-    }
-
-    private ImmutableArray<Delegate> SnapshotHandlers<TEvent>()
-    {
-        return handlersByType.GetValueOrDefault(typeof(TEvent));
     }
 }

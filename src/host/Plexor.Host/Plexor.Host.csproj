@@ -22,6 +22,10 @@
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Configuration\Plexor.Shared.Configuration.csproj" />
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Http\Plexor.Shared.Http.csproj" />
+    <!-- Integration-event bus (#45): publisher + subscriber ports, in-process
+         adapter. Modules depend only on this contract; the concrete
+         transport is wired at the host via AddPlexorIntegrationEvents(). -->
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.IntegrationEvents\Plexor.Shared.IntegrationEvents.csproj" />
     <ProjectReference Include="..\..\shared\persistence\Plexor.Shared.Persistence\Plexor.Shared.Persistence.csproj" />
     <ProjectReference Include="..\..\shared\persistence\Plexor.Shared.Filtering.Web\Plexor.Shared.Filtering.Web.csproj" />
     <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.NodeApi\Plexor.Shared.NodeApi.csproj" />
