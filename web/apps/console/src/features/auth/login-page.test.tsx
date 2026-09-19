@@ -230,7 +230,9 @@ describe('LoginPage', () => {
     await waitFor(() => {
       const submit = screen.getByTestId('login-submit');
       expect(submit).toBeDisabled();
-      expect(submit.getAttribute('aria-busy')).toBe('true');
+      // RAC Button exposes pending state via data-pending (aria-busy is
+      // filtered by react-aria's filterDOMProps).
+      expect(submit.getAttribute('data-pending')).toBe('true');
     });
     expect(screen.getByTestId('login-submit').textContent).toBe('Signing in…');
   });

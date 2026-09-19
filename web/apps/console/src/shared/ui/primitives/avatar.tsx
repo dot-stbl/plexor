@@ -77,7 +77,6 @@ export interface AvatarImageProps extends Omit<React.ComponentProps<"img">, "src
 
 function AvatarImage({ className, src, alt, ...props }: AvatarImageProps) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       data-slot="avatar-image"
       src={src}

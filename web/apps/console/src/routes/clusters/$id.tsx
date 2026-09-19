@@ -33,6 +33,11 @@ function ClusterDetailPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [tab, setTab] = useState('nodes');
 
+  // Hooks must run before the not-found early return below; with no cluster
+  // the id falls back to '' which resolves to empty node/token lists.
+  const nodes = useListNodes(cluster?.id ?? '').nodes;
+  const tokens = useListTokens(cluster?.id ?? '').tokens;
+
   if (!cluster) {
     return (
       <PageTemplate
@@ -52,8 +57,6 @@ function ClusterDetailPage() {
     );
   }
 
-  const nodes = useListNodes(cluster.id).nodes;
-  const tokens = useListTokens(cluster.id).tokens;
   const counts = countNodes(nodes);
   const activeTokens = tokens.filter((t) => t.status === 'active').length;
 

@@ -45,7 +45,7 @@ function VmsPage() {
 
   const { data, isPending, isError, error, refetch } = useListVms(apiParams);
 
-  const allItems = data?.items ?? [];
+  const allItems = useMemo(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
   const running = useMemo(
     () => allItems.reduce((n, vm) => (vm.status === 'running' ? n + 1 : n), 0),

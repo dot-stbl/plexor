@@ -11,7 +11,7 @@ import { AppHeader } from './app-header';
 // jsdom exposes SVGSVGElement.className as an SVGAnimatedString; the live
 // string lives on `baseVal`. Plain `?.className` returns an object that
 // .toContain() treats as empty, which made the prior probe fail.
-function svgClass(svg: Element | null): string {
+function svgClass(svg: Element | null | undefined): string {
   const raw = svg?.getAttribute('class') ?? '';
   return raw;
 }
