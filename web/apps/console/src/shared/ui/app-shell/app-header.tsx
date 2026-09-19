@@ -45,7 +45,7 @@ export function AppHeader() {
               data-od-id="breadcrumb-home"
               className="flex items-center rounded-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
             >
-              <Home className="size-3.5" />
+              <Home className="size-3.5 transition-transform duration-200 ease-out hover:scale-110" />
             </Link>
           </BreadcrumbItem>
           {crumbs.map((crumb, index) => (

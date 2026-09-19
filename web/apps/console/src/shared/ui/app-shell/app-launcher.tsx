@@ -111,10 +111,10 @@ function BlockCard({ section, onNavigate }: { section: Section; onNavigate: () =
   const { t } = useTranslation();
   const BlockIcon = section.icon;
   return (
-    <Card className="gap-0 overflow-visible border-transparent py-0 transition-all duration-150 ease-out hover:-translate-y-px hover:border-border/60 hover:shadow-md" data-od-id={`launcher-block-${section.id}`}>
+    <Card className="group/block-card gap-0 overflow-visible border-transparent py-0 transition-all duration-150 ease-out hover:-translate-y-px hover:border-border/60 hover:shadow-md" data-od-id={`launcher-block-${section.id}`}>
       <div className="flex flex-row items-center gap-2.5 border-b border-border p-3">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
-          <BlockIcon className="size-[18px]" />
+          <BlockIcon className="size-[18px] transition-transform duration-200 ease-out group-hover/block-card:scale-110" />
         </span>
         <div className="min-w-0 flex-1">
           <CardTitle className="text-[13px]">{t(section.label)}</CardTitle>
@@ -272,9 +272,9 @@ export function AppLauncher({
                 </div>
 
                 <Link to="/" onClick={close} className={linkRing}>
-                  <div className={cn('flex items-center gap-4 px-4 py-3.5', tile, 'hover:bg-muted')}>
+                  <div className={cn('group/overview flex items-center gap-4 px-4 py-3.5', tile, 'hover:bg-muted')}>
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-background text-foreground">
-                      <GridView className="size-5" />
+                      <GridView className="size-5 transition-transform duration-200 ease-out group-hover/overview:scale-110" />
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium">Обзор проекта</div>
@@ -282,7 +282,7 @@ export function AppLauncher({
                         Сводка ресурсов, метрики и быстрые действия — проект prod-cluster
                       </p>
                     </div>
-                    <KeyboardArrowRight className="size-4 shrink-0 text-muted-foreground" />
+                    <KeyboardArrowRight className="size-4 shrink-0 text-muted-foreground transition-all duration-200 ease-out group-hover/overview:translate-x-0.5 group-hover/overview:text-foreground" />
                   </div>
                 </Link>
               </Card>
@@ -314,9 +314,9 @@ export function AppLauncher({
               size="icon-sm"
               aria-label="Закрыть"
               onClick={close}
-              className="size-7 rounded-md text-muted-foreground"
+              className="size-7 rounded-md text-muted-foreground hover:text-foreground"
             >
-              <Close className="size-4" />
+              <Close className="size-4 transition-transform duration-200 ease-out hover:rotate-90" />
             </Button>
           </div>
         </div>
