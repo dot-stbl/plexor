@@ -135,6 +135,16 @@
           "label": "Databases",
           "value": "6",
           "context": "3 PostgreSQL · 3 Redis"
+        },
+        "networks": {
+          "label": "Networks · VPC",
+          "value": "0/0",
+          "context": "0 cluster(s) · nodes ready"
+        },
+        "audit": {
+          "label": "Audit events",
+          "value": "0",
+          "context": "last 24h"
         }
       }
     },
@@ -166,6 +176,27 @@
   "placeholder": {
     "inDevelopment": "Screen in development",
     "scaffoldReady": "Scaffold is ready — content will appear in the next pass."
+  },
+  "dashboard": {
+    "audit": {
+      "title": "Recent activity",
+      "viewAll": "View all",
+      "justNow": "just now"
+    },
+    "fleet": {
+      "total": "Total VMs",
+      "running": "Running",
+      "cpu": "vCPU",
+      "ram": "RAM",
+      "ofTotal": "of {{total}} total"
+    },
+    "quotaUsage": {
+      "title": "Quota usage",
+      "used": "Used"
+    },
+    "vmStatus": {
+      "title": "VM status"
+    }
   },
   "vms": {
     "list": {

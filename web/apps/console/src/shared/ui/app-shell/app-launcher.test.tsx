@@ -241,14 +241,18 @@ describe('AppLauncher — i18n summary cards', () => {
     renderLauncher();
     // "Virtual machines" appears in two places now: the SUMMARY stat card
     // AND the compute section's first nav page. Disambiguate by picking the
-    // one whose nearest Stat ancestor carries the mock value "12".
+    // one whose nearest Stat ancestor carries the mock-derived value. The
+    // label still comes from the i18n key `shell.launcher.summary.vms.label`
+    // (resolved through t()), but value/context come from
+    // `makeLauncherSummary()` — fleet has 5 running + 1 provisioning = 6
+    // active out of 8 total.
     const vmsLabels = screen.getAllByText('Virtual machines');
     const vmsStat = vmsLabels
       .map((el) => el.closest('[data-slot="stat"]'))
       .find((el): el is HTMLElement => el !== null);
     expect(vmsStat).not.toBeNull();
-    expect(vmsStat?.textContent).toContain('12');
-    expect(vmsStat?.textContent).toContain('+2 this week');
+    expect(vmsStat?.textContent).toContain('6');
+    expect(vmsStat?.textContent).toContain('running of 8 total');
   });
 
   it('renders the sr-only launcher heading and description', () => {

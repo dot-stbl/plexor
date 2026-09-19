@@ -16,13 +16,13 @@ import { makeAuditEntries } from './audit';
 export interface LauncherSummaryCard {
   /** Stable id — used by tests as `data-od-id` and by the route. */
   id: 'vms' | 'networks' | 'audit';
-  /** Human label (Russian — matches the launcher's existing copy). */
-  label: string;
+  /** i18n key — the launcher resolves it via `t()` at render time. */
+  labelKey: string;
   /** Where the card navigates to on click. */
   to: string;
-  /** Single-line headline (e.g. "6 running"). */
+  /** Single-line headline (e.g. "6"). */
   value: string;
-  /** Context line under the headline (e.g. "of 8 total"). */
+  /** Context line under the headline (e.g. "running of 8 total"). */
   context: string;
 }
 
@@ -41,21 +41,21 @@ export function makeLauncherSummary(): LauncherSummaryCard[] {
   return [
     {
       id: 'vms',
-      label: 'Виртуальные машины',
+      labelKey: 'shell.launcher.summary.vms.label',
       to: '/vms',
       value: String(running),
       context: `running of ${total} total`,
     },
     {
       id: 'networks',
-      label: 'Сети · VPC',
+      labelKey: 'shell.launcher.summary.networks.label',
       to: '/networks',
       value: `${clusters.ready}/${clusters.total}`,
       context: `${clusters.clusters} cluster(s) · nodes ready`,
     },
     {
       id: 'audit',
-      label: 'События аудита',
+      labelKey: 'shell.launcher.summary.audit.label',
       to: '/audit',
       value: String(recentAudit.length),
       context: 'last 24h',
