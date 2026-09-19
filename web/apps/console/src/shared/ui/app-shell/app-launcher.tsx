@@ -201,7 +201,8 @@ export function AppLauncher({
       data-state={phase === 'exit' ? 'closed' : 'open'}
       // pointer-events-none so the sidebar underneath stays clickable.
       // Children that need clicks (dim overlay below, launcher panel as a
-      // sibling inside this portal) keep their default pointer-events.
+      // sibling inside this portal) re-enable pointer-events explicitly
+      // because pointer-events doesn't inherit 'auto' from 'none'.
       className="pointer-events-none fixed inset-0 z-40"
     >
       {/* Dim everything except the sidebar (left of this) and the menu cards.
@@ -210,7 +211,7 @@ export function AppLauncher({
         aria-hidden="true"
         onClick={close}
         className={cn(
-          'fixed inset-y-0 right-0 z-30 bg-black/40 backdrop-blur-sm transition-opacity duration-200',
+          'pointer-events-auto fixed inset-y-0 right-0 z-30 bg-black/40 backdrop-blur-sm transition-opacity duration-200',
           sideOffset,
           phase === 'exit' ? 'opacity-0' : 'opacity-100',
         )}
@@ -218,7 +219,7 @@ export function AppLauncher({
       <div
         data-od-id="launcher"
         className={cn(
-          'fixed inset-y-0 z-40 flex h-full w-[min(760px,60vw)] flex-col bg-transparent outline-none transition-[transform,opacity] duration-200 ease-out',
+          'pointer-events-auto fixed inset-y-0 z-40 flex h-full w-[min(760px,60vw)] flex-col bg-transparent outline-none transition-[transform,opacity] duration-200 ease-out',
           sideOffset,
           phase === 'enter' && '-translate-x-4 opacity-0',
           phase === 'exit' && '-translate-x-4 opacity-0',
