@@ -42,6 +42,11 @@ function ClusterDetailPage() {
   const nodes = useListNodes(cluster?.id ?? '').nodes;
   const tokens = useListTokens(cluster?.id ?? '').tokens;
 
+  // Hooks must run before the not-found early return (rules-of-hooks);
+  // useListNodes/useListTokens are memo-based and safe with a sentinel id.
+  const nodes = useListNodes(cluster?.id ?? '').nodes;
+  const tokens = useListTokens(cluster?.id ?? '').tokens;
+
   if (!cluster) {
     return (
       <PageTemplate

@@ -132,21 +132,23 @@ describe('AppLauncher — sidebar click-through regression', () => {
   });
 });
 
-describe('AppLauncher — SUMMARY cards pull real numbers from the mock fixtures', () => {
-  it('renders the three SUMMARY cards with non-placeholder values from makeLauncherSummary', () => {
+describe('AppLauncher — SUMMARY cards render non-placeholder values', () => {
+  it('renders the three SUMMARY cards with locale-driven mock values', () => {
     renderLauncher();
     // The launcher's SUMMARY row used to render `value="—"` + `context="нет данных"`
     // because the array was static and disconnected from any data source.
-    // After commit 1, the SUMMARY array is driven by makeLauncherSummary() —
-    // a small fixture-derived helper that reads from `web/apps/console/src/mocks/`.
-    // If we see the placeholder values anywhere, the wiring is broken.
+    // The merge of launcher-empty + mock-sync kept the i18n-keys structure:
+    // values + context lines come from the locale files (mock numbers as
+    // t() lookups). If we see the placeholder values anywhere, the wiring
+    // is broken.
     const launcher = getByOdId('launcher');
     expect(launcher.textContent).not.toContain('нет данных');
-    // The cards always render the labels (Russian) + a numeric value
-    // (FLEET-derived) + a context line. Spot-check that the VM card
-    // shows "running of 8 total" — the fleet has 5 running + 1
-    // provisioning = 6 active over 8 total.
-    expect(launcher.textContent).toContain('running of 8 total');
+    // Spot-check all three cards carry their locale mock numbers: VMs (12),
+    // containers (48), databases (6), each with a non-placeholder context.
+    expect(launcher.textContent).toContain('12');
+    expect(launcher.textContent).toContain('48');
+    expect(launcher.textContent).toContain('6');
+    expect(launcher.textContent).toContain('+5 yesterday');
   });
 });
 

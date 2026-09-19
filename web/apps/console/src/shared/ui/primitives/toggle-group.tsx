@@ -1,13 +1,24 @@
 "use client"
 
 import * as React from "react"
-import { Toggle as TogglePrimitive } from "@base-ui/react/toggle"
-import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group"
+import {
+  ToggleButton,
+  ToggleButtonGroup as ToggleButtonGroupPrimitive,
+} from "react-aria-components"
 import { type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "@/shared/ui/primitives/toggle"
 
+/**
+ * ToggleGroup — react-aria-components-backed (base-ui compat).
+ *
+ * Base UI's ToggleGroup holds an ARRAY of active values; RAC's
+ * ToggleButtonGroup with selectionMode="multiple" matches. `value`/
+ * `onValueChange` map to `selectedKeys`/`onSelectionChange`; item
+ * identity is the ToggleButton `id` (fed from the base-ui `value` prop).
+ * `data-pressed:` classes became `data-selected:` (RAC DOM contract).
+ */
 const ToggleGroupContext = React.createContext<
   VariantProps<typeof toggleVariants> & {
     spacing?: number
@@ -20,26 +31,47 @@ const ToggleGroupContext = React.createContext<
   orientation: "horizontal",
 })
 
+interface ToggleGroupCompatProps
+  extends Omit<
+    React.ComponentProps<typeof ToggleButtonGroupPrimitive>,
+    "selectedKeys" | "defaultSelectedKeys" | "onSelectionChange" | "selectionMode"
+  > {
+  value?: string[]
+  defaultValue?: string[]
+  onValueChange?: (value: string[]) => void
+  variant?: VariantProps<typeof toggleVariants>["variant"]
+  size?: VariantProps<typeof toggleVariants>["size"]
+  spacing?: number
+  orientation?: "horizontal" | "vertical"
+}
+
 function ToggleGroup({
   className,
   variant,
   size,
   spacing = 2,
   orientation = "horizontal",
+  value,
+  defaultValue,
+  onValueChange,
   children,
   ...props
-}: ToggleGroupPrimitive.Props &
-  VariantProps<typeof toggleVariants> & {
-    spacing?: number
-    orientation?: "horizontal" | "vertical"
-  }) {
+}: ToggleGroupCompatProps) {
   return (
-    <ToggleGroupPrimitive
+    <ToggleButtonGroupPrimitive
       data-slot="toggle-group"
       data-variant={variant}
       data-size={size}
       data-spacing={spacing}
       data-orientation={orientation}
+      selectionMode="multiple"
+      selectedKeys={value}
+      defaultSelectedKeys={defaultValue}
+      onSelectionChange={
+        onValueChange !== undefined
+          ? (keys) => onValueChange([...keys].map(String))
+          : undefined
+      }
       style={{ "--gap": spacing } as React.CSSProperties}
       className={cn(
         "group/toggle-group flex w-fit flex-row items-center gap-[--spacing(var(--gap))] rounded-md data-[size=sm]:rounded-[min(var(--radius-md),8px)] data-vertical:flex-col data-vertical:items-stretch",
@@ -50,10 +82,20 @@ function ToggleGroup({
       <ToggleGroupContext.Provider
         value={{ variant, size, spacing, orientation }}
       >
-        {children}
+        {children as React.ReactNode}
       </ToggleGroupContext.Provider>
-    </ToggleGroupPrimitive>
+    </ToggleButtonGroupPrimitive>
   )
+}
+
+interface ToggleGroupItemCompatProps {
+  /** base-ui compat: identifies the item in the group's value array. */
+  value: string
+  children?: React.ReactNode
+  className?: string
+  variant?: VariantProps<typeof toggleVariants>["variant"]
+  size?: VariantProps<typeof toggleVariants>["size"]
+  disabled?: boolean
 }
 
 function ToggleGroupItem({
@@ -61,12 +103,16 @@ function ToggleGroupItem({
   children,
   variant = "default",
   size = "default",
+  value,
+  disabled,
   ...props
-}: TogglePrimitive.Props & VariantProps<typeof toggleVariants>) {
+}: ToggleGroupItemCompatProps) {
   const context = React.useContext(ToggleGroupContext)
 
   return (
-    <TogglePrimitive
+    <ToggleButton
+      id={value}
+      isDisabled={disabled}
       data-slot="toggle-group-item"
       data-variant={context.variant || variant}
       data-size={context.size || size}
@@ -82,7 +128,7 @@ function ToggleGroupItem({
       {...props}
     >
       {children}
-    </TogglePrimitive>
+    </ToggleButton>
   )
 }
 

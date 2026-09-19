@@ -1,9 +1,11 @@
 import * as React from "react"
-import { mergeProps } from "@base-ui/react/merge-props"
-import { useRender } from "@base-ui/react/use-render"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import {
+  polymorphic,
+  type PolymorphicProps,
+} from "@/shared/ui/primitives/polymorphic"
 import { Separator } from "@/shared/ui/primitives/separator"
 
 function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
@@ -60,24 +62,14 @@ function Item({
   className,
   variant = "default",
   size = "default",
-  render,
   ...props
-}: useRender.ComponentProps<"div"> & VariantProps<typeof itemVariants>) {
-  return useRender({
-    defaultTagName: "div",
-    props: mergeProps<"div">(
-      {
-        className: cn(itemVariants({ variant, size, className })),
-      },
-      props
-    ),
-    render,
-    state: {
-      slot: "item",
-      variant,
-      size,
-    },
-  })
+}: PolymorphicProps<"div"> & VariantProps<typeof itemVariants>) {
+  return polymorphic(
+    "div",
+    props,
+    cn(itemVariants({ variant, size, className })),
+    { slot: "item", variant, size },
+  )
 }
 
 const itemMediaVariants = cva(
