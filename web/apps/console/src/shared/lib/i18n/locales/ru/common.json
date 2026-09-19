@@ -125,7 +125,8 @@
     "user": {
       "name": "Алексей Сергеев",
       "email": "a.sergeev@hybrid.ai",
-      "initials": "АС"
+      "initials": "АС",
+      "unknown": "Гость"
     }
   },
   "createMenu": {

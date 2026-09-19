@@ -30,6 +30,7 @@ import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { toast } from 'sonner';
 import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import { getBootConfig } from '@/shared/lib/config';
+import { readSession } from '@/features/auth/session-storage';
 import {
   SECTIONS,
   isActiveRoute,
@@ -68,6 +69,19 @@ export function AppSidebar() {
   // boot config (vite dev, static export, etc).
   const { brand } = getBootConfig();
   const hasCustomLogo = brand.logoUrl !== null && brand.logoUrl !== '';
+
+  // User identity for the footer chip + dropdown label.
+  // readSession() is a hook-free localStorage read; for the sidebar it's
+  // fine — the chip text only updates on a full reload (the session is
+  // written by /login, and the sidebar re-mounts on route change anyway).
+  const session = readSession();
+  const user = session?.user ?? null;
+  const displayName = user?.displayName ?? t('shell.user.name');
+  const displayEmail = user?.email ?? t('shell.user.email');
+  // Optional avatar URL — present only when the backend's user record
+  // ships one. The Avatar primitive renders the <img> when src is set and
+  // falls back to initials derived from `name` otherwise.
+  const avatarSrc = user?.avatarUrl;
 
   const section = SECTIONS.find((s) => s.id === sectionIdForPathname(pathname));
 
@@ -191,22 +205,30 @@ export function AppSidebar() {
                 />
               }
             >
-              <Avatar className="size-7">
-                <AvatarFallback className="text-[10px]">{t('shell.user.initials')}</AvatarFallback>
-              </Avatar>
+              {user ? (
+                <Avatar
+                  className="size-7"
+                  name={displayName}
+                  src={avatarSrc}
+                />
+              ) : (
+                <Avatar className="size-7">
+                  <AvatarFallback className="text-[10px]">{t('shell.user.initials')}</AvatarFallback>
+                </Avatar>
+              )}
               <span className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
-                <span className="block truncate text-xs font-medium">{t('shell.user.name')}</span>
+                <span className="block truncate text-xs font-medium">{displayName}</span>
                 <span className="block truncate font-mono text-[10px] text-muted-foreground">
-                  {t('shell.user.email')}
+                  {displayEmail}
                 </span>
               </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" className="w-56">
               <DropdownMenuGroup>
                 <DropdownMenuLabel className="flex flex-col gap-0.5">
-                  <span className="text-sm">{t('shell.user.name')}</span>
+                  <span className="text-sm">{displayName}</span>
                   <span className="font-mono text-[11px] font-normal text-muted-foreground">
-                    {t('shell.user.email')}
+                    {displayEmail}
                   </span>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
