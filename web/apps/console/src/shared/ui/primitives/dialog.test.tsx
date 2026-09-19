@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogOverlay,
   DialogTitle,
   DialogTrigger,
 } from "./dialog"
@@ -75,5 +76,20 @@ describe("Dialog", () => {
       </Dialog>,
     )
     expect(screen.getByTestId("dlg-title").className).toContain("font-heading")
+  })
+
+  it("DialogOverlay applies backdrop-blur class for the modal backdrop", () => {
+    render(
+      <Dialog open onOpenChange={() => {}}>
+        <DialogOverlay />
+        <DialogContent>
+          <DialogTitle>T</DialogTitle>
+        </DialogContent>
+      </Dialog>,
+    )
+    const overlay = document.querySelector("[data-slot='dialog-overlay']")
+    expect(overlay).not.toBeNull()
+    expect(overlay?.className ?? "").toMatch(/backdrop-blur-/)
+    expect(overlay?.className ?? "").toContain("supports-backdrop-filter:backdrop-blur-md")
   })
 })
