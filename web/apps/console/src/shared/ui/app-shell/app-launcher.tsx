@@ -22,6 +22,7 @@ import { ScrollArea } from '@/shared/ui/primitives/scroll-area';
 import { Stat } from '@/shared/ui/primitives/stat';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { cn } from '@/lib/utils';
+import { makeLauncherSummary } from '@/mocks/launcher-summary';
 import { SECTIONS, type AppRoute, type NavPage, type Section } from './nav-config';
 
 type MetaHub = { nameKey: string; captionKey: string; icon: Icon; to?: AppRoute; soon?: boolean };
@@ -34,12 +35,16 @@ const META: MetaHub[] = [
   { nameKey: 'shell.settings', captionKey: 'shell.settingsCaption', icon: Tune, soon: true },
 ];
 
-/** Row 2 — at-a-glance summary (3). No backend yet → honest empty state. */
-const SUMMARY: { label: string; to: AppRoute }[] = [
-  { label: 'Виртуальные машины', to: '/vms' },
-  { label: 'Сети · VPC', to: '/networks' },
-  { label: 'События аудита', to: '/audit' },
-];
+/** Row 2 — at-a-glance summary (3). Reads from the shared mock fixtures
+ *  so the numbers match what MSW handlers return (and what component
+ *  tests assert). See `mocks/README.md`. */
+const SUMMARY: { label: string; to: AppRoute; value: string; context: string }[] =
+  makeLauncherSummary().map((card) => ({
+    label: card.label,
+    to: card.to as AppRoute,
+    value: card.value,
+    context: card.context,
+  }));
 
 const linkRing = 'block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40';
 // Inset tile: bg-muted so it reads against the top region's big bg-card.
@@ -263,8 +268,8 @@ export function AppLauncher({
                     >
                       <Stat
                         label={s.label}
-                        value="—"
-                        context="нет данных"
+                        value={s.value}
+                        context={s.context}
                         className="h-full border-0 bg-muted/60 p-3.5 transition-all duration-150 ease-out hover:-translate-y-px hover:bg-muted hover:shadow-sm"
                       />
                     </Link>
