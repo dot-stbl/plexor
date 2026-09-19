@@ -18,7 +18,7 @@ export const Route = createFileRoute('/')({
 const cardBase =
   'flex items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-all';
 
-function HomePage() {
+export function HomePage() {
   const { t } = useTranslation();
   return (
     <PageTemplate
@@ -38,14 +38,14 @@ function HomePage() {
               </div>
               <div className="min-w-0 space-y-0.5">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-medium text-foreground">{section.label}</span>
+                  <span className="text-sm font-medium text-foreground">{t(section.label)}</span>
                   {!to && (
                     <StatusPill variant="idle" hideDot className="px-1.5 py-0 text-[9.5px] font-normal">
                       {t('common.soon')}
                     </StatusPill>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">{section.caption}</p>
+                <p className="text-xs text-muted-foreground">{t(section.caption)}</p>
               </div>
             </>
           );

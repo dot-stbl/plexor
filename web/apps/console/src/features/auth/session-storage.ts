@@ -27,6 +27,8 @@ export interface StoredSession {
     readonly email: string;
     readonly displayName: string;
     readonly roles: ReadonlyArray<string>;
+    /** Optional — populated when the backend's user record carries an avatar URL. */
+    readonly avatarUrl?: string;
   };
 }
 
