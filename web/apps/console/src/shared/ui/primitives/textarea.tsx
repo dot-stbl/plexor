@@ -3,7 +3,7 @@ import { TextArea as TextAreaPrimitive } from "react-aria-components"
 
 import { cn } from "@/lib/utils"
 
-export interface TextareaProps extends React.ComponentProps<typeof TextAreaPrimitive> {}
+export type TextareaProps = React.ComponentProps<typeof TextAreaPrimitive>
 
 function Textarea({ className, ...props }: TextareaProps) {
   return (

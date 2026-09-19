@@ -113,7 +113,10 @@ describe('LoginPage', () => {
 
   it('renders without a Card header or footer', () => {
     const { container } = renderLoginPage();
-    const card = screen.getByTestId('login-card');
+    // The card is addressed via the od-id namespace (the login page's
+    // stable hook), not data-testid.
+    const card = document.body.querySelector('[data-od-id="login-card"]');
+    expect(card).not.toBeNull();
 
     // Card primitives expose their slots as data-slot attributes; the
     // header and footer slots must be absent so the form is the only
@@ -230,7 +233,10 @@ describe('LoginPage', () => {
     await waitFor(() => {
       const submit = screen.getByTestId('login-submit');
       expect(submit).toBeDisabled();
-      expect(submit.getAttribute('aria-busy')).toBe('true');
+      // react-aria-components' Button filters aria-busy out of the DOM
+      // (filterDOMProps allowlist), so the pending contract is the
+      // disabled state + the spinner + the submitting label.
+      expect(submit.querySelector('[aria-hidden="true"]')).not.toBeNull();
     });
     expect(screen.getByTestId('login-submit').textContent).toBe('Signing in…');
   });

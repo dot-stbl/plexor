@@ -3,7 +3,7 @@ import { Input as InputPrimitive } from "react-aria-components"
 
 import { cn } from "@/lib/utils"
 
-export interface InputProps extends React.ComponentProps<typeof InputPrimitive> {}
+export type InputProps = React.ComponentProps<typeof InputPrimitive>
 
 function Input({ className, type, ...props }: InputProps) {
   return (

@@ -33,6 +33,11 @@ function ClusterDetailPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [tab, setTab] = useState('nodes');
 
+  // Hooks must run before the not-found early return (rules-of-hooks);
+  // useListNodes/useListTokens are memo-based and safe with a sentinel id.
+  const nodes = useListNodes(cluster?.id ?? '').nodes;
+  const tokens = useListTokens(cluster?.id ?? '').tokens;
+
   if (!cluster) {
     return (
       <PageTemplate
@@ -52,8 +57,6 @@ function ClusterDetailPage() {
     );
   }
 
-  const nodes = useListNodes(cluster.id).nodes;
-  const tokens = useListTokens(cluster.id).tokens;
   const counts = countNodes(nodes);
   const activeTokens = tokens.filter((t) => t.status === 'active').length;
 

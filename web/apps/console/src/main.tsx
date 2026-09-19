@@ -28,7 +28,7 @@ import './index.css';
           session = parsed;
         }
       }
-    } catch (_) {
+    } catch {
       session = null;
     }
     var keys = ['plexor-preferences'];
@@ -50,7 +50,7 @@ import './index.css';
         // New format: JSON object { theme, accent, fontSize }.
         var parsedPrefs = JSON.parse(raw);
         theme = parsedPrefs && parsedPrefs.theme;
-      } catch (_) {
+      } catch {
         // Legacy format: bare string ('light' | 'dark' | 'system').
         theme = raw;
       }
@@ -62,7 +62,7 @@ import './index.css';
     } else {
       document.documentElement.classList.remove('dark');
     }
-  } catch (_) {
+  } catch {
     // localStorage unavailable — fall back to system preference
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       document.documentElement.classList.add('dark');
@@ -90,7 +90,7 @@ import './index.css';
     if (customAccent) {
       document.documentElement.style.setProperty('--accent', customAccent);
     }
-  } catch (_) {
+  } catch {
     // Boot config unavailable — the default favicon (set in index.html)
     // and the default accent (from index.css / the active preset) stay
     // in place.

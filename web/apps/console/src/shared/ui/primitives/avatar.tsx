@@ -77,7 +77,6 @@ export interface AvatarImageProps extends Omit<React.ComponentProps<"img">, "src
 
 function AvatarImage({ className, src, alt, ...props }: AvatarImageProps) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       data-slot="avatar-image"
       src={src}
@@ -88,7 +87,7 @@ function AvatarImage({ className, src, alt, ...props }: AvatarImageProps) {
   )
 }
 
-export interface AvatarFallbackProps extends React.ComponentProps<"div"> {}
+export type AvatarFallbackProps = React.ComponentProps<"div">
 
 function AvatarFallback({ className, ...props }: AvatarFallbackProps) {
   return (

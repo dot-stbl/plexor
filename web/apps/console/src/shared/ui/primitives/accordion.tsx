@@ -69,7 +69,7 @@ function AccordionItem({ className, value, defaultOpen, children, ...props }: Pl
   )
 }
 
-interface PlexorAccordionTriggerProps extends React.HTMLAttributes<HTMLDivElement> {}
+type PlexorAccordionTriggerProps = React.HTMLAttributes<HTMLDivElement>
 
 function AccordionTrigger({ className, children }: PlexorAccordionTriggerProps) {
   return (
@@ -90,7 +90,7 @@ function AccordionTrigger({ className, children }: PlexorAccordionTriggerProps) 
   )
 }
 
-interface PlexorAccordionContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+type PlexorAccordionContentProps = React.HTMLAttributes<HTMLDivElement>
 
 function AccordionContent({ className, children }: PlexorAccordionContentProps) {
   return (
