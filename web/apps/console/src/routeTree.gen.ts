@@ -36,6 +36,7 @@ import { Route as ManagedKafkaRouteImport } from './routes/managed/kafka'
 import { Route as ManagedNewRouteImport } from './routes/managed/new'
 import { Route as ManagedPostgresRouteImport } from './routes/managed/postgres'
 import { Route as ManagedRedisRouteImport } from './routes/managed/redis'
+import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as VmsIndexRouteImport } from './routes/vms/index'
 import { Route as VmsNewRouteImport } from './routes/vms/new'
 
@@ -174,6 +175,11 @@ const ManagedRedisRoute = ManagedRedisRouteImport.update({
   path: '/redis',
   getParentRoute: () => ManagedRouteRoute,
 } as any)
+const SettingsProfileRoute = SettingsProfileRouteImport.update({
+  id: '/settings/profile',
+  path: '/settings/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VmsIndexRoute = VmsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/managed/new': typeof ManagedNewRoute
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/vms/new': typeof VmsNewRoute
   '/clusters/': typeof ClustersIndexRoute
   '/k8s/': typeof K8sIndexRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/managed/new': typeof ManagedNewRoute
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/vms/new': typeof VmsNewRoute
   '/clusters': typeof ClustersIndexRoute
   '/k8s': typeof K8sIndexRoute
@@ -267,6 +275,7 @@ export interface FileRoutesById {
   '/managed/new': typeof ManagedNewRoute
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/vms/new': typeof VmsNewRoute
   '/clusters/': typeof ClustersIndexRoute
   '/k8s/': typeof K8sIndexRoute
@@ -300,6 +309,7 @@ export interface FileRouteTypes {
     | '/managed/new'
     | '/managed/postgres'
     | '/managed/redis'
+    | '/settings/profile'
     | '/vms/new'
     | '/clusters/'
     | '/k8s/'
@@ -326,6 +336,7 @@ export interface FileRouteTypes {
     | '/managed/new'
     | '/managed/postgres'
     | '/managed/redis'
+    | '/settings/profile'
     | '/vms/new'
     | '/clusters'
     | '/k8s'
@@ -357,6 +368,7 @@ export interface FileRouteTypes {
     | '/managed/new'
     | '/managed/postgres'
     | '/managed/redis'
+    | '/settings/profile'
     | '/vms/new'
     | '/clusters/'
     | '/k8s/'
@@ -380,6 +392,7 @@ export interface RootRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBrandingRoute: typeof AdminBrandingRoute
   AdminThemeMarketplaceRoute: typeof AdminThemeMarketplaceRoute
+  SettingsProfileRoute: typeof SettingsProfileRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -573,6 +586,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagedRedisRouteImport
       parentRoute: typeof ManagedRouteRoute
     }
+    '/settings/profile': {
+      id: '/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof SettingsProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vms/': {
       id: '/vms/'
       path: '/'
@@ -685,6 +705,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
   AdminBrandingRoute: AdminBrandingRoute,
   AdminThemeMarketplaceRoute: AdminThemeMarketplaceRoute,
+  SettingsProfileRoute: SettingsProfileRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

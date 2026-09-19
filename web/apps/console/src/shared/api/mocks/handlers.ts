@@ -13,6 +13,10 @@
 // adding a new endpoint, regenerate via `web/tooling/codegen` and add one
 // line below (or, if kubb skipped it like /branding/theme, hand-mirror
 // the handler + fixture and add a `kz` note).
+//
+// Shared hand-curated data (the VM fleet, cluster set, audit entries) lives
+// in `web/apps/console/src/mocks/` so component tests AND this handler file
+// read from the same source. Don't inline fixtures here — see mocks/README.md.
 import type { RequestHandler } from 'msw';
 import { faker } from '@faker-js/faker';
 import {
@@ -80,50 +84,19 @@ import {
   createOrgAuthProviderTestResult,
   createPostAuthLogin200,
 } from '@/shared/api';
+import { FLEET, FLEET_BY_ID, resetMockRng } from '@/mocks';
 
 // Deterministic mocks — same data every reload (stable UI + screenshots).
-faker.seed(1337);
-
-// Hand-curated fleet so the list renders a realistic mix of statuses.
-// Names + IDs + IPs are deterministic; the rest comes from kubb factories.
-const FLEET = [
-  { id: 'vm-a8c91f2e', name: 'web-prod-01', status: 'running',      ip: '10.128.1.10', zone: 'eu-central-1', vcpu: 4, ram: 8,  disk: 80  },
-  { id: 'vm-b7d40e1a', name: 'api-prod-01', status: 'running',      ip: '10.128.1.11', zone: 'eu-central-1', vcpu: 4, ram: 8,  disk: 60  },
-  { id: 'vm-c2f8a039', name: 'worker-01',    status: 'running',      ip: '10.128.2.20', zone: 'eu-central-1', vcpu: 2, ram: 4,  disk: 40  },
-  { id: 'vm-9e1b3c47', name: 'db-replica-01',status: 'running',      ip: '10.128.3.5',  zone: 'eu-central-1', vcpu: 8, ram: 32, disk: 500 },
-  { id: 'vm-3a7c5d12', name: 'cache-01',     status: 'running',      ip: '10.128.4.7',  zone: 'eu-central-1', vcpu: 2, ram: 16, disk: 30  },
-  { id: 'vm-6f8d22b8', name: 'build-runner', status: 'error',        ip: '10.128.5.3',  zone: 'eu-central-1', vcpu: 4, ram: 8,  disk: 100 },
-  { id: 'vm-1b9e4f73', name: 'staging-api',  status: 'stopped',      ip: '10.128.6.12', zone: 'eu-central-1', vcpu: 2, ram: 4,  disk: 40  },
-  { id: 'vm-4d2a89e1', name: 'ml-trainer',   status: 'provisioning', ip: '10.128.7.4',  zone: 'eu-central-1', vcpu: 8, ram: 64, disk: 250 },
-] as const;
-
-const fleet = FLEET.map((vm) => ({
-  id: vm.id,
-  name: vm.name,
-  status: vm.status,
-  internalIp: vm.ip,
-  zone: vm.zone,
-  machineType: `${vm.vcpu}-${vm.ram}`,
-  vcpu: vm.vcpu,
-  ramGb: vm.ram,
-  diskGb: vm.disk,
-  createdAt: faker.date.past().toISOString(),
-}));
-
-// Lookup table so getVmHandler resolves a hand-curated id to the fleet
-// entry (kubb's createVmDetail emits a fresh fake id every call — fine
-// for the smoke test, awkward for the VM detail page which URLs to a
-// specific id from the list).
-const fleetById: Map<string, (typeof fleet)[number]> = new Map(
-  fleet.map((vm) => [vm.id, vm]),
-);
+// Seeded by the shared mocks/ utility so the fleet + audit counts stay in
+// sync with the launcher SUMMARY card.
+resetMockRng();
 
 export const handlers: RequestHandler[] = [
   // ───────────────────────── VMs (6) ─────────────────────────
-  listVmsHandler(createVmList({ items: fleet, total: fleet.length, page: 1, pageSize: 20 })),
+  listVmsHandler(createVmList({ items: FLEET.slice(), total: FLEET.length, page: 1, pageSize: 20 })),
   getVmHandler((info) => {
     const id = String((info.params as { vmId: unknown }).vmId);
-    const vm = fleetById.get(id);
+    const vm = FLEET_BY_ID.get(id);
     if (!vm) {
       return new Response(JSON.stringify({ status: 404, title: 'Not Found' }), {
         status: 404,

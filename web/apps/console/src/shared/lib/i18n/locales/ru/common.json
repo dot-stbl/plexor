@@ -909,5 +909,29 @@
         "generic": "Не удалось войти — попробуйте ещё раз"
       }
     }
+  },
+  "settings": {
+    "title": "Настройки",
+    "subtitle": "Аккаунт и предпочтения",
+    "profile": {
+      "heading": "Профиль",
+      "email": "Email",
+      "displayName": "Отображаемое имя",
+      "signOut": "Выйти"
+    },
+    "theme": {
+      "heading": "Тема",
+      "light": "Светлая",
+      "dark": "Тёмная",
+      "system": "Системная"
+    },
+    "language": {
+      "heading": "Язык",
+      "comingSoon": "Скоро"
+    },
+    "security": {
+      "heading": "Безопасность",
+      "comingSoon": "Скоро"
+    }
   }
 }

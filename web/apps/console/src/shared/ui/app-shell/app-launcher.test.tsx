@@ -132,6 +132,24 @@ describe('AppLauncher — sidebar click-through regression', () => {
   });
 });
 
+describe('AppLauncher — SUMMARY cards pull real numbers from the mock fixtures', () => {
+  it('renders the three SUMMARY cards with non-placeholder values from makeLauncherSummary', () => {
+    renderLauncher();
+    // The launcher's SUMMARY row used to render `value="—"` + `context="нет данных"`
+    // because the array was static and disconnected from any data source.
+    // After commit 1, the SUMMARY array is driven by makeLauncherSummary() —
+    // a small fixture-derived helper that reads from `web/apps/console/src/mocks/`.
+    // If we see the placeholder values anywhere, the wiring is broken.
+    const launcher = getByOdId('launcher');
+    expect(launcher.textContent).not.toContain('нет данных');
+    // The cards always render the labels (Russian) + a numeric value
+    // (FLEET-derived) + a context line. Spot-check that the VM card
+    // shows "running of 8 total" — the fleet has 5 running + 1
+    // provisioning = 6 active over 8 total.
+    expect(launcher.textContent).toContain('running of 8 total');
+  });
+});
+
 describe('AppLauncher — themed scrollbar', () => {
   it('scroll viewport carries the themed variant class so the custom rail CSS targets it', () => {
     renderLauncher();
