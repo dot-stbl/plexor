@@ -302,7 +302,7 @@ function CreateVmPage() {
                 <CardDescription>{t('vms.new.form.imageDescription')}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
-                <FieldRow label={t('vms.new.image')} htmlFor="vm-image" required>
+                <FieldRow label={t('vms.new.image')} htmlFor="vm-image" required help={t('vms.new.form.imageHelp')}>
                   <SimpleSelect
                     id="vm-image"
                     value={imageId}
@@ -431,7 +431,7 @@ function CreateVmPage() {
                 <CardDescription>{t('vms.new.form.networkDescription')}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
-                <FieldRow label={t('vms.new.form.vpcSubnet')} htmlFor="vm-vpc" required>
+                <FieldRow label={t('vms.new.form.vpcSubnet')} htmlFor="vm-vpc" required help={t('vms.new.form.vpcSubnetHelp')}>
                   <SimpleSelect id="vm-vpc" value={vpc} onChange={setVpc} options={NETWORKS} />
                 </FieldRow>
                 <FieldRow label={t('vms.new.form.ipAddress')} help={t('vms.new.form.ipAddressHelp')}>
@@ -510,7 +510,7 @@ function CreateVmPage() {
                 <CardDescription>{t('vms.new.form.optionsDescription')}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
-                <FieldRow label={t('vms.new.form.startAfterCreation')} htmlFor="vm-start">
+                <FieldRow label={t('vms.new.form.startAfterCreation')} htmlFor="vm-start" help={t('vms.new.form.startAfterCreationHelp')}>
                   <Switch id="vm-start" checked={startAfterCreate} onCheckedChange={setStartAfterCreate} />
                 </FieldRow>
                 <FieldRow label={t('vms.new.form.startOnBoot')} htmlFor="vm-onboot" help={t('vms.new.form.startOnBootHelp')}>

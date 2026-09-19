@@ -16,7 +16,7 @@ export const Route = createFileRoute('/')({
 });
 
 const cardBase =
-  'flex items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-all';
+  'flex items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition-all duration-150 ease-out';
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -28,7 +28,7 @@ export function HomePage() {
       description={t('home.description')}
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {SECTIONS.map((section) => {
+        {SECTIONS.map((section, index) => {
           const SectionIcon = section.icon;
           const to = sectionPrimaryRoute(section);
           const inner = (
@@ -49,20 +49,24 @@ export function HomePage() {
               </div>
             </>
           );
+          // Stagger the entrance so cards fade in from the top in sequence;
+          // cap at 8 to keep the longest delay under ~350ms even with many cards.
+          const delayMs = Math.min(index, 8) * 40;
+          const motion = `animate-in fade-in slide-in-from-top-2 fill-mode-both duration-200 [animation-delay:${delayMs}ms]`;
           if (to) {
             return (
               <Link
                 key={section.id}
                 to={to}
                 data-od-id={`home-card-${section.id}`}
-                className={`${cardBase} hover:-translate-y-px hover:border-foreground/20 hover:shadow-md`}
+                className={`${cardBase} ${motion} hover:-translate-y-px hover:border-foreground/20 hover:shadow-md`}
               >
                 {inner}
               </Link>
             );
           }
           return (
-            <div key={section.id} data-od-id={`home-card-${section.id}`} className={`${cardBase} opacity-60`}>
+            <div key={section.id} data-od-id={`home-card-${section.id}`} className={`${cardBase} ${motion} opacity-60`}>
               {inner}
             </div>
           );

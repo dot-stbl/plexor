@@ -127,3 +127,29 @@ describe('AppLauncher — sidebar click-through regression', () => {
     expect(panel.className).toContain('pointer-events-auto');
   });
 });
+
+describe('AppLauncher — themed scrollbar', () => {
+  it('scroll viewport carries the themed variant class so the custom rail CSS targets it', () => {
+    renderLauncher();
+    // The launcher is the only consumer of variant="themed". If a future
+    // change drops the variant or swaps the wrapper, the test fails with
+    // a clear pointer at the missing scrollbar identity rather than
+    // silently falling back to the browser default.
+    const themedHost = document.querySelector('.plexor-scroll-area-themed') as HTMLElement | null;
+    expect(themedHost).not.toBeNull();
+    expect(themedHost?.dataset['barVariant']).toBe('themed');
+  });
+
+  it('themed host does not also hide the scrollbar (no [scrollbar-width:none] / hidden utility)', () => {
+    renderLauncher();
+    const themedHost = document.querySelector('.plexor-scroll-area-themed') as HTMLElement | null;
+    // Earlier revisions of the launcher hid the native scrollbar entirely
+    // ([scrollbar-width:none] + [&::-webkit-scrollbar]:hidden) and shipped
+    // a fake ScrollBar element. The themed variant keeps the native bar
+    // visible — only its appearance is themed.
+    expect(themedHost?.className ?? '').not.toMatch(/scrollbar-width:none/);
+    // The viewport no longer carries the hide utility either.
+    const viewport = themedHost?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement | null;
+    expect(viewport?.className ?? '').not.toMatch(/::-webkit-scrollbar\]:hidden/);
+  });
+});
