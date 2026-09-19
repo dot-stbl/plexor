@@ -60,9 +60,18 @@ function DropdownMenuTrigger({ render, className, children, isDisabled, disabled
   // at the Pressable boundary to keep the public API flexible.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const PressableAny = Pressable as unknown as React.FC<{ isDisabled?: boolean; children?: any }>
-  const mergedClassName = cn((target.props as { className?: string }).className, className)
+  const targetProps = target.props as { className?: string }
+  const mergedClassName = cn(targetProps.className, className)
+  // Only forward `children` into the cloned target when the caller passed a
+  // `render` element. Without `render`, `target` IS `children` (a single
+  // element the caller wants rendered as-is), and re-passing it would
+  // self-nest the element. With `render`, the render element is the target
+  // and the caller's siblings are the children we need to thread through;
+  // Button.composeRender's `children ?? original.children` then receives them.
+  const clonedProps =
+    render !== undefined ? { className: mergedClassName, children } : { className: mergedClassName }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cloned = React.cloneElement(target, { className: mergedClassName } as any)
+  const cloned = React.cloneElement(target, clonedProps as any)
   return (
     <PressableAny isDisabled={isDisabled ?? disabled}>{cloned}</PressableAny>
   )
@@ -364,14 +373,24 @@ function DropdownMenuSub({ children }: { children?: React.ReactNode }) {
  * Wrapper: <DropdownMenu>{trigger, content, ...}</DropdownMenu>. RAC's
  * MenuTrigger expects both the trigger element and a `<Menu>` component as
  * siblings. We split the children and wrap with MenuTrigger. Fragments
- * are flattened so callers can wrap siblings in `<>...</>`.
+ * and DropdownMenuGroup wrappers are flattened so callers can wrap
+ * siblings in `<>...</>` or `<DropdownMenuGroup>...</DropdownMenuGroup>`.
  */
 function flattenChildren(children: React.ReactNode): React.ReactElement[] {
   const out: React.ReactElement[] = []
   React.Children.forEach(children, (c) => {
-    if (React.isValidElement(c)) {
-      out.push(c)
+    if (!React.isValidElement(c)) return
+    const display = (c.type as { displayName?: string })?.displayName
+    // Recurse into transparent wrappers so Labels inside Groups surface to
+    // the slot dispatcher in DropdownMenuContent. Without this, the Label's
+    // slot name (`PlexorDropdownMenuLabel`) is hidden behind the Group and
+    // never matched against the registry.
+    if (display === "PlexorDropdownMenuGroup" || c.type === React.Fragment) {
+      const groupChildren = (c.props as { children?: React.ReactNode }).children
+      out.push(...flattenChildren(groupChildren))
+      return
     }
+    out.push(c)
   })
   return out
 }
