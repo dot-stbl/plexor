@@ -32,6 +32,10 @@ function ClusterDetailPage() {
   useDocumentTitle(cluster?.name ?? null);
   const [addOpen, setAddOpen] = useState(false);
   const [tab, setTab] = useState('nodes');
+  // Hooks stay above the not-found early return (rules-of-hooks); both
+  // resolve to empty arrays for an unknown cluster id.
+  const nodes = useListNodes(id).nodes;
+  const tokens = useListTokens(id).tokens;
 
   // Hooks must run before the not-found early return below; with no cluster
   // the id falls back to '' which resolves to empty node/token lists.

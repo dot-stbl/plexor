@@ -220,7 +220,7 @@ function PlexorSelectLabel({ children }: { children?: React.ReactNode }) {
   return null
 }
 
-interface PlexorSelectSeparatorProps extends React.HTMLAttributes<HTMLDivElement> {}
+type PlexorSelectSeparatorProps = React.HTMLAttributes<HTMLDivElement>
 
 function PlexorSelectSeparator({ className, ...props }: PlexorSelectSeparatorProps) {
   return (

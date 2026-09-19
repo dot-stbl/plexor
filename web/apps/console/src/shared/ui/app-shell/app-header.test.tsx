@@ -21,7 +21,7 @@ describe('AppHeader — icon micro-interactions', () => {
     renderWithProviders(<AppHeader />);
     const homeLink = document.body.querySelector('[data-od-id="breadcrumb-home"]');
     expect(homeLink).not.toBeNull();
-    const icon = homeLink?.querySelector('svg');
+    const icon = homeLink?.querySelector('svg') ?? null;
     expect(icon).not.toBeNull();
     const cls = svgClass(icon);
     expect(cls).toContain('transition-transform');

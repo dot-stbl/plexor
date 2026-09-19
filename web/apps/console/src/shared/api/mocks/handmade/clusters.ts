@@ -1,4 +1,13 @@
-import type { JoinToken, PlexorCluster, PlexorNode } from './cluster-types';
+// Handmade mock — page data for an endpoint NOT yet in the OpenAPI contract.
+//
+// TODO(contract): add GET /api/v1/compute/clusters (list + detail with
+// nodes + join tokens) to contracts/plexor.openapi.yaml, then regenerate
+// (web/tooling/codegen), wire the kubb handler in
+// shared/api/mocks/handlers.ts, and delete this module.
+//
+// Moved verbatim from features/clusters/cluster-data.ts (mock
+// consolidation) — behavior is identical: synchronous module-level data.
+import type { JoinToken, PlexorCluster, PlexorNode } from '@/features/clusters/cluster-types';
 
 const NODES: PlexorNode[] = [
   {

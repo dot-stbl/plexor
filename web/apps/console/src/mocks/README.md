@@ -1,8 +1,14 @@
 # Mock fixtures — shared source of truth
 
 The `web/apps/console/src/mocks/` directory is the **single source of
-truth for mock data** that the MSW handlers, the launcher SUMMARY
-cards, and component tests all consume.
+truth for hand-curated mock data that feeds the contract-endpoint MSW
+handlers** (`shared/api/mocks/handlers.ts`), the launcher SUMMARY
+cards, and component tests.
+
+> Endpoints **not yet in the OpenAPI contract** (clusters pages, k8s,
+> lxc, databases) are mocked separately in
+> `shared/api/mocks/handmade/` — each module there carries a
+> `TODO(contract)` header. Don't add new non-contract mocks here.
 
 ## Why a dedicated `mocks/` directory?
 

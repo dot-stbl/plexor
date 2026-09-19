@@ -87,7 +87,7 @@ function AvatarImage({ className, src, alt, ...props }: AvatarImageProps) {
   )
 }
 
-export interface AvatarFallbackProps extends React.ComponentProps<"div"> {}
+export type AvatarFallbackProps = React.ComponentProps<"div">
 
 function AvatarFallback({ className, ...props }: AvatarFallbackProps) {
   return (

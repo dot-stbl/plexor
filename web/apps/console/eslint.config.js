@@ -10,10 +10,11 @@ export default [
       'coverage/**',
       'playwright-report/**',
       'src/routeTree.gen.ts',
-      // kubb-generated API client (excluded from tsconfig as well)
+      // kubb output — generated (see web/tooling/codegen/kubb.config.ts); the
+      // hand-written msw.test.ts inside is exercised by vitest, not eslint.
       'src/shared/api/src/**',
-      // MSW generated worker script
-      'public/mockServiceWorker.js',
+      // MSW generated worker script (`msw init public/`).
+      'public/**',
     ],
   },
   {
