@@ -118,4 +118,12 @@ describe('AppLauncher — sidebar click-through regression', () => {
     const portal = getByOdId('launcher-portal');
     expect(portal.className).toContain('pointer-events-none');
   });
+
+  it('overlay + menu panel re-enable pointer-events so the launcher itself is clickable', () => {
+    renderLauncher();
+    const overlay = document.querySelector('[aria-hidden="true"]') as HTMLElement | null;
+    const panel = getByOdId('launcher');
+    expect(overlay?.className).toContain('pointer-events-auto');
+    expect(panel.className).toContain('pointer-events-auto');
+  });
 });
