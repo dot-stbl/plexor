@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { DbEngine, DbCluster, RuntimeHost } from './database-types';
-import { getEngine, listDbClusters, listEngines, listRuntimeHosts } from './database-data';
+import { getEngine, listDbClusters, listEngines, listRuntimeHosts } from '@/shared/api/mocks/handmade/databases';
 
 /**
  * Локальные хуки — стенд-ин для kubb-хуков, пока нет OpenAPI-спеки

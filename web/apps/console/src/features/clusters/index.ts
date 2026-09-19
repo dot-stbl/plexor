@@ -24,7 +24,7 @@ export {
   issueJoinToken,
   revokeJoinToken,
 } from './use-clusters';
-export { listClusters, getCluster } from './cluster-data';
+export { listClusters, getCluster } from '@/shared/api/mocks/handmade/clusters';
 export { ClusterCard } from './cluster-card';
 export { NodeRow } from './node-row';
 export { TokenRow } from './token-row';

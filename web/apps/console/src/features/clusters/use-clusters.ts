@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { PlexorCluster, JoinToken, NodeRole, PlexorNode, TokenStatus } from './cluster-types';
-import { getCluster, listClusters } from './cluster-data';
+import { getCluster, listClusters } from '@/shared/api/mocks/handmade/clusters';
 
 /**
  * Local hooks for cluster/node/token data. Stand-in for kubb-generated

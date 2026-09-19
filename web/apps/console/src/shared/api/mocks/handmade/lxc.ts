@@ -1,4 +1,13 @@
-import type { LxcContainer } from './lxc-types';
+// Handmade mock — page data for an endpoint NOT yet in the OpenAPI contract.
+//
+// TODO(contract): add GET /api/v1/lxc/containers (LXC inventory list)
+// to contracts/plexor.openapi.yaml, then regenerate
+// (web/tooling/codegen), wire the kubb handler in
+// shared/api/mocks/handlers.ts, and delete this module.
+//
+// Moved verbatim from features/lxc/lxc-data.ts (mock consolidation) —
+// behavior is identical: synchronous module-level data.
+import type { LxcContainer } from '@/features/lxc/lxc-types';
 
 const GIB = 1024 ** 3;
 

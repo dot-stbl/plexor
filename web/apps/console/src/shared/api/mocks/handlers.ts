@@ -14,6 +14,10 @@
 // line below (or, if kubb skipped it like /branding/theme, hand-mirror
 // the handler + fixture and add a `kz` note).
 //
+// Mock data for endpoints NOT yet in the contract lives in
+// `shared/api/mocks/handmade/` (each with a TODO(contract) header) — never
+// inline in features.
+//
 // Shared hand-curated data (the VM fleet, cluster set, audit entries) lives
 // in `web/apps/console/src/mocks/` so component tests AND this handler file
 // read from the same source. Don't inline fixtures here — see mocks/README.md.
