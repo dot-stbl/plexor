@@ -35,6 +35,19 @@ describe("Tooltip", () => {
     expect(screen.getByRole("button", { name: "Hover me" })).toBeInTheDocument()
   })
 
+  it("TooltipTrigger render + children puts children inside the rendered element (base-ui semantics)", () => {
+    render(
+      <Tooltip>
+        <TooltipTrigger render={<button type="button" aria-label="Help" />}>
+          <span data-testid="trigger-icon">?</span>
+        </TooltipTrigger>
+        <TooltipContent>Tip</TooltipContent>
+      </Tooltip>,
+    )
+    const trigger = screen.getByRole("button", { name: "Help" })
+    expect(trigger).toContainElement(screen.getByTestId("trigger-icon"))
+  })
+
   it("TooltipContent applies bg-foreground and rounded-md base classes when shown via open", () => {
     render(
       <Tooltip open>
