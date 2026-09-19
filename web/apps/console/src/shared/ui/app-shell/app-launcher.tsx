@@ -35,26 +35,20 @@ const META: MetaHub[] = [
   { nameKey: 'shell.settings', captionKey: 'shell.settingsCaption', icon: Tune, soon: true },
 ];
 
-<<<<<<< HEAD
-/** Row 2 — at-a-glance summary (3). Mock numbers until the dashboard endpoint ships. */
+/** Row 2 — at-a-glance summary (3). Labels are i18n keys; value/context
+ *  prefer the shared mock fixtures (so the numbers match what MSW handlers
+ *  return — see `mocks/README.md`) and fall back to the locale strings
+ *  when no fixture card exists for the route yet. */
 type SummaryCard = { labelKey: string; valueKey: string; contextKey: string; to: AppRoute };
 const SUMMARY: SummaryCard[] = [
   { labelKey: 'shell.launcher.summary.vms.label', valueKey: 'shell.launcher.summary.vms.value', contextKey: 'shell.launcher.summary.vms.context', to: '/vms' },
   { labelKey: 'shell.launcher.summary.lxc.label', valueKey: 'shell.launcher.summary.lxc.value', contextKey: 'shell.launcher.summary.lxc.context', to: '/lxc' },
   { labelKey: 'shell.launcher.summary.databases.label', valueKey: 'shell.launcher.summary.databases.value', contextKey: 'shell.launcher.summary.databases.context', to: '/managed/postgres' },
 ];
-=======
-/** Row 2 — at-a-glance summary (3). Reads from the shared mock fixtures
- *  so the numbers match what MSW handlers return (and what component
- *  tests assert). See `mocks/README.md`. */
-const SUMMARY: { label: string; to: AppRoute; value: string; context: string }[] =
-  makeLauncherSummary().map((card) => ({
-    label: card.label,
-    to: card.to as AppRoute,
-    value: card.value,
-    context: card.context,
-  }));
->>>>>>> feature/mock-sync
+
+// Fixture numbers keyed by route — /vms has a card today; lxc + databases
+// pick fixture numbers up when their contract endpoints land.
+const MOCK_SUMMARY_BY_TO = new Map(makeLauncherSummary().map((card) => [card.to as AppRoute, card]));
 
 const linkRing = 'block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40';
 // Inset tile: bg-muted so it reads against the top region's big bg-card.
@@ -266,25 +260,28 @@ export function AppLauncher({
                 </div>
 
                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-                  {SUMMARY.map((s, index) => (
-                    <Link
-                      key={s.to}
-                      to={s.to}
-                      onClick={close}
-                      className={cn(
-                        linkRing,
-                        'animate-in fade-in slide-in-from-top-2 fill-mode-both duration-200',
-                      )}
-                      style={{ animationDelay: `${160 + Math.min(index, 4) * 40}ms` }}
-                    >
-                      <Stat
-                        label={t(s.labelKey)}
-                        value={t(s.valueKey)}
-                        context={t(s.contextKey)}
-                        className="h-full border-0 bg-muted/60 p-3.5 transition-all duration-150 ease-out hover:-translate-y-px hover:bg-muted hover:shadow-sm"
-                      />
-                    </Link>
-                  ))}
+                  {SUMMARY.map((s, index) => {
+                    const mock = MOCK_SUMMARY_BY_TO.get(s.to);
+                    return (
+                      <Link
+                        key={s.to}
+                        to={s.to}
+                        onClick={close}
+                        className={cn(
+                          linkRing,
+                          'animate-in fade-in slide-in-from-top-2 fill-mode-both duration-200',
+                        )}
+                        style={{ animationDelay: `${160 + Math.min(index, 4) * 40}ms` }}
+                      >
+                        <Stat
+                          label={t(s.labelKey)}
+                          value={mock?.value ?? t(s.valueKey)}
+                          context={mock?.context ?? t(s.contextKey)}
+                          className="h-full border-0 bg-muted/60 p-3.5 transition-all duration-150 ease-out hover:-translate-y-px hover:bg-muted hover:shadow-sm"
+                        />
+                      </Link>
+                    );
+                  })}
                 </div>
 
                 <Link to="/" onClick={close} className={linkRing}>

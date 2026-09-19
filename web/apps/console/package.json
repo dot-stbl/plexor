@@ -59,6 +59,7 @@
     "@faker-js/faker": "^9.9.0",
     "@iconify-json/logos": "^1.2.11",
     "@playwright/test": "1.49.1",
+    "@plexor/eslint-config": "workspace:*",
     "@tailwindcss/vite": "^4.3.2",
     "@tanstack/router-cli": "^1.167.18",
     "@tanstack/router-generator": "^1.167.18",

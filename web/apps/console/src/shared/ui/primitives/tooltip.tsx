@@ -51,13 +51,13 @@ interface TooltipRootProps {
  * `<TooltipTrigger>` with the right children.
  */
 function TooltipRoot({ children, open, ...props }: TooltipRootProps) {
+  const ctx = React.useContext(TooltipContext)
   // Pattern A: children are [<TooltipTrigger>, <TooltipContent>] siblings.
   // Pass them through to RAC's <TooltipTrigger>.
   const arr = React.Children.toArray(children)
   if (arr.length === 2) {
     const trigger = arr[0]!
     const content = arr[1]!
-    const ctx = React.useContext(TooltipContext)
     return (
       <RACTooltipTrigger
         delay={props.delay ?? ctx.delay}

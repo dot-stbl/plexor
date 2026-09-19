@@ -216,7 +216,7 @@ function DropdownMenuLabelInner({ className, inset, children, ...props }: Dropdo
 }
 const DropdownMenuLabel = Object.assign(DropdownMenuLabelInner, { displayName: "PlexorDropdownMenuLabel" })
 
-interface DropdownMenuSeparatorProps extends React.HTMLAttributes<HTMLDivElement> {}
+type DropdownMenuSeparatorProps = React.HTMLAttributes<HTMLDivElement>
 
 function DropdownMenuSeparatorInner({ className, ...props }: DropdownMenuSeparatorProps) {
   return (

@@ -102,7 +102,7 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
       className="flex min-h-dvh items-center justify-center bg-background p-4"
       data-od-id="login"
     >
-      <Card className="w-full max-w-sm border-border bg-card shadow-sm" data-od-id="login-card">
+      <Card className="w-full max-w-sm border-border bg-card shadow-sm" data-od-id="login-card" data-testid="login-card">
         <CardContent className="space-y-3">
           {formErrorKey !== null && (
             <Alert variant="destructive" data-testid="login-error">

@@ -112,7 +112,7 @@ export function DataTable<TData>({
   columnOrder,
   className,
 }: DataTableProps<TData>) {
-  const idAccessor = getRowId ?? ((row: any) => row.id as string);
+  const idAccessor = getRowId ?? ((row: TData) => String((row as { id: unknown }).id));
   const selectionEnabled = !!selection;
   const visibleColumns = orderAndFilterColumns(columns, columnOrder, hiddenColumns);
 

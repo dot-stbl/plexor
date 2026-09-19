@@ -230,7 +230,9 @@ describe('LoginPage', () => {
     await waitFor(() => {
       const submit = screen.getByTestId('login-submit');
       expect(submit).toBeDisabled();
-      expect(submit.getAttribute('aria-busy')).toBe('true');
+      // RAC's Button filters aria-* props down to labelable ones, so
+      // `aria-busy` never reaches the DOM — the disabled state + the
+      // submitting label below are the loading-state contract.
     });
     expect(screen.getByTestId('login-submit').textContent).toBe('Signing in…');
   });

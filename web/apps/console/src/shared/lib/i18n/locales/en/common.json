@@ -163,6 +163,27 @@
     "title": "Overview",
     "description": "Project sections. Full service catalog — \"All services\" in the sidebar."
   },
+  "dashboard": {
+    "fleet": {
+      "total": "Total VMs",
+      "running": "Running",
+      "ofTotal": "of {{total}} total",
+      "cpu": "vCPU",
+      "ram": "RAM"
+    },
+    "vmStatus": {
+      "title": "VM status"
+    },
+    "quotaUsage": {
+      "title": "Quota usage",
+      "used": "used"
+    },
+    "audit": {
+      "title": "Recent activity",
+      "viewAll": "View all",
+      "justNow": "just now"
+    }
+  },
   "placeholder": {
     "inDevelopment": "Screen in development",
     "scaffoldReady": "Scaffold is ready — content will appear in the next pass."
