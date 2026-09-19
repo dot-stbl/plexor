@@ -8,11 +8,13 @@ import userEvent from "@testing-library/user-event"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./dropdown-menu"
+import { Button } from "./button"
 
 describe("DropdownMenu", () => {
   it("renders the trigger element", () => {
@@ -177,5 +179,77 @@ describe("DropdownMenu", () => {
     expect(cls).toContain("data-[side=left]:slide-in-from-right-2")
     expect(cls).toContain("data-[side=right]:slide-in-from-left-2")
     expect(cls).toContain("data-[side=top]:slide-in-from-bottom-2")
+  })
+
+  // Regression: <DropdownMenuTrigger render={<Button />}>foo</DropdownMenuTrigger>
+  // used to render an empty Button — the trigger code did `(render ?? children)`,
+  // picked the render element, and never forwarded children to it. Button.composeRender's
+  // `children ?? original.children` then resolved to undefined (the render element
+  // had none of its own). Now we clone the render target with children included.
+  it("DropdownMenuTrigger with render={<Button>} forwards children into the cloned Button", () => {
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" />}>
+          <span data-testid="trigger-avatar">avatar</span>
+          <span data-testid="trigger-name">Jane Doe</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>X</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    )
+    const button = screen.getByRole("button")
+    expect(button).toContainElement(screen.getByTestId("trigger-avatar"))
+    expect(button).toContainElement(screen.getByTestId("trigger-name"))
+  })
+
+  // Regression: <DropdownMenuLabel> wrapped in <DropdownMenuGroup> was invisible.
+  // The old flattenChildren iterated direct children of <DropdownMenuContent>
+  // and matched displayName — but the Label was nested inside the Group, so
+  // the Group's displayName ("PlexorDropdownMenuGroup") was checked instead.
+  // flattenChildren now recurses into Group/Fragment wrappers so the Label
+  // surfaces to the slot dispatcher.
+  it("DropdownMenuLabel inside DropdownMenuGroup renders when the menu opens", async () => {
+    const user = userEvent.setup()
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <button type="button">Open</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel data-testid="grouped-label">Grouped section</DropdownMenuLabel>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>Below</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    )
+    await user.click(screen.getByRole("button", { name: "Open" }))
+    expect(await screen.findByTestId("grouped-label")).toBeInTheDocument()
+    expect(screen.getByTestId("grouped-label").textContent).toBe("Grouped section")
+    // And the items still render alongside the label.
+    expect(screen.getByText("Below")).toBeInTheDocument()
+  })
+
+  // Regression: <DropdownMenuLabel> rendered as a direct sibling (no Group)
+  // must continue to work — flattenChildren's recursion shouldn't disturb the
+  // existing Label-in-content path.
+  it("DropdownMenuLabel as a direct child of DropdownMenuContent still renders", async () => {
+    const user = userEvent.setup()
+    render(
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <button type="button">Open</button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuLabel data-testid="direct-label">Header</DropdownMenuLabel>
+          <DropdownMenuItem>X</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
+    )
+    await user.click(screen.getByRole("button", { name: "Open" }))
+    expect(await screen.findByTestId("direct-label")).toBeInTheDocument()
+    expect(screen.getByText("X")).toBeInTheDocument()
   })
 })
