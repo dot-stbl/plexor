@@ -135,6 +135,16 @@
           "label": "Базы данных",
           "value": "6",
           "context": "3 PostgreSQL · 3 Redis"
+        },
+        "networks": {
+          "label": "Сети · VPC",
+          "value": "0/0",
+          "context": "0 кластер(ов) · ноды готовы"
+        },
+        "audit": {
+          "label": "События аудита",
+          "value": "0",
+          "context": "за 24ч"
         }
       }
     },
@@ -166,6 +176,27 @@
   "placeholder": {
     "inDevelopment": "Экран в разработке",
     "scaffoldReady": "Каркас готов — контент появится в следующем проходе."
+  },
+  "dashboard": {
+    "audit": {
+      "title": "Недавняя активность",
+      "viewAll": "Посмотреть всё",
+      "justNow": "только что"
+    },
+    "fleet": {
+      "total": "Всего ВМ",
+      "running": "Работают",
+      "cpu": "vCPU",
+      "ram": "RAM",
+      "ofTotal": "из {{total}} всего"
+    },
+    "quotaUsage": {
+      "title": "Использование квот",
+      "used": "Использовано"
+    },
+    "vmStatus": {
+      "title": "Статусы ВМ"
+    }
   },
   "vms": {
     "list": {
