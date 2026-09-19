@@ -253,8 +253,10 @@ describe('LoginPage', () => {
     await waitFor(() => {
       const submit = screen.getByTestId('login-submit');
       expect(submit).toBeDisabled();
-      expect(submit.getAttribute('aria-busy')).toBe('true');
     });
+    // RAC Button drops aria-busy — assert the observable pending UI instead:
+    // label swap + spinner inside the button.
     expect(screen.getByTestId('login-submit').textContent).toBe('Signing in…');
+    expect(screen.getByTestId('login-submit').querySelector('[data-slot="spinner"], svg')).not.toBeNull();
   });
 });
