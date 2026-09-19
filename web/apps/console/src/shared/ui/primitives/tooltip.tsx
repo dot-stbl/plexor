@@ -51,13 +51,14 @@ interface TooltipRootProps {
  * `<TooltipTrigger>` with the right children.
  */
 function TooltipRoot({ children, open, ...props }: TooltipRootProps) {
+  // Hooks must run unconditionally — read the context before the early return.
+  const ctx = React.useContext(TooltipContext)
   // Pattern A: children are [<TooltipTrigger>, <TooltipContent>] siblings.
   // Pass them through to RAC's <TooltipTrigger>.
   const arr = React.Children.toArray(children)
   if (arr.length === 2) {
     const trigger = arr[0]!
     const content = arr[1]!
-    const ctx = React.useContext(TooltipContext)
     return (
       <RACTooltipTrigger
         delay={props.delay ?? ctx.delay}
@@ -121,6 +122,9 @@ function TooltipTrigger({ render, className, children }: TooltipTriggerProps) {
   const merged = {
     ...targetProps,
     className: cn(targetProps.className, className),
+    // base-ui semantics: trigger children render INSIDE the render element —
+    // without this passthrough the cloned element loses its icon/content
+    children: targetProps.children ?? children,
   }
   return React.cloneElement(target, merged)
 }

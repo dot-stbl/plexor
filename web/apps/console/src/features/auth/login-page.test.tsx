@@ -331,11 +331,9 @@ describe('LoginPage', () => {
       const submit = screen.getByTestId('login-submit');
       expect(submit).toBeDisabled();
     });
-    // The text content flip to "Signing in…" is the source of truth
-    // for the loading state — the React 19 + jsdom combination
-    // strips `aria-busy` when the value flips synchronously, but
-    // text content survives. Asserting textContent keeps this
-    // regression suite independent of the aria-busy quirk.
+    // RAC Button drops aria-busy — assert the observable pending UI instead:
+    // label swap + spinner inside the button.
     expect(screen.getByTestId('login-submit').textContent).toBe('Signing in…');
+    expect(screen.getByTestId('login-submit').querySelector('[data-slot="spinner"], svg')).not.toBeNull();
   });
 });
