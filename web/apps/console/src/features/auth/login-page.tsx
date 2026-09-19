@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { z } from 'zod';
+import type { ZodError } from 'zod';
 import { Login as LoginIcon } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Input } from '@/shared/ui/primitives/input';
 import { PasswordInput } from '@/shared/ui/primitives/password-input';
@@ -11,6 +11,7 @@ import { Label } from '@/shared/ui/primitives/label';
 import { Alert, AlertDescription } from '@/shared/ui/primitives/alert';
 import { Card, CardContent } from '@/shared/ui/primitives/card';
 import { Spinner } from '@/shared/ui/primitives/spinner';
+import { HelpTooltip } from '@/shared/ui/primitives/help-tooltip';
 import { cn } from '@/lib/utils';
 import { postAuthLogin } from '@/shared/api';
 import { loginSchema, type LoginValues } from './login.schema';
@@ -111,9 +112,12 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
 
           <form className="space-y-3" onSubmit={handleSubmit} noValidate data-testid="login-form">
             <div className="space-y-1.5">
-              <Label htmlFor="login-email" className="text-xs font-medium">
-                {t('auth.login.email.label')}
-              </Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="login-email" className="text-xs font-medium">
+                  {t('auth.login.email.label')}
+                </Label>
+                <HelpTooltip>{t('auth.login.email.help')}</HelpTooltip>
+              </div>
               <Input
                 id="login-email"
                 type="email"
@@ -143,9 +147,12 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="login-password" className="text-xs font-medium">
-                {t('auth.login.password.label')}
-              </Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="login-password" className="text-xs font-medium">
+                  {t('auth.login.password.label')}
+                </Label>
+                <HelpTooltip>{t('auth.login.password.help')}</HelpTooltip>
+              </div>
               <PasswordInput
                 id="login-password"
                 autoComplete="current-password"
@@ -205,7 +212,7 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
   );
 }
 
-function toFieldErrors(error: z.ZodError): { email?: string; password?: string } {
+function toFieldErrors(error: ZodError): { email?: string; password?: string } {
   const result: { email?: string; password?: string } = {};
   for (const issue of error.issues) {
     const key = issue.path[0];

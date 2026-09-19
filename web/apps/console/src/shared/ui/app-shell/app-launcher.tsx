@@ -43,7 +43,7 @@ const SUMMARY: { label: string; to: AppRoute }[] = [
 
 const linkRing = 'block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40';
 // Inset tile: bg-muted so it reads against the top region's big bg-card.
-const tile = 'rounded-lg bg-muted/60 transition-colors';
+const tile = 'rounded-lg bg-muted/60 transition-colors duration-150 ease-out';
 
 const SoonTag = () => (
   <StatusPill variant="idle" hideDot className="shrink-0 px-1.5 py-0 text-[9.5px] font-normal">
@@ -55,7 +55,7 @@ function MetaCard({ hub, onNavigate }: { hub: MetaHub; onNavigate: () => void })
   const { t } = useTranslation();
   const HubIcon = hub.icon;
   const inner = (
-    <div className={cn('flex h-full items-center gap-2.5 px-3 py-2.5', tile, hub.to ? 'hover:bg-muted' : 'opacity-60')}>
+    <div className={cn('flex h-full items-center gap-2.5 px-3 py-2.5', tile, hub.to ? 'hover:bg-muted hover:-translate-y-px' : 'opacity-60')}>
       <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-background text-foreground">
         <HubIcon className="size-4" />
       </span>
@@ -111,7 +111,7 @@ function BlockCard({ section, onNavigate }: { section: Section; onNavigate: () =
   const { t } = useTranslation();
   const BlockIcon = section.icon;
   return (
-    <Card className="gap-0 overflow-visible py-0" data-od-id={`launcher-block-${section.id}`}>
+    <Card className="gap-0 overflow-visible border-transparent py-0 transition-all duration-150 ease-out hover:-translate-y-px hover:border-border/60 hover:shadow-md" data-od-id={`launcher-block-${section.id}`}>
       <div className="flex flex-row items-center gap-2.5 border-b border-border p-3">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
           <BlockIcon className="size-[18px]" />
@@ -230,27 +230,42 @@ export function AppLauncher({
 
         <div className="flex min-h-0 flex-1">
           <ScrollArea
+            variant="themed"
             className="min-h-0 flex-1"
-            viewportClassName="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            scrollBarClassName="data-vertical:mt-3 data-vertical:mr-2 data-vertical:mb-3 data-vertical:rounded-full data-vertical:border-l-0 data-vertical:bg-border/20"
+            viewportClassName="pr-1.5"
           >
             <div className="p-3.5 pr-0">
               {/* Top region on one big backing card. */}
               <Card className="mb-3 gap-2.5 p-3.5">
                 <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-                  {META.map((hub) => (
-                    <MetaCard key={hub.nameKey} hub={hub} onNavigate={close} />
+                  {META.map((hub, index) => (
+                    <div
+                      key={hub.nameKey}
+                      className="animate-in fade-in slide-in-from-top-2 fill-mode-both duration-200"
+                      style={{ animationDelay: `${Math.min(index, 6) * 40}ms` }}
+                    >
+                      <MetaCard hub={hub} onNavigate={close} />
+                    </div>
                   ))}
                 </div>
 
                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-                  {SUMMARY.map((s) => (
-                    <Link key={s.to} to={s.to} onClick={close} className={linkRing}>
+                  {SUMMARY.map((s, index) => (
+                    <Link
+                      key={s.to}
+                      to={s.to}
+                      onClick={close}
+                      className={cn(
+                        linkRing,
+                        'animate-in fade-in slide-in-from-top-2 fill-mode-both duration-200',
+                      )}
+                      style={{ animationDelay: `${160 + Math.min(index, 4) * 40}ms` }}
+                    >
                       <Stat
                         label={s.label}
                         value="—"
                         context="нет данных"
-                        className="h-full border-0 bg-muted/60 p-3.5 transition-colors hover:bg-muted"
+                        className="h-full border-0 bg-muted/60 p-3.5 transition-all duration-150 ease-out hover:-translate-y-px hover:bg-muted hover:shadow-sm"
                       />
                     </Link>
                   ))}
@@ -274,8 +289,14 @@ export function AppLauncher({
 
               {/* Service catalog */}
               <div className="grid grid-cols-1 items-start gap-3 xl:grid-cols-2">
-                {SECTIONS.map((section) => (
-                  <BlockCard key={section.id} section={section} onNavigate={close} />
+                {SECTIONS.map((section, index) => (
+                  <div
+                    key={section.id}
+                    className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-200"
+                    style={{ animationDelay: `${280 + Math.min(index, 8) * 30}ms` }}
+                  >
+                    <BlockCard section={section} onNavigate={close} />
+                  </div>
                 ))}
               </div>
             </div>

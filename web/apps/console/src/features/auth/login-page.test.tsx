@@ -91,6 +91,26 @@ describe('LoginPage', () => {
     expect(screen.getByTestId('login-submit')).toHaveTextContent('Sign in');
   });
 
+  it('renders a `?` help trigger next to both the email and password labels', () => {
+    renderLoginPage();
+
+    // The HelpTooltip wraps a button with aria-label="Help". Both email and
+    // password fields get one so the operator knows the SSO recommendation
+    // and that the local-part of the email is case-insensitive.
+    const helpButtons = screen.getAllByRole('button', { name: 'Help' });
+    expect(helpButtons).toHaveLength(2);
+
+    // Each `?` lives in the same field wrapper as its input. The wrapper
+    // is the closest ancestor that also contains the corresponding <input>
+    // — we walk up the DOM until we find the email or password input by id.
+    // If either help button ever drifts away from its label, this fails
+    // with a clear message pointing at the orphan trigger.
+    const emailInput = screen.getByTestId('login-email');
+    const passwordInput = screen.getByTestId('login-password');
+    expect(helpButtons[0]?.closest('form')?.contains(emailInput)).toBe(true);
+    expect(helpButtons[1]?.closest('form')?.contains(passwordInput)).toBe(true);
+  });
+
   it('renders without a Card header or footer', () => {
     const { container } = renderLoginPage();
     const card = screen.getByTestId('login-card');

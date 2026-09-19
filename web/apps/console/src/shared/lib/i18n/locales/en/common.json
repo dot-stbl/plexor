@@ -205,6 +205,7 @@
         "cpuTypeHelp": "`host` passes the physical CPU through (fastest; no live-migration across dissimilar CPUs).",
         "cpuTypeHelp2": "`host` = passthrough (fastest).",
         "imageDescription": "Boot disk template. From the Images catalog.",
+        "imageHelp": "Catalog → Images lists every uploaded template. Pick the OS, version and arch matching the workload.",
         "compute": "Compute",
         "computeDescription": "CPU and memory. Sizes are exact (down to MiB) — self-hosted, not fixed cloud «flavors».",
         "cpu": "CPU",
@@ -241,6 +242,7 @@
         "addDisk": "Add disk",
         "networkDescription": "VPC + addressing.",
         "vpcSubnet": "VPC / subnet",
+        "vpcSubnetHelp": "Target VPC + subnet the VM's primary NIC joins. Determines the address pool for DHCP and the firewall zone.",
         "ipAddress": "IP address",
         "ipAddressHelp": "DHCP from the subnet, or pin a static address + gateway.",
         "networkAdvanced": "Advanced · NIC model, VLAN, firewall, rate limit",
@@ -267,6 +269,7 @@
         "options": "Options",
         "optionsDescription": "Boot behavior, guest integration, labels.",
         "startAfterCreation": "Start after creation",
+        "startAfterCreationHelp": "Boot the VM once provisioning finishes. Off → stays powered off until you start it manually.",
         "startOnBoot": "Start on boot",
         "startOnBootHelp": "Autostart when the node boots.",
         "guestAgent": "QEMU guest agent",
@@ -860,11 +863,13 @@
       "subtitle": "Use your work email or single sign-on",
       "email": {
         "label": "Email",
-        "placeholder": "you@company.com"
+        "placeholder": "you@company.com",
+        "help": "Use the email you registered with. Local-part is case-insensitive."
       },
       "password": {
         "label": "Password",
-        "placeholder": "••••••••"
+        "placeholder": "••••••••",
+        "help": "8+ characters. For shared operator accounts prefer SSO so a password isn't needed here."
       },
       "submit": "Sign in",
       "submitting": "Signing in…",
