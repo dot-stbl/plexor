@@ -1,8 +1,10 @@
-import { mergeProps } from "@base-ui/react/merge-props"
-import { useRender } from "@base-ui/react/use-render"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import {
+  polymorphic,
+  type PolymorphicProps,
+} from "@/shared/ui/primitives/polymorphic"
 import { Separator } from "@/shared/ui/primitives/separator"
 
 const buttonGroupVariants = cva(
@@ -38,27 +40,16 @@ function ButtonGroup({
   )
 }
 
-function ButtonGroupText({
-  className,
-  render,
-  ...props
-}: useRender.ComponentProps<"div">) {
-  return useRender({
-    defaultTagName: "div",
-    props: mergeProps<"div">(
-      {
-        className: cn(
-          "flex items-center gap-2 rounded-md border bg-muted px-2.5 text-xs/relaxed font-medium [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
-          className
-        ),
-      },
-      props
+function ButtonGroupText({ className, ...props }: PolymorphicProps<"div">) {
+  return polymorphic(
+    "div",
+    props,
+    cn(
+      "flex items-center gap-2 rounded-md border bg-muted px-2.5 text-xs/relaxed font-medium [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
+      className
     ),
-    render,
-    state: {
-      slot: "button-group-text",
-    },
-  })
+    { slot: "button-group-text" },
+  )
 }
 
 function ButtonGroupSeparator({
