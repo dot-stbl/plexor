@@ -62,7 +62,6 @@
     "@iconify-json/logos": "^1.2.11",
     "@plexor/eslint-config": "workspace:*",
     "@playwright/test": "1.49.1",
-    "@plexor/eslint-config": "workspace:*",
     "@storybook/addon-themes": "9.1.20",
     "@storybook/react-vite": "9.1.20",
     "@tailwindcss/vite": "^4.3.2",

@@ -56,7 +56,6 @@ function TooltipRoot({ children, open, ...props }: TooltipRootProps) {
   // Pattern A: children are [<TooltipTrigger>, <TooltipContent>] siblings.
   // Pass them through to RAC's <TooltipTrigger>.
   const arr = React.Children.toArray(children)
-  const ctx = React.useContext(TooltipContext)
   if (arr.length === 2) {
     const trigger = arr[0]!
     const content = arr[1]!
