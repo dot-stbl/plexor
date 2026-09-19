@@ -1,10 +1,10 @@
 /**
  * LoginPage component tests — the credentials + SSO entry surface for
- * the Plexor console. The page renders email + password fields + an
- * SSO button, runs client-side validation via Zod, calls the
- * kubb-generated postAuthLogin client, and persists the session triple
- * (accessToken / refreshToken / user) to localStorage before routing
- * to `/`.
+ * the Plexor console. The page renders a big PlexorMark + title +
+ * subtitle + email + password fields + an SSO button, runs client-side
+ * validation via Zod, calls the kubb-generated postAuthLogin client,
+ * and persists the session triple (accessToken / refreshToken / user)
+ * to localStorage before routing to `/`.
  *
  * The postAuthLogin client is stubbed via vi.spyOn (see
  * `nock-auth-api.ts`), same shape as the existing branding / audit
@@ -78,17 +78,54 @@ describe('LoginPage', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders email + password fields + SSO button', () => {
+  it('renders the brand block (PlexorMark + title + subtitle) and the email + password fields + SSO button', () => {
     renderLoginPage();
 
-    // Title and subtitle are intentionally absent — the form is the single focus.
-    expect(screen.queryByTestId('login-title')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('login-subtitle')).not.toBeInTheDocument();
+    // Brand block — the minimalist revamp's identity surface.
+    expect(screen.getByTestId('login-mark')).toBeInTheDocument();
+    expect(screen.getByTestId('login-title')).toHaveTextContent('Sign in to Plexor');
+    expect(screen.getByTestId('login-subtitle')).toHaveTextContent(
+      'Use your work email or single sign-on',
+    );
 
+    // Form fields + SSO remain the single action surface.
     expect(screen.getByTestId('login-email')).toBeInTheDocument();
     expect(screen.getByTestId('login-password')).toBeInTheDocument();
     expect(screen.getByTestId('login-sso')).toHaveTextContent('Continue with SSO');
     expect(screen.getByTestId('login-submit')).toHaveTextContent('Sign in');
+  });
+
+  it('renders the PlexorMark at the configured size (size-14 / 56px) for the minimalist brand surface', () => {
+    renderLoginPage();
+
+    // The PlexorMark is the brand anchor of the revamp. Its size is
+    // communicated via the Tailwind `size-N` utility (here `size-14` =
+    // 3.5rem / 56px — within the 48-64px band the design called for).
+    // jsdom does not compute layout, but we can assert the class is
+    // present on the rendered SVG element.
+    const mark = screen.getByTestId('login-mark');
+    expect(mark.tagName.toLowerCase()).toBe('svg');
+    expect(mark.getAttribute('class') ?? '').toMatch(/\bsize-14\b/);
+    expect(mark.getAttribute('class') ?? '').toMatch(/\btext-foreground\b/);
+  });
+
+  it('renders the minimalist surface without a Card chrome', () => {
+    const { container } = renderLoginPage();
+
+    // No card wrapper — the revamp dropped the Card in favour of a
+    // direct on-background form column (GitHub / Notion / Figma pattern).
+    expect(container.querySelector('[data-slot="card"]')).toBeNull();
+    expect(container.querySelector('[data-slot="card-header"]')).toBeNull();
+    expect(container.querySelector('[data-slot="card-footer"]')).toBeNull();
+
+    // The "or" divider is gone too — the SSO button sits directly
+    // below the form with no separator.
+    expect(container.querySelector('hr, [data-slot="separator"]')).toBeNull();
+
+    // The new surface wrapper is the immediate host of the form.
+    const surface = screen.getByTestId('login-form-wrapper');
+    expect(surface.querySelector('form')).not.toBeNull();
+    expect(surface.contains(screen.getByTestId('login-sso'))).toBe(true);
   });
 
   it('renders a `?` help trigger next to both the email and password labels', () => {
@@ -109,20 +146,6 @@ describe('LoginPage', () => {
     const passwordInput = screen.getByTestId('login-password');
     expect(helpButtons[0]?.closest('form')?.contains(emailInput)).toBe(true);
     expect(helpButtons[1]?.closest('form')?.contains(passwordInput)).toBe(true);
-  });
-
-  it('renders without a Card header or footer', () => {
-    const { container } = renderLoginPage();
-    const card = screen.getByTestId('login-card');
-
-    // Card primitives expose their slots as data-slot attributes; the
-    // header and footer slots must be absent so the form is the only
-    // thing inside the card.
-    expect(card.querySelector('[data-slot="card-header"]')).toBeNull();
-    expect(card.querySelector('[data-slot="card-footer"]')).toBeNull();
-    // The "or" divider is gone too — the SSO button sits directly
-    // below the form with no separator.
-    expect(container.querySelector('hr, [data-slot="separator"]')).toBeNull();
   });
 
   it('shows validation errors when submitting with empty fields', async () => {

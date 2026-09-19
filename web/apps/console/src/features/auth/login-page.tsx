@@ -9,9 +9,9 @@ import { PasswordInput } from '@/shared/ui/primitives/password-input';
 import { Button } from '@/shared/ui/primitives/button';
 import { Label } from '@/shared/ui/primitives/label';
 import { Alert, AlertDescription } from '@/shared/ui/primitives/alert';
-import { Card, CardContent } from '@/shared/ui/primitives/card';
 import { Spinner } from '@/shared/ui/primitives/spinner';
 import { HelpTooltip } from '@/shared/ui/primitives/help-tooltip';
+import { PlexorMark } from '@/shared/ui/app-shell/plexor-mark';
 import { cn } from '@/lib/utils';
 import { postAuthLogin } from '@/shared/api';
 import { loginSchema, type LoginValues } from './login.schema';
@@ -20,6 +20,12 @@ import { writeSession } from './session-storage';
 
 /**
  * LoginPage — credentials + SSO entry point for the Plexor console.
+ *
+ * Minimalist brand surface: big PlexorMark + title + subtitle stack on
+ * a single centered column with the form directly beneath. No card
+ * chrome — GitHub / Notion / Figma sign-in pattern. The PlexorMark +
+ * title fade in from the top on mount to soften the page transition
+ * and signal that this is the brand surface, not a generic form.
  *
  * Form follows the reference shape from console.x: email + password
  * fields, an SSO button below the password, and an inline error
@@ -43,6 +49,7 @@ import { writeSession } from './session-storage';
 
 const REDIRECT_AFTER_LOGIN = '/';
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
+const PLEXOR_MARK_SIZE = 'size-14';
 
 export interface LoginPageProps {
   /** Optional override for tests (otherwise the hook router). */
@@ -98,19 +105,43 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
   };
 
   return (
-    <div
-      className="flex min-h-dvh items-center justify-center bg-background p-4"
+    <main
+      className="flex min-h-dvh items-center justify-center bg-background p-6"
       data-od-id="login"
     >
-      <Card className="w-full max-w-sm border-border bg-card shadow-sm" data-od-id="login-card">
-        <CardContent className="space-y-3">
+      <div
+        className="flex w-full max-w-sm flex-col items-stretch gap-8 animate-in fade-in slide-in-from-top-4 duration-500"
+        data-od-id="login-surface"
+      >
+        <header className="flex flex-col items-center gap-4 text-center" data-od-id="login-brand">
+          <PlexorMark
+            className={cn(PLEXOR_MARK_SIZE, 'text-foreground')}
+            data-testid="login-mark"
+          />
+          <div className="space-y-1.5">
+            <h1
+              className="font-heading text-2xl font-semibold tracking-tight text-foreground"
+              data-testid="login-title"
+            >
+              {t('auth.login.title')}
+            </h1>
+            <p
+              className="text-sm text-muted-foreground"
+              data-testid="login-subtitle"
+            >
+              {t('auth.login.subtitle')}
+            </p>
+          </div>
+        </header>
+
+        <div className="flex flex-col gap-3" data-testid="login-form-wrapper">
           {formErrorKey !== null && (
             <Alert variant="destructive" data-testid="login-error">
               <AlertDescription>{t(formErrorKey)}</AlertDescription>
             </Alert>
           )}
 
-          <form className="space-y-3" onSubmit={handleSubmit} noValidate data-testid="login-form">
+          <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate data-testid="login-form">
             <div className="space-y-1.5">
               <div className="flex items-center gap-1.5">
                 <Label htmlFor="login-email" className="text-xs font-medium">
@@ -206,9 +237,9 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
             <LoginIcon className="size-3.5" aria-hidden="true" />
             {t('auth.login.sso')}
           </Button>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </div>
+    </main>
   );
 }
 
