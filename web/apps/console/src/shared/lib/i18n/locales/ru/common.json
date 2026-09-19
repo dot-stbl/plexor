@@ -117,6 +117,27 @@
     "administration": "Администрирование",
     "administrationCaption": "Ноды, провайдеры",
     "settingsCaption": "Профиль, ключи, тема",
+    "launcher": {
+      "heading": "Центр управления",
+      "description": "Разделы проекта и быстрые переходы",
+      "summary": {
+        "vms": {
+          "label": "Виртуальные машины",
+          "value": "12",
+          "context": "+2 на этой неделе"
+        },
+        "lxc": {
+          "label": "Контейнеры",
+          "value": "48",
+          "context": "+5 вчера"
+        },
+        "databases": {
+          "label": "Базы данных",
+          "value": "6",
+          "context": "3 PostgreSQL · 3 Redis"
+        }
+      }
+    },
     "userMenu": {
       "settings": "Настройки",
       "signOut": "Выйти",

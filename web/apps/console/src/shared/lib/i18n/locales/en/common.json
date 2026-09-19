@@ -117,6 +117,27 @@
     "administration": "Administration",
     "administrationCaption": "Nodes, providers",
     "settingsCaption": "Profile, keys, theme",
+    "launcher": {
+      "heading": "App menu",
+      "description": "Project sections and quick links",
+      "summary": {
+        "vms": {
+          "label": "Virtual machines",
+          "value": "12",
+          "context": "+2 this week"
+        },
+        "lxc": {
+          "label": "Containers",
+          "value": "48",
+          "context": "+5 yesterday"
+        },
+        "databases": {
+          "label": "Databases",
+          "value": "6",
+          "context": "3 PostgreSQL · 3 Redis"
+        }
+      }
+    },
     "userMenu": {
       "settings": "Settings",
       "signOut": "Sign out",
