@@ -34,11 +34,12 @@ const META: MetaHub[] = [
   { nameKey: 'shell.settings', captionKey: 'shell.settingsCaption', icon: Tune, soon: true },
 ];
 
-/** Row 2 — at-a-glance summary (3). No backend yet → honest empty state. */
-const SUMMARY: { label: string; to: AppRoute }[] = [
-  { label: 'Виртуальные машины', to: '/vms' },
-  { label: 'Сети · VPC', to: '/networks' },
-  { label: 'События аудита', to: '/audit' },
+/** Row 2 — at-a-glance summary (3). Mock numbers until the dashboard endpoint ships. */
+type SummaryCard = { labelKey: string; valueKey: string; contextKey: string; to: AppRoute };
+const SUMMARY: SummaryCard[] = [
+  { labelKey: 'shell.launcher.summary.vms.label', valueKey: 'shell.launcher.summary.vms.value', contextKey: 'shell.launcher.summary.vms.context', to: '/vms' },
+  { labelKey: 'shell.launcher.summary.lxc.label', valueKey: 'shell.launcher.summary.lxc.value', contextKey: 'shell.launcher.summary.lxc.context', to: '/lxc' },
+  { labelKey: 'shell.launcher.summary.databases.label', valueKey: 'shell.launcher.summary.databases.value', contextKey: 'shell.launcher.summary.databases.context', to: '/managed/postgres' },
 ];
 
 const linkRing = 'block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40';
@@ -151,6 +152,7 @@ export function AppLauncher({
   onOpenChange: (open: boolean) => void;
 }) {
   const close = () => onOpenChange(false);
+  const { t } = useTranslation();
   // Dock flush against the sidebar's right edge, following its collapsed state.
   const { state } = useSidebar();
 
@@ -225,8 +227,8 @@ export function AppLauncher({
           phase === 'exit' && '-translate-x-4 opacity-0',
         )}
       >
-        <h2 className="sr-only">Центр управления</h2>
-        <p className="sr-only">Разделы проекта и быстрые переходы</p>
+        <h2 className="sr-only">{t('shell.launcher.heading')}</h2>
+        <p className="sr-only">{t('shell.launcher.description')}</p>
 
         <div className="flex min-h-0 flex-1">
           <ScrollArea
@@ -262,9 +264,9 @@ export function AppLauncher({
                       style={{ animationDelay: `${160 + Math.min(index, 4) * 40}ms` }}
                     >
                       <Stat
-                        label={s.label}
-                        value="—"
-                        context="нет данных"
+                        label={t(s.labelKey)}
+                        value={t(s.valueKey)}
+                        context={t(s.contextKey)}
                         className="h-full border-0 bg-muted/60 p-3.5 transition-all duration-150 ease-out hover:-translate-y-px hover:bg-muted hover:shadow-sm"
                       />
                     </Link>

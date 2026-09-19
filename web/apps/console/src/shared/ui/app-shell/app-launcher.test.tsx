@@ -97,10 +97,14 @@ describe('AppLauncher — empty cards regression', () => {
     renderLauncher();
     // `/vms` is the first shipped route in SECTIONS → renders via the
     // Button+Link path. Before the fix, the Link had no children.
-    const vmsLink = screen.getByRole('link', { name: /Virtual machines/i });
+    // The launcher now also renders a SUMMARY stat card at `/vms` (label
+    // "Virtual machines"), so disambiguate by picking the link whose
+    // body includes the section-page description, not the stat label.
+    const vmsLinks = screen.getAllByRole('link', { name: /Virtual machines/i });
+    const vmsLink = vmsLinks.find((el) => within(el).queryByText('Instances and status'));
     expect(vmsLink).toBeInstanceOf(HTMLAnchorElement);
     // The Link must contain its description too, not just the title.
-    expect(within(vmsLink).getByText('Instances and status')).toBeInTheDocument();
+    expect(within(vmsLink!).getByText('Instances and status')).toBeInTheDocument();
   });
 
   it('renders the "soon" badge on the soon block (data section)', () => {
@@ -202,5 +206,41 @@ describe('AppLauncher — icon micro-interactions', () => {
     renderLauncher();
     const overview = screen.getByRole('link', { name: /Обзор проекта/i });
     expect(overview.querySelector('div')?.className ?? '').toContain('group/overview');
+  });
+});
+
+describe('AppLauncher — i18n summary cards', () => {
+  it('does not render the legacy "нет данных" placeholder', () => {
+    renderLauncher();
+    // Earlier revisions hardcoded the Russian "нет данных" string as the
+    // Stat `context` prop because no real data was wired up yet. The summary
+    // row now ships mock numbers driven by i18n keys; a regression that
+    // drops back to the placeholder must fail this test loudly.
+    expect(screen.queryByText('нет данных')).toBeNull();
+  });
+
+  it('renders mock summary values translated from i18n keys (VMs card)', () => {
+    renderLauncher();
+    // "Virtual machines" appears in two places now: the SUMMARY stat card
+    // AND the compute section's first nav page. Disambiguate by picking the
+    // one whose nearest Stat ancestor carries the mock value "12".
+    const vmsLabels = screen.getAllByText('Virtual machines');
+    const vmsStat = vmsLabels
+      .map((el) => el.closest('[data-slot="stat"]'))
+      .find((el): el is HTMLElement => el !== null);
+    expect(vmsStat).not.toBeNull();
+    expect(vmsStat?.textContent).toContain('12');
+    expect(vmsStat?.textContent).toContain('+2 this week');
+  });
+
+  it('renders the sr-only launcher heading and description', () => {
+    renderLauncher();
+    // The launcher is the dialog landmark; sr-only heading + paragraph give
+    // screen readers a context anchor. Both must come from i18n, not be
+    // hardcoded Russian.
+    const heading = document.querySelector('h2.sr-only');
+    expect(heading?.textContent).toBe('App menu');
+    const description = document.querySelector('p.sr-only');
+    expect(description?.textContent).toBe('Project sections and quick links');
   });
 });

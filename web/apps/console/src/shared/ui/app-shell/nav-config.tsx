@@ -36,6 +36,7 @@ export type AppRoute =
   | '/networks'
   | '/audit'
   | '/clusters'
+  | '/managed/postgres'
   | '/admin/branding'
   | '/admin/theme-marketplace'
   | '/admin/audit';
