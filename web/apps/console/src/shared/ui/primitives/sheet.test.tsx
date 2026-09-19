@@ -137,4 +137,19 @@ describe("Sheet", () => {
     expect(overlay?.className ?? "").toContain("data-entering:opacity-0")
     expect(overlay?.className ?? "").toContain("data-exiting:opacity-0")
   })
+
+  it("SheetOverlay applies backdrop-blur class for the modal backdrop", () => {
+    render(
+      <Sheet open onOpenChange={() => {}}>
+        <SheetOverlay />
+        <SheetContent>
+          <SheetTitle>T</SheetTitle>
+        </SheetContent>
+      </Sheet>,
+    )
+    const overlay = document.querySelector("[data-slot='sheet-overlay']")
+    expect(overlay).not.toBeNull()
+    expect(overlay?.className ?? "").toMatch(/backdrop-blur-/)
+    expect(overlay?.className ?? "").toContain("supports-backdrop-filter:backdrop-blur-md")
+  })
 })
