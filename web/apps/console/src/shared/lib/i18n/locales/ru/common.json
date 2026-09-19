@@ -926,6 +926,13 @@
       "submit": "Войти",
       "submitting": "Входим…",
       "sso": "Войти через SSO",
+      "providersDivider": "или",
+      "providers": {
+        "google": "Продолжить с Google",
+        "github": "Продолжить с GitHub",
+        "oidc": "Продолжить через SSO",
+        "ldap": "Продолжить с LDAP"
+      },
       "validation": {
         "emailRequired": "Укажите email",
         "emailInvalid": "Введите корректный email",

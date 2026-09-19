@@ -5,6 +5,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { TooltipProvider } from '@/shared/ui/primitives/tooltip';
 import { Toaster } from '@/shared/ui/primitives/sonner';
 import { ThemeProvider } from '@/shared/lib/theme-provider';
+import { FeatureFlagProvider } from '@/shared/lib/feature-flags/feature-flag-context';
 import { getBootConfig } from '@/shared/lib/config';
 import '@/shared/lib/i18n';
 import { routeTree } from './routeTree.gen';
@@ -199,12 +200,14 @@ void Promise.all([enableMocking(), applyBootPreset(), applyBootCommunityTheme()]
   createRoot(rootElement).render(
     <StrictMode>
       <ThemeProvider defaultTheme="system">
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <RouterProvider router={router} />
-            <Toaster />
-          </TooltipProvider>
-        </QueryClientProvider>
+        <FeatureFlagProvider>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <RouterProvider router={router} />
+              <Toaster />
+            </TooltipProvider>
+          </QueryClientProvider>
+        </FeatureFlagProvider>
       </ThemeProvider>
     </StrictMode>,
   );

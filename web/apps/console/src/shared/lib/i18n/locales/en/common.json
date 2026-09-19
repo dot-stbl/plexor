@@ -926,6 +926,13 @@
       "submit": "Sign in",
       "submitting": "Signing in…",
       "sso": "Continue with SSO",
+      "providersDivider": "or",
+      "providers": {
+        "google": "Continue with Google",
+        "github": "Continue with GitHub",
+        "oidc": "Continue with SSO",
+        "ldap": "Continue with LDAP"
+      },
       "validation": {
         "emailRequired": "Email is required",
         "emailInvalid": "Enter a valid email address",
