@@ -22,7 +22,6 @@ import { ScrollArea } from '@/shared/ui/primitives/scroll-area';
 import { Stat } from '@/shared/ui/primitives/stat';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { cn } from '@/lib/utils';
-import { makeLauncherSummary } from '@/mocks/launcher-summary';
 import { SECTIONS, type AppRoute, type NavPage, type Section } from './nav-config';
 
 type MetaHub = { nameKey: string; captionKey: string; icon: Icon; to?: AppRoute; soon?: boolean };
@@ -35,26 +34,15 @@ const META: MetaHub[] = [
   { nameKey: 'shell.settings', captionKey: 'shell.settingsCaption', icon: Tune, soon: true },
 ];
 
-<<<<<<< HEAD
-/** Row 2 — at-a-glance summary (3). Mock numbers until the dashboard endpoint ships. */
+/** Row 2 — at-a-glance summary (3). The numbers live in the locale files
+ *  (mock values as t() lookups) until the dashboard endpoint ships; see
+ *  the `shell.launcher.summary` subtree in locales/{en,ru}/common.json. */
 type SummaryCard = { labelKey: string; valueKey: string; contextKey: string; to: AppRoute };
 const SUMMARY: SummaryCard[] = [
   { labelKey: 'shell.launcher.summary.vms.label', valueKey: 'shell.launcher.summary.vms.value', contextKey: 'shell.launcher.summary.vms.context', to: '/vms' },
   { labelKey: 'shell.launcher.summary.lxc.label', valueKey: 'shell.launcher.summary.lxc.value', contextKey: 'shell.launcher.summary.lxc.context', to: '/lxc' },
   { labelKey: 'shell.launcher.summary.databases.label', valueKey: 'shell.launcher.summary.databases.value', contextKey: 'shell.launcher.summary.databases.context', to: '/managed/postgres' },
 ];
-=======
-/** Row 2 — at-a-glance summary (3). Reads from the shared mock fixtures
- *  so the numbers match what MSW handlers return (and what component
- *  tests assert). See `mocks/README.md`. */
-const SUMMARY: { label: string; to: AppRoute; value: string; context: string }[] =
-  makeLauncherSummary().map((card) => ({
-    label: card.label,
-    to: card.to as AppRoute,
-    value: card.value,
-    context: card.context,
-  }));
->>>>>>> feature/mock-sync
 
 const linkRing = 'block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40';
 // Inset tile: bg-muted so it reads against the top region's big bg-card.

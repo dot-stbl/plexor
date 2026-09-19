@@ -23,7 +23,7 @@ describe('AppHeader — icon micro-interactions', () => {
     expect(homeLink).not.toBeNull();
     const icon = homeLink?.querySelector('svg');
     expect(icon).not.toBeNull();
-    const cls = svgClass(icon);
+    const cls = svgClass(icon ?? null);
     expect(cls).toContain('transition-transform');
     expect(cls).toContain('duration-200');
     expect(cls).toContain('hover:scale-110');
