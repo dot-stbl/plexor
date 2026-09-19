@@ -117,12 +117,11 @@ describe('LoginPage', () => {
     // stable hook), not data-testid.
     const card = document.body.querySelector('[data-od-id="login-card"]');
     expect(card).not.toBeNull();
-
     // Card primitives expose their slots as data-slot attributes; the
     // header and footer slots must be absent so the form is the only
     // thing inside the card.
-    expect(card.querySelector('[data-slot="card-header"]')).toBeNull();
-    expect(card.querySelector('[data-slot="card-footer"]')).toBeNull();
+    expect(card?.querySelector('[data-slot="card-header"]')).toBeNull();
+    expect(card?.querySelector('[data-slot="card-footer"]')).toBeNull();
     // The "or" divider is gone too — the SSO button sits directly
     // below the form with no separator.
     expect(container.querySelector('hr, [data-slot="separator"]')).toBeNull();
