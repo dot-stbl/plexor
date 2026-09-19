@@ -12,20 +12,44 @@ import { routeTree } from './routeTree.gen';
 import './index.css';
 
 // Theme bootstrap — apply persisted/auto theme BEFORE first render
-// to avoid flash. Reads from the preferences storage key
-// ('plexor-preferences') and falls back to the legacy 'plexor-theme'
+// to avoid flash. Reads from the per-user preferences storage key
+// ('plexor-preferences::<userId>') when a session is mounted, falls
+// back to the global 'plexor-preferences' key for the splash /
+// anonymous screens, then falls back to the legacy 'plexor-theme'
 // key for users who had a value set before the migration.
 (function applyThemeEarly() {
   try {
-    var raw =
-      localStorage.getItem('plexor-preferences') ||
-      localStorage.getItem('plexor-theme');
+    var session = null;
+    try {
+      var raw = localStorage.getItem('plexor-auth');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.user && typeof parsed.user.id === 'string') {
+          session = parsed;
+        }
+      }
+    } catch (_) {
+      session = null;
+    }
+    var keys = ['plexor-preferences'];
+    if (session && session.user && session.user.id) {
+      keys.unshift('plexor-preferences::' + session.user.id);
+    }
+    keys.push('plexor-theme');
+    var raw: string | null = null;
+    for (var i = 0; i < keys.length; i++) {
+      var candidate = localStorage.getItem(keys[i]);
+      if (candidate) {
+        raw = candidate;
+        break;
+      }
+    }
     var theme;
     if (raw) {
       try {
         // New format: JSON object { theme, accent, fontSize }.
-        var parsed = JSON.parse(raw);
-        theme = parsed && parsed.theme;
+        var parsedPrefs = JSON.parse(raw);
+        theme = parsedPrefs && parsedPrefs.theme;
       } catch (_) {
         // Legacy format: bare string ('light' | 'dark' | 'system').
         theme = raw;
@@ -174,7 +198,7 @@ async function applyBootCommunityTheme() {
 void Promise.all([enableMocking(), applyBootPreset(), applyBootCommunityTheme()]).then(() => {
   createRoot(rootElement).render(
     <StrictMode>
-      <ThemeProvider defaultTheme="system" storageKey="plexor-preferences">
+      <ThemeProvider defaultTheme="system">
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <RouterProvider router={router} />

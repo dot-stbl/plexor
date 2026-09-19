@@ -888,5 +888,29 @@
         "generic": "Sign-in failed — please try again"
       }
     }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Account and preferences",
+    "profile": {
+      "heading": "Profile",
+      "email": "Email",
+      "displayName": "Display name",
+      "signOut": "Sign out"
+    },
+    "theme": {
+      "heading": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": {
+      "heading": "Language",
+      "comingSoon": "Coming soon"
+    },
+    "security": {
+      "heading": "Security",
+      "comingSoon": "Coming soon"
+    }
   }
 }

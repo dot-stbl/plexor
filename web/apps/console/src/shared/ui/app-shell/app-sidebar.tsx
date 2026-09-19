@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useRouterState } from '@tanstack/react-router';
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { GridView, Logout, Settings } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import {
@@ -39,7 +39,6 @@ import {
   type AppRoute,
 } from './nav-config';
 import { AppLauncher } from './app-launcher';
-import { AppSettingsDialog } from './app-settings-dialog';
 import { PlexorMark } from './plexor-mark';
 
 type SidebarItem = { title: string; icon: Icon; to?: AppRoute };
@@ -60,9 +59,9 @@ const railPill =
  */
 export function AppSidebar() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [launcherOpen, setLauncherOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Operator-controlled branding (TOML → window.__PLEXOR_CONFIG__ → here).
   // Falls back to the Plexor defaults when the host hasn't shipped a
@@ -233,11 +232,19 @@ export function AppSidebar() {
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+              <DropdownMenuItem
+                onClick={() => {
+                  void navigate({ to: '/settings/profile' });
+                }}
+              >
                 <Settings className="size-4" />
                 {t('shell.userMenu.settings')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast(t('shell.userMenu.signedOut'))}>
+              <DropdownMenuItem
+                onClick={() => {
+                  toast(t('shell.userMenu.signedOut'));
+                }}
+              >
                 <Logout className="size-4" />
                 {t('shell.userMenu.signOut')}
               </DropdownMenuItem>
@@ -249,7 +256,6 @@ export function AppSidebar() {
       </Sidebar>
 
       <AppLauncher open={launcherOpen} onOpenChange={setLauncherOpen} />
-      <AppSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </>
   );
 }

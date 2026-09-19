@@ -38,7 +38,8 @@ export type AppRoute =
   | '/clusters'
   | '/admin/branding'
   | '/admin/theme-marketplace'
-  | '/admin/audit';
+  | '/admin/audit'
+  | '/settings/profile';
 
 export type NavPage = {
   /** i18n key for the title (resolved at render time with t()). */
