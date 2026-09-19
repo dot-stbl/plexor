@@ -141,8 +141,23 @@ declare module '@tanstack/react-router' {
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Root element #root not found');
 
-// In dev with VITE_USE_MOCKS=true, start MSW (kubb faker-backed handlers) before
-// first render. Flip the flag off to hit the real Plexor.Host API — no screen changes.
+// Mock activation is EXPLICIT: `VITE_USE_MOCKS=true` (set by the dev:mock /
+// build:mock / test:mocks scripts) starts the MSW worker before first
+// render. There is no implicit env-absence fallback — plain `dev` always
+// talks to the real API, and a dev run without an API target fails fast
+// instead of silently issuing requests against the Vite dev server.
+function assertApiConfigured() {
+  if (import.meta.env.VITE_USE_MOCKS === 'true') return;
+  if (!import.meta.env.DEV) return;
+  if (import.meta.env.VITE_API_URL) return;
+  console.error(
+    '[plexor] dev run has no API target: VITE_API_URL is unset and VITE_USE_MOCKS is not "true".\n' +
+      'Point VITE_API_URL at Plexor.Host (see .env.development) or run the mocked console:\n' +
+      '  bun run dev:mock',
+  );
+  throw new Error('No API target configured: set VITE_API_URL or enable mocks via VITE_USE_MOCKS=true');
+}
+
 async function enableMocking() {
   if (import.meta.env.VITE_USE_MOCKS !== 'true') return;
   const { worker } = await import('@/shared/api/mocks/browser');
@@ -194,6 +209,8 @@ async function applyBootCommunityTheme() {
     console.warn('boot: failed to apply community theme', err);
   }
 }
+
+assertApiConfigured();
 
 void Promise.all([enableMocking(), applyBootPreset(), applyBootCommunityTheme()]).then(() => {
   createRoot(rootElement).render(
