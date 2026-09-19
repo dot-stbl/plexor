@@ -42,3 +42,39 @@ describe("Disclosure", () => {
     expect(root?.className ?? "").toContain("border")
   })
 })
+
+describe("Disclosure — caret micro-interactions", () => {
+  it("caret nudges right on hover so the trigger feels responsive", () => {
+    const { container } = render(
+      <Disclosure summary="S" defaultOpen>
+        body
+      </Disclosure>,
+    )
+    // Caret is the only <svg> in the trigger row.
+    const caret = container.querySelector("svg")
+    expect(caret).not.toBeNull()
+    // jsdom: SVGSVGElement.className is an SVGAnimatedString; the live
+    // string lives on .baseVal. Use getAttribute("class") for plain
+    // string compare (toContain) without reaching into baseVal.
+    const cls = caret?.getAttribute("class") ?? ""
+    expect(cls).toContain("transition-transform")
+    expect(cls).toContain("duration-200")
+    expect(cls).toContain("group-hover/disclosure:translate-x-0.5")
+  })
+
+  it("inline trigger carries the group/disclosure hook so caret hover fires", () => {
+    render(<Disclosure summary="S">body</Disclosure>)
+    const trigger = screen.getByRole("button", { name: /S/ })
+    expect(trigger.className).toContain("group/disclosure")
+  })
+
+  it("card variant trigger also carries the group/disclosure hook", () => {
+    const { container } = render(
+      <Disclosure summary="S" variant="card">
+        body
+      </Disclosure>,
+    )
+    const trigger = container.querySelector("[data-slot='collapsible-trigger']")
+    expect(trigger?.className ?? "").toContain("group/disclosure")
+  })
+})

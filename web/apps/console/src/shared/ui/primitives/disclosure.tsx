@@ -31,7 +31,12 @@ export function Disclosure({
 }: DisclosureProps) {
   const [open, setOpen] = useState(defaultOpen);
   const caret = (
-    <KeyboardArrowRight className={cn('size-3.5 shrink-0 transition-transform', open && 'rotate-90')} />
+    <KeyboardArrowRight
+      className={cn(
+        'size-3.5 shrink-0 transition-transform duration-200 ease-out group-hover/disclosure:translate-x-0.5',
+        open && 'rotate-90',
+      )}
+    />
   );
 
   if (variant === 'card') {
@@ -43,7 +48,7 @@ export function Disclosure({
       >
         <CollapsibleTrigger
           className={cn(
-            'flex w-full items-center justify-between gap-2 px-3 py-2 text-xs font-medium text-muted-foreground outline-none transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:text-foreground',
+            'group/disclosure flex w-full items-center justify-between gap-2 px-3 py-2 text-xs font-medium text-muted-foreground outline-none transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:text-foreground',
             open && 'text-foreground',
           )}
         >
@@ -59,7 +64,7 @@ export function Disclosure({
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} className={className}>
-      <CollapsibleTrigger className="flex items-center gap-1 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:text-foreground">
+      <CollapsibleTrigger className="group/disclosure flex items-center gap-1 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:text-foreground">
         {caret}
         {summary}
       </CollapsibleTrigger>

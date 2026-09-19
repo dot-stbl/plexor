@@ -153,3 +153,54 @@ describe('AppLauncher — themed scrollbar', () => {
     expect(viewport?.className ?? '').not.toMatch(/::-webkit-scrollbar\]:hidden/);
   });
 });
+
+describe('AppLauncher — icon micro-interactions', () => {
+  it('close button rotates 90deg on hover so the X feels reactive', () => {
+    renderLauncher();
+    const close = screen.getByRole('button', { name: 'Закрыть' });
+    const icon = close.querySelector('svg');
+    expect(icon).not.toBeNull();
+    // jsdom: SVGSVGElement.className is an SVGAnimatedString; live string
+    // is on .baseVal. Use getAttribute('class') for plain string compare.
+    const cls = icon?.getAttribute('class') ?? '';
+    expect(cls).toContain('transition-transform');
+    expect(cls).toContain('duration-200');
+    expect(cls).toContain('hover:rotate-90');
+  });
+
+  it('block-card icon scales up on card hover via group/block-card', () => {
+    renderLauncher();
+    const block = getByOdId('launcher-block-compute');
+    const headerIcon = block.querySelector('svg');
+    expect(headerIcon).not.toBeNull();
+    const cls = headerIcon?.getAttribute('class') ?? '';
+    expect(cls).toContain('transition-transform');
+    expect(cls).toContain('duration-200');
+    expect(cls).toContain('group-hover/block-card:scale-110');
+  });
+
+  it('block-card carries the group/block-card hook so the icon hover fires', () => {
+    renderLauncher();
+    const block = getByOdId('launcher-block-compute');
+    expect(block.className).toContain('group/block-card');
+  });
+
+  it('overview row arrow nudges right + darkens on hover', () => {
+    renderLauncher();
+    const overview = screen.getByRole('link', { name: /Обзор проекта/i });
+    const svgs = overview.querySelectorAll('svg');
+    const arrow = svgs[svgs.length - 1];
+    expect(arrow).not.toBeNull();
+    const cls = arrow?.getAttribute('class') ?? '';
+    expect(cls).toContain('transition-all');
+    expect(cls).toContain('duration-200');
+    expect(cls).toContain('group-hover/overview:translate-x-0.5');
+    expect(cls).toContain('group-hover/overview:text-foreground');
+  });
+
+  it('overview row carries the group/overview hook', () => {
+    renderLauncher();
+    const overview = screen.getByRole('link', { name: /Обзор проекта/i });
+    expect(overview.querySelector('div')?.className ?? '').toContain('group/overview');
+  });
+});

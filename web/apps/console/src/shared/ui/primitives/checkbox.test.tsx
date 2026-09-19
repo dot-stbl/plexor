@@ -48,4 +48,14 @@ describe("Checkbox", () => {
     await user.click(screen.getByLabelText("accept"))
     expect(onCheckedChange).not.toHaveBeenCalled()
   })
+
+  it("darkens border on hover so the box feels interactive (micro-interaction)", () => {
+    render(<Checkbox aria-label="accept" />)
+    const input = screen.getByLabelText("accept")
+    const label = input.closest("label") as HTMLLabelElement | null
+    const cls = label?.className ?? ""
+    // transition-all (not transition-shadow) so hover:border-foreground/40 animates
+    expect(cls).toContain("transition-all")
+    expect(cls).toContain("hover:border-foreground/40")
+  })
 })
