@@ -1,45 +1,56 @@
-import { useState, type FormEvent } from 'react';
+import { useCallback, useState, type FormEvent } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { ZodError } from 'zod';
-import { Login as LoginIcon } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import {
+  GithubIcon,
+  KeyRoundIcon,
+  Mail01Icon,
+  ShieldIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import { Input } from '@/shared/ui/primitives/input';
 import { PasswordInput } from '@/shared/ui/primitives/password-input';
 import { Button } from '@/shared/ui/primitives/button';
 import { Label } from '@/shared/ui/primitives/label';
 import { Alert, AlertDescription } from '@/shared/ui/primitives/alert';
+import { Separator } from '@/shared/ui/primitives/separator';
 import { Spinner } from '@/shared/ui/primitives/spinner';
 import { HelpTooltip } from '@/shared/ui/primitives/help-tooltip';
 import { PlexorMark } from '@/shared/ui/app-shell/plexor-mark';
 import { cn } from '@/lib/utils';
 import { postAuthLogin } from '@/shared/api';
+import { useFeatureFlag } from '@/shared/lib/feature-flags/feature-flag-context';
 import { loginSchema, type LoginValues } from './login.schema';
 import { loginErrorKey } from './login-error';
 import { writeSession } from './session-storage';
 
 /**
- * LoginPage — credentials + SSO entry point for the Plexor console.
+ * LoginPage — credentials + provider-selector entry point for the
+ * Plexor console.
  *
  * Minimalist brand surface: big PlexorMark + title + subtitle stack on
- * a single centered column with the form directly beneath. No card
- * chrome — GitHub / Notion / Figma sign-in pattern. The PlexorMark +
- * title fade in from the top on mount to soften the page transition
- * and signal that this is the brand surface, not a generic form.
+ * a single centered column with the email + password form directly
+ * beneath. Below the form, a divider + a dynamic list of SSO/provider
+ * buttons. Each provider button is gated by a `auth.showXxx` feature
+ * flag — operators can hide a not-yet-provisioned provider from the
+ * UI without redeploying, and dev/QA can flip the toggle from the
+ * FeatureFlagProvider's settings surface to test the empty state.
  *
- * Form follows the reference shape from console.x: email + password
- * fields, an SSO button below the password, and an inline error
- * banner when login fails. Validation is client-side (Zod) so the
- * user gets immediate feedback for empty / malformed email; the
- * server-side 401 is the only failure the user should see in the
- * banner.
+ * Provider order is fixed (Google → GitHub → OIDC → LDAP) so the
+ * surface stays stable when flags toggle. The order matches the
+ * `FeatureFlag` union in `feature-flag-context.tsx`.
+ *
+ * The OIDC button is wired through `window.location.assign` — the
+ * OpenAPI contract specifies an IdP redirect, and that intentionally
+ * bypasses the in-app router. Google / GitHub / LDAP follow the same
+ * pattern; their authorize endpoints are constructed from the same
+ * `/auth/<provider>/authorize` route the OIDC handler already uses.
  *
  * On success the page persists the session triple (accessToken,
  * refreshToken, user) to localStorage and routes to `/` so the home
- * dashboard renders with the bearer token. The OIDC button is wired
- * through `window.location.assign` — the OpenAPI contract specifies
- * an IdP redirect, and that intentionally bypasses the in-app
- * router.
+ * dashboard renders with the bearer token.
  *
  * The form is intentionally small: no "forgot password" surface
  * (Phase 5+ lands password recovery) and no "create account" path
@@ -50,6 +61,22 @@ import { writeSession } from './session-storage';
 const REDIRECT_AFTER_LOGIN = '/';
 const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001';
 const PLEXOR_MARK_SIZE = 'size-14';
+
+type AuthProvider = 'google' | 'github' | 'oidc' | 'ldap';
+
+interface ProviderDescriptor {
+  id: AuthProvider;
+  flagKey: 'auth.showGoogle' | 'auth.showGitHub' | 'auth.showOidc' | 'auth.showLdap';
+  icon: typeof GithubIcon;
+  i18nKey: string;
+}
+
+const PROVIDERS: readonly ProviderDescriptor[] = [
+  { id: 'google', flagKey: 'auth.showGoogle', icon: Mail01Icon, i18nKey: 'auth.login.providers.google' },
+  { id: 'github', flagKey: 'auth.showGitHub', icon: GithubIcon, i18nKey: 'auth.login.providers.github' },
+  { id: 'oidc',   flagKey: 'auth.showOidc',   icon: ShieldIcon, i18nKey: 'auth.login.providers.oidc' },
+  { id: 'ldap',   flagKey: 'auth.showLdap',   icon: KeyRoundIcon, i18nKey: 'auth.login.providers.ldap' },
+];
 
 export interface LoginPageProps {
   /** Optional override for tests (otherwise the hook router). */
@@ -71,6 +98,16 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
   });
 
   const isSubmitting = loginMutation.isPending;
+
+  // Read each provider's flag in a stable order (matching PROVIDERS).
+  // The hooks run unconditionally every render in the same order, so
+  // the rules-of-hooks are satisfied; the boolean array is then
+  // zipped with PROVIDERS to compute the visible list.
+  const showGoogle = useFeatureFlag('auth.showGoogle');
+  const showGitHub = useFeatureFlag('auth.showGitHub');
+  const showOidc = useFeatureFlag('auth.showOidc');
+  const showLdap = useFeatureFlag('auth.showLdap');
+  const flagByProvider: ReadonlyArray<boolean> = [showGoogle, showGitHub, showOidc, showLdap];
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -99,10 +136,12 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
     });
   };
 
-  const handleSso = () => {
-    const target = `/auth/oidc/authorize?org=${encodeURIComponent(DEFAULT_ORG_ID)}&redirect=${encodeURIComponent(REDIRECT_AFTER_LOGIN)}`;
+  const handleProvider = useCallback((provider: AuthProvider) => {
+    const target = `/auth/${provider}/authorize?org=${encodeURIComponent(DEFAULT_ORG_ID)}&redirect=${encodeURIComponent(REDIRECT_AFTER_LOGIN)}`;
     window.location.assign(target);
-  };
+  }, []);
+
+  const visibleProviders = PROVIDERS.filter((_, index) => flagByProvider[index]);
 
   return (
     <main
@@ -225,18 +264,44 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
             </Button>
           </form>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="w-full"
-            onClick={handleSso}
-            disabled={isSubmitting}
-            data-testid="login-sso"
-          >
-            <LoginIcon className="size-3.5" aria-hidden="true" />
-            {t('auth.login.sso')}
-          </Button>
+          {visibleProviders.length > 0 && (
+            <>
+              <div
+                className="flex items-center gap-3 text-[11px] font-medium tracking-[0.06em] text-muted-foreground uppercase"
+                data-testid="login-providers-divider"
+              >
+                <Separator className="flex-1" />
+                <span>{t('auth.login.providersDivider')}</span>
+                <Separator className="flex-1" />
+              </div>
+
+              <div className="flex flex-col gap-2" data-testid="login-providers">
+                {visibleProviders.map((provider) => {
+                  const Icon = provider.icon;
+                  return (
+                    <Button
+                      key={provider.id}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => handleProvider(provider.id)}
+                      disabled={isSubmitting}
+                      data-testid={`login-provider-${provider.id}`}
+                    >
+                      <HugeiconsIcon
+                        icon={Icon}
+                        size={14}
+                        strokeWidth={1.75}
+                        aria-hidden="true"
+                      />
+                      {t(provider.i18nKey)}
+                    </Button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </main>

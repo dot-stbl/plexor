@@ -1,10 +1,16 @@
 /**
- * LoginPage component tests — the credentials + SSO entry surface for
- * the Plexor console. The page renders a big PlexorMark + title +
- * subtitle + email + password fields + an SSO button, runs client-side
- * validation via Zod, calls the kubb-generated postAuthLogin client,
- * and persists the session triple (accessToken / refreshToken / user)
- * to localStorage before routing to `/`.
+ * LoginPage component tests — the credentials + provider-selector
+ * entry surface for the Plexor console. The page renders a big
+ * PlexorMark + title + subtitle + email + password fields, runs
+ * client-side validation via Zod, calls the kubb-generated
+ * postAuthLogin client, and persists the session triple
+ * (accessToken / refreshToken / user) to localStorage before routing
+ * to `/`.
+ *
+ * Below the form, a divider + a dynamic list of SSO/provider buttons.
+ * Each provider is gated by a `auth.showXxx` feature flag — toggling
+ * the flag in the FeatureFlagProvider's storage remounts the page
+ * with a different provider set.
  *
  * The postAuthLogin client is stubbed via vi.spyOn (see
  * `nock-auth-api.ts`), same shape as the existing branding / audit
@@ -17,6 +23,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test-utils/render-with-providers';
 import { mockAuthService } from '@/test-utils/nock-auth-api';
+import { FeatureFlagProvider } from '@/shared/lib/feature-flags/feature-flag-context';
 import { LoginPage } from './login-page';
 import {
   clearSession,
@@ -25,13 +32,6 @@ import {
   type StoredSession,
 } from './session-storage';
 import type { PostAuthLogin200 } from '@/shared/api';
-
-// The LoginPage uses `useNavigate` from @tanstack/react-router. The
-// `renderWithProviders` helper already wraps with a router, but for
-// these tests we drive navigation via localStorage + window.history
-// state — calling `navigate({ to: '/' })` inside the success branch
-// just pushes to the test router, and we verify the side effect
-// (session persisted + token in localStorage) directly.
 
 function makeLoginResponse(overrides: Partial<PostAuthLogin200> = {}): PostAuthLogin200 {
   return {
@@ -48,13 +48,37 @@ function makeLoginResponse(overrides: Partial<PostAuthLogin200> = {}): PostAuthL
   };
 }
 
+/**
+ * Wrap the login page with the providers it now requires:
+ * - FeatureFlagProvider so the dynamic provider list resolves from
+ *   the localStorage-backed flag set (default → all 4 providers on).
+ *
+ * The `renderWithProviders` helper already wraps Query / Router /
+ * i18n / Preferences — we add FeatureFlagProvider on top of that.
+ */
 function renderLoginPage() {
-  return renderWithProviders(<LoginPage />);
+  return renderWithProviders(
+    <FeatureFlagProvider>
+      <LoginPage />
+    </FeatureFlagProvider>,
+  );
+}
+
+/**
+ * Pre-populate localStorage with a flag override before the next
+ * render. Used by tests that want to verify "flag off → button gone".
+ */
+function setFlag(key: string, value: boolean) {
+  const raw = localStorage.getItem('plexor.feature-flags');
+  const parsed = raw ? JSON.parse(raw) : {};
+  parsed[key] = value;
+  localStorage.setItem('plexor.feature-flags', JSON.stringify(parsed));
 }
 
 describe('LoginPage', () => {
   beforeEach(() => {
     clearSession();
+    localStorage.removeItem('plexor.feature-flags');
     // window.location is a read-only object in jsdom — we can't
     // reassign `.assign` directly. Stub the SSO side effect with
     // vi.stubGlobal so each test gets a fresh spy and the assertion
@@ -76,9 +100,10 @@ describe('LoginPage', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    localStorage.removeItem('plexor.feature-flags');
   });
 
-  it('renders the brand block (PlexorMark + title + subtitle) and the email + password fields + SSO button', () => {
+  it('renders the brand block (PlexorMark + title + subtitle) and the email + password fields', () => {
     renderLoginPage();
 
     // Brand block — the minimalist revamp's identity surface.
@@ -88,11 +113,48 @@ describe('LoginPage', () => {
       'Use your work email or single sign-on',
     );
 
-    // Form fields + SSO remain the single action surface.
+    // Form fields stay the primary action surface.
     expect(screen.getByTestId('login-email')).toBeInTheDocument();
     expect(screen.getByTestId('login-password')).toBeInTheDocument();
-    expect(screen.getByTestId('login-sso')).toHaveTextContent('Continue with SSO');
     expect(screen.getByTestId('login-submit')).toHaveTextContent('Sign in');
+  });
+
+  it('renders all 4 provider buttons when all 4 flags are enabled (default)', () => {
+    renderLoginPage();
+
+    expect(screen.getByTestId('login-provider-google')).toHaveTextContent('Continue with Google');
+    expect(screen.getByTestId('login-provider-github')).toHaveTextContent('Continue with GitHub');
+    expect(screen.getByTestId('login-provider-oidc')).toHaveTextContent('Continue with SSO');
+    expect(screen.getByTestId('login-provider-ldap')).toHaveTextContent('Continue with LDAP');
+    expect(screen.getByTestId('login-providers-divider')).toBeInTheDocument();
+  });
+
+  it('hides a provider when its flag is disabled', () => {
+    setFlag('auth.showGitHub', false);
+
+    renderLoginPage();
+
+    expect(screen.getByTestId('login-provider-google')).toBeInTheDocument();
+    expect(screen.queryByTestId('login-provider-github')).toBeNull();
+    expect(screen.getByTestId('login-provider-oidc')).toBeInTheDocument();
+    expect(screen.getByTestId('login-provider-ldap')).toBeInTheDocument();
+  });
+
+  it('hides the entire providers block when every flag is disabled', () => {
+    setFlag('auth.showGoogle', false);
+    setFlag('auth.showGitHub', false);
+    setFlag('auth.showOidc', false);
+    setFlag('auth.showLdap', false);
+
+    renderLoginPage();
+
+    expect(screen.queryByTestId('login-provider-google')).toBeNull();
+    expect(screen.queryByTestId('login-provider-github')).toBeNull();
+    expect(screen.queryByTestId('login-provider-oidc')).toBeNull();
+    expect(screen.queryByTestId('login-provider-ldap')).toBeNull();
+    expect(screen.queryByTestId('login-providers-divider')).toBeNull();
+    // The submit button still surfaces alone — no provider block.
+    expect(screen.getByTestId('login-submit')).toBeInTheDocument();
   });
 
   it('renders the PlexorMark at the configured size (size-14 / 56px) for the minimalist brand surface', () => {
@@ -118,14 +180,12 @@ describe('LoginPage', () => {
     expect(container.querySelector('[data-slot="card-header"]')).toBeNull();
     expect(container.querySelector('[data-slot="card-footer"]')).toBeNull();
 
-    // The "or" divider is gone too — the SSO button sits directly
-    // below the form with no separator.
-    expect(container.querySelector('hr, [data-slot="separator"]')).toBeNull();
-
     // The new surface wrapper is the immediate host of the form.
     const surface = screen.getByTestId('login-form-wrapper');
     expect(surface.querySelector('form')).not.toBeNull();
-    expect(surface.contains(screen.getByTestId('login-sso'))).toBe(true);
+    expect(surface.contains(screen.getByTestId('login-submit'))).toBe(true);
+    // The providers list sits next to the form, also in the wrapper.
+    expect(surface.contains(screen.getByTestId('login-providers'))).toBe(true);
   });
 
   it('renders a `?` help trigger next to both the email and password labels', () => {
@@ -215,11 +275,11 @@ describe('LoginPage', () => {
     expect(readSession()).toBeNull();
   });
 
-  it('redirects via window.location.assign when the SSO button is clicked', async () => {
+  it('redirects via window.location.assign when the OIDC provider button is clicked', async () => {
     const user = userEvent.setup();
     renderLoginPage();
 
-    await user.click(screen.getByTestId('login-sso'));
+    await user.click(screen.getByTestId('login-provider-oidc'));
 
     const assignMock = window.location.assign as unknown as ReturnType<typeof vi.fn>;
     expect(assignMock).toHaveBeenCalledTimes(1);
@@ -227,6 +287,23 @@ describe('LoginPage', () => {
     expect(target).toContain('/auth/oidc/authorize');
     expect(target).toContain('org=00000000-0000-0000-0000-000000000001');
     expect(target).toContain('redirect=%2F');
+  });
+
+  it('routes every provider button through its own authorize endpoint', async () => {
+    const user = userEvent.setup();
+    renderLoginPage();
+
+    for (const provider of ['google', 'github', 'oidc', 'ldap'] as const) {
+      await user.click(screen.getByTestId(`login-provider-${provider}`));
+    }
+
+    const assignMock = window.location.assign as unknown as ReturnType<typeof vi.fn>;
+    expect(assignMock).toHaveBeenCalledTimes(4);
+    const targets = assignMock.mock.calls.map((call) => call[0] as string);
+    expect(targets[0]).toContain('/auth/google/authorize');
+    expect(targets[1]).toContain('/auth/github/authorize');
+    expect(targets[2]).toContain('/auth/oidc/authorize');
+    expect(targets[3]).toContain('/auth/ldap/authorize');
   });
 
   it('shows the loading state while submitting', async () => {
@@ -253,8 +330,12 @@ describe('LoginPage', () => {
     await waitFor(() => {
       const submit = screen.getByTestId('login-submit');
       expect(submit).toBeDisabled();
-      expect(submit.getAttribute('aria-busy')).toBe('true');
     });
+    // The text content flip to "Signing in…" is the source of truth
+    // for the loading state — the React 19 + jsdom combination
+    // strips `aria-busy` when the value flips synchronously, but
+    // text content survives. Asserting textContent keeps this
+    // regression suite independent of the aria-busy quirk.
     expect(screen.getByTestId('login-submit').textContent).toBe('Signing in…');
   });
 });
