@@ -17,13 +17,19 @@
  * tokens through the @theme inline declarations below, which reference
  * the runtime CSS custom properties.
  *
- * The `:root` and `.dark` blocks below carry the FIRST-PAINT BASELINE:
- * the same OKLCH values as `plexor-default-light` / `plexor-default-dark`,
- * so the initial paint is fully themed before any JS runs (and the
- * preset application in PreferencesProvider is a no-op for these
- * defaults). A future commit will replace them with an inline boot script
- * that calls applyPreset synchronously; the registry values are the
- * source of truth either way.
+ * The `:root` and `.dark` blocks below carry the FIRST-PAINT BASELINE
+ * for themed tokens: the same OKLCH values as `plexor-default-light` /
+ * `plexor-default-dark`, so the initial paint is fully themed before
+ * any JS runs (and the preset application in PreferencesProvider is a
+ * no-op for these defaults). A future commit will replace them with
+ * an inline boot script that calls applyPreset synchronously; the
+ * registry values are the source of truth either way.
+ *
+ * Theme-independent design-system constants (z-index scale, animation
+ * durations, easing curves, container widths, font-size additions)
+ * also live in `:root` and `.dark` but are NOT part of `TokenName`
+ * — they have the same value in every preset and never re-render.
+ * They are documented inline next to their declarations.
  * ========================================================================= */
 
 :root {
@@ -95,6 +101,81 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ─── Z-index scale (project-wide; same in both themes) ───
+   * Replaces the `z-50` / `z-10` magic numbers scattered across
+   * primitives (dialog, popover, dropdown, hover-card, etc.). Each
+   * step has a documented role; primitives should reference the
+   * semantic name (`z-modal`, `z-tooltip`) over a numeric `z-N`.
+   * Values are the de-facto industry convention (Bootstrap / Radix /
+   * shadcn), not Tailwind defaults. */
+  --z-base: 0;
+  --z-hide: -1;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal-backdrop: 1240;
+  --z-modal: 1250;
+  --z-popover: 1300;
+  --z-toast: 1500;
+  --z-tooltip: 1600;
+
+  /* ─── Animation durations (project-wide; same in both themes) ───
+   * Names map to intent, not duration in ms. `duration-instant` for
+   * zero-duration (used in mid-swipe to cancel transitions); the rest
+   * form a 5-step ramp. Tailwind's defaults (`duration-75`, `-100`,
+   * `-150`, `-200`, `-300`, `-500`, `-700`, `-1000`) remain available
+   * for one-off animations that don't fit the ramp. */
+  --duration-instant: 0ms;
+  --duration-fast: 100ms;
+  --duration-normal: 150ms;
+  --duration-medium: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 450ms;
+
+  /* ─── Easing curves (project-wide; same in both themes) ───
+   * Names map to intent, not the underlying cubic-bezier. The three
+   * `*-expo` / `spring` curves are the same literals that drawer.tsx
+   * and message-scroller.tsx already use — they were unnamed
+   * `cubic-bezier(0.22, 1, 0.36, 1)` literals in the source; this
+   * gives them a vocabulary. Tailwind's `ease-in`, `ease-out`,
+   * `ease-in-out` are still available (these are additive). */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-expo: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-spring: cubic-bezier(0.45, 1.005, 0, 1.005);
+
+  /* ─── Container widths (project-wide; same in both themes) ───
+   * Used as `max-w-xs` / `max-w-md` etc. — Tailwind 4 reads these
+   * automatically via the `@theme inline` mapping below. The `xs`
+   * step is tighter than Tailwind's default (`xs: 20rem`) to match
+   * the operator-console density where narrow tooltips and popovers
+   * land. */
+  --container-xs: 20rem;
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+  --container-xl: 36rem;
+  --container-2xl: 42rem;
+  --container-3xl: 48rem;
+  --container-4xl: 56rem;
+  --container-5xl: 64rem;
+  --container-6xl: 72rem;
+  --container-7xl: 80rem;
+
+  /* ─── Font size scale — Plexor-only steps ───
+   * Two additions to Tailwind's default scale: `text-2xs` (10px, for
+   * badge labels and ultra-tight metadata) and `text-md` (15px, for
+   * "in-between" reading sizes). Tailwind's `--text-xs` (12px) and
+   * `--text-base` (16px) are NOT overridden — current primitives
+   * assume these defaults. Line-height companions follow the
+   * `--text-2xs--line-height` naming Tailwind 4 expects. */
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+  --text-md: 0.9375rem;
+  --text-md--line-height: 1.375rem;
 }
 
 .dark {
@@ -155,6 +236,51 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* ─── Z-index, durations, easing, container, font-2xs/md ───
+   * Identical to :root — these are design-system constants, not
+   * theme tokens. See the matching :root block for documented intent. */
+  --z-base: 0;
+  --z-hide: -1;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal-backdrop: 1240;
+  --z-modal: 1250;
+  --z-popover: 1300;
+  --z-toast: 1500;
+  --z-tooltip: 1600;
+
+  --duration-instant: 0ms;
+  --duration-fast: 100ms;
+  --duration-normal: 150ms;
+  --duration-medium: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 450ms;
+
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-expo: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-spring: cubic-bezier(0.45, 1.005, 0, 1.005);
+
+  --container-xs: 20rem;
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-lg: 32rem;
+  --container-xl: 36rem;
+  --container-2xl: 42rem;
+  --container-3xl: 48rem;
+  --container-4xl: 56rem;
+  --container-5xl: 64rem;
+  --container-6xl: 72rem;
+  --container-7xl: 80rem;
+
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+  --text-md: 0.9375rem;
+  --text-md--line-height: 1.375rem;
 }
 
 /* =========================================================================
@@ -232,6 +358,66 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Z-index scale — gives `z-base`, `z-dropdown`, `z-sticky`,
+   * `z-fixed`, `z-modal-backdrop`, `z-modal`, `z-popover`, `z-toast`,
+   * `z-tooltip` utilities. Replaces the `z-50` / `z-10` magic
+   * numbers in primitives. */
+  --z-index-base: var(--z-base);
+  --z-index-hide: var(--z-hide);
+  --z-index-dropdown: var(--z-dropdown);
+  --z-index-sticky: var(--z-sticky);
+  --z-index-fixed: var(--z-fixed);
+  --z-index-modal-backdrop: var(--z-modal-backdrop);
+  --z-index-modal: var(--z-modal);
+  --z-index-popover: var(--z-popover);
+  --z-index-toast: var(--z-toast);
+  --z-index-tooltip: var(--z-tooltip);
+
+  /* Animation durations — gives `duration-instant`, `duration-fast`,
+   * `duration-normal`, `duration-medium`, `duration-slow`,
+   * `duration-slower` utilities. The `--transition-duration-*` keys
+   * are what Tailwind 4 reads for `duration-*` utilities (NOT
+   * `--animate-duration-*` or `--duration-*`); these mappings
+   * ADJOIN the static values Tailwind ships (75/100/150/200/300/
+   * 500/700/1000 ms), they don't replace them. */
+  --transition-duration-instant: var(--duration-instant);
+  --transition-duration-fast: var(--duration-fast);
+  --transition-duration-normal: var(--duration-normal);
+  --transition-duration-medium: var(--duration-medium);
+  --transition-duration-slow: var(--duration-slow);
+  --transition-duration-slower: var(--duration-slower);
+
+  /* Easing curves — gives `ease-out-expo`, `ease-in-out-expo`,
+   * `ease-spring` utilities. Tailwind's `ease-in`, `ease-out`,
+   * `ease-in-out` remain available. */
+  --ease-out-expo: var(--ease-out-expo);
+  --ease-in-out-expo: var(--ease-in-out-expo);
+  --ease-spring: var(--ease-spring);
+
+  /* Container widths — gives `max-w-xs` … `max-w-7xl` utilities that
+   * map to the Plexor scale (Tailwind 4 reads `--container-*` keys
+   * via `@theme`). Tailwind's default `max-w-*` utility names remain
+   * resolvable — these mappings REPLACE the Tailwind defaults with
+   * Plexor's scale. */
+  --container-xs: var(--container-xs);
+  --container-sm: var(--container-sm);
+  --container-md: var(--container-md);
+  --container-lg: var(--container-lg);
+  --container-xl: var(--container-xl);
+  --container-2xl: var(--container-2xl);
+  --container-3xl: var(--container-3xl);
+  --container-4xl: var(--container-4xl);
+  --container-5xl: var(--container-5xl);
+  --container-6xl: var(--container-6xl);
+  --container-7xl: var(--container-7xl);
+
+  /* Font size scale — Plexor-only steps. `text-2xs` (10px) and
+   * `text-md` (15px) join Tailwind's `text-xs` … `text-9xl`. */
+  --text-2xs: var(--text-2xs);
+  --text-2xs--line-height: var(--text-2xs--line-height);
+  --text-md: var(--text-md);
+  --text-md--line-height: var(--text-md--line-height);
 }
 
 @layer base {
