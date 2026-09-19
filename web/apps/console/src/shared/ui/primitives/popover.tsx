@@ -3,6 +3,7 @@ import {
   DialogTrigger,
   Heading,
   Popover as PopoverPrimitive,
+  Pressable,
   Text,
   type Placement,
 } from "react-aria-components"
@@ -71,22 +72,25 @@ interface PopoverTriggerProps {
 }
 
 /**
- * base-ui compat trigger. DialogTrigger clones this component with the
- * press/focus/aria props it needs; we forward them onto the render
- * target (caller children win over the render element's own — Button's
- * composeRender semantics).
+ * base-ui compat trigger. DialogTrigger delivers press/focus/aria props
+ * via React context (PressResponder) — only RAC pressables consume them —
+ * so the render target is wrapped in `<Pressable>` (the DropdownMenuTrigger
+ * approach); caller children win over the render element's own.
  */
-function PopoverTrigger({ render, className, children, ...props }: PopoverTriggerProps) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const PressableAny = Pressable as unknown as React.FC<{ children?: any }>
+
+function PopoverTrigger({ render, className, children }: PopoverTriggerProps) {
   if (render !== undefined && React.isValidElement(render)) {
     const original = render.props
-    return React.cloneElement(render, {
-      ...props,
+    const cloned = React.cloneElement(render, {
       className: cn(original.className, className),
       children: children ?? original.children,
     } as typeof original & Record<string, unknown>)
+    return <PressableAny>{cloned}</PressableAny>
   }
   return (
-    <Button data-slot="popover-trigger" className={className} {...props}>
+    <Button data-slot="popover-trigger" className={className}>
       {children}
     </Button>
   )
