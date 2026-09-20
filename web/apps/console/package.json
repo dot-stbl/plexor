@@ -9,6 +9,7 @@
     "build": "vite build",
     "build:mock": "VITE_USE_MOCKS=true vite build",
     "preview": "vite preview",
+    "gate": "bun run typecheck && bun run lint && bun run test",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:mocks": "VITE_USE_MOCKS=true vitest run",
