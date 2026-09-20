@@ -4,8 +4,6 @@
 import { describe, expect, it } from "vitest"
 import { render, screen } from "@testing-library/react"
 
-import { Kbd } from "./kbd"
-
 import {
   Tooltip,
   TooltipContent,
@@ -100,7 +98,7 @@ describe("Tooltip", () => {
           <button type="button">Trigger</button>
         </TooltipTrigger>
         <TooltipContent data-testid="tt">
-          <Kbd>⌘K</Kbd>
+          <span data-slot="kbd">⌘K</span>
         </TooltipContent>
       </Tooltip>,
     )
