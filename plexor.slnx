@@ -123,6 +123,18 @@
         <Project Path="src/installer/Plexor.Installer.Os/Plexor.Installer.Os.csproj" />
     </Folder>
 
+    <!-- ============ Providers (control-plane-side) ======================== -->
+    <!-- Out-of-band from /src/modules/ — providers are remote integrations
+         (control plane talks to a remote system) rather than bounded-
+         context modules. vSphere is the first real consumer of the
+         planned `outpost` schema (issue #77). -->
+    <Folder Name="/src/providers/" />
+    <Folder Name="/src/providers/Plexor.Providers.VSphere/">
+        <Project Path="src/providers/Plexor.Providers.VSphere/Plexor.Providers.VSphere.csproj" />
+        <Project Path="src/providers/Plexor.Providers.VSphere.Infrastructure/Plexor.Providers.VSphere.Infrastructure.csproj" />
+        <Project Path="src/providers/Plexor.Providers.VSphere.Api/Plexor.Providers.VSphere.Api.csproj" />
+    </Folder>
+
     <!-- ============ Tests =================================================== -->
     <Folder Name="/tests/" />
     <Folder Name="/tests/unit/">
@@ -149,6 +161,7 @@
     <Project Path="tests/unit/Plexor.Shared.Authorization.Unit/Plexor.Shared.Authorization.Unit.csproj" />
         <Project Path="tests/unit/Plexor.Shared.Identifiers.Unit/Plexor.Shared.Identifiers.Unit.csproj" />
         <Project Path="tests/unit/Plexor.NodeAgent.Unit/Plexor.NodeAgent.Unit.csproj" />
+        <Project Path="tests/unit/Plexor.Providers.VSphere.Unit/Plexor.Providers.VSphere.Unit.csproj" />
     </Folder>
 
     <!-- ============ Benchmarks =================================================== -->

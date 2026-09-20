@@ -22,14 +22,15 @@ using Plexor.Modules.Audit.Infrastructure.Persistence;
 using Plexor.Modules.Branding.Infrastructure.Installers;
 using Plexor.Modules.Branding.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Network.Infrastructure.Persistence;
 using Plexor.Modules.Quotas.Infrastructure.Installers;
 using Plexor.Modules.Quotas.Infrastructure.Persistence;
 using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
-using Plexor.Modules.Network.Infrastructure.Persistence;
 using Plexor.Modules.Storage.Infrastructure.Persistence;
+using Plexor.Providers.VSphere.Infrastructure.Persistence;
 using Plexor.Shared.Configuration;
 using Plexor.Shared.Mtls.Persistence;
 using Plexor.Shared.Persistence;
@@ -81,6 +82,7 @@ builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<StorageDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<NetworkDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<VSphereDbContext>(plexorDataSource);
 builder.Services.AddScoped<IAuditDbContext>(sp => sp.GetRequiredService<AuditDbContext>());
 
 // Realm auth-providers (4.6.1) — wired BEFORE Sigil infrastructure.

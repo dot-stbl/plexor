@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Kernel\Plexor.Shared.Kernel.csproj" />
+    <ProjectReference Include="..\..\shared\kernel\Plexor.Shared.Contracts\Plexor.Shared.Contracts.csproj" />
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Http\Plexor.Shared.Http.csproj" />
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Configuration\Plexor.Shared.Configuration.csproj" />
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Telemetry\Plexor.Shared.Telemetry.csproj" />
+    <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Composition\Plexor.Shared.Composition.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Refit" Version="12.1.0" />
+    <PackageReference Include="Refit.HttpClientFactory" Version="12.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.9" />
+    <PackageReference Remove="Meziantou.Analyzer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Plexor.Providers.VSphere.Unit" />
+  </ItemGroup>
+
+</Project>

@@ -495,6 +495,7 @@ dotnet_diagnostic.MA0197.severity = suggestion # unused private member (gen: flu
 dotnet_diagnostic.CA1861.severity = suggestion # constant array allocation (gen: every time)
 dotnet_diagnostic.CA1305.severity = suggestion # locale-specific string op (gen: SQL string keys)
 dotnet_diagnostic.CA1822.severity = suggestion # make member static (gen: instance pattern)
+dotnet_diagnostic.CA1825.severity = suggestion # zero-length array allocation (gen: new bool[0] in CreateIndex)
 dotnet_diagnostic.RCS1036.severity = suggestion # unnecessary blank line (gen: fluent formatting)
 dotnet_diagnostic.RCS1037.severity = suggestion # trailing whitespace (gen: CRLF artifacts)
 dotnet_diagnostic.RCS1038.severity = suggestion # file header copyright (gen: no copyright)
@@ -522,6 +523,7 @@ dotnet_diagnostic.MA0197.severity = suggestion
 dotnet_diagnostic.CA1861.severity = suggestion
 dotnet_diagnostic.CA1305.severity = suggestion
 dotnet_diagnostic.CA1822.severity = suggestion
+dotnet_diagnostic.CA1825.severity = suggestion
 dotnet_diagnostic.RCS1141.severity = suggestion
 charset = unset
 
