@@ -1,4 +1,5 @@
 export { createAuditQueryResponse } from "./createAuditQueryResponse.ts";
+export { createAuthLoginResponse } from "./createAuthLoginResponse.ts";
 export { createBrandingBootConfig } from "./createBrandingBootConfig.ts";
 export { createCreateVmRequest } from "./createCreateVmRequest.ts";
 export { createDeleteBrandingOrg204, createDeleteBrandingOrg404, createDeleteBrandingOrgError, createDeleteBrandingOrgMutationResponse, createDeleteBrandingOrgPathParams } from "./createDeleteBrandingOrg.ts";
@@ -35,6 +36,9 @@ export { createNodeJoinResponse } from "./createNodeJoinResponse.ts";
 export { createOrgAuthProviderConfigResponse } from "./createOrgAuthProviderConfigResponse.ts";
 export { createOrgAuthProviderTestResult } from "./createOrgAuthProviderTestResult.ts";
 export { createOrgBrandingConfigResponse } from "./createOrgBrandingConfigResponse.ts";
+export { createPostAuthLogin200, createPostAuthLogin401, createPostAuthLogin422, createPostAuthLoginError, createPostAuthLoginMutationRequest, createPostAuthLoginMutationResponse } from "./createPostAuthLogin.ts";
+export { createPostAuthLoginRequest } from "./createPostAuthLoginRequest.ts";
+export { createPostAuthLoginUser } from "./createPostAuthLoginUser.ts";
 export { createPostOidcLogout204, createPostOidcLogoutError, createPostOidcLogoutMutationResponse } from "./createPostOidcLogout.ts";
 export { createProblemDetails } from "./createProblemDetails.ts";
 export { createProvisionVm201, createProvisionVm422, createProvisionVmError, createProvisionVmMutationRequest, createProvisionVmMutationResponse } from "./createProvisionVm.ts";

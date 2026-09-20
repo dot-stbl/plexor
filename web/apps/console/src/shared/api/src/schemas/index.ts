@@ -1,4 +1,5 @@
 export { auditQueryResponseSchema } from "./auditQueryResponseSchema.ts";
+export { authLoginResponseSchema } from "./authLoginResponseSchema.ts";
 export { brandingBootConfigSchema } from "./brandingBootConfigSchema.ts";
 export { createVmRequestSchema } from "./createVmRequestSchema.ts";
 export { deleteBrandingOrg204Schema, deleteBrandingOrg404Schema, deleteBrandingOrgErrorSchema, deleteBrandingOrgMutationResponseSchema, deleteBrandingOrgPathParamsSchema } from "./deleteBrandingOrgSchema.ts";
@@ -35,6 +36,9 @@ export { nodeJoin201Schema, nodeJoin400Schema, nodeJoinMutationRequestSchema, no
 export { orgAuthProviderConfigResponseSchema } from "./orgAuthProviderConfigResponseSchema.ts";
 export { orgAuthProviderTestResultSchema } from "./orgAuthProviderTestResultSchema.ts";
 export { orgBrandingConfigResponseSchema } from "./orgBrandingConfigResponseSchema.ts";
+export { postAuthLoginRequestSchema } from "./postAuthLoginRequestSchema.ts";
+export { postAuthLogin200Schema, postAuthLogin401Schema, postAuthLogin422Schema, postAuthLoginErrorSchema, postAuthLoginMutationRequestSchema, postAuthLoginMutationResponseSchema } from "./postAuthLoginSchema.ts";
+export { postAuthLoginUserSchema } from "./postAuthLoginUserSchema.ts";
 export { postOidcLogout204Schema, postOidcLogoutErrorSchema, postOidcLogoutMutationResponseSchema } from "./postOidcLogoutSchema.ts";
 export { problemDetailsSchema } from "./problemDetailsSchema.ts";
 export { provisionVm201Schema, provisionVm422Schema, provisionVmErrorSchema, provisionVmMutationRequestSchema, provisionVmMutationResponseSchema } from "./provisionVmSchema.ts";
