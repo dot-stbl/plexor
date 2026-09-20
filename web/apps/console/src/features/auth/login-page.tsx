@@ -1,10 +1,11 @@
-import { useCallback, useState, type FormEvent } from 'react';
+import { useCallback, useState, type FormEvent, type ComponentType, type SVGProps } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { ZodError } from 'zod';
-import { Code, Key, Mail, Shield } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { Key, Shield } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import type { Icon } from '@nine-thirty-five/material-symbols-react';
+import { GoogleIcon, GithubIcon } from './provider-icons';
 import { Input } from '@/shared/ui/primitives/input';
 import { PasswordInput } from '@/shared/ui/primitives/password-input';
 import { Button } from '@/shared/ui/primitives/button';
@@ -62,18 +63,19 @@ type AuthProvider = 'google' | 'github' | 'oidc' | 'ldap';
 interface ProviderDescriptor {
   id: AuthProvider;
   flagKey: 'auth.showGoogle' | 'auth.showGitHub' | 'auth.showOidc' | 'auth.showLdap';
-  icon: Icon;
+  icon: Icon | ComponentType<SVGProps<SVGSVGElement>>;
   i18nKey: string;
 }
 
-// Google keeps the mail glyph the hugeicons version used; GitHub gets a
-// code glyph — Material Symbols ships no brand logos, and the button is
-// labeled by i18n anyway, so the mark is decorative.
+// Provider marks: Google + GitHub get official brand SVGs (provider-icons.tsx).
+// OIDC and LDAP fall back to generic material-symbols glyphs — there's no
+// canonical mark for those protocols. The button text is the primary label;
+// the icon is decorative.
 const PROVIDERS: readonly ProviderDescriptor[] = [
-  { id: 'google', flagKey: 'auth.showGoogle', icon: Mail, i18nKey: 'auth.login.providers.google' },
-  { id: 'github', flagKey: 'auth.showGitHub', icon: Code, i18nKey: 'auth.login.providers.github' },
-  { id: 'oidc',   flagKey: 'auth.showOidc',   icon: Shield, i18nKey: 'auth.login.providers.oidc' },
-  { id: 'ldap',   flagKey: 'auth.showLdap',   icon: Key, i18nKey: 'auth.login.providers.ldap' },
+  { id: 'google', flagKey: 'auth.showGoogle', icon: GoogleIcon, i18nKey: 'auth.login.providers.google' },
+  { id: 'github', flagKey: 'auth.showGitHub', icon: GithubIcon, i18nKey: 'auth.login.providers.github' },
+  { id: 'oidc',   flagKey: 'auth.showOidc',   icon: Shield,    i18nKey: 'auth.login.providers.oidc' },
+  { id: 'ldap',   flagKey: 'auth.showLdap',   icon: Key,       i18nKey: 'auth.login.providers.ldap' },
 ];
 
 export interface LoginPageProps {
@@ -273,21 +275,24 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
                 <Separator className="flex-1" />
               </div>
 
-              <div className="flex flex-col gap-2" data-testid="login-providers">
+              <div
+                className="flex flex-wrap items-stretch gap-2"
+                data-testid="login-providers"
+              >
                 {visibleProviders.map((provider) => {
                   const Icon = provider.icon;
                   return (
                     <Button
                       key={provider.id}
                       type="button"
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      className="w-full"
+                      className="min-w-[180px] flex-1 basis-[calc(50%-0.25rem)] justify-center"
                       onClick={() => handleProvider(provider.id)}
                       disabled={isSubmitting}
                       data-testid={`login-provider-${provider.id}`}
                     >
-                      <Icon size={14} aria-hidden="true" />
+                      <Icon className="size-4 shrink-0" aria-hidden="true" />
                       {t(provider.i18nKey)}
                     </Button>
                   );
