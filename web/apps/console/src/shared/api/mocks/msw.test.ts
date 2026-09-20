@@ -19,10 +19,16 @@
  *   - A unit test of any specific handler's body. The kubb factories
  *     emit bodies via the fixture functions; verifying a specific
  *     field value would re-test faker's `arrayElement`, not our wiring.
+ *
+ * Location: this file lives in `mocks/` (NOT inside `../src/msw/`) on
+ * purpose — kubb's `output.clean: true` wipes `../src/` on every regen,
+ * which used to delete this hand-written test. Handler factories are
+ * still imported from the generated `../src/msw` modules via
+ * `./handlers`.
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { setupServer } from 'msw/node';
-import { handlers } from '../../mocks/handlers';
+import { handlers } from './handlers';
 
 const server = setupServer(...handlers);
 
@@ -152,8 +158,8 @@ describe('MSW handler coverage — admin-page mount surface', () => {
   });
 
   // ───────────────────────── Login (1) ─────────────────────────
-  // Phase 4.6 endpoint — kubb skipped this in the MSW + faker pass
-  // (kz note in msw/postAuthLoginHandler.ts). The dev:mock worker
+  // Phase 4.6 endpoint — not in the contract yet, so the handler is
+  // handmade (see mocks/handmade/post-auth-login.ts). The dev:mock worker
   // returns 200 + a kubb-shaped login response so the login page's
   // postAuthLogin() always resolves with a usable mock triple.
 
