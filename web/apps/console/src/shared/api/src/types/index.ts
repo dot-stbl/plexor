@@ -35,7 +35,6 @@ export type { NodeJoinResponse } from "./NodeJoinResponse.ts";
 export type { OrgAuthProviderConfigResponse, OrgAuthProviderConfigResponseProviderEnumKey } from "./OrgAuthProviderConfigResponse.ts";
 export type { OrgAuthProviderTestResult } from "./OrgAuthProviderTestResult.ts";
 export type { OrgBrandingConfigResponse } from "./OrgBrandingConfigResponse.ts";
-export type { PostAuthLogin200, PostAuthLogin401, PostAuthLoginError, PostAuthLoginMutation, PostAuthLoginMutationRequest, PostAuthLoginMutationResponse } from "./PostAuthLogin.ts";
 export type { PostOidcLogout204, PostOidcLogoutError, PostOidcLogoutMutation, PostOidcLogoutMutationResponse } from "./PostOidcLogout.ts";
 export type { ProblemDetails } from "./ProblemDetails.ts";
 export type { ProvisionVm201, ProvisionVm422, ProvisionVmError, ProvisionVmMutation, ProvisionVmMutationRequest, ProvisionVmMutationResponse } from "./ProvisionVm.ts";
@@ -53,9 +52,9 @@ export type { UpdateOrgAuthProvider200, UpdateOrgAuthProvider400, UpdateOrgAuthP
 export type { UpsertGlobalThemeConfigRequest } from "./UpsertGlobalThemeConfigRequest.ts";
 export type { UpsertOrgAuthProviderRequest, UpsertOrgAuthProviderRequestProviderEnumKey } from "./UpsertOrgAuthProviderRequest.ts";
 export type { UpsertOrgBrandingRequest } from "./UpsertOrgBrandingRequest.ts";
-export type { UpsertThemeInstallationRequest } from "./UpsertThemeInstallationRequest.ts";
 export type { UpsertQuotaAssignment200, UpsertQuotaAssignment400, UpsertQuotaAssignmentError, UpsertQuotaAssignmentMutation, UpsertQuotaAssignmentMutationRequest, UpsertQuotaAssignmentMutationResponse, UpsertQuotaAssignmentQueryParams, UpsertQuotaAssignmentQueryParamsScopeEnumKey } from "./UpsertQuotaAssignment.ts";
 export type { UpsertQuotaAssignmentRequest, UpsertQuotaAssignmentRequestScopeEnumKey } from "./UpsertQuotaAssignmentRequest.ts";
+export type { UpsertThemeInstallationRequest } from "./UpsertThemeInstallationRequest.ts";
 export type { Vm } from "./Vm.ts";
 export type { VmDetail } from "./VmDetail.ts";
 export type { VmList } from "./VmList.ts";

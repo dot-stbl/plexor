@@ -59,11 +59,6 @@ import {
   getOrgAuthProviderHandler,
   updateOrgAuthProviderHandler,
   testOrgAuthProviderHandler,
-  // Login (1 — kubb skipped this in the MSW pass; see kz note in
-  // msw/postAuthLoginHandler.ts. Returns 200 + kubb-generated faker
-  // fixture so the FE's postAuthLogin() always resolves with a
-  // mock-shaped body in dev:mock mode.)
-  postAuthLoginHandler,
   // OIDC (3 — see note below)
   getOidcAuthorizeHandler,
   getOidcCallbackHandler,
@@ -86,8 +81,11 @@ import {
   createAuditQueryResponse,
   createOrgAuthProviderConfigResponse,
   createOrgAuthProviderTestResult,
-  createPostAuthLogin200,
 } from '@/shared/api';
+// Login (1) — POST /auth/login is not in the contract yet; the handler +
+// fixture are handmade. Returns 200 + a faker-shaped login response so the
+// FE's postAuthLogin() always resolves with a mock-shaped body in dev:mock.
+import { createPostAuthLogin200, postAuthLoginHandler } from './handmade/post-auth-login';
 import { FLEET, FLEET_BY_ID, resetMockRng } from '@/mocks';
 
 // Deterministic mocks — same data every reload (stable UI + screenshots).
@@ -162,8 +160,8 @@ export const handlers: RequestHandler[] = [
 
   // ───────────────────────── Login (1) ─────────────────────────
   //
-  // Phase 4.6 endpoint — kubb skipped it in the MSW + faker pass
-  // (kz note in msw/postAuthLoginHandler.ts). 200 with a hand-crafted
+  // Phase 4.6 endpoint — not in the contract yet, so the handler is
+  // handmade (handmade/post-auth-login.ts). 200 with a hand-crafted
   // token + user triple so postAuthLogin() in dev:mock mode always
   // resolves with a mock-shaped body. Tokens come from faker so
   // each reload is fresh; matches the dev:mock session-bearer contract.
