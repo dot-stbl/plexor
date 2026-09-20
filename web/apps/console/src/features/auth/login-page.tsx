@@ -3,13 +3,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { ZodError } from 'zod';
-import {
-  GithubIcon,
-  KeyRoundIcon,
-  Mail01Icon,
-  ShieldIcon,
-} from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
+import { Code, Key, Mail, Shield } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import { Input } from '@/shared/ui/primitives/input';
 import { PasswordInput } from '@/shared/ui/primitives/password-input';
 import { Button } from '@/shared/ui/primitives/button';
@@ -67,15 +62,18 @@ type AuthProvider = 'google' | 'github' | 'oidc' | 'ldap';
 interface ProviderDescriptor {
   id: AuthProvider;
   flagKey: 'auth.showGoogle' | 'auth.showGitHub' | 'auth.showOidc' | 'auth.showLdap';
-  icon: typeof GithubIcon;
+  icon: Icon;
   i18nKey: string;
 }
 
+// Google keeps the mail glyph the hugeicons version used; GitHub gets a
+// code glyph — Material Symbols ships no brand logos, and the button is
+// labeled by i18n anyway, so the mark is decorative.
 const PROVIDERS: readonly ProviderDescriptor[] = [
-  { id: 'google', flagKey: 'auth.showGoogle', icon: Mail01Icon, i18nKey: 'auth.login.providers.google' },
-  { id: 'github', flagKey: 'auth.showGitHub', icon: GithubIcon, i18nKey: 'auth.login.providers.github' },
-  { id: 'oidc',   flagKey: 'auth.showOidc',   icon: ShieldIcon, i18nKey: 'auth.login.providers.oidc' },
-  { id: 'ldap',   flagKey: 'auth.showLdap',   icon: KeyRoundIcon, i18nKey: 'auth.login.providers.ldap' },
+  { id: 'google', flagKey: 'auth.showGoogle', icon: Mail, i18nKey: 'auth.login.providers.google' },
+  { id: 'github', flagKey: 'auth.showGitHub', icon: Code, i18nKey: 'auth.login.providers.github' },
+  { id: 'oidc',   flagKey: 'auth.showOidc',   icon: Shield, i18nKey: 'auth.login.providers.oidc' },
+  { id: 'ldap',   flagKey: 'auth.showLdap',   icon: Key, i18nKey: 'auth.login.providers.ldap' },
 ];
 
 export interface LoginPageProps {
@@ -289,12 +287,7 @@ export function LoginPage({ navigate: navigateOverride }: LoginPageProps = {}) {
                       disabled={isSubmitting}
                       data-testid={`login-provider-${provider.id}`}
                     >
-                      <HugeiconsIcon
-                        icon={Icon}
-                        size={14}
-                        strokeWidth={1.75}
-                        aria-hidden="true"
-                      />
+                      <Icon size={14} aria-hidden="true" />
                       {t(provider.i18nKey)}
                     </Button>
                   );
