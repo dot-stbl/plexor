@@ -36,7 +36,6 @@ public interface IVSphereClient
     ///     cluster / host / VM lists below filter by datacenter
     ///     mo-ref.
     /// </summary>
-    /// <param name="cancellationToken"></param>
     [Get("/api/vcenter/datacenter")]
     public Task<IReadOnlyList<DatacenterSummary>> ListDatacentersAsync(
         CancellationToken cancellationToken);
@@ -46,7 +45,6 @@ public interface IVSphereClient
     ///     Plexor UI uses the result to pick a placement target
     ///     for new VMs.
     /// </summary>
-    /// <param name="cancellationToken"></param>
     [Get("/api/vcenter/cluster")]
     public Task<IReadOnlyList<ClusterSummary>> ListClustersAsync(
         CancellationToken cancellationToken);
@@ -57,7 +55,6 @@ public interface IVSphereClient
     ///     mapper — the API surface returns the flat list and the
     ///     caller filters.
     /// </summary>
-    /// <param name="cancellationToken"></param>
     [Get("/api/vcenter/host")]
     public Task<IReadOnlyList<HostSummary>> ListHostsAsync(
         CancellationToken cancellationToken);
@@ -67,7 +64,6 @@ public interface IVSphereClient
     ///     The UI uses the result to show tenant-owned VMs + to
     ///     reject name collisions before provisioning.
     /// </summary>
-    /// <param name="cancellationToken"></param>
     [Get("/api/vcenter/vm")]
     public Task<IReadOnlyList<VirtualMachineSummary>> ListVirtualMachinesAsync(
         CancellationToken cancellationToken);
@@ -77,7 +73,6 @@ public interface IVSphereClient
     ///     Templates are the source side of every clone operation
     ///     the provisioning service performs.
     /// </summary>
-    /// <param name="cancellationToken"></param>
     [Get("/api/vcenter/vm-template")]
     public Task<IReadOnlyList<TemplateSummary>> ListTemplatesAsync(
         CancellationToken cancellationToken);
@@ -87,7 +82,6 @@ public interface IVSphereClient
     ///     Folders to <c>kind="VM"</c> inventory folders for
     ///     clone placement.
     /// </summary>
-    /// <param name="cancellationToken"></param>
     [Get("/api/vcenter/folder")]
     public Task<IReadOnlyList<InventoryFolderSummary>> ListFoldersAsync(
         CancellationToken cancellationToken);
@@ -98,7 +92,6 @@ public interface IVSphereClient
     ///     in the inventory so future iterations can target
     ///     pools directly.
     /// </summary>
-    /// <param name="cancellationToken"></param>
     [Get("/api/vcenter/resource-pool")]
     public Task<IReadOnlyList<ResourcePoolSummary>> ListResourcePoolsAsync(
         CancellationToken cancellationToken);
@@ -109,7 +102,6 @@ public interface IVSphereClient
     ///     consume this list (vCenter picks the cluster default
     ///     datastore when no explicit placement is given).
     /// </summary>
-    /// <param name="cancellationToken"></param>
     [Get("/api/vcenter/datastore")]
     public Task<IReadOnlyList<DatastoreSummary>> ListDatastoresAsync(
         CancellationToken cancellationToken);
@@ -123,7 +115,6 @@ public interface IVSphereClient
     ///     endpoint that accepts a template mo-ref directly.
     /// </summary>
     /// <param name="request"></param>
-    /// <param name="cancellationToken"></param>
     /// <remarks>
     ///     <b>Synchronous wait.</b> The call returns once vCenter
     ///     reports <c>SUCCESS</c> for the clone task; the

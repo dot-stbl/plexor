@@ -33,22 +33,16 @@ namespace Plexor.Providers.VSphere;
 /// <see cref="VSphereOptions" />.</param>
 public sealed class VSphereBasicAuthHandler(IOptionsMonitor<VSphereOptions> options) : DelegatingHandler
 {
-    /// <summary>Options monitor — current credentials at request
-    /// time.</summary>
-    private readonly IOptionsMonitor<VSphereOptions> options = options;
-
     /// <inheritdoc />
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
         var current = options.CurrentValue;
-        var credentials = Convert.ToBase64String(
-            Encoding.UTF8.GetBytes($"{current.Username}:{current.Password}"));
-
         request.Headers.Authorization = new AuthenticationHeaderValue(
             "Basic",
-            credentials);
+            Convert.ToBase64String(
+                Encoding.UTF8.GetBytes($"{current.Username}:{current.Password}")));
 
         return base.SendAsync(request, cancellationToken);
     }

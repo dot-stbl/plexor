@@ -20,10 +20,6 @@ namespace Plexor.Providers.VSphere.Unit;
 /// should return.</param>
 internal sealed class FakeClock(DateTimeOffset now) : TimeProvider
 {
-    /// <summary>The fixed instant returned by every
-    /// <c>GetUtcNow</c> call.</summary>
-    private readonly DateTimeOffset now = now;
-
     /// <inheritdoc />
     public override DateTimeOffset GetUtcNow()
     {

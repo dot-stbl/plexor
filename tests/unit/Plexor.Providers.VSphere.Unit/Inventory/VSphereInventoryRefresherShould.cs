@@ -67,7 +67,7 @@ public sealed class VSphereInventoryRefresherShould
 
         await using var db = await VSphereTestDb.CreateAsync();
         var clock = new FakeClock(new DateTimeOffset(2026, 9, 20, 12, 0, 0, TimeSpan.Zero));
-        var sut = new VSphereInventoryRefresher(client, db, clock, NullLogger<VSphereInventoryRefresher>.Instance);
+        var sut = new VSphereInventoryRefresher(clock, client, db, NullLogger<VSphereInventoryRefresher>.Instance);
 
         var snapshotId = await sut.RefreshAsync("primary", CancellationToken.None);
 
@@ -101,7 +101,7 @@ public sealed class VSphereInventoryRefresherShould
 
         await using var db = await VSphereTestDb.CreateAsync();
         var clock = new FakeClock(DateTimeOffset.UtcNow);
-        var sut = new VSphereInventoryRefresher(client, db, clock, NullLogger<VSphereInventoryRefresher>.Instance);
+        var sut = new VSphereInventoryRefresher(clock, client, db, NullLogger<VSphereInventoryRefresher>.Instance);
 
         var snapshotId = await sut.RefreshAsync("primary", CancellationToken.None);
 
@@ -134,7 +134,7 @@ public sealed class VSphereInventoryRefresherShould
 
         await using var db = await VSphereTestDb.CreateAsync();
         var clock = new FakeClock(DateTimeOffset.UtcNow);
-        var sut = new VSphereInventoryRefresher(client, db, clock, NullLogger<VSphereInventoryRefresher>.Instance);
+        var sut = new VSphereInventoryRefresher(clock, client, db, NullLogger<VSphereInventoryRefresher>.Instance);
 
         var first = await sut.RefreshAsync("primary", CancellationToken.None);
         var second = await sut.RefreshAsync("primary", CancellationToken.None);
