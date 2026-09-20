@@ -12,6 +12,14 @@ bun install
 bun run dev                # real backend at VITE_API_BASE_URL
 ```
 
+## Gate
+
+From `web/apps/console` before committing:
+
+```bash
+bun run gate               # typecheck + lint + test — must exit 0
+```
+
 ## Mock mode
 
 When the Plexor.Host backend is not yet available (or you want to demo UI

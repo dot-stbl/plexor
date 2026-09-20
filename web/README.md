@@ -24,6 +24,17 @@ bun install
 bun run dev
 ```
 
+## Gate
+
+Before committing FE changes, from `web/apps/console`:
+
+```bash
+bun run gate    # typecheck + lint + test — must exit 0
+```
+
+CI (`.github/workflows/web.yml`) runs the same gate plus production builds
+(`build`, `build:mock`, `build:storybook`) and a codegen drift-check.
+
 ## Architecture decisions
 
 See `.agents/docs/ui/architecture.md` for the full stack rationale.
@@ -31,7 +42,9 @@ See `.agents/docs/ui/architecture.md` for the full stack rationale.
 ## Codegen
 
 ```bash
-bun run codegen    # regenerate shared/api from openapi.json
+cd web/tooling/codegen
+bun run generate    # regenerate apps/console/src/shared/api/src from contracts/plexor.openapi.yaml
 ```
 
-Generated files are gitignored — never edit by hand.
+The generated client is committed — regenerating on a clean checkout must
+produce no diff (CI asserts this).
