@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Plexor.Providers.VSphere.Api.Models;
 using Plexor.Providers.VSphere.Infrastructure.Persistence;
 using Plexor.Shared.Contracts.Routes;
 
@@ -93,44 +94,50 @@ public static class VSphereInventoryEndpoint
             .Where(row => row.SnapshotId == header.Id)
             .ToListAsync(cancellationToken);
 
-        return Results.Ok(new
+        return Results.Ok(new VSphereInventoryResponse
         {
-            snapshot = new
+            Snapshot = new VSphereInventorySnapshotHeader
             {
-                id = header.Id,
-                vcenter_moref = header.VCenterMoref,
-                datacenter_count = header.DatacenterCount,
-                cluster_count = header.ClusterCount,
-                host_count = header.HostCount,
-                virtual_machine_count = header.VirtualMachineCount,
-                refreshed_at = header.RefreshedAt,
+                Id = header.Id,
+                VcenterMoref = header.VCenterMoref,
+                DatacenterCount = header.DatacenterCount,
+                ClusterCount = header.ClusterCount,
+                HostCount = header.HostCount,
+                VirtualMachineCount = header.VirtualMachineCount,
+                RefreshedAt = header.RefreshedAt,
             },
-            clusters = clusters.Select(static cluster => new
-            {
-                moref = cluster.Moref,
-                name = cluster.Name,
-                datacenter_moref = cluster.DatacenterMoref,
-                drs_enabled = cluster.DrsEnabled,
-            }),
-            hosts = hosts.Select(static host => new
-            {
-                moref = host.Moref,
-                name = host.Name,
-                cluster_moref = host.ClusterMoref,
-                connection_state = host.ConnectionState,
-                cpu_cores = host.CpuCores,
-                memory_mib = host.MemoryMib,
-            }),
-            virtual_machines = vms.Select(static vm => new
-            {
-                moref = vm.Moref,
-                name = vm.Name,
-                folder_path = vm.FolderPath,
-                power_state = vm.PowerState,
-                cpu_count = vm.CpuCount,
-                memory_mib = vm.MemoryMib,
-                host_moref = vm.HostMoref,
-            }),
+            Clusters = clusters
+                .Select(static cluster => new VSphereInventoryClusterRow
+                {
+                    Moref = cluster.Moref,
+                    Name = cluster.Name,
+                    DatacenterMoref = cluster.DatacenterMoref,
+                    DrsEnabled = cluster.DrsEnabled,
+                })
+                .ToArray(),
+            Hosts = hosts
+                .Select(static host => new VSphereInventoryHostRow
+                {
+                    Moref = host.Moref,
+                    Name = host.Name,
+                    ClusterMoref = host.ClusterMoref,
+                    ConnectionState = host.ConnectionState,
+                    CpuCores = host.CpuCores,
+                    MemoryMib = host.MemoryMib,
+                })
+                .ToArray(),
+            VirtualMachines = vms
+                .Select(static vm => new VSphereInventoryVirtualMachineRow
+                {
+                    Moref = vm.Moref,
+                    Name = vm.Name,
+                    FolderPath = vm.FolderPath,
+                    PowerState = vm.PowerState,
+                    CpuCount = vm.CpuCount,
+                    MemoryMib = vm.MemoryMib,
+                    HostMoref = vm.HostMoref,
+                })
+                .ToArray(),
         });
     }
 }

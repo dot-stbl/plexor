@@ -17,7 +17,11 @@
 // VCentreInventoryModels — never raw HttpResponseMessage.
 // ============================================================================
 
-using Plexor.Providers.VSphere.Inventory;
+using Plexor.Providers.VSphere.Inventory.ReadModels;
+using Plexor.Providers.VSphere.Inventory.Storage;
+using Plexor.Providers.VSphere.Inventory.Structure;
+using Plexor.Providers.VSphere.Inventory.Tasks;
+using Plexor.Providers.VSphere.Inventory.Workloads;
 using Plexor.Providers.VSphere.Provisioning;
 using Refit;
 

@@ -13,7 +13,8 @@
 // The test namespace Plexor.Providers.VSphere.Unit.Inventory shadows
 // the production namespace Plexor.Providers.VSphere.Inventory when
 // resolving "Inventory.*" — disambiguate via global::.
-using global::Plexor.Providers.VSphere.Inventory;
+using global::Plexor.Providers.VSphere.Inventory.ReadModels;
+using global::Plexor.Providers.VSphere.Inventory.Workloads;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
