@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Tooltip, TooltipTrigger } from 'react-aria-components';
 import { Help } from '@nine-thirty-five/material-symbols-react/rounded/700';
-import { TooltipContent } from '@/shared/ui/primitives/tooltip';
 import { cn } from '@/lib/utils';
 
 /**
@@ -9,16 +8,13 @@ import { cn } from '@/lib/utils';
  * Приём из YC (help на каждом сложном поле). Триггер — button (фокусируемый,
  * a11y), не внутри `<label>` — чтобы не активировать контрол.
  *
- * Implementation note: this used to route through the Plexor Tooltip compat
- * shim (base-ui era: `<TooltipProvider><Tooltip><TooltipTrigger render={...}>`).
- * The shim wrapped `<RACTooltipTrigger>` but its TooltipProvider was a
- * dead context, so the popup never actually rendered on hover — the `?`
- * icon was visible but the tooltip never appeared. We now use react-aria-
- * components primitives directly and keep our shim's TooltipContent (for
- * the side/align/placement/slide classes it owns). Any other caller that
- * still uses the compat shim gets the icon (via the children-passthrough fix)
- * but the popup is also dead there — same root cause. Audit the other
- * shim consumers; if they need the popup, rewrite them similarly.
+ * Implementation note: previous versions routed through the Plexor Tooltip
+ * compat shim OR wrapped a second RAC Tooltip around our TooltipContent shim
+ * — both produced a popup that never actually rendered (hover/focus timers
+ * fired but the popup stayed hidden, in one case because of a dead context,
+ * in the other because of nested RAC Tooltips shadowing each other).
+ * This version uses react-aria-components primitives directly with the popup
+ * styling inlined on the RAC Tooltip via className — no shim, no nesting.
  */
 export function HelpTooltip({ children, className }: { children: ReactNode; className?: string }) {
   return (
@@ -33,10 +29,19 @@ export function HelpTooltip({ children, className }: { children: ReactNode; clas
       >
         <Help className="size-3.5" />
       </button>
-      <Tooltip>
-        <TooltipContent>{children}</TooltipContent>
+      <Tooltip
+        className={cn(
+          'z-50 inline-flex w-fit max-w-xs origin-(--transform-origin) items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs text-background',
+          'data-[placement=bottom]:slide-in-from-top-2 data-[placement=left]:slide-in-from-right-2 data-[placement=right]:slide-in-from-left-2 data-[placement=top]:slide-in-from-bottom-2 data-[placement=inline-end]:slide-in-from-left-2 data-[placement=inline-start]:slide-in-from-right-2',
+          'data-entering:animate-in data-entering:fade-in-0 data-entering:zoom-in-95 data-exiting:animate-out data-exiting:fade-out-0 data-exiting:zoom-out-95',
+        )}
+        offset={6}
+        placement="top"
+      >
+        {children}
       </Tooltip>
     </TooltipTrigger>
   );
 }
+
 

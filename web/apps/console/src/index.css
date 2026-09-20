@@ -463,20 +463,20 @@
   [data-slot~='drawer-content'] {
     overscroll-behavior: contain;
   }
-  /* RAC DisclosurePanel hides via [hidden=until-found], which an explicit
-     `display` utility (flex/grid) on the panel overrides, and until-found
-     keeps the box (border+padding) rendered. Hide collapsed panels by the
-     parent's data-expanded state instead — beats display utilities on
-     specificity. */
-  [data-slot='collapsible']:not([data-expanded]) > [data-slot='collapsible-content'] {
-    display: none;
-  }
   /* Reduce motion: disable smooth scroll */
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
     }
   }
+}
+
+/* Outside @layer base on purpose — Tailwind's utility layer orders AFTER
+   base, so a `.flex` on the panel would otherwise win over this rule
+   (layer precedence beats specificity within CSS @layer). Hide collapsed
+   Disclosure panels here so border-t + padding don't leak through. */
+[data-slot='collapsible']:not([data-expanded]) > [data-slot='collapsible-content'] {
+  display: none;
 }
 
 html.dark {
