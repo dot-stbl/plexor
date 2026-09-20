@@ -21,26 +21,26 @@ using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Providers.VSphere.Api.Endpoints;
 
+file static class VSphereCloneRoute
+{
+    public const string Name = "vsphere-clone";
+    public const string Path = ApiRoutes.Base + "/vsphere/clone";
+}
+
 /// <summary>
 ///     Minimal-API endpoint that issues a vSphere clone + records
 ///     the audit trail.
 /// </summary>
 public static class VSphereCloneEndpoint
 {
-    /// <summary>Stable route name for the OpenAPI document
-    /// generator.</summary>
-    private const string RouteName = "vsphere-clone";
-
-    /// <summary>Endpoint URL — composes from <see cref="ApiRoutes.Base" />.</summary>
-    public const string Path = ApiRoutes.Base + "/vsphere/clone";
 
     /// <summary>Map the clone endpoint.</summary>
     /// <param name="app">The host's endpoint route builder.</param>
     /// <returns>The same <paramref name="app" />, for chaining.</returns>
     public static IEndpointRouteBuilder MapVSphereClone(this IEndpointRouteBuilder app)
     {
-        app.MapPost(Path, HandleAsync)
-            .WithName(RouteName)
+        app.MapPost(VSphereCloneRoute.Path, HandleAsync)
+            .WithName(VSphereCloneRoute.Name)
             .WithTags("vsphere");
         return app;
     }
@@ -54,11 +54,6 @@ public static class VSphereCloneEndpoint
     ///     502 when vCenter fails the clone (mapped from the
     ///     provisioning service's "FAILED" status).
     /// </summary>
-    /// <param name="request"></param>
-    /// <param name="db"></param>
-    /// <param name="provisioner"></param>
-    /// <param name="options"></param>
-    /// <param name="cancellationToken"></param>
     internal static async Task<IResult> HandleAsync(
         VSphereCloneRequestBody request,
         VSphereDbContext db,
@@ -68,7 +63,7 @@ public static class VSphereCloneEndpoint
     {
         if (!options.Value.IsConfigured())
         {
-            return Results.Problem(
+            return TypedResults.Problem(
                 detail: "Set PLX_PROVIDERS_VSPHERE_VCENTERURL + PLX_PROVIDERS_VSPHERE_USERNAME + PLX_PROVIDERS_VSPHERE_PASSWORD to enable the vSphere provider.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "vSphere is not configured");
@@ -81,7 +76,7 @@ public static class VSphereCloneEndpoint
 
         if (snapshot is null)
         {
-            return Results.Problem(
+            return TypedResults.Problem(
                 detail: "POST /api/v1/vsphere/inventory/refresh before issuing a clone.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "vSphere inventory is empty");
@@ -164,15 +159,15 @@ public static class VSphereCloneEndpoint
                 VmMoref = result.VmMoref ?? string.Empty,
                 Status = "SUCCESS",
             }),
-            "FAILED" => Results.Problem(
+            "FAILED" => TypedResults.Problem(
                 detail: "The upstream vCenter rejected the clone request.",
                 statusCode: StatusCodes.Status502BadGateway,
                 title: "vCenter clone failed"),
-            "TIMEOUT" => Results.Problem(
+            "TIMEOUT" => TypedResults.Problem(
                 detail: "The upstream vCenter did not respond within the configured timeout.",
                 statusCode: StatusCodes.Status504GatewayTimeout,
                 title: "vCenter clone timed out"),
-            _ => Results.Problem(
+            _ => TypedResults.Problem(
                 detail: result.Status,
                 statusCode: StatusCodes.Status500InternalServerError,
                 title: "vSphere clone returned an unknown status"),

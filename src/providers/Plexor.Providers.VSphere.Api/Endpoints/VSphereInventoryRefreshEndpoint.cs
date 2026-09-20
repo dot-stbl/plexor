@@ -22,19 +22,29 @@ namespace Plexor.Providers.VSphere.Api.Endpoints;
 ///     Synchronous wait — the read endpoint stays consistent with the
 ///     refresh call without async-job tracking (out of scope for v1).
 /// </summary>
+file static class VSphereInventoryRefreshConstants
+{
+    /// <summary>vCenter identifier recorded on the snapshot header.
+    /// v1 assumes a single vCenter per install; <c>"primary"</c> is
+    /// the v1 marker. A future multi-vCenter deploy will derive
+    /// this from the request.</summary>
+    public const string PrimaryVCenterMoref = "primary";
+}
+
+file static class VSphereInventoryRefreshRoute
+{
+    public const string Name = "vsphere-inventory-refresh";
+    public const string Path = ApiRoutes.Base + "/vsphere/inventory/refresh";
+    public const string SnapshotLocationPath = ApiRoutes.Base + "/vsphere/inventory";
+}
+
+/// <summary>
+///     Minimal-API endpoint that forces a vSphere inventory refresh.
+///     Synchronous wait — the read endpoint stays consistent with the
+///     refresh call without async-job tracking (out of scope for v1).
+/// </summary>
 public static class VSphereInventoryRefreshEndpoint
 {
-    /// <summary>Stable route name for OpenAPI generation.</summary>
-    private const string RouteName = "vsphere-inventory-refresh";
-
-    /// <summary>Endpoint URL — composes from <see cref="ApiRoutes.Base" />.</summary>
-    public const string Path = ApiRoutes.Base + "/vsphere/inventory/refresh";
-
-    /// <summary>vCenter identifier recorded on the snapshot
-    /// header. v1 assumes a single vCenter per install;
-    /// <c>"primary"</c> is the v1 marker. A future multi-vCenter
-    /// deploy will derive this from the request.</summary>
-    private const string PrimaryVCenterMoref = "primary";
 
     /// <summary>Map the refresh endpoint.</summary>
     /// <param name="app">The host's endpoint route builder.</param>
@@ -42,8 +52,8 @@ public static class VSphereInventoryRefreshEndpoint
     public static IEndpointRouteBuilder MapVSphereInventoryRefresh(
         this IEndpointRouteBuilder app)
     {
-        app.MapPost(Path, HandleAsync)
-            .WithName(RouteName)
+        app.MapPost(VSphereInventoryRefreshRoute.Path, HandleAsync)
+            .WithName(VSphereInventoryRefreshRoute.Name)
             .WithTags("vsphere");
         return app;
     }
@@ -54,10 +64,6 @@ public static class VSphereInventoryRefreshEndpoint
     ///     upstream is unreachable) — see problem-details.md +
     ///     error-mapping.md.
     /// </summary>
-    /// <param name="refresher"></param>
-    /// <param name="options"></param>
-    /// <param name="loggerFactory"></param>
-    /// <param name="cancellationToken"></param>
     internal static async Task<IResult> HandleAsync(
         VSphereInventoryRefresher refresher,
         IOptions<VSphereOptions> options,
@@ -66,7 +72,7 @@ public static class VSphereInventoryRefreshEndpoint
     {
         if (!options.Value.IsConfigured())
         {
-            return Results.Problem(
+            return TypedResults.Problem(
                 detail: "Set PLX_PROVIDERS_VSPHERE_VCENTERURL + PLX_PROVIDERS_VSPHERE_USERNAME + PLX_PROVIDERS_VSPHERE_PASSWORD to enable the vSphere provider.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "vSphere is not configured");
@@ -75,7 +81,7 @@ public static class VSphereInventoryRefreshEndpoint
         var logger = loggerFactory.CreateLogger("Plexor.Providers.VSphere.InventoryRefresh");
 
         var snapshotId = await refresher.RefreshAsync(
-            PrimaryVCenterMoref,
+            VSphereInventoryRefreshConstants.PrimaryVCenterMoref,
             cancellationToken);
 
         logger.LogInformation(
@@ -83,7 +89,7 @@ public static class VSphereInventoryRefreshEndpoint
             snapshotId);
 
         return Results.Accepted(
-            uri: $"/api/v1/vsphere/inventory?snapshot={snapshotId}",
+            uri: VSphereInventoryRefreshRoute.SnapshotLocationPath + $"?snapshot={snapshotId}",
             value: new
             {
                 snapshot_id = snapshotId,

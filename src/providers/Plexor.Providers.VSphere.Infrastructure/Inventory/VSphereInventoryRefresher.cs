@@ -24,14 +24,10 @@ namespace Plexor.Providers.VSphere.Infrastructure.Inventory;
 ///     per refresh — and the per-refresh snapshot id is the
 ///     discriminator callers query against.
 /// </summary>
-/// <param name="client"></param>
-/// <param name="db"></param>
-/// <param name="clock"></param>
-/// <param name="logger"></param>
 public sealed class VSphereInventoryRefresher(
+    TimeProvider clock,
     IVSphereClient client,
     VSphereDbContext db,
-    TimeProvider clock,
     ILogger<VSphereInventoryRefresher> logger)
 {
     /// <summary>
@@ -44,11 +40,10 @@ public sealed class VSphereInventoryRefresher(
     /// <param name="vCenterMoref">vCenter identifier to record on
     /// the snapshot header. v1 uses <c>"primary"</c>; a future
     /// multi-vCenter deploy carries the actual origin.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The new snapshot id (UUID v7).</returns>
     public async Task<Guid> RefreshAsync(
         string vCenterMoref,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         var refreshStartedAt = clock.GetUtcNow();
 

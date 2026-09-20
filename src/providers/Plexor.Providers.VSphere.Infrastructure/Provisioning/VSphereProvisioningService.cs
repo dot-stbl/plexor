@@ -70,7 +70,7 @@ public sealed class VSphereProvisioningService(
         string sourceTemplateMoref,
         string name,
         string? targetFolderMoref,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         var startedAt = clock.GetUtcNow();
         var runId = Guid.CreateVersion7();

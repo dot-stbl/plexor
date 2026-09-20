@@ -22,27 +22,26 @@ using Plexor.Shared.Contracts.Routes;
 
 namespace Plexor.Providers.VSphere.Api.Endpoints;
 
+file static class VSphereInventoryRoute
+{
+    public const string Name = "vsphere-inventory-get";
+    public const string Path = ApiRoutes.Base + "/vsphere/inventory";
+}
+
 /// <summary>
 ///     Minimal-API endpoint that surfaces the cached vSphere
 ///     inventory to admin + UI callers.
 /// </summary>
 public static class VSphereInventoryEndpoint
 {
-    /// <summary>Stable route name for the OpenAPI document
-    /// generator.</summary>
-    private const string RouteName = "vsphere-inventory-get";
-
-    /// <summary>Endpoint URL — composes from <see cref="ApiRoutes.Base" />
-    /// so the <c>/api/v1</c> prefix lives in one place.</summary>
-    public const string Path = ApiRoutes.Base + "/vsphere/inventory";
 
     /// <summary>Map the inventory read endpoint.</summary>
     /// <param name="app">The host's endpoint route builder.</param>
     /// <returns>The same <paramref name="app" />, for chaining.</returns>
     public static IEndpointRouteBuilder MapVSphereInventory(this IEndpointRouteBuilder app)
     {
-        app.MapGet(Path, HandleAsync)
-            .WithName(RouteName)
+        app.MapGet(VSphereInventoryRoute.Path, HandleAsync)
+            .WithName(VSphereInventoryRoute.Name)
             .WithTags("vsphere");
         return app;
     }
@@ -53,9 +52,6 @@ public static class VSphereInventoryEndpoint
     ///     snapshot has ever been written or when the vSphere
     ///     section isn't configured.
     /// </summary>
-    /// <param name="db"></param>
-    /// <param name="options"></param>
-    /// <param name="cancellationToken"></param>
     internal static async Task<IResult> HandleAsync(
         VSphereDbContext db,
         IOptions<VSphereOptions> options,
@@ -63,7 +59,7 @@ public static class VSphereInventoryEndpoint
     {
         if (!options.Value.IsConfigured())
         {
-            return Results.Problem(
+            return TypedResults.Problem(
                 detail: "Set PLX_PROVIDERS_VSPHERE_VCENTERURL + PLX_PROVIDERS_VSPHERE_USERNAME + PLX_PROVIDERS_VSPHERE_PASSWORD to enable the vSphere provider.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "vSphere is not configured");
@@ -76,7 +72,7 @@ public static class VSphereInventoryEndpoint
 
         if (header is null)
         {
-            return Results.Problem(
+            return TypedResults.Problem(
                 detail: "POST /api/v1/vsphere/inventory/refresh to pull a snapshot.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "vSphere inventory is empty");
