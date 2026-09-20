@@ -7,16 +7,11 @@
 * Do not edit manually.
 */
 
-import type { UpsertThemeInstallationRequest } from "../types/UpsertThemeInstallationRequest.ts";
-import { faker } from "@faker-js/faker";
+import { z } from "zod/v4";
 
 /**
  * @description Wire shape for PUT /branding/theme. The host looks the theme up in its bundled CommunityThemeRegistry and signs the canonical manifest with the purpose-bound IThemeManifestVerifier before persisting.\n
  */
-export function createUpsertThemeInstallationRequest(data?: Partial<UpsertThemeInstallationRequest>): UpsertThemeInstallationRequest {
-
-  return {
-    ...{"themeId": faker.string.alpha({ length: 64 })},
-    ...data || {}
-  }
-}
+export const upsertThemeInstallationRequestSchema = z.object({
+    "themeId": z.string().max(64).describe("Marketplace id from the host-side CommunityThemeRegistry.")
+    }).describe("Wire shape for PUT /branding/theme. The host looks the theme up in its bundled CommunityThemeRegistry and signs the canonical manifest with the purpose-bound IThemeManifestVerifier before persisting.\n")

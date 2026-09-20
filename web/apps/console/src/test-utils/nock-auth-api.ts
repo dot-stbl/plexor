@@ -1,11 +1,11 @@
 /**
- * mockAuthService — wraps the kubb-generated auth client functions in
- * vi.spyOn handles so component tests can stub postAuthLogin return
- * values without touching the real fetch path.
+ * mockAuthService — wraps the auth client function in a vi.spyOn handle so
+ * component tests can stub postAuthLogin return values without touching
+ * the real fetch path.
  *
- * The login page consumes postAuthLogin via the kubb-generated TanStack
- * Query hook (`usePostAuthLogin`), which calls the kubb-generated
- * client. Spying on the client is the same pattern used for
+ * The login page calls postAuthLogin (handwritten client in
+ * shared/api/auth.ts — POST /auth/login is not in the contract yet).
+ * Spying on the client is the same pattern used for
  * `mockBrandingService` / `mockAuditService`.
  *
  * Usage:
@@ -14,11 +14,11 @@
  *   await user.click(submitButton);
  *   expect(mocks.login).toHaveBeenCalledWith(
  *     { email: '...', password: '...' },
- *     expect.anything(),  // kubb config (signal, etc.)
+ *     expect.anything(),  // client config (signal, etc.)
  *   );
  */
 import { vi, type MockInstance } from 'vitest';
-import * as postAuthLoginModule from '@/shared/api/src/client/postAuthLogin';
+import * as postAuthLoginModule from '@/shared/api/auth';
 
 export interface AuthServiceMocks {
   login: MockInstance<(typeof postAuthLoginModule)['postAuthLogin']>;

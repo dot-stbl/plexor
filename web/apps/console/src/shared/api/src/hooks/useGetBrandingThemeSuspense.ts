@@ -8,18 +8,18 @@
 */
 
 import type { Client, RequestConfig, ResponseErrorConfig } from "@kubb/plugin-client/clients/axios";
-import type { QueryKey, QueryClient, QueryObserverOptions, UseQueryResult } from "@tanstack/react-query";
+import type { QueryKey, QueryClient, UseSuspenseQueryOptions, UseSuspenseQueryResult } from "@tanstack/react-query";
 import type { GetBrandingThemeQueryResponse, GetBrandingTheme403, GetBrandingTheme404 } from "../types/GetBrandingTheme.ts";
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getBrandingTheme } from "../client/getBrandingTheme.ts";
 
-export const getBrandingThemeQueryKey = () => [{ url: '/branding/theme' }] as const
+export const getBrandingThemeSuspenseQueryKey = () => [{ url: '/branding/theme' }] as const
 
-export type GetBrandingThemeQueryKey = ReturnType<typeof getBrandingThemeQueryKey>
+export type GetBrandingThemeSuspenseQueryKey = ReturnType<typeof getBrandingThemeSuspenseQueryKey>
 
-export function getBrandingThemeQueryOptions(config: Partial<RequestConfig> & { client?: Client } = {}) {
+export function getBrandingThemeSuspenseQueryOptions(config: Partial<RequestConfig> & { client?: Client } = {}) {
 
-        const queryKey = getBrandingThemeQueryKey()
+        const queryKey = getBrandingThemeSuspenseQueryKey()
         return queryOptions<GetBrandingThemeQueryResponse, ResponseErrorConfig<GetBrandingTheme403 | GetBrandingTheme404>, GetBrandingThemeQueryResponse, typeof queryKey>({
          
          queryKey,
@@ -35,23 +35,23 @@ export function getBrandingThemeQueryOptions(config: Partial<RequestConfig> & { 
  * @summary Read the active marketplace theme
  * {@link /branding/theme}
  */
-export function useGetBrandingTheme<TData = GetBrandingThemeQueryResponse, TQueryData = GetBrandingThemeQueryResponse, TQueryKey extends QueryKey = GetBrandingThemeQueryKey>(options: 
+export function useGetBrandingThemeSuspense<TData = GetBrandingThemeQueryResponse, TQueryKey extends QueryKey = GetBrandingThemeSuspenseQueryKey>(options: 
 {
-  query?: Partial<QueryObserverOptions<GetBrandingThemeQueryResponse, ResponseErrorConfig<GetBrandingTheme403 | GetBrandingTheme404>, TData, TQueryData, TQueryKey>> & { client?: QueryClient },
+  query?: Partial<UseSuspenseQueryOptions<GetBrandingThemeQueryResponse, ResponseErrorConfig<GetBrandingTheme403 | GetBrandingTheme404>, TData, TQueryKey>> & { client?: QueryClient },
   client?: Partial<RequestConfig> & { client?: Client }
 }
  = {}) {
 
          const { query: queryConfig = {}, client: config = {} } = options ?? {}
          const { client: queryClient, ...resolvedOptions } = queryConfig
-         const queryKey = resolvedOptions?.queryKey ?? getBrandingThemeQueryKey()
+         const queryKey = resolvedOptions?.queryKey ?? getBrandingThemeSuspenseQueryKey()
          
 
-         const query = useQuery({
-          ...getBrandingThemeQueryOptions(config),
+         const query = useSuspenseQuery({
+          ...getBrandingThemeSuspenseQueryOptions(config),
           ...resolvedOptions,
           queryKey,
-         } as unknown as QueryObserverOptions, queryClient) as UseQueryResult<TData, ResponseErrorConfig<GetBrandingTheme403 | GetBrandingTheme404>> & { queryKey: TQueryKey }
+         } as unknown as UseSuspenseQueryOptions, queryClient) as UseSuspenseQueryResult<TData, ResponseErrorConfig<GetBrandingTheme403 | GetBrandingTheme404>> & { queryKey: TQueryKey }
 
          query.queryKey = queryKey as TQueryKey
 

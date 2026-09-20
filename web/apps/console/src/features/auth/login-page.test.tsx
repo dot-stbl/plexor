@@ -31,9 +31,9 @@ import {
   readSession,
   type StoredSession,
 } from './session-storage';
-import type { PostAuthLogin200 } from '@/shared/api';
+import type { AuthLoginResponse } from '@/shared/api';
 
-function makeLoginResponse(overrides: Partial<PostAuthLogin200> = {}): PostAuthLogin200 {
+function makeLoginResponse(overrides: Partial<AuthLoginResponse> = {}): AuthLoginResponse {
   return {
     accessToken: 'mock-jwt-token-abcdef',
     refreshToken: 'mock-refresh-token-123456',
@@ -312,7 +312,7 @@ describe('LoginPage', () => {
     // Never resolves — keep the mutation pending while we assert.
     mocks.login.mockImplementation(
       () =>
-        new Promise<PostAuthLogin200>(() => {
+        new Promise<AuthLoginResponse>(() => {
           /* intentionally unresolved */
         }),
     );

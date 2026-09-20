@@ -12,6 +12,14 @@ bun install
 bun run dev                # real backend at VITE_API_BASE_URL
 ```
 
+## Gate
+
+From `web/apps/console` before committing:
+
+```bash
+bun run gate               # typecheck + lint + test — must exit 0
+```
+
 ## Mock mode
 
 When the Plexor.Host backend is not yet available (or you want to demo UI
@@ -30,11 +38,12 @@ deterministic via `faker.seed(1337)`) and falls through to the real network
 for non-API requests (Vite dev server, HMR, asset loads, route navigation).
 
 **Coverage:** all 32 operations in `contracts/plexor.openapi.yaml` are
-handled — 29 from kubb-generated factories + 3 hand-mirrored for
-`/branding/theme` (kubb 4.39.2 silently skipped these in the MSW + faker
-pass; see `msw/getBrandingThemeHandler.ts` for the kz note). The
-`msw.test.ts` smoke test guards against missing handlers — add a line
-there when you add an admin page that hits a new endpoint.
+handled by kubb-generated factories; `POST /auth/login` (not yet in the
+contract — Phase 4.6 spec) is handmade in
+`src/shared/api/mocks/handmade/post-auth-login.ts` with its client half in
+`src/shared/api/auth.ts`. The `mocks/msw.test.ts` smoke test guards against
+missing handlers — add a line there when you add an admin page that hits a
+new endpoint.
 
 **Default fixture data:**
 
