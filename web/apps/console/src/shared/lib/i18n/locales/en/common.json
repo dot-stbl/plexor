@@ -116,6 +116,7 @@
     "documentationCaption": "API (Scalar) and guides",
     "administration": "Administration",
     "administrationCaption": "Nodes, providers",
+    "settings": "Settings",
     "settingsCaption": "Profile, keys, theme",
     "launcher": {
       "heading": "App menu",
