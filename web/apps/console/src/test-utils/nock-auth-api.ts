@@ -3,9 +3,10 @@
  * component tests can stub postAuthLogin return values without touching
  * the real fetch path.
  *
- * The login page calls postAuthLogin (handwritten client in
- * shared/api/auth.ts — POST /auth/login is not in the contract yet).
- * Spying on the client is the same pattern used for
+ * The login page calls postAuthLogin (kubb-generated client re-exported
+ * via shared/api/index.ts → shared/api/src/client/postAuthLogin.ts —
+ * POST /auth/login is generated from contracts/plexor.openapi.yaml).
+ * Spying on the barrel is the same pattern used for
  * `mockBrandingService` / `mockAuditService`.
  *
  * Usage:
@@ -18,10 +19,10 @@
  *   );
  */
 import { vi, type MockInstance } from 'vitest';
-import * as postAuthLoginModule from '@/shared/api/auth';
+import * as postAuthLoginModule from '@/shared/api';
 
 export interface AuthServiceMocks {
-  login: MockInstance<(typeof postAuthLoginModule)['postAuthLogin']>;
+  login: MockInstance<typeof postAuthLoginModule.postAuthLogin>;
 }
 
 export function mockAuthService(): AuthServiceMocks {
