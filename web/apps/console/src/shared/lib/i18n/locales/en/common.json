@@ -199,6 +199,11 @@
     "inDevelopment": "Screen in development",
     "scaffoldReady": "Scaffold is ready — content will appear in the next pass."
   },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you were looking for doesn't exist or was moved.",
+    "home": "Back to home"
+  },
   "vms": {
     "list": {
       "title": "Virtual machines",
