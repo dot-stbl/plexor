@@ -1,10 +1,10 @@
 import { Link } from '@tanstack/react-router';
 
 /**
- * Bottom-of-landing CTA strip — the only purpose is to keep the docs
- * link visible after the manifesto + roadmap push it offscreen. The
- * strip mirrors the hero's primary CTA so the user has the same exit
- * path at both ends of the page.
+ * Bottom-of-landing CTA strip — single purpose: keep the docs exit
+ * path visible after the manifesto + roadmap push it offscreen. The
+ * copy is operator-facing ("install guide, operations, troubleshooting")
+ * rather than engineering ("what is inside the binary").
  */
 export function MarketingCta() {
   return (
@@ -13,12 +13,12 @@ export function MarketingCta() {
         <div className="flex flex-col items-start gap-4 rounded-xl border border-border bg-card p-8 md:flex-row md:items-center md:justify-between md:gap-6 md:p-10">
           <div className="max-w-xl">
             <p className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted-2">
-              Дальше
+              Next step
             </p>
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-              Документация →{' '}
+              Read the operator guide{' '}
               <span className="text-muted-foreground">
-                что внутри бинарника, и как с этим работать
+                — install, run, troubleshoot, extend
               </span>
             </h2>
           </div>
@@ -26,7 +26,7 @@ export function MarketingCta() {
             to="/docs/getting-started"
             className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors duration-fast ease-out hover:bg-primary/90"
           >
-            Открыть документацию
+            Open the docs
           </Link>
         </div>
       </div>

@@ -4,13 +4,13 @@ import { ThemePickerButton } from '@/components/shared/theme-picker-button';
 
 /**
  * Landing header — PlexorMark + lowercase wordmark on the left, a
- * single "Документация" link in the centre-right that points at the
+ * single "Documentation" link in the centre-right that points at the
  * docs section, and a tiny theme-cycle button on the right.
  *
  * Sticky + blurred so the hero scrolls under it without losing the
  * navigation affordance; v1 ships one outbound link, the docs entry
- * point. Future links (GitHub, Console) live in the footer to keep
- * the header scope to "where am I, where do I go".
+ * point. Future links (Source, Console, support) live in the footer
+ * to keep the header scope to "where am I, where do I go".
  */
 export function MarketingHeader() {
   return (
@@ -30,7 +30,7 @@ export function MarketingHeader() {
             to="/docs/getting-started"
             className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-muted-2 transition-colors duration-fast ease-out hover:text-foreground"
           >
-            Документация →
+            Documentation →
           </Link>
           <ThemePickerButton className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-muted-2 transition-colors duration-fast ease-out hover:text-foreground" />
         </nav>
