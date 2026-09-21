@@ -121,7 +121,7 @@ function DropdownMenuContent({ className, children, side = "bottom", sideOffset 
       offset={sideOffset}
       {...(align ? { align } : {})}
       className={cn(
-        "z-50 max-h-(--available-height) w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none",
+        "z-popover max-h-(--available-height) w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none",
         "data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         "data-entering:animate-in data-entering:fade-in-0 data-entering:zoom-in-95",
         "data-exiting:animate-out data-exiting:overflow-hidden data-exiting:fade-out-0 data-exiting:zoom-out-95",
@@ -352,7 +352,7 @@ function DropdownMenuSubContent({ className, children }: DropdownMenuContentProp
     <Popover
       data-slot="dropdown-menu-sub-content"
       className={cn(
-        "z-50 w-auto min-w-32 rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100",
+        "z-popover w-auto min-w-32 rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100",
         "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         "data-entering:animate-in data-entering:fade-in-0 data-entering:zoom-in-95",
         "data-exiting:animate-out data-exiting:fade-out-0 data-exiting:zoom-out-95",

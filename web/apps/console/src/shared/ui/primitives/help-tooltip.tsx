@@ -1,4 +1,5 @@
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Help } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +13,14 @@ import { cn } from '@/lib/utils';
  * has sibling children (the tooltip is itself a child). Verified in
  * Chromium: button never gets data-rac / aria-describedby, popup never
  * renders. ~30 lines of plain React for a tooltip that just works.
+ *
+ * Clipping fix: the popup is portalled into document.body and positioned via
+ * fixed coordinates derived from the trigger's getBoundingClientRect().
+ * This sidesteps two stacked traps in dense layouts — (a) ancestor cards
+ * with `overflow: hidden` clip absolute-positioned descendants, and (b)
+ * ancestor transforms/filters/isolation create a new containing block that
+ * pins the popup inside the wrong stacking context. Coordinates refresh on
+ * scroll, resize, and ResizeObserver (e.g. sidebar collapse).
  */
 export function HelpTooltip({
   children,
@@ -25,16 +34,49 @@ export function HelpTooltip({
 }) {
   const tooltipId = useId();
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function show() {
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setOpen(true), delay);
+    timer.current = setTimeout(() => {
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setPos({ left: rect.left + rect.width / 2, top: rect.bottom });
+      }
+      setOpen(true);
+    }, delay);
   }
   function hide() {
     if (timer.current) clearTimeout(timer.current);
     setOpen(false);
   }
+
+  // While open, keep the popup pinned to the trigger. Triggers: window scroll,
+  // window resize, layout changes (ResizeObserver on the trigger).
+  useEffect(() => {
+    if (!open) return;
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+
+    const update = () => {
+      const rect = trigger.getBoundingClientRect();
+      setPos({ left: rect.left + rect.width / 2, top: rect.bottom });
+    };
+
+    update();
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    const ro = new ResizeObserver(update);
+    ro.observe(trigger);
+
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+      ro.disconnect();
+    };
+  }, [open]);
 
   return (
     <span
@@ -45,6 +87,7 @@ export function HelpTooltip({
       onBlur={hide}
     >
       <button
+        ref={triggerRef}
         type="button"
         aria-label="Help"
         aria-describedby={open ? tooltipId : undefined}
@@ -55,19 +98,22 @@ export function HelpTooltip({
       >
         <Help className="size-3.5" />
       </button>
-      {open ? (
-        <span
-          id={tooltipId}
-          role="tooltip"
-          className={cn(
-            'pointer-events-none absolute left-1/2 top-full z-50 mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[0.6875rem] font-medium text-background shadow-md',
-            'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
-            'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
-          )}
-        >
-          {children}
-        </span>
-      ) : null}
+      {open && pos
+        ? createPortal(
+            <span
+              id={tooltipId}
+              role="tooltip"
+              style={{ left: pos.left, top: pos.top }}
+              className={cn(
+                'pointer-events-none fixed z-tooltip mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[0.6875rem] font-medium text-background shadow-md',
+                'animate-in fade-in-0 zoom-in-95 duration-100',
+              )}
+            >
+              {children}
+            </span>,
+            document.body,
+          )
+        : null}
     </span>
   );
 }

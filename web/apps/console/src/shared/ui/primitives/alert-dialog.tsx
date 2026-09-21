@@ -79,7 +79,7 @@ function AlertDialogOverlay({
       data-slot="alert-dialog-overlay"
       aria-hidden="true"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/80 duration-100 supports-backdrop-filter:backdrop-blur-md",
+        "fixed inset-0 isolate z-modal-backdrop bg-black/80 duration-100 supports-backdrop-filter:backdrop-blur-md",
         className
       )}
       {...props}
@@ -105,7 +105,7 @@ function AlertDialogContent({
       data-slot="alert-dialog-content"
       data-size={size}
       className={cn(
-        "fixed top-1/2 left-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+        "fixed top-1/2 left-1/2 z-modal -translate-x-1/2 -translate-y-1/2",
         className
       )}
       {...props}

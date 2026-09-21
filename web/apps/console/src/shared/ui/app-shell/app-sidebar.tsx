@@ -50,7 +50,7 @@ type SidebarItem = { title: string; icon: Icon; to?: AppRoute };
  * the hovered item's pill nudges toward its icon.
  */
 const railPill =
-  'pointer-events-none absolute top-1/2 left-full z-50 ml-3.5 hidden -translate-y-1/2 translate-x-0 whitespace-nowrap rounded-md bg-foreground/70 px-2 py-1 text-xs font-medium text-background opacity-0 shadow-sm backdrop-blur-md transition-all duration-150 ease-out group-data-[collapsible=icon]:block group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/menu-item:ml-2.5 group-hover/menu-item:bg-foreground/80';
+  'pointer-events-none absolute top-1/2 left-full z-tooltip ml-3.5 hidden -translate-y-1/2 translate-x-0 whitespace-nowrap rounded-md bg-foreground/70 px-2 py-1 text-xs font-medium text-background opacity-0 shadow-sm backdrop-blur-md transition-all duration-150 ease-out group-data-[collapsible=icon]:block group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/menu-item:ml-2.5 group-hover/menu-item:bg-foreground/80';
 
 /**
  * Contextual sidebar (single_contextual): shows the pages of the CURRENT

@@ -62,7 +62,7 @@ describe("Tooltip", () => {
     expect(content.className).toContain("rounded-md")
   })
 
-  it("TooltipContent applies z-50 base classes", () => {
+  it("TooltipContent applies z-tooltip base classes", () => {
     render(
       <Tooltip open>
         <TooltipTrigger>
@@ -72,7 +72,7 @@ describe("Tooltip", () => {
       </Tooltip>,
     )
     const content = screen.getByTestId("tt")
-    expect(content.className).toContain("z-50")
+    expect(content.className).toContain("z-tooltip")
   })
 
   it("TooltipContent applies slide-from-X classes for each side", () => {
@@ -106,7 +106,7 @@ describe("Tooltip", () => {
     )
     const cls = screen.getByTestId("tt").className
     expect(cls).toContain("**:data-[slot=kbd]:relative")
-    expect(cls).toContain("**:data-[slot=kbd]:z-50")
+    expect(cls).toContain("**:data-[slot=kbd]:z-tooltip")
     expect(cls).toContain("**:data-[slot=kbd]:rounded-sm")
   })
 })
