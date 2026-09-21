@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// QuotasControllerHelpers — file-static helpers pulled out of
-// QuotasController.cs to satisfy the no-private-methods convention
-// (class-layout-and-tooling.md §1a / §9.4 — Controller / minimal API
-// endpoint). The controller is a thin orchestration layer; the
-// scope parsing, mapping, and ProblemDetails construction live here.
+// QuotasControllerHelpers — file-static helpers shared between
+// QuotasController.cs (read surface) and QuotaAssignmentsController.cs
+// (write surface). Pulled out to satisfy the no-private-methods
+// convention (class-layout-and-tooling.md §1a / §9.4 — Controller /
+// minimal API endpoint). Each controller is a thin orchestration
+// layer; the scope parsing, mapping, and ProblemDetails construction
+// live here.
 // ============================================================================
 
 using Microsoft.AspNetCore.Http;
@@ -17,8 +19,9 @@ using Plexor.Shared.Kernel.Quotas;
 namespace Plexor.Modules.Quotas.Api.Controllers;
 
 /// <summary>
-///     Helpers for <see cref="QuotasController" />. Each public method
-///     on the controller is a one-line orchestration call into this
+///     Helpers shared by <see cref="QuotasController" /> and
+///     <see cref="QuotaAssignmentsController" />. Each public method
+///     on those controllers is a one-line orchestration call into this
 ///     file; the per-method logic lives here.
 /// </summary>
 internal static class QuotasControllerHelpers
