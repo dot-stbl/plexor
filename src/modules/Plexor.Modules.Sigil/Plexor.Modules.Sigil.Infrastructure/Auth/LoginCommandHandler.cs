@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// AuthCommandHandlers — Login + Refresh + Logout + Me. Co-located
-// because they share the same dependencies (users, password hasher,
-// refresh store, token issuer) and the handler bodies are < 100 lines
-// each. Splitting into per-class files would add ceremony without
-// adding value.
+// LoginCommandHandler — password-grant login. Validates credentials,
+// applies lockout state, increments failed-login counters, and issues a
+// fresh access + refresh pair on success.
 //
-// The lockout math, failed/successful-login state writes, the role
-// projection, and the refresh-rotation primitives live in
-// AuthCommandHelpers (AuthCommandHandlersHelpers.cs) — pulled out to
-// satisfy the no-private-methods convention (class-layout-and-tooling.md
-// §1a / code-shape.md §9.5).
+// Extracted from AuthCommandHandlers.cs (issue #81 / M2) so each CQRS
+// command handler lives in its own file per
+// folder-organization.md §1. Orchestration only — the lockout math,
+// failed/successful-login state writes, and the role projection live
+// in AuthCommandHelpers.
 // ============================================================================
 
 using Plexor.Modules.Realm.Application.AuthProviders;
@@ -187,147 +185,4 @@ public sealed class LoginCommandHandler(
             IdentityExceptions.InvalidCredentials,
             "Either email or username must be supplied.");
     }
-}
-
-/// <summary>
-///     Refresh-token rotation. Verifies the presented token, rotates
-///     it inside the same family, re-issues the access token against
-///     the resolved permissions, and triggers family revocation on
-///     replay.
-/// </summary>
-/// <param name="refreshTokens"></param>
-/// <param name="tokenIssuer"></param>
-/// <param name="db"></param>
-/// <param name="clock">Injected <see cref="TimeProvider" /> for the
-/// rotated refresh-token expiry stamp.</param>
-public sealed class RefreshCommandHandler(
-    IRefreshTokenStore refreshTokens,
-    ITokenIssuer tokenIssuer,
-    IdentityDbContext db,
-    TimeProvider clock) : ICommandHandler<RefreshCommand, LoginResult>
-{
-
-    /// <inheritdoc />
-    public async Task<LoginResult> HandleAsync(
-        RefreshCommand command,
-        CancellationToken cancellationToken = default)
-    {
-
-        if (string.IsNullOrWhiteSpace(command.RefreshToken))
-        {
-            throw new IdentityException(
-                IdentityExceptions.InvalidCredentials,
-                "Refresh token is required.");
-        }
-
-        // Phase 4.6.3c — iss-binding. The current Plexor refresh
-        // tokens are opaque random base64url strings (no JWT shape),
-        // so PeekIssuer returns Opaque and we fall through to the
-        // existing rotation path. JWT-shaped refresh tokens from a
-        // third-party IDP (iss != plexor) will route to the OIDC
-        // path that re-issues Plexor credentials without an IDP
-        // roundtrip — Phase 5+ adds proper revocation propagation.
-        // Truly malformed JWT input (e.g. binary garbage with
-        // dots) raises 400 identity.refresh.malformed. Opaque
-        // random tokens do NOT raise this (PeekIssuer treats them
-        // as "not a JWT at all"). Property-pattern merge: assign
-        // + check in one expression (code-shape.md §1).
-        if (RefreshTokenIssuerInspector.PeekIssuer(command.RefreshToken) is { IsMalformed: true })
-        {
-            throw new IdentityException(
-                IdentityExceptions.RefreshMalformed,
-                "Refresh token is not a well-formed JWT.");
-        }
-
-        // For v1 every refresh token is opaque (iss == null) → Sigil
-        // path. JWT-shaped tokens with iss == "plexor" also follow
-        // the Sigil path (future state). iss != "plexor" (Phase 5+)
-        // would route to the OIDC path; v1 has no such tokens so the
-        // branch is dead code today but documented for the future.
-        var rotation = await AuthCommandHelpers.RotateRefreshTokenAsync(
-            refreshTokens, command.RefreshToken, clock, cancellationToken);
-
-        var owner = await AuthCommandHelpers.ResolveOwnerAsync(
-            db, rotation.NewRefreshToken, cancellationToken);
-
-        var roles = await AuthCommandHelpers.LoadRolesAsync(db, owner.Id, cancellationToken);
-        var access = await tokenIssuer.IssueAsync(
-            owner.Id, owner.OrgId, roles, cancellationToken);
-
-        return new LoginResult(
-            AccessToken: access.CompactJwt,
-            RefreshToken: rotation.NewRefreshToken,
-            AccessTokenExpiresAtUtc: access.ExpiresAtUtc);
-    }
-}
-
-/// <summary>
-///     Logout — revoke the presented refresh token. Idempotent. Even
-///     when the token is unknown or already revoked, this returns
-///     success (so callers can't probe which tokens are alive).
-/// </summary>
-/// <param name="refreshTokens"></param>
-public sealed class LogoutCommandHandler(
-    IRefreshTokenStore refreshTokens) : ICommandHandler<LogoutCommand, LogoutResult>
-{
-    /// <inheritdoc />
-    public async Task<LogoutResult> HandleAsync(
-        LogoutCommand command,
-        CancellationToken cancellationToken = default)
-    {
-
-        if (string.IsNullOrWhiteSpace(command.RefreshToken))
-        {
-            return new LogoutResult(RevokedTokens: 0);
-        }
-
-        await refreshTokens.RevokeAsync(command.RefreshToken, cancellationToken);
-        return new LogoutResult(RevokedTokens: 1);
-    }
-}
-
-/// <summary>
-///     Me — return the authenticated caller's identity, roles, and
-///     permissions as resolved by the bearer handler. Reads through
-///     <see cref="ICurrentUser" />; never touches the DB on the hot
-///     path (all values come from the JWT claims).
-/// </summary>
-/// <param name="currentUser"></param>
-public sealed class MeQueryHandler(
-    ICurrentUser currentUser) : ICommandHandler<MeQuery, MeResult>
-{
-    /// <inheritdoc />
-    public Task<MeResult> HandleAsync(
-        MeQuery command,
-        CancellationToken cancellationToken = default)
-    {
-
-        if (currentUser.UserId == Guid.Empty)
-        {
-            throw new IdentityException(
-                IdentityExceptions.InvalidCredentials,
-                "Caller is not authenticated.");
-        }
-
-        return Task.FromResult(new MeResult(
-            UserId: currentUser.UserId,
-            OrgId: currentUser.TenantId,
-            Roles: currentUser.Roles,
-            Permissions: currentUser.Permissions));
-    }
-}
-
-/// <summary>
-///     Marker interface shared by every auth command/query handler. The
-///     mediator-style dispatch lives in Phase 5; for now callers
-///     invoke handlers directly.
-/// </summary>
-/// <typeparam name="TCommand"></typeparam>
-/// <typeparam name="TResult"></typeparam>
-public interface ICommandHandler<TCommand, TResult>
-{
-    /// <summary>Handle the command and return its result.</summary>
-    /// <param name="command">The inbound command payload.</param>
-    /// <param name="cancellationToken">Forwarded to IO.</param>
-    public Task<TResult> HandleAsync(TCommand command, CancellationToken cancellationToken = default);
 }

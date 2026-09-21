@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// AuthCommandHelpers — file-static helpers pulled out of
-// AuthCommandHandlers.cs (Login + Refresh) to satisfy the no-private-
-// methods convention (class-layout-and-tooling.md §1a / code-shape.md
-// §9.5). Each handler orchestrates the call sequence; the helpers own
-// the lockout math, the failed/successful-login state writes, the
-// role projection, and the refresh-rotation primitives.
+// AuthCommandHelpers — file-static helpers shared by
+// LoginCommandHandler + RefreshCommandHandler. Each handler
+// orchestrates the call sequence; the helpers own the lockout math,
+// the failed/successful-login state writes, the role projection, and
+// the refresh-rotation primitives.
 //
 // Method-level dependency injection: every helper takes only the
 // dependencies it actually uses (IdentityDbContext for EF, IRefreshTokenStore
@@ -16,6 +15,10 @@
 // RefreshCommandHandler is consolidated here — the bodies were
 // identical (same projection, same join), so one canonical
 // implementation is the right shape.
+//
+// Renamed from AuthCommandHandlersHelpers.cs (issue #81 / M2) —
+// now matches the helper class name it contains; per
+// folder-organization.md §1 one public type per file.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
