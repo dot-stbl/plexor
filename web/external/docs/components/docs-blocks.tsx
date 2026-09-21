@@ -1,21 +1,21 @@
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { buttonVariants } from 'fumadocs-ui/components/ui/button';
-import type { Icon } from '@nine-thirty-five/material-symbols-react';
-import {
-  ArrowOutward,
-  AvTimer,
-  Block,
-  Check,
-  Help,
-} from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { ArrowOutward, Check, Block, AvTimer, Help } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { TerminalPlayground } from '@/components/terminal-playground';
 
 /**
- * Landing hero for the docs index page. A component (not raw JSX in MDX) so
- * MDX cannot wrap the button labels in <p> — that broke text color
- * inheritance and made the primary button look blank.
+ * Landing hero. The Plexor headline + tagline + two CTAs, with a `Hello,
+ * plx` terminal animation sitting underneath. Hero lives only on the
+ * landing page — every other page uses a quieter first-page header
+ * (the section landing pages render their own intro through `index.mdx`).
+ *
+ * Layout: left column holds the editorial headline + CTAs; right column
+ * is the animated terminal. On small screens they stack. No background
+ * illustrations, no glow — typography + a live command block is the
+ * entire above-the-fold.
  */
 export function DocsHero({
-  mark,
+  kicker,
   title,
   subtitle,
   primaryLabel,
@@ -23,7 +23,7 @@ export function DocsHero({
   secondaryLabel,
   secondaryHref,
 }: {
-  mark: ReactNode;
+  kicker?: string;
   title: string;
   subtitle: string;
   primaryLabel: string;
@@ -32,20 +32,48 @@ export function DocsHero({
   secondaryHref: string;
 }): ReactNode {
   return (
-    <div className="not-prose my-10 flex flex-col items-center gap-4 text-center">
-      {mark}
-      <h1 className="mb-0 text-4xl font-semibold tracking-tight">{title}</h1>
-      <div className="m-0 max-w-xl text-fd-muted-foreground">{subtitle}</div>
-      <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-        <a href={primaryHref} className={buttonVariants({ variant: 'primary' })}>
-          {primaryLabel}
-        </a>
-        <a href={secondaryHref} className={buttonVariants({ variant: 'outline' })}>
-          {secondaryLabel}
-          <ArrowOutward className="size-4" aria-hidden />
-        </a>
+    <header className="not-prose relative grid grid-cols-1 items-start gap-10 py-8 lg:grid-cols-[1.05fr_1fr]">
+      <div className="flex flex-col gap-6">
+        {kicker === undefined ? null : (
+          <p className="text-fd-muted-foreground m-0 text-xs font-medium uppercase tracking-[0.22em]">
+            {kicker}
+          </p>
+        )}
+        <h1 className="m-0 text-4xl leading-[1.05] font-semibold tracking-[-0.02em] sm:text-5xl">
+          {title}
+        </h1>
+        <p className="text-fd-muted-foreground m-0 max-w-xl text-lg leading-relaxed">
+          {subtitle}
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <a href={primaryHref} className={buttonVariants({ variant: 'primary' })}>
+            {primaryLabel}
+          </a>
+          <a
+            href={secondaryHref}
+            className={buttonVariants({ variant: 'ghost' })}
+          >
+            {secondaryLabel}
+            <ArrowOutward className="size-4" aria-hidden />
+          </a>
+        </div>
+        <div className="text-fd-muted-foreground flex items-center gap-4 text-xs">
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="text-fd-ok size-3.5" aria-hidden />
+            MIT
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Check className="text-fd-ok size-3.5" aria-hidden />
+            Apache-2.0 (docs)
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <AvTimer className="text-fd-muted-foreground size-3.5" aria-hidden />
+            v0.x · early
+          </span>
+        </div>
       </div>
-    </div>
+      <TerminalPlayground />
+    </header>
   );
 }
 
@@ -64,7 +92,7 @@ export function Status({
   tone: 'ok' | 'error' | 'pending' | 'neutral';
   icon?: 'check' | 'ban' | 'clock' | 'help';
 }): ReactNode {
-  const Icon: Icon | undefined =
+  const Icon: ComponentType<{ className?: string }> | undefined =
     icon === 'check'
       ? Check
       : icon === 'ban'
@@ -77,18 +105,20 @@ export function Status({
 
   const toneClass =
     tone === 'ok'
-      ? 'bg-ok-soft text-ok-ink border-ok/25'
+      ? 'bg-fd-ok-soft text-fd-ok-ink border-fd-ok/30'
       : tone === 'error'
-        ? 'bg-err-soft text-err-ink border-err/25'
+        ? 'bg-fd-err-soft text-fd-err-ink border-fd-err/30'
         : tone === 'pending'
-          ? 'bg-warn-soft text-warn-ink border-warn/25'
+          ? 'bg-fd-warn-soft text-fd-warn-ink border-fd-warn/30'
           : 'bg-fd-muted text-fd-muted-foreground border-fd-border';
 
   return (
     <span
       className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[0.85em] font-medium ${toneClass}`}
     >
-      {Icon !== undefined ? <Icon className="size-3.5 shrink-0" aria-hidden /> : null}
+      {Icon !== undefined ? (
+        <Icon className="size-3.5 shrink-0" aria-hidden />
+      ) : null}
       {label}
     </span>
   );

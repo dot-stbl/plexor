@@ -1,95 +1,57 @@
 ---
 title: "Plexor"
 icon: "Hub"
-description: "Self-hosted cloud platform — Organization → Project иерархия, multi-tenant IAM, marketplace app providers, REST API."
+description: "Self-hosted cloud. One binary. Modular monolith."
 ---
 
-import { Cards, Card } from 'fumadocs-ui/components/card';
-import {
-  AccountTree,
-  Cloud,
-  DeployedCode,
-  Globe,
-  HardDisk,
-  Key,
-  Layers,
-  ShoppingBag,
-  Terminal,
-} from '@nine-thirty-five/material-symbols-react/rounded/700';
-import { BrandMark } from '@/components/brand-mark';
+import { ThemePreview } from '@/components/landing';
+import { TerminalPlayground } from '@/components/terminal-playground';
+import { ArchitectureDiagram } from '@/components/architecture-diagram';
+import { Manifesto } from '@/components/manifesto';
+import { Roadmap } from '@/components/roadmap';
+import { ProvidersDirectory } from '@/components/providers-directory';
 
 <DocsHero
-  mark={<BrandMark className="size-14 text-fd-foreground" />}
-  title="Plexor"
-  subtitle="Self-hosted cloud platform — модульный монолит на .NET с multi-tenant IAM, marketplace app providers и REST/OpenAPI API."
-  primaryLabel="Начало работы"
-  primaryHref="/getting-started"
-  secondaryLabel="Открыть консоль"
-  secondaryHref="https://console.plexor.stbl.space"
+  kicker="Plexor · self-hosted cloud"
+  title="Один бинарь. Не тридцать сервисов."
+  subtitle="Self-hosted cloud platform: control plane, compute, networking, identity, audit — в одном .NET-бинаре. Modular monolith, extraction-ready по измеренному bottleneck'у, не превентивно."
+  primaryLabel="Начать с plx init"
+  primaryHref="/installation"
+  secondaryLabel="Архитектура"
+  secondaryHref="/concepts"
 />
 
-Plexor поднимает свой control plane в одном бинарнике (`Plexor.Host`) с PostgreSQL как state DB, NATS как event bus, и node-агентами на каждой compute-ноде. Compute, Network, Storage, Identity, Tenants, Billing, Telemetry, Marketplace — модули внутри одного бинаря (modular monolith, extraction-ready по измеренному bottleneck'у).
+Plexor — это control plane (`Plexor.Host`), написанный на ASP.NET Core, плюс легковесный NodeAgent на каждой compute-ноде. Никаких managed services между ними: NATS для event bus, PostgreSQL как state DB, Ceph или MinIO для object storage. Это не OpenStack-grade микросервисный зоопарк и не SaaS с принудительным control plane — это инфраструктура, которая запускается на твоём железе и работает на твоих правилах.
 
-## Что умеет платформа
+## Темы, которые реально используются
 
-<Cards>
-  <Card
-    icon={<AccountTree className="size-4" aria-hidden />}
-    title="Tenants & Projects"
-    description="Иерархия Organization → Project с per-tenant и per-project квотами. Каждый ресурс живёт в одной из этих scope-зон."
-  />
-  <Card
-    icon={<DeployedCode className="size-4" aria-hidden />}
-    title="Compute"
-    description="Виртуальные машины (KVM по умолчанию, LXD/Firecracker как альтернативы), flavors, images, lifecycle, snapshots, noVNC-консоль."
-  />
-  <Card
-    icon={<Globe className="size-4" aria-hidden />}
-    title="Network"
-    description="VPC, subnets, security groups, floating IP, load balancer, DNS-зоны. OVS/Cilium для overlay-сети."
-  />
-  <Card
-    icon={<HardDisk className="size-4" aria-hidden />}
-    title="Storage"
-    description="Block volumes (Ceph RBD / local-lvm), S3-compatible buckets (Ceph RGW / MinIO), снапшоты VM и volume."
-  />
-  <Card
-    icon={<Key className="size-4" aria-hidden />}
-    title="Identity"
-    description="OIDC через Keycloak, RBAC с permissions формата compute.vms.create, SSH-ключи, API-ключи для service accounts."
-  />
-  <Card
-    icon={<ShoppingBag className="size-4" aria-hidden />}
-    title="Marketplace"
-    description="Каталог app providers (WordPress, PostgreSQL, Redis, Keycloak, Ghost, custom). Установка одной командой, автор — через YAML provider spec."
-  />
-  <Card
-    icon={<Layers className="size-4" aria-hidden />}
-    title="Metering & Billing"
-    description="NATS-events от всех state transitions, rollups в metering_hourly, invoice-генерация раз в месяц."
-  />
-  <Card
-    icon={<Terminal className="size-4" aria-hidden />}
-    title="API & CLI"
-    description="OpenAPI source-generator эмитит artifacts/openapi.json на каждом build. Kubb генерит TS-клиент для web. CLI `plx` — NativeAOT binary."
-  />
-</Cards>
+<ThemePreview />
 
-## App providers vs install providers
+## Что внутри одного бинаря
 
-Plexor различает **install providers** (KVM, Ceph, OVS — выбор инфраструктуры при `plx init`) и **app providers** (WordPress, PostgreSQL — шаблоны развертывания user apps через marketplace). App providers — это YAML с shell-командами, не NuGet-плагины: см. [Marketplace](/marketplace).
+<ArchitectureDiagram />
 
-## Безопасность
+Plexor.Host поднимает REST + gRPC, регистрирует модули через DI-композицию, эмитит `artifacts/openapi.json` на каждом build. Все модули — Tenants, Identity, Compute, Network, Storage, Billing, Telemetry, Marketplace — стартуют в одном бинаре. Audit, Telemetry и Network extraction-ready: если измеренная нагрузка требует, они выносятся в отдельный сервис через deploy change, без refactor'а кода.
 
-Multi-tenant by default: всё через `tenant_id` в JWT claims, глобальные EF Core query filters. Audit log на каждое мутирующее действие, append-only с retention 7 лет. Secrets — только в env / vault, не в config-файлах.
+## Manifest
 
-## Начните отсюда
+<Manifesto />
+
+## Каталог providers
+
+<ProvidersDirectory />
+
+Install providers выбираются один раз при `plx init` через system probes. App providers приезжают как YAML-манифесты — community может публиковать свои, оператор устанавливает через `plx provider install <git-url>`. Никаких NuGet-плагинов, никаких Helm-чартов.
+
+## Roadmap
+
+<Roadmap />
+
+## Дальше
 
 <Cards>
-  <Card title="Начало работы" description="Первый заход, web UI, plx CLI, структура приложения." href="/getting-started" />
-  <Card title="Tenants & Projects" description="Иерархия Organization → Project и её scope-семантика." href="/concepts/tenants-and-projects" />
-  <Card title="Authentication" description="OIDC flow, JWT claims, RBAC permissions." href="/concepts/authentication" />
-  <Card title="Virtual Machines" description="Lifecycle VM: create, start, stop, snapshot, console." href="/compute/virtual-machines" />
-  <Card title="Marketplace" description="App providers: каталог, install, upgrade, как сделать свой." href="/marketplace" />
-  <Card title="Installation" description="Single-node setup, multi-node setup, upgrade." href="/installation" />
+  <Card title="Установка" description="Single-node для dev, multi-node для production — пошаговая инструкция через plx init." href="/installation" />
+  <Card title="Marketplace" description="Как устроены app providers: provider.yaml, install hooks, upgrade, как написать свой." href="/marketplace" />
+  <Card title="Архитектура" description="Modules, providers, NATS topics, миграции — из чего состоит Plexor.Host." href="/concepts" />
+  <Card title="API reference" description="REST endpoints, OpenAPI spec, плюс полный список CLI-команд." href="/reference" />
 </Cards>

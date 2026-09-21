@@ -1,63 +1,57 @@
 ---
 title: "Plexor"
 icon: "Hub"
-description: "Self-hosted cloud platform — Organization → Project hierarchy, multi-tenant IAM, marketplace app providers, REST API."
+description: "Self-hosted cloud. One binary. Modular monolith."
 ---
 
-import { Cards, Card } from 'fumadocs-ui/components/card';
-import {
-  AccountTree,
-  Cloud,
-  DeployedCode,
-  Globe,
-  HardDisk,
-  Key,
-  Layers,
-  ShoppingBag,
-  Terminal,
-} from '@nine-thirty-five/material-symbols-react/rounded/700';
-import { BrandMark } from '@/components/brand-mark';
+import { ThemePreview } from '@/components/landing';
+import { TerminalPlayground } from '@/components/terminal-playground';
+import { ArchitectureDiagram } from '@/components/architecture-diagram';
+import { Manifesto } from '@/components/manifesto';
+import { Roadmap } from '@/components/roadmap';
+import { ProvidersDirectory } from '@/components/providers-directory';
 
 <DocsHero
-  mark={<BrandMark className="size-14 text-fd-foreground" />}
-  title="Plexor"
-  subtitle="Self-hosted cloud platform — modular monolith on .NET with multi-tenant IAM, marketplace app providers and a REST/OpenAPI API."
-  primaryLabel="Getting started"
-  primaryHref="/en/getting-started"
-  secondaryLabel="Open console"
-  secondaryHref="https://console.plexor.stbl.space"
+  kicker="Plexor · self-hosted cloud"
+  title="One binary. Not thirty services."
+  subtitle="A self-hosted cloud platform: control plane, compute, networking, identity, audit — in one .NET binary. Modular monolith, extraction-ready by measured bottleneck, not pre-emptively."
+  primaryLabel="Start with plx init"
+  primaryHref="/en/installation"
+  secondaryLabel="Architecture"
+  secondaryHref="/en/concepts"
 />
 
-Plexor runs its control plane in a single binary (`Plexor.Host`) with PostgreSQL as state DB, NATS as event bus, and a node-agent on every compute node. Compute, Network, Storage, Identity, Tenants, Billing, Telemetry, Marketplace are modules inside one binary (modular monolith, extraction-ready by measured bottleneck).
+Plexor is a control plane (`Plexor.Host`) on ASP.NET Core, plus a lightweight NodeAgent on every compute node. No managed services in between: NATS for the event bus, PostgreSQL for state, Ceph or MinIO for object storage. Not an OpenStack-grade microservice zoo, not SaaS with a forced control plane — infrastructure that runs on your hardware, on your terms.
 
-## What the platform does
+## Themes operators actually pick
+
+<ThemePreview />
+
+## What's inside the binary
+
+<ArchitectureDiagram />
+
+Plexor.Host exposes REST + gRPC, registers modules via DI composition, emits `artifacts/openapi.json` on every build. Every module — Tenants, Identity, Compute, Network, Storage, Billing, Telemetry, Marketplace — boots inside the same process. Audit, Telemetry and Network are extraction-ready: if measured load demands it, they split into their own service as a deploy change, not a code refactor.
+
+## Manifesto
+
+<Manifesto />
+
+## Providers directory
+
+<ProvidersDirectory />
+
+Install providers are picked once at `plx init` via system probes. App providers ship as YAML manifests — community can publish their own, operators install with `plx provider install <git-url>`. No NuGet plugins, no Helm charts.
+
+## Roadmap
+
+<Roadmap />
+
+## Next
 
 <Cards>
-  <Card icon={<AccountTree className="size-4" aria-hidden />} title="Tenants & Projects" description="Organization → Project hierarchy with per-tenant and per-project quotas. Every resource lives in one of these scope zones." />
-  <Card icon={<DeployedCode className="size-4" aria-hidden />} title="Compute" description="Virtual machines (KVM default, LXD/Firecracker as alternatives), flavors, images, lifecycle, snapshots, noVNC console." />
-  <Card icon={<Globe className="size-4" aria-hidden />} title="Network" description="VPC, subnets, security groups, floating IP, load balancer, DNS zones. OVS/Cilium for overlay networking." />
-  <Card icon={<HardDisk className="size-4" aria-hidden />} title="Storage" description="Block volumes (Ceph RBD / local-lvm), S3-compatible buckets (Ceph RGW / MinIO), VM and volume snapshots." />
-  <Card icon={<Key className="size-4" aria-hidden />} title="Identity" description="OIDC via Keycloak, RBAC with permissions like compute.vms.create, SSH keys, API keys for service accounts." />
-  <Card icon={<ShoppingBag className="size-4" aria-hidden />} title="Marketplace" description="App providers catalog (WordPress, PostgreSQL, Redis, Keycloak, Ghost, custom). One-command install, authoring via YAML provider spec." />
-  <Card icon={<Layers className="size-4" aria-hidden />} title="Metering & Billing" description="NATS events from every state transition, rollups into metering_hourly, monthly invoice generation." />
-  <Card icon={<Terminal className="size-4" aria-hidden />} title="API & CLI" description="OpenAPI source-generator emits artifacts/openapi.json on every build. Kubb generates a TS client for the web. CLI `plx` is a NativeAOT binary." />
-</Cards>
-
-## App providers vs install providers
-
-Plexor distinguishes **install providers** (KVM, Ceph, OVS — infrastructure choice at `plx init`) from **app providers** (WordPress, PostgreSQL — user-app deployment templates via marketplace). App providers are YAML with shell commands, not NuGet plugins: see [Marketplace](/en/marketplace).
-
-## Security
-
-Multi-tenant by default: everything flows through `tenant_id` in JWT claims, global EF Core query filters. Audit log on every mutating action, append-only with 7-year retention. Secrets live only in env / vault, never in config files.
-
-## Start here
-
-<Cards>
-  <Card title="Getting started" description="First login, web UI, plx CLI, app structure." href="/en/getting-started" />
-  <Card title="Tenants & Projects" description="Organization → Project hierarchy and its scope semantics." href="/en/concepts/tenants-and-projects" />
-  <Card title="Authentication" description="OIDC flow, JWT claims, RBAC permissions." href="/en/concepts/authentication" />
-  <Card title="Virtual Machines" description="VM lifecycle: create, start, stop, snapshot, console." href="/en/compute/virtual-machines" />
-  <Card title="Marketplace" description="App providers: catalog, install, upgrade, authoring." href="/en/marketplace" />
-  <Card title="Installation" description="Single-node setup, multi-node setup, upgrade." href="/en/installation" />
+  <Card title="Installation" description="Single-node for dev, multi-node for production — step-by-step via plx init." href="/en/installation" />
+  <Card title="Marketplace" description="How app providers work: provider.yaml, install hooks, upgrade, authoring your own." href="/en/marketplace" />
+  <Card title="Architecture" description="Modules, providers, NATS topics, migrations — what Plexor.Host is made of." href="/en/concepts" />
+  <Card title="API reference" description="REST endpoints, OpenAPI spec, plus the full CLI command list." href="/en/reference" />
 </Cards>
