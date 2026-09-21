@@ -32,6 +32,7 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Storage\Plexor.Modules.Storage.Application\Plexor.Modules.Storage.Application.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Infrastructure\Plexor.Modules.Network.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Application\Plexor.Modules.Network.Application.csproj"/>
+    <ProjectReference Include="..\..\providers\Plexor.Providers.VSphere.Infrastructure\Plexor.Providers.VSphere.Infrastructure.csproj"/>
     <ProjectReference Include="..\..\shared\security\Plexor.Shared.Mtls\Plexor.Shared.Mtls.csproj"/>
     <ProjectReference Include="..\..\shared\infra\Plexor.Shared.Configuration\Plexor.Shared.Configuration.csproj"/>
   </ItemGroup>

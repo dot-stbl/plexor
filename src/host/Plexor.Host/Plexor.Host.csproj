@@ -77,6 +77,15 @@
     <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Application\Plexor.Modules.Network.Application.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Infrastructure\Plexor.Modules.Network.Infrastructure.csproj" />
     <ProjectReference Include="..\..\modules\Plexor.Modules.Network\Plexor.Modules.Network.Api\Plexor.Modules.Network.Api.csproj" />
+    <!-- vSphere provider (issue #77) — control-plane-side
+         integration with vCenter REST API. The Refit client +
+         options + auth handler live in Plexor.Providers.VSphere;
+         the EF-backed inventory + provisioning services live in
+         Plexor.Providers.VSphere.Infrastructure; the minimal-API
+         surface lives in Plexor.Providers.VSphere.Api. -->
+    <ProjectReference Include="..\..\providers\Plexor.Providers.VSphere\Plexor.Providers.VSphere.csproj" />
+    <ProjectReference Include="..\..\providers\Plexor.Providers.VSphere.Infrastructure\Plexor.Providers.VSphere.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\providers\Plexor.Providers.VSphere.Api\Plexor.Providers.VSphere.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

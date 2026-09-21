@@ -47,6 +47,11 @@ using Plexor.Modules.Branding.Infrastructure.Installers;
 using Plexor.Modules.Branding.Infrastructure.Persistence;
 using Plexor.Modules.Clusters.Infrastructure.Installers;
 using Plexor.Modules.Clusters.Infrastructure.Persistence;
+using Plexor.Modules.Network.Api.Endpoints;
+using Plexor.Modules.Network.Api.Installers;
+using Plexor.Modules.Network.Application.Installers;
+using Plexor.Modules.Network.Infrastructure.Installers;
+using Plexor.Modules.Network.Infrastructure.Persistence;
 using Plexor.Modules.Quotas.Api.Errors;
 using Plexor.Modules.Quotas.Api.Installers;
 using Plexor.Modules.Quotas.Application.Installers;
@@ -59,16 +64,16 @@ using Plexor.Modules.Sigil.Api.Endpoints;
 using Plexor.Modules.Sigil.Application.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Installers;
 using Plexor.Modules.Sigil.Infrastructure.Persistence;
-using Plexor.Modules.Network.Api.Endpoints;
-using Plexor.Modules.Network.Api.Installers;
-using Plexor.Modules.Network.Application.Installers;
-using Plexor.Modules.Network.Infrastructure.Installers;
-using Plexor.Modules.Network.Infrastructure.Persistence;
 using Plexor.Modules.Storage.Api.Endpoints;
 using Plexor.Modules.Storage.Api.Installers;
 using Plexor.Modules.Storage.Application.Installers;
 using Plexor.Modules.Storage.Infrastructure.Installers;
 using Plexor.Modules.Storage.Infrastructure.Persistence;
+using Plexor.Providers.VSphere.Api.Endpoints;
+using Plexor.Providers.VSphere.Api.Installers;
+using Plexor.Providers.VSphere.Infrastructure.Installers;
+using Plexor.Providers.VSphere.Infrastructure.Persistence;
+using Plexor.Providers.VSphere.Installers;
 using Plexor.Shared.Configuration;
 using Plexor.Shared.Filtering.DI;
 using Plexor.Shared.Mtls;
@@ -201,6 +206,7 @@ builder.Services.AddModuleDbContext<BrandingDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<AuditDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<StorageDbContext>(plexorDataSource);
 builder.Services.AddModuleDbContext<NetworkDbContext>(plexorDataSource);
+builder.Services.AddModuleDbContext<VSphereDbContext>(plexorDataSource);
 builder.Services.AddScoped<IAuditDbContext>(sp => sp.GetRequiredService<AuditDbContext>());
 var contextCount = 9;
 
@@ -334,6 +340,22 @@ builder.Services.AddStorageApiCore();
 builder.Services.AddNetworkApplicationCore(builder.Configuration);
 builder.Services.AddNetworkInfrastructureCore();
 builder.Services.AddNetworkApiCore();
+
+// vSphere provider (issue #77) — control-plane-side integration with
+// vCenter REST API. The Refit client + options + auth handler live
+// in Plexor.Providers.VSphere (Domain layer); the EF-backed
+// inventory + provisioning services + DbContext live in
+// Plexor.Providers.VSphere.Infrastructure; the minimal-API surface
+// lives in Plexor.Providers.VSphere.Api. The three installers follow
+// the Plexor.Modules.* Application/Infrastructure/Api triad
+// convention.
+//
+// The Inventory endpoint maps alongside the other minimal-API
+// endpoints (storage, network, audit) below. No background refresh
+// tick in v1 — the refresh endpoint forces a pull on demand.
+builder.Services.AddVSphereProvider(builder.Configuration);
+builder.Services.AddVSphereInfrastructureCore();
+builder.Services.AddVSphereApiCore();
 // Audit retention (Phase 5.3) — bind AuditOptions so the daily
 // sweep BackgroundService picks up RetentionDays / CleanupInterval /
 // BatchSize / SweepHourUtc. ValidateDataAnnotations + ValidateOnStart
@@ -478,5 +500,12 @@ app.MapOidcLogout();
 // MapControllers so the controllers' generic fall-through routes
 // (catch-all 404 handlers, etc.) take priority on collision.
 app.MapAuditQuery();
+
+// vSphere provider endpoints (issue #77) — minimal-API surface for
+// inventory read + inventory refresh + clone. Mounted alongside the
+// other minimal-API endpoints.
+app.MapVSphereInventory();
+app.MapVSphereInventoryRefresh();
+app.MapVSphereClone();
 
 app.Run();
