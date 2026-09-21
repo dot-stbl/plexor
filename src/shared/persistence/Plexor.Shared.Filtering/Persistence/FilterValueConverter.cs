@@ -40,10 +40,10 @@ public static class FilterValueConverter
             {
                 return converter(text);
             }
-            catch (Exception ex) when (ex is not FilterParseException)
+            catch (Exception exception) when (exception is not FilterParseException)
             {
                 throw new FilterParseException(
-                    $"Cannot convert '{text}' to {underlying.Name}", 0, ex);
+                    $"Cannot convert '{text}' to {underlying.Name}", 0, exception);
             }
         }
 
@@ -53,10 +53,10 @@ public static class FilterValueConverter
             {
                 return Enum.Parse(underlying, text, true);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 throw new FilterParseException(
-                    $"Cannot convert '{text}' to enum {underlying.Name}", 0, ex);
+                    $"Cannot convert '{text}' to enum {underlying.Name}", 0, exception);
             }
         }
 
@@ -78,10 +78,10 @@ public static class FilterValueConverter
         {
             return System.Convert.ChangeType(text, underlying, CultureInfo.InvariantCulture);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             throw new FilterParseException(
-                $"Cannot convert '{text}' to {underlying.Name}", 0, ex);
+                $"Cannot convert '{text}' to {underlying.Name}", 0, exception);
         }
     }
 

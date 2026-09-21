@@ -138,13 +138,13 @@ public sealed class EfOidcUserProvisioner(IdentityDbContext db, TimeProvider clo
             await transaction.CommitAsync(cancellationToken);
             persisted = newUser;
         }
-        catch (Exception ex) when (ex is not IdentityException)
+        catch (Exception exception) when (exception is not IdentityException)
         {
             await transaction.RollbackAsync(cancellationToken);
             throw new IdentityException(
                 IdentityExceptions.OidcUserProvisioningFailed,
-                $"OIDC user provisioning failed: {ex.GetType().Name}.",
-                ex);
+                $"OIDC user provisioning failed: {exception.GetType().Name}.",
+                exception);
         }
 
         return persisted;

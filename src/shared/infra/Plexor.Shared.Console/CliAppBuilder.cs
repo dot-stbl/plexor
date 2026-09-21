@@ -343,9 +343,9 @@ public sealed class PlexorCliBuilder
 
             return exit;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            AnsiConsole.MarkupLine(ErrorFormatter.Error(ex.GetType().Name, ex.Message));
+            AnsiConsole.MarkupLine(ErrorFormatter.Error(exception.GetType().Name, exception.Message));
             return 1;
         }
     }

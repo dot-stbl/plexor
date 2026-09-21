@@ -70,10 +70,10 @@ public sealed class BrandingGlobalSeederHostedService(
                     "BrandingGlobalSeeder: singleton row already present; skipping seed.");
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             logger.LogCritical(
-                ex,
+                exception,
                 "BrandingGlobalSeeder: could not ensure singleton row; aborting startup.");
             throw;
         }

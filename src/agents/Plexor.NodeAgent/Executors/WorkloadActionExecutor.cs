@@ -85,17 +85,17 @@ public sealed class WorkloadActionExecutor(
                 _ => ExecutorResult.Fail($"workload.action: unknown action '{action}'")
             };
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             logger.LogError(
-                ex,
+                exception,
                 "Provider {Provider} failed {Action} on workload {WorkloadId}",
                 registry.GetType().Name,
                 action, /* payload out of scope */
                 Guid.Empty);
 
             return ExecutorResult.Fail(
-                $"workload.{action} exception: {ex.GetType().Name}: {ex.Message}");
+                $"workload.{action} exception: {exception.GetType().Name}: {exception.Message}");
         }
     }
 

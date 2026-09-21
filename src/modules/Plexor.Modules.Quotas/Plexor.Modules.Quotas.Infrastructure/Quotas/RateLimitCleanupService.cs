@@ -82,13 +82,13 @@ public sealed class RateLimitCleanupService(
             {
                 return;
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 // Sweep failures are non-fatal — the next iteration
                 // will retry. Log + continue so a transient DB blip
                 // doesn't kill the BackgroundService.
                 logger.LogWarning(
-                    ex,
+                    exception,
                     "RateLimitCleanupService sweep failed; will retry at the next HH:05 boundary.");
             }
         }

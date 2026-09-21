@@ -83,18 +83,18 @@ public static class CustomCssEndpoint
             // provider for the operator's chosen extension.
             return Results.File(bytes, contentType: "text/css");
         }
-        catch (IOException ex)
+        catch (IOException exception)
         {
             logger.LogWarning(
-                ex,
+                exception,
                 "Custom CSS file at {Path} was unreadable; returning 404.",
                 resolvedPath);
             return Results.NotFound();
         }
-        catch (UnauthorizedAccessException ex)
+        catch (UnauthorizedAccessException exception)
         {
             logger.LogWarning(
-                ex,
+                exception,
                 "Custom CSS file at {Path} was inaccessible; returning 404.",
                 resolvedPath);
             return Results.NotFound();

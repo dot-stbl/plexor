@@ -123,11 +123,11 @@ public sealed class EfOidcIdTokenValidator(
         {
             return IdTokenClaimsExtractor.Extract(token);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException exception)
         {
             logger.LogWarning(
                 "EfOidcIdTokenValidator: id_token passed validation but claim extraction failed: {Reason}",
-                ex.Message);
+                exception.Message);
             return null;
         }
     }

@@ -112,7 +112,7 @@ public sealed class VSphereProvisioningService(
 
             return new VSphereCloneResult(runId, resultVmMoref, "SUCCESS");
         }
-        catch (ApiException ex)
+        catch (ApiException exception)
         {
             await ProvisioningAuditWriter.RecordFailureAsync(
                 db,
@@ -123,18 +123,18 @@ public sealed class VSphereProvisioningService(
                 targetFolderMoref,
                 startedAt,
                 "FAILED",
-                $"vCenter returned {ex.StatusCode}: {ex.Message}",
+                $"vCenter returned {exception.StatusCode}: {exception.Message}",
                 cancellationToken);
 
             logger.LogWarning(
-                ex,
+                exception,
                 "vSphere clone failed for template {SourceTemplateMoref} (HTTP {StatusCode})",
                 sourceTemplateMoref,
-                ex.StatusCode);
+                exception.StatusCode);
 
             return new VSphereCloneResult(runId, null, "FAILED");
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException exception)
         {
             // Network-layer failure (DNS, TCP reset, TLS handshake,
             // certificate validation error). The clone never
@@ -149,17 +149,17 @@ public sealed class VSphereProvisioningService(
                 targetFolderMoref,
                 startedAt,
                 "FAILED",
-                $"network error: {ex.Message}",
+                $"network error: {exception.Message}",
                 cancellationToken);
 
             logger.LogWarning(
-                ex,
+                exception,
                 "vSphere clone failed for template {SourceTemplateMoref} (network error)",
                 sourceTemplateMoref);
 
             return new VSphereCloneResult(runId, null, "FAILED");
         }
-        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+        catch (TaskCanceledException exception) when (exception.InnerException is TimeoutException)
         {
             await ProvisioningAuditWriter.RecordFailureAsync(
                 db,
@@ -174,7 +174,7 @@ public sealed class VSphereProvisioningService(
                 cancellationToken);
 
             logger.LogWarning(
-                ex,
+                exception,
                 "vSphere clone timed out for template {SourceTemplateMoref}",
                 sourceTemplateMoref);
 

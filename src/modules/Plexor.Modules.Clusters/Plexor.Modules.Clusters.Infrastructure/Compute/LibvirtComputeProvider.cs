@@ -126,7 +126,7 @@ public sealed class LibvirtComputeProvider(
         {
             await runner.RunAsync("start", [providerVmId], cancellationToken);
         }
-        catch (ComputeProviderException ex) when (ex.Code == ComputeProviderErrorCodes.RequestInvalid)
+        catch (ComputeProviderException exception) when (exception.Code == ComputeProviderErrorCodes.RequestInvalid)
         {
             // virsh "start <running>" exits non-zero with "domain is already active" —
             // the idempotent case. Swallow: the host contract says the second
@@ -147,7 +147,7 @@ public sealed class LibvirtComputeProvider(
             await runner.RunAsync("shutdown", [providerVmId], cancellationToken)
                 ;
         }
-        catch (ComputeProviderException ex) when (ex.Code == ComputeProviderErrorCodes.RequestInvalid)
+        catch (ComputeProviderException exception) when (exception.Code == ComputeProviderErrorCodes.RequestInvalid)
         {
             // virsh "shutdown <stopped>" exits non-zero with "domain is not running" —
             // the idempotent case. Swallow: the host contract says the second
@@ -170,7 +170,7 @@ public sealed class LibvirtComputeProvider(
                 [providerVmId, "--remove-all-storage"],
                 cancellationToken);
         }
-        catch (ComputeProviderException ex) when (ex.Code == ComputeProviderErrorCodes.NotFound)
+        catch (ComputeProviderException exception) when (exception.Code == ComputeProviderErrorCodes.NotFound)
         {
             // virsh "undefine <unknown>" exits 42 (NotFound) — the idempotent
             // case. Swallow: the host contract says the second call against an

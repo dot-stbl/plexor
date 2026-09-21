@@ -92,16 +92,16 @@ internal sealed class CommandDispatcher
                 result.LocalId,
                 DateTimeOffset.UtcNow);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             logger.LogError(
-                ex,
+                exception,
                 "Executor {Executor} threw for command {CommandId} (type {Type})",
                 executor.GetType().Name,
                 envelope.CommandId,
                 envelope.Type);
 
-            return Failed(envelope, $"{ex.GetType().Name}: {ex.Message}");
+            return Failed(envelope, $"{exception.GetType().Name}: {exception.Message}");
         }
     }
 

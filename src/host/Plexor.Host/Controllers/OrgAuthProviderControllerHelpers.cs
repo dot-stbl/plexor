@@ -174,19 +174,19 @@ internal static class OrgAuthProviderControllerHelpers
         {
             return DiscoveryFetchResult.Failed("Authority did not respond within the timeout.");
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException exception)
         {
             return DiscoveryFetchResult.Failed(
-                $"Authority is unreachable: {ex.Message}");
+                $"Authority is unreachable: {exception.Message}");
         }
-        catch (JsonException ex)
+        catch (JsonException exception)
         {
             // ReadFromJsonAsync<T> throws JsonException on a malformed
             // discovery-document body. That's an authority-side config
             // problem the operator needs to know about, not a bug in
             // Plexor — surface it as a structured failure.
             return DiscoveryFetchResult.Failed(
-                $"Authority returned a malformed discovery document: {ex.Message}");
+                $"Authority returned a malformed discovery document: {exception.Message}");
         }
     }
 

@@ -59,14 +59,14 @@ public sealed class OrgAuthProviderSeeder(
                     "OrgAuthProviderSeeder: all orgs already have a config row; skipping seed.");
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             // Log + propagate so the host startup aborts; the next
             // restart re-attempts. Swallowing here would let the host
             // boot with a half-configured fleet and is exactly the
             // wrong shape for a first-boot invariant.
             logger.LogCritical(
-                ex,
+                exception,
                 "OrgAuthProviderSeeder: unexpected failure during first-run seed.");
             throw;
         }

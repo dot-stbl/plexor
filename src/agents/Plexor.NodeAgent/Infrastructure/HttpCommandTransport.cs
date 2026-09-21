@@ -95,20 +95,20 @@ internal sealed class HttpCommandTransport(INodeApi api, ILogger<HttpCommandTran
         {
             return await call();
         }
-        catch (ApiException ex)
+        catch (ApiException exception)
         {
             logger.LogWarning(
                 "Control plane {Operation} returned {Status} ({StatusCode}): {Content}",
                 operation,
-                (int)ex.StatusCode,
-                ex.StatusCode,
-                ex.HasContent ? "(body available — see Refit diagnostics)" : "(no body)");
+                (int)exception.StatusCode,
+                exception.StatusCode,
+                exception.HasContent ? "(body available — see Refit diagnostics)" : "(no body)");
 
             throw new HttpRequestException(
                 $"Control plane {operation} returned " +
-                string.Create(CultureInfo.InvariantCulture, $"{(int)ex.StatusCode} {ex.StatusCode}."),
-                ex,
-                ex.StatusCode);
+                string.Create(CultureInfo.InvariantCulture, $"{(int)exception.StatusCode} {exception.StatusCode}."),
+                exception,
+                exception.StatusCode);
         }
     }
 }

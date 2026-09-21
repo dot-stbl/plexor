@@ -171,10 +171,10 @@ public sealed class LibvirtQemuProvider(
         {
             await LibvirtRunner.RunAsync(LibvirtUri, $"undefine {entry.DomainName}", cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             logger.LogWarning(
-                ex,
+                exception,
                 "LibvirtQemuProvider: virsh undefine {Domain} failed during delete; "
                 + "continuing with volume / network cleanup",
                 entry.DomainName);
