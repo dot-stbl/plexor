@@ -282,6 +282,16 @@
     animation: none !important;
     opacity: 1;
   }
+  /* Plexor sidebar: collapse every transition + animation to 0ms
+   * for users who opted out of motion. The chevron rotation inside
+   * the folder trigger, the `data-[active=true]:before` rule fill,
+   * and the brand/footer hover transitions all fall under here. */
+  .docs-sidebar *,
+  .docs-chapter-rule,
+  .docs-chapter-num {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
 }
 
 html {
