@@ -1,34 +1,23 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
-import { applyPreset } from '@plexor/ui/themes';
-import { DEFAULT_PRESET_ID, presets } from '@plexor/ui/themes';
 
 import { routeTree } from './routeTree.gen';
 
 import './styles.css';
+import { applyBootPreset } from './lib/apply-theme';
 
 /**
  * Apply the persisted/auto theme preset BEFORE first render so the docs
  * site ships its branded chrome (matched OKLCH values) without a flash.
- * Mirrors console's `applyBootPreset()` (main.tsx). The inline boot
- * script in index.html already stamped `data-theme-mode` and `.dark` for
- * the first paint baseline; here we re-apply the matching preset so
- * any runtime user preference (a value the boot script couldn't see,
- * or a community-installed marketplace theme in a later phase) takes
- * effect before the first frame.
+ * Mirrors the inline boot script in `index.html` — the inline script
+ * stamps `.dark` and `data-theme-mode` for the no-FOUC first paint;
+ * here we apply the full token set so the full Plexor DS vocabulary
+ * (surfaces, ink, borders, status semantics) lands on the root element
+ * before any React component reads it. Both paths use the same
+ * localStorage key (`plexor-theme`) so they agree.
  */
-function bootPreset() {
-  try {
-    const raw = window.localStorage.getItem('plexor-theme');
-    const id = raw && presets.some((p) => p.id === raw) ? raw : DEFAULT_PRESET_ID;
-    applyPreset(presets.find((p) => p.id === id) ?? presets[0]!);
-  } catch {
-    // localStorage unavailable — :root tokens from tokens.css carry
-    // the first paint; runtime preset application will retry on the
-    // first user interaction with the theme picker.
-  }
-}
+applyBootPreset();
 
 const router = createRouter({
   routeTree,
@@ -43,8 +32,6 @@ declare module '@tanstack/react-router' {
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Root element #root not found');
-
-bootPreset();
 
 createRoot(rootElement).render(
   <StrictMode>

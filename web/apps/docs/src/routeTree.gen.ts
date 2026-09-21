@@ -9,68 +9,161 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ConceptsIndexRouteImport } from './routes/concepts/index'
+import { Route as docsRouteRouteImport } from './routes/(docs)/route'
+import { Route as marketingRouteRouteImport } from './routes/(marketing)/route'
+import { Route as marketingIndexRouteImport } from './routes/(marketing)/index'
+import { Route as docsDocsIndexRouteImport } from './routes/(docs)/docs/index'
+import { Route as docsDocsGettingStartedRouteImport } from './routes/(docs)/docs/getting-started'
+import { Route as docsDocsConceptsIndexRouteImport } from './routes/(docs)/docs/concepts/index'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const docsRouteRoute = docsRouteRouteImport.update({
+  id: '/(docs)',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConceptsIndexRoute = ConceptsIndexRouteImport.update({
-  id: '/concepts/',
-  path: '/concepts/',
+const marketingRouteRoute = marketingRouteRouteImport.update({
+  id: '/(marketing)',
   getParentRoute: () => rootRouteImport,
+} as any)
+const marketingIndexRoute = marketingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => marketingRouteRoute,
+} as any)
+const docsDocsIndexRoute = docsDocsIndexRouteImport.update({
+  id: '/docs/',
+  path: '/docs/',
+  getParentRoute: () => docsRouteRoute,
+} as any)
+const docsDocsGettingStartedRoute = docsDocsGettingStartedRouteImport.update({
+  id: '/docs/getting-started',
+  path: '/docs/getting-started',
+  getParentRoute: () => docsRouteRoute,
+} as any)
+const docsDocsConceptsIndexRoute = docsDocsConceptsIndexRouteImport.update({
+  id: '/docs/concepts/',
+  path: '/docs/concepts/',
+  getParentRoute: () => docsRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/concepts/': typeof ConceptsIndexRoute
+  '/': typeof marketingIndexRoute
+  '/docs/getting-started': typeof docsDocsGettingStartedRoute
+  '/docs/': typeof docsDocsIndexRoute
+  '/docs/concepts/': typeof docsDocsConceptsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/concepts': typeof ConceptsIndexRoute
+  '/': typeof marketingIndexRoute
+  '/docs/getting-started': typeof docsDocsGettingStartedRoute
+  '/docs': typeof docsDocsIndexRoute
+  '/docs/concepts': typeof docsDocsConceptsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/concepts/': typeof ConceptsIndexRoute
+  '/(docs)': typeof docsRouteRouteWithChildren
+  '/(marketing)': typeof marketingRouteRouteWithChildren
+  '/(marketing)/': typeof marketingIndexRoute
+  '/(docs)/docs/getting-started': typeof docsDocsGettingStartedRoute
+  '/(docs)/docs/': typeof docsDocsIndexRoute
+  '/(docs)/docs/concepts/': typeof docsDocsConceptsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/concepts/'
+  fullPaths: '/' | '/docs/getting-started' | '/docs/' | '/docs/concepts/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/concepts'
-  id: '__root__' | '/' | '/concepts/'
+  to: '/' | '/docs/getting-started' | '/docs' | '/docs/concepts'
+  id:
+    | '__root__'
+    | '/(docs)'
+    | '/(marketing)'
+    | '/(marketing)/'
+    | '/(docs)/docs/getting-started'
+    | '/(docs)/docs/'
+    | '/(docs)/docs/concepts/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ConceptsIndexRoute: typeof ConceptsIndexRoute
+  docsRouteRoute: typeof docsRouteRouteWithChildren
+  marketingRouteRoute: typeof marketingRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/(docs)': {
+      id: '/(docs)'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof docsRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/concepts/': {
-      id: '/concepts/'
-      path: '/concepts'
-      fullPath: '/concepts/'
-      preLoaderRoute: typeof ConceptsIndexRouteImport
+    '/(marketing)': {
+      id: '/(marketing)'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof marketingRouteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(marketing)/': {
+      id: '/(marketing)/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof marketingIndexRouteImport
+      parentRoute: typeof marketingRouteRoute
+    }
+    '/(docs)/docs/': {
+      id: '/(docs)/docs/'
+      path: '/docs'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof docsDocsIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/getting-started': {
+      id: '/(docs)/docs/getting-started'
+      path: '/docs/getting-started'
+      fullPath: '/docs/getting-started'
+      preLoaderRoute: typeof docsDocsGettingStartedRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/concepts/': {
+      id: '/(docs)/docs/concepts/'
+      path: '/docs/concepts'
+      fullPath: '/docs/concepts/'
+      preLoaderRoute: typeof docsDocsConceptsIndexRouteImport
+      parentRoute: typeof docsRouteRoute
     }
   }
 }
 
+interface docsRouteRouteChildren {
+  docsDocsGettingStartedRoute: typeof docsDocsGettingStartedRoute
+  docsDocsIndexRoute: typeof docsDocsIndexRoute
+  docsDocsConceptsIndexRoute: typeof docsDocsConceptsIndexRoute
+}
+
+const docsRouteRouteChildren: docsRouteRouteChildren = {
+  docsDocsGettingStartedRoute: docsDocsGettingStartedRoute,
+  docsDocsIndexRoute: docsDocsIndexRoute,
+  docsDocsConceptsIndexRoute: docsDocsConceptsIndexRoute,
+}
+
+const docsRouteRouteWithChildren = docsRouteRoute._addFileChildren(
+  docsRouteRouteChildren,
+)
+
+interface marketingRouteRouteChildren {
+  marketingIndexRoute: typeof marketingIndexRoute
+}
+
+const marketingRouteRouteChildren: marketingRouteRouteChildren = {
+  marketingIndexRoute: marketingIndexRoute,
+}
+
+const marketingRouteRouteWithChildren = marketingRouteRoute._addFileChildren(
+  marketingRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ConceptsIndexRoute: ConceptsIndexRoute,
+  docsRouteRoute: docsRouteRouteWithChildren,
+  marketingRouteRoute: marketingRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
