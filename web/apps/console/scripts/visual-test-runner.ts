@@ -118,7 +118,9 @@ async function run(): Promise<number> {
     await waitForServer(URL);
     console.log('[visual] server ready, running test-storybook…');
 
-    const testArgs = ['bunx', 'test-storybook', '--url', URL];
+    // Use `bun x` (workspace-local binary resolution) instead of the
+    // global `bunx` CLI which may not see workspace devDeps on Windows.
+    const testArgs = ['bun', 'x', 'test-storybook', '--url', URL];
     if (update) testArgs.push('--updateSnapshot');
 
     const test = spawn({
