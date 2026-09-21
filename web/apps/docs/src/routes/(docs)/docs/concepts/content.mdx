@@ -1,80 +1,71 @@
 ---
 title: Concepts
-description: The Plexor mental model — organisation, team, folder, and the resource scope hierarchy that ties them together.
+description: How Plexor is organised — organisation, team and folder, and the resource scope hierarchy that ties them together.
 ---
 
 # Concepts
 
-Plexor splits resources across three levels. The split is deliberate —
-each level answers a different question, and the resource scope hierarchy
-that falls out of it is what makes multi-team, multi-environment
-deployments tractable without bolting on a custom access layer.
+Plexor groups everything you run inside a single hierarchy: three
+levels, each with its own job. The split is deliberate — it is the
+simplest structure that lets a team of five to fifteen share a
+deployment with other teams without bolting on a custom access layer.
 
 ## Organisation
 
-The **organisation** is the top-level billing and authentication
-boundary. Every Plexor deployment has exactly one organisation; users,
-teams, and resources all live inside it. The organisation is what an
-identity provider talks to, what an invoice covers, and what an
-audit log scopes to.
+The **organisation** is the top of the hierarchy. Every Plexor
+deployment has exactly one. Users, teams and resources all live inside
+it. The organisation is what your identity provider talks to, what an
+invoice covers, and what the audit log scopes to.
 
-Multi-org deploys are isolated — cross-organisation sharing is a
-phase-2 feature and is intentionally absent in v1.
+Multi-organisation deploys are out of scope in the current release —
+they land in a later phase.
 
 ## Team
 
-A **team** is a permission aggregation. Most teams in a Plexor
-deployment are 5–15 people who own a slice of the platform together.
-Role bindings (admin, operator, viewer) can be scoped to a team — a
-"team-zero admins" role binding lets the cluster platform team lock
-out everyone else from destructive actions while still letting other
-teams run their own workloads.
+A **team** is a group of people who share access to a slice of the
+deployment — typically five to fifteen users. Roles (admin, operator,
+viewer) can be scoped to a team, so a "platform team" can hold the
+keys to destructive actions while every other team runs their own
+workloads without that reach.
 
-Teams are first-class entities in v1; team-scoped endpoints land in
-phase 2.
+Team-scoped endpoints land in the next phase; teams are first-class
+entities now.
 
 ## Folder
 
-A **folder** is the resource namespace. Where the actual workloads
-(VirtualMachines, Kubernetes clusters, app instances) live by default.
-Folders give operators a way to separate concerns inside a team —
+A **folder** is where resources actually live: virtual machines,
+Kubernetes clusters, app installs. Most resources in Plexor are
+folder-scoped by default. Folders let one team separate concerns —
 one folder per environment (`dev`, `staging`, `prod`) or per project
 (`project-alpha`, `project-beta`) without spinning up a new
 organisation each time.
 
 ## The resource scope hierarchy
 
-A resource in Plexor sits at one of three levels, expressed by which
-of `OrgId`, `TeamId`, and `FolderId` are set on it:
+A resource sits at one of three levels. Which level it lives at
+decides who can see it.
 
-| Scope | Visible to |
-|-------|-----------|
-| `OrgId` only (`TeamId` + `FolderId` null) | Everyone in the organisation. Used for shared infrastructure — a `k8s-prod` cluster, a shared CI database. Admin-only writes, audit-logged. |
-| `OrgId` + `TeamId` (`FolderId` null) | Everyone in the team. Used for team-shared services and databases. |
-| `OrgId` + `TeamId` + `FolderId` | Everyone in the folder. The default for per-project resources — most workloads land here. |
+| Resource lives at... | Who can see it |
+|---|---|
+| Organisation | Everyone in the organisation. Shared infrastructure — a shared `k8s-prod` cluster, a shared CI database. Writes are admin-only and audit-logged. |
+| Organisation + Team | Everyone in the team. Team-shared services and databases. |
+| Organisation + Team + Folder | Everyone in the folder. The default for most workloads. |
 
-The empty tiers cascade downward: a folder-scoped resource is
-implicitly team- and org-scoped too, and a team-scoped resource is
-implicitly org-scoped. The hierarchy is **3 levels of nullable
-fields**, not a foreign-key chain — the cardinality of the
-combination is what selects the scope.
+The levels cascade downward: a folder-scoped resource is implicitly
+team- and organisation-scoped too, and a team-scoped resource is
+implicitly organisation-scoped.
 
-### Defaults
+Resources default to **folder-scoped**. Organisation- and team-scoped
+resources are opt-in for things that genuinely need to be shared —
+the creation path for those is admin-only and writes leave an
+audit-trail entry.
 
-Resources default to **folder-scoped**. Org-level and team-level
-scopes are opt-in for the resources that genuinely need to be
-shared, and the creation path for those scopes is admin-only with an
-audit log line.
-
-## What the hierarchy buys you
+## Why three levels and not one big namespace
 
 Without the hierarchy, multi-team deployments either land everything
-in one big namespace (everyone sees everyone else's resources, role
-bindings balloon) or get a custom access layer bolted on top of a
-flat namespace. The hierarchy is the simplest structure that lets
-operators express "I want this visible to the team but not to the
-rest of the org" without writing a single line of authorisation
-logic.
-
-The cost is one nullable field on every resource table. That's the
-trade.
+in one shared namespace (everyone sees everyone else's resources,
+role bindings balloon) or layer a custom access system on top of a
+flat namespace. The three-level hierarchy is the smallest structure
+that lets an operator express "I want this visible to the team but
+not to the rest of the organisation" without writing any
+authorisation code themselves.

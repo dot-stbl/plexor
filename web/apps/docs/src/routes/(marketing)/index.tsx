@@ -9,16 +9,20 @@ import { MarketingCta } from '@/components/marketing/marketing-cta';
  * Landing page — composition only. Each section lives in its own
  * component so a future copy edit (e.g. trimming the manifesto) lands
  * in a single file under 200 lines, not a monolithic landing.tsx.
+ *
+ * Voice: operator, not engineer. The meta description tells a search-
+ * result reader what Plexor does for the person running it — not what
+ * it is built on.
  */
 export const Route = createFileRoute('/(marketing)/')({
   component: Landing,
   head: () => ({
     meta: [
-      { title: 'plexor — self-hosted cloud' },
+      { title: 'plexor — self-hosted cloud for your hardware' },
       {
         name: 'description',
         content:
-          'One binary. Not thirty services. Plexor is a self-hosted cloud platform — control plane, compute, networking, identity, audit — in one process.',
+          'Plexor is a self-hosted cloud platform. Run virtual machines, private networks, block and object storage on the servers already in your rack — and add Postgres, Redis, Keycloak or your own apps from a built-in catalog.',
       },
     ],
   }),

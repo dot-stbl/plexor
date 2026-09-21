@@ -1,16 +1,17 @@
 /**
- * Marketing features grid — three cards that explain the headline
- * capabilities. The card list is local on purpose: three entries,
- * no reuse outside landing, no registry abstraction. Future feature
- * pages can use the same card pattern by lifting this array into a
- * shared model.
+ * Marketing features grid — three cards that spell out what Plexor
+ * hands you on day one. The card list is local on purpose: three
+ * entries, no reuse outside landing, no registry abstraction. Future
+ * feature pages can use the same card pattern by lifting this array
+ * into a shared model.
  *
- * Each card is one of:
- *  - Plexor.Host (the binary itself)
- *  - App providers (the install surface — providers install/upgrade via
- *    one shell command)
- *  - Themes (preset marketplace — three built-ins, community themes
- *    installable on top)
+ * Each card answers "what does the operator get?" — not "what module
+ * shipped?". Internal architecture (Plexor.Host, providers, themes)
+ * is named only when the operator touches it from the UI or CLI.
+ *
+ *   01 — Compute, network and storage on your existing servers
+ *   02 — A catalog of ready-to-run apps
+ *   03 — Pick the look you run Plexor in
  */
 interface FeatureCard {
   readonly eyebrow: string;
@@ -21,21 +22,21 @@ interface FeatureCard {
 const FEATURES: readonly FeatureCard[] = [
   {
     eyebrow: '01',
-    title: 'Plexor.Host',
+    title: 'Compute, network and storage on your hardware',
     summary:
-      'A single .NET binary ships the control plane: REST + gRPC, every module, OpenAPI generated on every build. Replicas only when measured load demands it.',
+      'Virtual machines, private networks, security groups, floating IPs, load balancers, block volumes and S3 buckets — all driven through one binary on the servers you already own.',
   },
   {
     eyebrow: '02',
-    title: 'App providers',
+    title: 'A catalog of ready-to-run apps',
     summary:
-      'Install + upgrade = one shell command. provider.yaml is versioned and HMAC-signed. Postgres, Redis, Keycloak, Ghost — and your own.',
+      'Postgres, Redis, Keycloak, WordPress, Ghost and a handful of others ship as installable templates. Install or upgrade with one shell command. Add your own by dropping a manifest into the catalog.',
   },
   {
     eyebrow: '03',
-    title: 'Themes operators pick',
+    title: 'Pick the look you run Plexor in',
     summary:
-      'Three built-in monochrome presets today (paper / midnight / noir). Per-org activation, atomic swap, custom-CSS escape hatch (16 KiB cap).',
+      'Three built-in palettes out of the box (light, dark and a blue-tinted dark mode). Operators choose per organization — atomic swap, no restart, with a small CSS escape hatch for the rest.',
   },
 ];
 
@@ -44,10 +45,10 @@ export function MarketingFeatures() {
     <section className="border-b border-border">
       <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
         <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted-2">
-          What you get
+          What you get on day one
         </p>
         <h2 className="mb-10 max-w-2xl text-3xl font-semibold tracking-tight text-foreground">
-          One binary, three concrete capabilities.
+          Three things you can do the moment Plexor starts.
         </h2>
 
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">

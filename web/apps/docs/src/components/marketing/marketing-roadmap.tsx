@@ -2,88 +2,88 @@ import { PhaseItem, type RoadmapPhase } from './phase-item';
 
 /**
  * Marketing roadmap — vertical timeline of every shipped and planned
- * Plexor phase. The data is local on purpose: every change ships a
- * new entry, not a content edit to a registry. The source of truth is
- * `openspec/changes/` + `.agents/docs/scope.md`; this list is curated
- * from those, not the other way around.
+ * Plexor version. Each row answers "what can an operator actually do
+ * with this version when it ships?" rather than listing internal
+ * module names, schema names or migration steps.
+ *
+ * The source of truth is `openspec/changes/` and `.agents/docs/scope.md`;
+ * this list is curated from those, not invented from scratch. Every
+ * entry is one merged change or one open proposal — no fiction.
  */
 const PHASES: readonly RoadmapPhase[] = [
   {
     id: 'v0.1',
     version: 'v0.1',
-    title: 'Modular monolith',
+    title: 'First running cluster',
     status: 'shipped',
     shipped: [
-      'Plexor.Host бинарь, один деплой',
-      'Модули Tenants · Identity · Audit',
-      'OpenAPI source-generator + Kubb client',
-      'BootConfig + per-org branding',
-      'Console shell + 3 first-party themes',
+      'One Plexor binary, one process to run',
+      'Log in, create an organization, set up your first users',
+      'Console shell up — you can see what the binary has provisioned',
+      'Three built-in palettes; pick one per organization',
     ],
     planned: [],
   },
   {
     id: 'v0.2',
     version: 'v0.2',
-    title: 'Compute, Network, Storage',
+    title: 'Compute, network and storage',
     status: 'shipped',
     shipped: [
-      'Install providers KVM / OVS / Ceph',
-      'Single-node путь Local LVM + MinIO',
-      'Lifecycle VM, snapshots, noVNC console',
-      'VPC + subnets + SG + FIP + LB',
-      'Block volumes + S3 buckets',
+      'Virtual machines with snapshots and an in-browser console',
+      'Private networks, subnets, security groups, floating IPs and load balancers',
+      'Block volumes and S3-compatible object storage',
+      'Single-node path that runs on a single server without a storage cluster',
     ],
     planned: [],
   },
   {
     id: 'v0.3',
     version: 'v0.3',
-    title: 'Marketplace + metering',
+    title: 'App catalog and usage tracking',
     status: 'next',
     shipped: [],
     planned: [
-      'Install-flow app providers (YAML + shell)',
-      'Каталог providers (Postgres, Redis, Keycloak, WordPress, Ghost)',
-      'Metering events → hourly rollups → invoice',
-      'Per-tenant и per-project квоты',
+      'Install Postgres, Redis, Keycloak, WordPress and Ghost with one command',
+      'Operators write their own catalog entries — drop in a manifest, ship it to your team',
+      'Usage tracking that rolls up into an invoice viewable from the console',
+      'Per-organization and per-folder quotas for memory, CPU and storage',
     ],
   },
   {
     id: 'v0.4',
     version: 'v0.4',
-    title: 'Theme marketplace',
+    title: 'Community palettes',
     status: 'next',
     shipped: [],
     planned: [
-      'ThemeInstallation entity + HMAC manifest verification',
-      'Admin install UI для community themes',
-      'Per-org activation + atomic single-active',
-      'Custom-CSS escape hatch (16 KiB cap)',
+      'Browse, install and activate palettes contributed by the community',
+      'Each install verifies its manifest against a signing key held by the host',
+      'Live preview before activating — see what your console will look like',
     ],
   },
   {
     id: 'v0.5',
     version: 'v0.5',
-    title: 'Managed Kubernetes',
+    title: 'Managed Kubernetes and containers',
     status: 'design',
     shipped: [],
     planned: [
-      'k8s-cluster app provider на кластере',
-      'Container registry как app provider',
-      'Velero-based backup',
+      'Bring up a Kubernetes cluster from the console as an app install',
+      'Run a container registry alongside your workloads',
+      'Scheduled backups that respect quotas, and quotas that know about backups',
     ],
   },
   {
     id: 'v0.6',
     version: 'v0.6',
-    title: 'Multi-region + audit export',
+    title: 'Spreading across regions',
     status: 'design',
     shipped: [],
     planned: [
-      'Postgres logical replication + BDR',
-      'Cross-region failover',
-      'SIEM export (audit → olfs provider)',
+      'Run Plexor in two regions with one console in front of both',
+      'Planned failover between regions when the primary goes down',
+      'Stream the audit log to whatever SIEM you already operate',
     ],
   },
 ];
@@ -97,12 +97,12 @@ export function MarketingRoadmap() {
             Roadmap
           </p>
           <h2 className="mb-2 text-3xl font-semibold tracking-tight text-foreground">
-            Что готово и что дальше
+            What is shipping now, and what is next.
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            Источник — <code className="font-mono text-foreground">openspec/changes/</code> и{' '}
-            <code className="font-mono text-foreground">.agents/docs/scope.md</code>. Без
-            фантазий: каждая фаза — это либо merged change, либо open proposal.
+            Each row is one merged release or one open proposal —
+            nothing speculative. Operators running Plexor today see a
+            version number that matches a row in this list.
           </p>
         </header>
 
@@ -111,8 +111,8 @@ export function MarketingRoadmap() {
             <PhaseItem
               key={phase.id}
               phase={phase}
-              shippedLabel="Уже в коробке"
-              plannedLabel="Планируется"
+              shippedLabel="In the box"
+              plannedLabel="Coming next"
             />
           ))}
         </ol>

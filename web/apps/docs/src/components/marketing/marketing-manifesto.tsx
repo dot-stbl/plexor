@@ -1,13 +1,16 @@
 /**
  * Marketing manifesto — a two-column list of refused patterns (×) and
- * the Plexor replacement (✓). The asymmetry is the point: every row
- * answers "what do you actually do instead?" rather than just
- * enumerating what we don't ship.
+ * the Plexor replacement (✓). Every row answers "what do you actually
+ * do instead?".
  *
- * Visual: three-column grid on md+, with the "Не делаем" / "Делаем"
- * headers aligned over their columns and a thin hairline running
- * under each row. Mobile collapses to a single column with both cells
- * stacked.
+ * Refusals are operator-pain, not engineering-internal:
+ *   - "no Kubernetes to learn first" (not "no k8s runtime")
+ *   - "no chart formats that drift" (not "no extracted YAML reconcilers")
+ *   - "no surprise egress" (not "no vendor telemetry")
+ *
+ * Voice: peer-to-peer between the Plexor team and the operator —
+ * explanations, not warnings. Column headers are English to keep the
+ * documentation consistent with the rest of the landing.
  */
 interface Row {
   readonly no: string;
@@ -16,28 +19,28 @@ interface Row {
 
 const ROWS: readonly Row[] = [
   {
-    no: 'OpenStack-grade микросервисный зоопарк — 30+ бинарей для деплоя, мониторинга, обновлений и координации.',
-    yes: 'Один Plexor.Host бинарь. Все модули — один процесс. Реплики, когда измеренная нагрузка требует.',
+    no: 'A platform only the largest cloud teams can deploy — dozens of services to bring up, monitor and keep in step.',
+    yes: 'One process you boot once. Add a second one when measured load says so, not before.',
   },
   {
-    no: 'Kubernetes как runtime-требование для деплоя приложений.',
-    yes: 'Обычный Podman/Docker run на каждой compute-ноде. App providers — это shell, не Helm.',
+    no: 'A container runtime you have to learn before you can run your first app.',
+    yes: 'Containers as a deployment target when you want them, plain processes when you do not.',
   },
   {
-    no: 'Helм-чарты, которые дрифтуют между версиями и форками.',
-    yes: 'provider.yaml — версионированный, HMAC-подписанный манифест. Install + upgrade = одна команда.',
+    no: 'Chart formats that drift between versions, forks and tools.',
+    yes: 'A versioned, signed manifest per app. Install and upgrade is one shell command.',
   },
   {
-    no: 'Принудительный SaaS control plane, account lock-in, vendor-managed secrets.',
-    yes: 'Своё железо, свой Keycloak, свой Ceph. Plexor работает на том, что у вас есть.',
+    no: 'A control plane you did not pick, account lock-in, and credentials you do not own.',
+    yes: 'Your hardware, your identity provider, your secrets. Plexor runs on what is already in the rack.',
   },
   {
-    no: 'UI в пяти местах: console, marketplace, docs, billing, audit.',
-    yes: 'Одна консоль. Marketplace, audit, metering — табы. Без портала-порталов.',
+    no: 'Five different UIs — console, marketplace, billing, audit, docs — for five different jobs.',
+    yes: 'One console. Marketplace, audit and metering live as tabs in it.',
   },
   {
-    no: 'Отдельный billing portal, который звонит домой по любому поводу.',
-    yes: 'Опциональный модуль Metering + Invoice. Выключен по умолчанию. Никакого egress.',
+    no: 'A billing module that phones home and assumes you wanted metering on by default.',
+    yes: 'Usage tracking is opt-in and stays inside the cluster. Nothing leaves without an operator turning it on.',
   },
 ];
 
@@ -47,23 +50,23 @@ export function MarketingManifesto() {
       <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
         <header className="mb-8 max-w-2xl">
           <p className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted-2">
-            Манифест
+            Manifesto
           </p>
           <h2 className="mb-2 text-3xl font-semibold tracking-tight text-foreground">
-            Что мы не делаем
+            What Plexor does not do — and what it does instead.
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            Self-hosted cloud не должен быть копией AWS. Список того, от
-            чего мы отказались, и что предлагаем взамен.
+            A self-hosted cloud should not look like a hosted one. Each
+            row below is a refusal and the answer we landed on.
           </p>
         </header>
 
         <div className="grid grid-cols-1 gap-x-8 md:grid-cols-[1fr_1fr]">
           <div className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted-2 md:pt-1">
-            Не делаем
+            Not this
           </div>
           <div className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted-2 md:pt-1 md:text-right">
-            Делаем
+            This instead
           </div>
 
           {ROWS.map((row) => (

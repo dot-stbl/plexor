@@ -2,14 +2,16 @@ import { Link } from '@tanstack/react-router';
 import { PlexorMark } from '@plexor/ui/brand';
 
 /**
- * Marketing hero — PlexorMark (oversized), a kicker, the headline, a
- * short lead paragraph, and two CTAs. The primary CTA is the docs
- * entry point; the secondary is the architecture page. Both use TR `Link`
- * to preserve the SPA router (no full reloads).
+ * Marketing hero — PlexorMark, a kicker, the operator-facing headline,
+ * a short lead paragraph, and two CTAs (primary → docs, secondary →
+ * "how it's organized"). The CTAs use TR `Link` so the SPA router
+ * stays intact.
  *
- * Layout: max-width container, generous vertical padding on both sides
- * so the hero reads as "the page" rather than "the top of a long
- * article". Subsequent sections inherit the same horizontal padding.
+ * Voice: second-person, operator vocabulary. The technical surface
+ * ("one binary, one process") stays because operators install it;
+ * what is removed is the engineering positioning ("no microservices
+ * sprawl", "modular monolith"), which belongs in the rationale docs,
+ * not on the landing page.
  */
 export function MarketingHero() {
   return (
@@ -23,14 +25,15 @@ export function MarketingHero() {
         </div>
 
         <h1 className="mt-8 max-w-3xl text-4xl font-semibold tracking-tight text-foreground md:text-5xl md:leading-[1.05]">
-          One binary. Not thirty services.
+          Self-hosted cloud for your hardware.
         </h1>
 
         <p className="mt-6 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg md:leading-8">
-          Plexor is a self-hosted cloud platform: control plane, compute,
-          networking, identity, audit — in one .NET binary. Modular
-          monolith, extraction-ready by measured bottleneck, not
-          pre-emptively.
+          Plexor is a self-hosted cloud platform. Run virtual machines,
+          private networks, block and object storage on the servers
+          already in your rack — and add Postgres, Redis, Keycloak or
+          your own apps from a built-in catalog. One binary, one port,
+          one process to keep an eye on.
         </p>
 
         <div className="mt-10 flex flex-wrap items-center gap-3">
@@ -38,18 +41,18 @@ export function MarketingHero() {
             to="/docs/getting-started"
             className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors duration-fast ease-out hover:bg-primary/90"
           >
-            Start with the docs →
+            Open the docs →
           </Link>
           <Link
             to="/docs/concepts"
             className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-transparent px-5 text-sm font-medium text-foreground transition-colors duration-fast ease-out hover:border-foreground/30"
           >
-            Read the architecture
+            How it&apos;s organized
           </Link>
         </div>
 
         <p className="mt-8 font-mono text-xs text-muted-2">
-          v0.2 · pre-stable · single-tenant deploys only
+          v0.2 · pre-stable · MVP — single-tenant deploys
         </p>
       </div>
     </section>

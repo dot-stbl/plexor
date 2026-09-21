@@ -1,9 +1,15 @@
 /**
- * Marketing footer — three small outbound links + a copyright /
- * version chip on the right. The footer is intentionally thin: a
- * single row with hairline separator, no widgets, no newsletter
- * signup. The Plexor brand lives in the header above; the footer is
- * scope, not chrome.
+ * Marketing footer — three outbound links + a copyright / version chip
+ * on the right. The footer is intentionally thin: a single row with
+ * a hairline separator, no widgets, no newsletter signup. The Plexor
+ * brand lives in the header above; the footer is scope, not chrome.
+ *
+ * Links are operator-oriented:
+ *   - "Source" → the repo (operators who self-host Plexor may want to
+ *     read the code; no claim it is a contribution gate)
+ *   - "Community" → discussions + support (replaces "Issues", which
+ *     framed the project as a development tracker)
+ *   - "Console" → the operator-installed app, when running
  */
 export function MarketingFooter() {
   return (
@@ -14,13 +20,13 @@ export function MarketingFooter() {
             href="https://github.com/dot-stbl/plexor"
             className="transition-colors duration-fast ease-out hover:text-foreground"
           >
-            GitHub
+            Source
           </a>
           <a
-            href="https://github.com/dot-stbl/plexor/issues"
+            href="https://github.com/dot-stbl/plexor/discussions"
             className="transition-colors duration-fast ease-out hover:text-foreground"
           >
-            Issues
+            Community
           </a>
           <a
             href="https://plexor.stbl.space"
@@ -29,7 +35,7 @@ export function MarketingFooter() {
             Console
           </a>
         </div>
-        <span className="font-mono">@plexor/docs · v0.2 · pre-stable</span>
+        <span className="font-mono">plexor · v0.2 · pre-stable</span>
       </div>
     </footer>
   );
