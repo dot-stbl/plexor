@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react';
 import { buttonVariants } from 'fumadocs-ui/components/ui/button';
-import { ArrowUpRight, Ban, CircleCheck, CircleHelp, Clock, type LucideIcon } from 'lucide-react';
+import type { Icon } from '@nine-thirty-five/material-symbols-react';
+import {
+  ArrowOutward,
+  AvTimer,
+  Block,
+  Check,
+  Help,
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 /**
  * Landing hero for the docs index page. A component (not raw JSX in MDX) so
@@ -35,7 +42,7 @@ export function DocsHero({
         </a>
         <a href={secondaryHref} className={buttonVariants({ variant: 'outline' })}>
           {secondaryLabel}
-          <ArrowUpRight className="size-4" aria-hidden />
+          <ArrowOutward className="size-4" aria-hidden />
         </a>
       </div>
     </div>
@@ -43,9 +50,10 @@ export function DocsHero({
 }
 
 /**
- * Status pill — connection / state badge with a lucide glyph and tone,
- * replacing raw enum-text tables. `tone` picks the color family; the icon
- * carries the semantics (ok / error / pending / neutral).
+ * Status pill — Plexor DS status semantics. Tones map to the `--ok` /
+ * `--warn` / `--err` / `--idle` / `--info` tokens from console (OKLCH).
+ * `icon` carries the semantics (ok / error / pending / neutral); no extra
+ * colour is added — the background already encodes the tone.
  */
 export function Status({
   label,
@@ -56,24 +64,24 @@ export function Status({
   tone: 'ok' | 'error' | 'pending' | 'neutral';
   icon?: 'check' | 'ban' | 'clock' | 'help';
 }): ReactNode {
-  const Icon: LucideIcon | undefined =
+  const Icon: Icon | undefined =
     icon === 'check'
-      ? CircleCheck
+      ? Check
       : icon === 'ban'
-        ? Ban
+        ? Block
         : icon === 'clock'
-          ? Clock
+          ? AvTimer
           : icon === 'help'
-            ? CircleHelp
+            ? Help
             : undefined;
 
   const toneClass =
     tone === 'ok'
-      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/25'
+      ? 'bg-ok-soft text-ok-ink border-ok/25'
       : tone === 'error'
-        ? 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/25'
+        ? 'bg-err-soft text-err-ink border-err/25'
         : tone === 'pending'
-          ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/25'
+          ? 'bg-warn-soft text-warn-ink border-warn/25'
           : 'bg-fd-muted text-fd-muted-foreground border-fd-border';
 
   return (

@@ -1,20 +1,21 @@
 ---
 title: "Plexor"
-icon: "Info"
+icon: "Hub"
 description: "Self-hosted cloud platform — Organization → Project иерархия, multi-tenant IAM, marketplace app providers, REST API."
 ---
 
 import { Cards, Card } from 'fumadocs-ui/components/card';
 import {
-  Building2,
+  AccountTree,
   Cloud,
-  KeyRound,
+  DeployedCode,
+  Globe,
+  HardDisk,
+  Key,
   Layers,
-  Network,
-  Server,
   ShoppingBag,
   Terminal,
-} from 'lucide-react';
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { BrandMark } from '@/components/brand-mark';
 
 <DocsHero
@@ -33,27 +34,27 @@ Plexor поднимает свой control plane в одном бинарник�
 
 <Cards>
   <Card
-    icon={<Building2 className="size-4" aria-hidden />}
+    icon={<AccountTree className="size-4" aria-hidden />}
     title="Tenants & Projects"
     description="Иерархия Organization → Project с per-tenant и per-project квотами. Каждый ресурс живёт в одной из этих scope-зон."
   />
   <Card
-    icon={<Server className="size-4" aria-hidden />}
+    icon={<DeployedCode className="size-4" aria-hidden />}
     title="Compute"
     description="Виртуальные машины (KVM по умолчанию, LXD/Firecracker как альтернативы), flavors, images, lifecycle, snapshots, noVNC-консоль."
   />
   <Card
-    icon={<Network className="size-4" aria-hidden />}
+    icon={<Globe className="size-4" aria-hidden />}
     title="Network"
     description="VPC, subnets, security groups, floating IP, load balancer, DNS-зоны. OVS/Cilium для overlay-сети."
   />
   <Card
-    icon={<Cloud className="size-4" aria-hidden />}
+    icon={<HardDisk className="size-4" aria-hidden />}
     title="Storage"
     description="Block volumes (Ceph RBD / local-lvm), S3-compatible buckets (Ceph RGW / MinIO), снапшоты VM и volume."
   />
   <Card
-    icon={<KeyRound className="size-4" aria-hidden />}
+    icon={<Key className="size-4" aria-hidden />}
     title="Identity"
     description="OIDC через Keycloak, RBAC с permissions формата compute.vms.create, SSH-ключи, API-ключи для service accounts."
   />

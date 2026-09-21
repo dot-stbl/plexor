@@ -1,20 +1,21 @@
 ---
 title: "Plexor"
-icon: "Info"
+icon: "Hub"
 description: "Self-hosted cloud platform — Organization → Project hierarchy, multi-tenant IAM, marketplace app providers, REST API."
 ---
 
 import { Cards, Card } from 'fumadocs-ui/components/card';
 import {
-  Building2,
+  AccountTree,
   Cloud,
-  KeyRound,
+  DeployedCode,
+  Globe,
+  HardDisk,
+  Key,
   Layers,
-  Network,
-  Server,
   ShoppingBag,
   Terminal,
-} from 'lucide-react';
+} from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { BrandMark } from '@/components/brand-mark';
 
 <DocsHero
@@ -32,11 +33,11 @@ Plexor runs its control plane in a single binary (`Plexor.Host`) with PostgreSQL
 ## What the platform does
 
 <Cards>
-  <Card icon={<Building2 className="size-4" aria-hidden />} title="Tenants & Projects" description="Organization → Project hierarchy with per-tenant and per-project quotas. Every resource lives in one of these scope zones." />
-  <Card icon={<Server className="size-4" aria-hidden />} title="Compute" description="Virtual machines (KVM default, LXD/Firecracker as alternatives), flavors, images, lifecycle, snapshots, noVNC console." />
-  <Card icon={<Network className="size-4" aria-hidden />} title="Network" description="VPC, subnets, security groups, floating IP, load balancer, DNS zones. OVS/Cilium for overlay networking." />
-  <Card icon={<Cloud className="size-4" aria-hidden />} title="Storage" description="Block volumes (Ceph RBD / local-lvm), S3-compatible buckets (Ceph RGW / MinIO), VM and volume snapshots." />
-  <Card icon={<KeyRound className="size-4" aria-hidden />} title="Identity" description="OIDC via Keycloak, RBAC with permissions like compute.vms.create, SSH keys, API keys for service accounts." />
+  <Card icon={<AccountTree className="size-4" aria-hidden />} title="Tenants & Projects" description="Organization → Project hierarchy with per-tenant and per-project quotas. Every resource lives in one of these scope zones." />
+  <Card icon={<DeployedCode className="size-4" aria-hidden />} title="Compute" description="Virtual machines (KVM default, LXD/Firecracker as alternatives), flavors, images, lifecycle, snapshots, noVNC console." />
+  <Card icon={<Globe className="size-4" aria-hidden />} title="Network" description="VPC, subnets, security groups, floating IP, load balancer, DNS zones. OVS/Cilium for overlay networking." />
+  <Card icon={<HardDisk className="size-4" aria-hidden />} title="Storage" description="Block volumes (Ceph RBD / local-lvm), S3-compatible buckets (Ceph RGW / MinIO), VM and volume snapshots." />
+  <Card icon={<Key className="size-4" aria-hidden />} title="Identity" description="OIDC via Keycloak, RBAC with permissions like compute.vms.create, SSH keys, API keys for service accounts." />
   <Card icon={<ShoppingBag className="size-4" aria-hidden />} title="Marketplace" description="App providers catalog (WordPress, PostgreSQL, Redis, Keycloak, Ghost, custom). One-command install, authoring via YAML provider spec." />
   <Card icon={<Layers className="size-4" aria-hidden />} title="Metering & Billing" description="NATS events from every state transition, rollups into metering_hourly, monthly invoice generation." />
   <Card icon={<Terminal className="size-4" aria-hidden />} title="API & CLI" description="OpenAPI source-generator emits artifacts/openapi.json on every build. Kubb generates a TS client for the web. CLI `plx` is a NativeAOT binary." />

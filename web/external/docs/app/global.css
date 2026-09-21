@@ -1,82 +1,151 @@
 @import 'tailwindcss';
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
+@import '@fontsource-variable/onest';
 
 /*
- * Plexor docs theme — нейтральная бумажная палитра, акцент в фиолетово-cyan
- * диапазоне (бренд-марка). Семья с приложением console, не близнец:
- *  - приложение = плотный интерфейс; доки = бумага — читальня, а не операционная;
- *  - акцент приложения спокойнее: indigo на светлом, cyan на тёмном;
- *  - тёмная тема доков на пол-шага темнее приложения.
+ * Plexor Design System — docs edition.
+ *
+ * Source of truth: `web/apps/console/src/index.css` (Plexor DS). This file
+ * carries the same first-paint baseline so console and docs render with
+ * identical colors, radii, fonts, and z-index scale. The accent is a
+ * monochrome dark ink (NOT a saturated brand color) — links and key UI
+ * use the foreground color family. Surface layers: background / card /
+ * popover / secondary / muted (5-step ramp). Status semantics: ok / warn
+ * / err / idle / info, each with `-soft` background + `-ink` foreground.
+ *
+ * Font: Onest Variable (matches console). JetBrains Mono fallback chain
+ * for code blocks.
+ *
+ * What differs from console: a slightly smaller `--fd-layout-width`
+ * (97rem vs console's default) for the docs reading column, and the
+ * fumadocs-specific token aliases below that map Plexor DS to fumadocs
+ * UI variables.
  */
 
 :root {
-  --background: #fdfdfc;
-  --foreground: #1a1a2e;
-  --card: #f7f5f0;
-  --card-foreground: #1a1a2e;
-  --popover: #faf9f7;
-  --popover-foreground: #1a1a2e;
-  --primary: #4f46e5;
-  --primary-foreground: #fdfdfc;
-  --secondary: #ebe8e1;
-  --secondary-foreground: #1a1a2e;
-  --muted: #f2f0ec;
-  --muted-foreground: #6b7280;
-  --accent: #e4dfd6;
-  --accent-foreground: #1a1a2e;
-  --destructive: #b91c1c;
-  --border: #dcd6ca;
-  --input: #dcd6ca;
-  --ring: #6366f1;
-  --radius: 0.625rem;
+  /* ─── Surface (5 layers) — Plexor DS ─── */
+  --background: oklch(98% 0.005 250);
+  --card: oklch(100% 0 0);
+  --popover: oklch(100% 0 0);
+  --secondary: oklch(97% 0.006 250);
+  --muted: oklch(97% 0.006 250);
 
-  --color-fd-background: #fdfdfc;
-  --color-fd-foreground: #1a1a2e;
-  --color-fd-card: #f7f5f0;
-  --color-fd-primary: #4f46e5;
-  --color-fd-primary-foreground: #fdfdfc;
-  --color-fd-muted: #f2f0ec;
-  --color-fd-muted-foreground: #6b7280;
-  --color-fd-border: #dcd6ca;
-  --color-fd-ring: #6366f1;
-  --color-fd-accent: #e4dfd6;
-  --color-fd-accent-foreground: #1a1a2e;
+  /* ─── Ink (4 levels) — Plexor DS ─── */
+  --foreground: oklch(22% 0.02 240);
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --secondary-foreground: var(--foreground);
+  --muted-foreground: oklch(50% 0.018 240);
+
+  /* ─── Borders — Plexor DS ─── */
+  --border: oklch(91% 0.008 240);
+  --input: var(--border);
+
+  /* ─── Accent — monochrome dark ink (NOT a brand color) — Plexor DS ─── */
+  --accent: oklch(28% 0.02 255);
+  --accent-foreground: oklch(100% 0 0);
+  --ring: var(--accent);
+
+  /* ─── Destructive — Plexor DS ─── */
+  --destructive: oklch(58% 0.20 25);
+  --destructive-foreground: oklch(98% 0.005 250);
+
+  /* ─── Status (4 colors × 3 levels each) — Plexor DS ─── */
+  --ok: oklch(58% 0.16 145);
+  --ok-soft: oklch(95% 0.03 145);
+  --ok-ink: oklch(45% 0.13 145);
+  --err: oklch(58% 0.20 25);
+  --err-soft: oklch(96% 0.03 25);
+  --err-ink: oklch(50% 0.17 25);
+  --warn: oklch(58% 0.10 75);
+  --warn-soft: oklch(96% 0.05 75);
+  --warn-ink: oklch(48% 0.10 75);
+  --idle: oklch(50% 0.012 240);
+  --idle-soft: oklch(95% 0.006 240);
+  --idle-ink: oklch(45% 0.012 240);
+  --info: oklch(58% 0.14 240);
+
+  /* ─── Radius (Plexor DS — 0.5rem, tighter than apps docs) ─── */
+  --radius: 0.5rem;
+
+  /* ─── Fonts — Plexor DS ─── */
+  --font-sans: 'Onest Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+  /* ─── fumadocs-specific token aliases (map Plexor DS → fumadocs UI) ─── */
+  --color-fd-background: var(--background);
+  --color-fd-foreground: var(--foreground);
+  --color-fd-card: var(--card);
+  --color-fd-primary: var(--accent);
+  --color-fd-primary-foreground: var(--accent-foreground);
+  --color-fd-muted: var(--muted);
+  --color-fd-muted-foreground: var(--muted-foreground);
+  --color-fd-border: var(--border);
+  --color-fd-ring: var(--ring);
+  --color-fd-accent: var(--secondary);
+  --color-fd-accent-foreground: var(--foreground);
+  --color-fd-destructive: var(--destructive);
+  --color-fd-destructive-foreground: var(--destructive-foreground);
 
   --fd-layout-width: 97rem;
 }
 
 .dark {
-  --background: #14131a;
-  --foreground: #eeebe4;
-  --card: #1c1b22;
-  --card-foreground: #eeebe4;
-  --popover: #1a191f;
-  --popover-foreground: #eeebe4;
-  --primary: #22d3ee;
-  --primary-foreground: #14131a;
-  --secondary: #2b2a30;
-  --secondary-foreground: #eeebe4;
-  --muted: #23222a;
-  --muted-foreground: #9ca3af;
-  --accent: #34313a;
-  --accent-foreground: #eeebe4;
-  --destructive: #f87171;
-  --border: #32303a;
-  --input: #32303a;
-  --ring: #22d3ee;
+  /* ─── Surface (5 layers, dark) — Plexor DS ─── */
+  --background: oklch(17% 0.012 250);
+  --card: oklch(21% 0.014 250);
+  --popover: oklch(21% 0.014 250);
+  --secondary: oklch(25% 0.015 250);
+  --muted: oklch(25% 0.015 250);
 
-  --color-fd-background: #14131a;
-  --color-fd-foreground: #eeebe4;
-  --color-fd-card: #1c1b22;
-  --color-fd-primary: #22d3ee;
-  --color-fd-primary-foreground: #14131a;
-  --color-fd-muted: #23222a;
-  --color-fd-muted-foreground: #9ca3af;
-  --color-fd-border: #32303a;
-  --color-fd-ring: #22d3ee;
-  --color-fd-accent: #34313a;
-  --color-fd-accent-foreground: #eeebe4;
+  /* ─── Ink (4 levels, dark) — Plexor DS ─── */
+  --foreground: oklch(94% 0.006 250);
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --secondary-foreground: var(--foreground);
+  --muted-foreground: oklch(66% 0.012 250);
+
+  /* ─── Borders, dark ─── */
+  --border: oklch(30% 0.012 250);
+  --input: var(--border);
+
+  /* ─── Accent, dark — monochrome light ink ─── */
+  --accent: oklch(92% 0.006 250);
+  --accent-foreground: oklch(20% 0.02 250);
+  --ring: var(--accent);
+
+  /* ─── Destructive, dark ─── */
+  --destructive: oklch(68% 0.18 25);
+  --destructive-foreground: oklch(98% 0.005 250);
+
+  /* ─── Status, dark — Plexor DS (soft is dark backdrop, ink is light) ─── */
+  --ok: oklch(72% 0.15 145);
+  --ok-soft: oklch(32% 0.05 145);
+  --ok-ink: oklch(85% 0.13 145);
+  --err: oklch(68% 0.18 25);
+  --err-soft: oklch(33% 0.06 25);
+  --err-ink: oklch(83% 0.14 25);
+  --warn: oklch(75% 0.10 75);
+  --warn-soft: oklch(33% 0.05 75);
+  --warn-ink: oklch(87% 0.10 75);
+  --idle: oklch(72% 0.012 240);
+  --idle-soft: oklch(30% 0.006 240);
+  --idle-ink: oklch(72% 0.01 240);
+
+  --color-fd-background: var(--background);
+  --color-fd-foreground: var(--foreground);
+  --color-fd-card: var(--card);
+  --color-fd-primary: var(--accent);
+  --color-fd-primary-foreground: var(--accent-foreground);
+  --color-fd-muted: var(--muted);
+  --color-fd-muted-foreground: var(--muted-foreground);
+  --color-fd-border: var(--border);
+  --color-fd-ring: var(--ring);
+  --color-fd-accent: var(--secondary);
+  --color-fd-accent-foreground: var(--foreground);
+  --color-fd-destructive: var(--destructive);
+  --color-fd-destructive-foreground: var(--destructive-foreground);
 }
 
 .docs-theme-square,
@@ -85,45 +154,40 @@
 }
 
 html {
+  font-family: var(--font-sans);
   scrollbar-gutter: stable;
-  scrollbar-color: #c0b6a0 #f2f0ec;
+  scrollbar-color: var(--border) transparent;
   scrollbar-width: thin;
 }
 
-.dark {
-  scrollbar-color: #4d4942 #1c1b22;
+* {
+  scrollbar-color: var(--border) transparent;
+  scrollbar-width: thin;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f2f0ec;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c0b6a0;
-  border-radius: 8px;
-  border: 2px solid #f2f0ec;
+  background: var(--border);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #968a74;
+  background: var(--muted-foreground);
+  background-clip: padding-box;
 }
 
-.dark ::-webkit-scrollbar-track {
-  background: #1c1b22;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #4d4942;
-  border-color: #1c1b22;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #676156;
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 #nd-sidebar ::-webkit-scrollbar,
