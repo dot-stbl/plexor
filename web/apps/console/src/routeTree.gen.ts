@@ -19,6 +19,7 @@ import { Route as LxcRouteRouteImport } from './routes/lxc/route'
 import { Route as ManagedRouteRouteImport } from './routes/managed/route'
 import { Route as NetworksRouteImport } from './routes/networks'
 import { Route as VmsRouteRouteImport } from './routes/vms/route'
+import { Route as VsphereRouteRouteImport } from './routes/vsphere/route'
 import { Route as AdminAuditRouteImport } from './routes/admin/audit'
 import { Route as AdminBrandingRouteImport } from './routes/admin/branding'
 import { Route as AdminThemeMarketplaceRouteImport } from './routes/admin/theme-marketplace'
@@ -37,6 +38,8 @@ import { Route as ManagedPostgresRouteImport } from './routes/managed/postgres'
 import { Route as ManagedRedisRouteImport } from './routes/managed/redis'
 import { Route as VmsIndexRouteImport } from './routes/vms/index'
 import { Route as VmsNewRouteImport } from './routes/vms/new'
+import { Route as VsphereIndexRouteImport } from './routes/vsphere/index'
+import { Route as VsphereCloneRouteImport } from './routes/vsphere/clone'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -86,6 +89,11 @@ const NetworksRoute = NetworksRouteImport.update({
 const VmsRouteRoute = VmsRouteRouteImport.update({
   id: '/vms',
   path: '/vms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VsphereRouteRoute = VsphereRouteRouteImport.update({
+  id: '/vsphere',
+  path: '/vsphere',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
@@ -178,6 +186,16 @@ const VmsNewRoute = VmsNewRouteImport.update({
   path: '/new',
   getParentRoute: () => VmsRouteRoute,
 } as any)
+const VsphereIndexRoute = VsphereIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => VsphereRouteRoute,
+} as any)
+const VsphereCloneRoute = VsphereCloneRouteImport.update({
+  id: '/clone',
+  path: '/clone',
+  getParentRoute: () => VsphereRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -186,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/lxc': typeof LxcRouteRouteWithChildren
   '/managed': typeof ManagedRouteRouteWithChildren
   '/vms': typeof VmsRouteRouteWithChildren
+  '/vsphere': typeof VsphereRouteRouteWithChildren
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
   '/images': typeof ImagesRoute
@@ -203,11 +222,13 @@ export interface FileRoutesByFullPath {
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
   '/vms/new': typeof VmsNewRoute
+  '/vsphere/clone': typeof VsphereCloneRoute
   '/clusters/': typeof ClustersIndexRoute
   '/k8s/': typeof K8sIndexRoute
   '/lxc/': typeof LxcIndexRoute
   '/managed/': typeof ManagedIndexRoute
   '/vms/': typeof VmsIndexRoute
+  '/vsphere/': typeof VsphereIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -228,11 +249,13 @@ export interface FileRoutesByTo {
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
   '/vms/new': typeof VmsNewRoute
+  '/vsphere/clone': typeof VsphereCloneRoute
   '/clusters': typeof ClustersIndexRoute
   '/k8s': typeof K8sIndexRoute
   '/lxc': typeof LxcIndexRoute
   '/managed': typeof ManagedIndexRoute
   '/vms': typeof VmsIndexRoute
+  '/vsphere': typeof VsphereIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -242,6 +265,7 @@ export interface FileRoutesById {
   '/lxc': typeof LxcRouteRouteWithChildren
   '/managed': typeof ManagedRouteRouteWithChildren
   '/vms': typeof VmsRouteRouteWithChildren
+  '/vsphere': typeof VsphereRouteRouteWithChildren
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
   '/images': typeof ImagesRoute
@@ -259,11 +283,13 @@ export interface FileRoutesById {
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
   '/vms/new': typeof VmsNewRoute
+  '/vsphere/clone': typeof VsphereCloneRoute
   '/clusters/': typeof ClustersIndexRoute
   '/k8s/': typeof K8sIndexRoute
   '/lxc/': typeof LxcIndexRoute
   '/managed/': typeof ManagedIndexRoute
   '/vms/': typeof VmsIndexRoute
+  '/vsphere/': typeof VsphereIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -274,6 +300,7 @@ export interface FileRouteTypes {
     | '/lxc'
     | '/managed'
     | '/vms'
+    | '/vsphere'
     | '/audit'
     | '/billing'
     | '/images'
@@ -291,11 +318,13 @@ export interface FileRouteTypes {
     | '/managed/postgres'
     | '/managed/redis'
     | '/vms/new'
+    | '/vsphere/clone'
     | '/clusters/'
     | '/k8s/'
     | '/lxc/'
     | '/managed/'
     | '/vms/'
+    | '/vsphere/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -316,11 +345,13 @@ export interface FileRouteTypes {
     | '/managed/postgres'
     | '/managed/redis'
     | '/vms/new'
+    | '/vsphere/clone'
     | '/clusters'
     | '/k8s'
     | '/lxc'
     | '/managed'
     | '/vms'
+    | '/vsphere'
   id:
     | '__root__'
     | '/'
@@ -329,6 +360,7 @@ export interface FileRouteTypes {
     | '/lxc'
     | '/managed'
     | '/vms'
+    | '/vsphere'
     | '/audit'
     | '/billing'
     | '/images'
@@ -346,11 +378,13 @@ export interface FileRouteTypes {
     | '/managed/postgres'
     | '/managed/redis'
     | '/vms/new'
+    | '/vsphere/clone'
     | '/clusters/'
     | '/k8s/'
     | '/lxc/'
     | '/managed/'
     | '/vms/'
+    | '/vsphere/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -360,6 +394,7 @@ export interface RootRouteChildren {
   LxcRouteRoute: typeof LxcRouteRouteWithChildren
   ManagedRouteRoute: typeof ManagedRouteRouteWithChildren
   VmsRouteRoute: typeof VmsRouteRouteWithChildren
+  VsphereRouteRoute: typeof VsphereRouteRouteWithChildren
   AuditRoute: typeof AuditRoute
   BillingRoute: typeof BillingRoute
   ImagesRoute: typeof ImagesRoute
@@ -439,6 +474,13 @@ declare module '@tanstack/react-router' {
       path: '/vms'
       fullPath: '/vms'
       preLoaderRoute: typeof VmsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vsphere': {
+      id: '/vsphere'
+      path: '/vsphere'
+      fullPath: '/vsphere'
+      preLoaderRoute: typeof VsphereRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/audit': {
@@ -567,6 +609,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VmsNewRouteImport
       parentRoute: typeof VmsRouteRoute
     }
+    '/vsphere/': {
+      id: '/vsphere/'
+      path: '/'
+      fullPath: '/vsphere/'
+      preLoaderRoute: typeof VsphereIndexRouteImport
+      parentRoute: typeof VsphereRouteRoute
+    }
+    '/vsphere/clone': {
+      id: '/vsphere/clone'
+      path: '/clone'
+      fullPath: '/vsphere/clone'
+      preLoaderRoute: typeof VsphereCloneRouteImport
+      parentRoute: typeof VsphereRouteRoute
+    }
   }
 }
 
@@ -650,6 +706,20 @@ const VmsRouteRouteWithChildren = VmsRouteRoute._addFileChildren(
   VmsRouteRouteChildren,
 )
 
+interface VsphereRouteRouteChildren {
+  VsphereCloneRoute: typeof VsphereCloneRoute
+  VsphereIndexRoute: typeof VsphereIndexRoute
+}
+
+const VsphereRouteRouteChildren: VsphereRouteRouteChildren = {
+  VsphereCloneRoute: VsphereCloneRoute,
+  VsphereIndexRoute: VsphereIndexRoute,
+}
+
+const VsphereRouteRouteWithChildren = VsphereRouteRoute._addFileChildren(
+  VsphereRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClustersRouteRoute: ClustersRouteRouteWithChildren,
@@ -657,6 +727,7 @@ const rootRouteChildren: RootRouteChildren = {
   LxcRouteRoute: LxcRouteRouteWithChildren,
   ManagedRouteRoute: ManagedRouteRouteWithChildren,
   VmsRouteRoute: VmsRouteRouteWithChildren,
+  VsphereRouteRoute: VsphereRouteRouteWithChildren,
   AuditRoute: AuditRoute,
   BillingRoute: BillingRoute,
   ImagesRoute: ImagesRoute,

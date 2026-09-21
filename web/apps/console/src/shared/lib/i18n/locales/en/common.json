@@ -55,6 +55,8 @@
     "lxcDesc": "System containers (LXD)",
     "k8sTitle": "Kubernetes clusters",
     "k8sDesc": "Managed K3s",
+    "vsphereTitle": "vSphere inventory",
+    "vsphereDesc": "Clusters, hosts, VMs from vCenter",
     "vpcTitle": "VPC and subnets",
     "vpcDesc": "Isolated networks",
     "sgTitle": "Security Groups",
@@ -850,6 +852,61 @@
       "empty": "No community themes are registered for this build.",
       "loadError": "Failed to load the theme marketplace.",
       "brandingHint": "for operator-level defaults (logo, accent, favicon) that affect every user."
+    }
+  },
+  "vsphere": {
+    "inventory": {
+      "title": "vSphere inventory",
+      "summary": "clusters · hosts · VMs",
+      "vcenterLabel": "vCenter",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing…",
+      "clustersTitle": "Clusters ({{count}})",
+      "clustersEmpty": "No clusters in this snapshot.",
+      "hostsTitle": "Hosts ({{count}})",
+      "hostsEmpty": "No ESXi hosts in this snapshot.",
+      "vmsTitle": "Virtual machines ({{count}})",
+      "vmsEmpty": "No VMs in this snapshot.",
+      "datacenter": "Datacenter",
+      "cluster": "Cluster",
+      "folder": "Folder",
+      "host": "Host",
+      "drs": "DRS",
+      "drsOn": "On",
+      "drsOff": "Off",
+      "powerState": "Power state",
+      "powerOn": "Powered on",
+      "powerOff": "Powered off",
+      "suspended": "Suspended",
+      "refreshed": "vSphere inventory refreshed",
+      "cloneCta": "Clone from template",
+      "errorTitle": "Failed to load vSphere inventory",
+      "empty": {
+        "title": "No vSphere snapshot yet",
+        "description": "Pull a fresh snapshot from vCenter — the result appears here and refreshes the inventory list."
+      }
+    },
+    "clone": {
+      "title": "Clone VM from vSphere template",
+      "description": "Clone a template into a target VM folder and power it on.",
+      "card": {
+        "title": "Source and target",
+        "description": "The handler resolves the template name + folder path against the latest cached inventory."
+      },
+      "templateName": "Template name",
+      "templateNameHelp": "Display name of the source template. Must already exist as a VM or previously-cloned template in the latest snapshot.",
+      "templateNamePlaceholder": "e.g. ubuntu-22.04-base",
+      "name": "New VM name",
+      "nameHelp": "Display name shown in vCenter and the Plexor inventory.",
+      "namePlaceholder": "e.g. web-prod-02",
+      "folderPath": "Target folder path",
+      "folderPathHelp": "Optional. vCenter picks the default folder when empty.",
+      "folderPathPlaceholder": "/Datacenter/vm/Tenants/Acme",
+      "submit": "Clone and power on",
+      "success": "Cloned {{name}}",
+      "morefField": "vm.moref = {{moref}}",
+      "errorTitle": "Clone failed",
+      "errorGeneric": "The clone request did not complete."
     }
   }
 }

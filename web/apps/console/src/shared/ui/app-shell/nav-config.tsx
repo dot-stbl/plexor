@@ -6,6 +6,7 @@ import {
   BarChart,
   Bolt,
   Camera,
+  Cloud,
   Database,
   DeployedCode,
   Globe,
@@ -36,6 +37,8 @@ export type AppRoute =
   | '/networks'
   | '/audit'
   | '/clusters'
+  | '/vsphere'
+  | '/vsphere/clone'
   | '/admin/branding'
   | '/admin/theme-marketplace'
   | '/admin/audit';
@@ -80,6 +83,7 @@ export const SECTIONS: Section[] = [
       { title: 'nav.k8sTitle', description: 'nav.k8sDesc', icon: Hexagon, to: '/k8s' },
       { title: 'nav.clustersTitle', description: 'nav.clustersDesc', icon: Stacks, to: '/clusters' },
       { title: 'nav.imagesTitle', description: 'nav.imagesDesc', icon: Image, to: '/images' },
+      { title: 'nav.vsphereTitle', description: 'nav.vsphereDesc', icon: Cloud, to: '/vsphere' },
       { title: 'nav.snapshotsTitle', description: 'nav.snapshotsDesc', icon: Camera },
     ],
   },
