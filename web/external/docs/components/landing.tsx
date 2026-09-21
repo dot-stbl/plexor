@@ -98,7 +98,7 @@ function ThemeTile({
       type="button"
       onClick={() => onActivate(preset.id)}
       className={
-        'group relative w-full overflow-hidden rounded-xl border text-left transition-all ' +
+        'docs-theme-tile group relative w-full overflow-hidden rounded-xl border text-left ' +
         (active
           ? 'border-fd-ring ring-2 ring-fd-ring ring-offset-2 ring-offset-fd-background'
           : 'border-fd-border hover:border-fd-muted-foreground')
@@ -168,7 +168,7 @@ export function ThemePreview() {
   const active = PRESETS.find((p) => p.id === activeId) ?? PRESETS[0];
 
   return (
-    <div className="not-prose my-2">
+    <div className="landing-block not-prose my-2">
       <div className="mb-4 flex items-baseline justify-between">
         <h3 className="m-0 text-base font-medium">
           Темы, которые операторы реально используют

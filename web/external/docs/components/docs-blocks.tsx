@@ -3,6 +3,12 @@ import { buttonVariants } from 'fumadocs-ui/components/ui/button';
 import { ArrowOutward, Check, Block, AvTimer, Help } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { TerminalPlayground } from '@/components/terminal-playground';
 
+interface StatusPill {
+  readonly tone: 'ok' | 'error' | 'pending' | 'neutral';
+  readonly icon?: 'check' | 'ban' | 'clock' | 'help';
+  readonly label: string;
+}
+
 /**
  * Landing hero. The Plexor headline + tagline + two CTAs, with a `Hello,
  * plx` terminal animation sitting underneath. Hero lives only on the
@@ -22,6 +28,7 @@ export function DocsHero({
   primaryHref,
   secondaryLabel,
   secondaryHref,
+  statusPill,
 }: {
   kicker?: string;
   title: string;
@@ -30,14 +37,26 @@ export function DocsHero({
   primaryHref: string;
   secondaryLabel: string;
   secondaryHref: string;
+  statusPill?: StatusPill;
 }): ReactNode {
   return (
-    <header className="not-prose relative grid grid-cols-1 items-start gap-10 py-8 lg:grid-cols-[1.05fr_1fr]">
+    <header className="landing-hero not-prose relative grid grid-cols-1 items-start gap-10 py-8 lg:grid-cols-[1.05fr_1fr]">
       <div className="flex flex-col gap-6">
-        {kicker === undefined ? null : (
-          <p className="text-fd-muted-foreground m-0 text-xs font-medium uppercase tracking-[0.22em]">
-            {kicker}
-          </p>
+        {kicker === undefined && statusPill === undefined ? null : (
+          <div className="flex items-center gap-3">
+            {kicker === undefined ? null : (
+              <p className="text-fd-muted-foreground m-0 text-xs font-medium uppercase tracking-[0.16em]">
+                {kicker}
+              </p>
+            )}
+            {statusPill === undefined ? null : (
+              <Status
+                label={statusPill.label}
+                tone={statusPill.tone}
+                icon={statusPill.icon}
+              />
+            )}
+          </div>
         )}
         <h1 className="m-0 text-4xl leading-[1.05] font-semibold tracking-[-0.02em] sm:text-5xl">
           {title}

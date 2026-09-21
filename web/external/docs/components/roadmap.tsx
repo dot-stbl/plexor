@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { Check } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 /**
@@ -6,7 +5,7 @@ import { Check } from '@nine-thirty-five/material-symbols-react/rounded/700';
  * Sourced from `openspec/changes/` and `.agents/docs/scope.md`; not invented.
  * Each phase shows the headline capability and one or two concrete deliverables.
  *
- * The visual is a horizontal step rail — denser than vertical roadmap posters,
+ * The visual is a vertical step rail — denser than vertical roadmap posters,
  * less decorative than the typical SaaS roadmap with rocket icons. Operators
  * come here to see what's real and what's planned, not to be impressed.
  */
@@ -15,185 +14,317 @@ type Status = 'shipped' | 'next' | 'design';
 interface Phase {
   readonly id: string;
   readonly version: string;
-  readonly title: string;
+  readonly title: { ru: string; en: string };
   readonly status: Status;
-  readonly shipped: readonly string[];
-  readonly planned: readonly string[];
+  readonly shipped: { ru: string; en: string }[];
+  readonly planned: { ru: string; en: string }[];
 }
 
 const PHASES: readonly Phase[] = [
   {
     id: 'v0.1',
     version: 'v0.1',
-    title: 'Modular monolith',
+    title: {
+      ru: 'Modular monolith',
+      en: 'Modular monolith',
+    },
     status: 'shipped',
     shipped: [
-      'Plexor.Host binary, single deploy',
-      'Tenants · Identity · Audit modules',
-      'OpenAPI source-generator + Kubb client',
-      'BootConfig + per-org branding',
-      'Console shell + 3 first-party themes',
+      {
+        ru: 'Plexor.Host бинарь, один деплой',
+        en: 'Plexor.Host binary, single deploy',
+      },
+      {
+        ru: 'Модули Tenants · Identity · Audit',
+        en: 'Tenants · Identity · Audit modules',
+      },
+      {
+        ru: 'OpenAPI source-generator + Kubb client',
+        en: 'OpenAPI source-generator + Kubb client',
+      },
+      {
+        ru: 'BootConfig + per-org branding',
+        en: 'BootConfig + per-org branding',
+      },
+      {
+        ru: 'Console shell + 3 first-party themes',
+        en: 'Console shell + 3 first-party themes',
+      },
     ],
     planned: [],
   },
   {
     id: 'v0.2',
     version: 'v0.2',
-    title: 'Compute, Network, Storage',
+    title: {
+      ru: 'Compute, Network, Storage',
+      en: 'Compute, Network, Storage',
+    },
     status: 'shipped',
     shipped: [
-      'KVM / OVS / Ceph install providers',
-      'Local-lvm + MinIO single-node path',
-      'VM lifecycle, snapshots, noVNC console',
-      'VPC + subnets + SGs + floating IPs + LB',
-      'Block volumes + S3 buckets',
+      {
+        ru: 'Install providers KVM / OVS / Ceph',
+        en: 'KVM / OVS / Ceph install providers',
+      },
+      {
+        ru: 'Single-node путь Local LVM + MinIO',
+        en: 'Local-lvm + MinIO single-node path',
+      },
+      {
+        ru: 'Lifecycle VM, snapshots, noVNC console',
+        en: 'VM lifecycle, snapshots, noVNC console',
+      },
+      {
+        ru: 'VPC + subnets + SG + FIP + LB',
+        en: 'VPC + subnets + SGs + floating IPs + LB',
+      },
+      {
+        ru: 'Block volumes + S3 buckets',
+        en: 'Block volumes + S3 buckets',
+      },
     ],
     planned: [],
   },
   {
     id: 'v0.3',
     version: 'v0.3',
-    title: 'Marketplace + metering',
+    title: {
+      ru: 'Marketplace + metering',
+      en: 'Marketplace + metering',
+    },
     status: 'next',
     shipped: [],
     planned: [
-      'App-provider install flow (YAML + shell)',
-      'Provider catalog (Postgres, Redis, Keycloak, WordPress, Ghost)',
-      'Metering events → hourly rollups → invoice',
-      'Per-tenant and per-project quotas',
+      {
+        ru: 'Install-flow app providers (YAML + shell)',
+        en: 'App-provider install flow (YAML + shell)',
+      },
+      {
+        ru: 'Каталог providers (Postgres, Redis, Keycloak, WordPress, Ghost)',
+        en: 'Provider catalog (Postgres, Redis, Keycloak, WordPress, Ghost)',
+      },
+      {
+        ru: 'Metering events → hourly rollups → invoice',
+        en: 'Metering events → hourly rollups → invoice',
+      },
+      {
+        ru: 'Per-tenant и per-project квоты',
+        en: 'Per-tenant and per-project quotas',
+      },
     ],
   },
   {
     id: 'v0.4',
     version: 'v0.4',
-    title: 'Theme marketplace',
+    title: {
+      ru: 'Theme marketplace',
+      en: 'Theme marketplace',
+    },
     status: 'next',
     shipped: [],
     planned: [
-      'ThemeInstallation entity + HMAC manifest verification',
-      'Admin install UI for community themes',
-      'Per-org activation + atomic single-active',
-      'Custom-CSS escape hatch (16 KiB cap)',
+      {
+        ru: 'ThemeInstallation entity + HMAC manifest verification',
+        en: 'ThemeInstallation entity + HMAC manifest verification',
+      },
+      {
+        ru: 'Admin install UI для community themes',
+        en: 'Admin install UI for community themes',
+      },
+      {
+        ru: 'Per-org activation + atomic single-active',
+        en: 'Per-org activation + atomic single-active',
+      },
+      {
+        ru: 'Custom-CSS escape hatch (16 KiB cap)',
+        en: 'Custom-CSS escape hatch (16 KiB cap)',
+      },
     ],
   },
   {
     id: 'v0.5',
     version: 'v0.5',
-    title: 'Managed Kubernetes',
+    title: {
+      ru: 'Managed Kubernetes',
+      en: 'Managed Kubernetes',
+    },
     status: 'design',
     shipped: [],
     planned: [
-      'k8s-cluster app provider on the cluster',
-      'Container registry as an app provider',
-      'Velero-based backup',
+      {
+        ru: 'k8s-cluster app provider на кластере',
+        en: 'k8s-cluster app provider on the cluster',
+      },
+      {
+        ru: 'Container registry как app provider',
+        en: 'Container registry as an app provider',
+      },
+      {
+        ru: 'Velero-based backup',
+        en: 'Velero-based backup',
+      },
     ],
   },
   {
     id: 'v0.6',
     version: 'v0.6',
-    title: 'Multi-region + audit export',
+    title: {
+      ru: 'Multi-region + audit export',
+      en: 'Multi-region + audit export',
+    },
     status: 'design',
     shipped: [],
     planned: [
-      'Postgres logical replication + BDR',
-      'Cross-region failover',
-      'SIEM export (audit → olfs provider)',
+      {
+        ru: 'Postgres logical replication + BDR',
+        en: 'Postgres logical replication + BDR',
+      },
+      {
+        ru: 'Cross-region failover',
+        en: 'Cross-region failover',
+      },
+      {
+        ru: 'SIEM export (audit → olfs provider)',
+        en: 'SIEM export (audit → olfs provider)',
+      },
     ],
   },
 ];
 
-function statusLabel(status: Status): string {
-  switch (status) {
-    case 'shipped':
-      return 'Готово';
-    case 'next':
-      return 'В работе';
-    case 'design':
-      return 'В дизайне';
-  }
-}
+const STATUS_LABEL = {
+  shipped: { ru: 'Готово', en: 'Shipped' },
+  next: { ru: 'В работе', en: 'In progress' },
+  design: { ru: 'В дизайне', en: 'In design' },
+} as const;
 
-function statusClasses(status: Status): string {
-  switch (status) {
-    case 'shipped':
-      return 'border-fd-ok/30 bg-fd-ok-soft text-fd-ok-ink';
-    case 'next':
-      return 'border-fd-warn/30 bg-fd-warn-soft text-fd-warn-ink';
-    case 'design':
-      return 'border-fd-idle/30 bg-fd-idle-soft text-fd-idle-ink';
-  }
-}
+const STATUS_CLASSES = {
+  shipped: 'border-fd-ok/30 bg-fd-ok-soft text-fd-ok-ink',
+  next: 'border-fd-warn/30 bg-fd-warn-soft text-fd-warn-ink',
+  design: 'border-fd-warn/30 bg-fd-warn-soft text-fd-warn-ink',
+} as const;
 
-export function Roadmap() {
+const COPY = {
+  ru: {
+    kicker: 'Roadmap',
+    title: 'Что готово и что дальше',
+    subtitle: (
+      <>
+        Источник — <code className="font-mono">openspec/changes/</code> и{' '}
+        <code className="font-mono">.agents/docs/scope.md</code>. Без фантазий:
+        каждая фаза — это либо merged change, либо open proposal.
+      </>
+    ),
+    shippedLabel: 'Уже в коробке',
+    plannedLabel: 'Планируется',
+  },
+  en: {
+    kicker: 'Roadmap',
+    title: "What's shipped and what's next",
+    subtitle: (
+      <>
+        Sourced from <code className="font-mono">openspec/changes/</code>{' '}
+        and <code className="font-mono">.agents/docs/scope.md</code>. No
+        fantasies: every phase is either a merged change or an open proposal.
+      </>
+    ),
+    shippedLabel: 'Shipped',
+    plannedLabel: 'Planned',
+  },
+} as const;
+
+export function Roadmap({ locale = 'ru' }: { locale?: 'ru' | 'en' } = {}) {
+  const copy = COPY[locale];
+
   return (
-    <div className="not-prose my-10">
+    <div className="landing-block not-prose my-10">
       <header className="mb-6 max-w-2xl">
-        <p className="text-fd-muted-foreground mb-2 text-xs font-medium uppercase tracking-[0.18em]">
-          Roadmap
+        <p className="text-fd-muted-foreground mb-2 text-xs font-medium uppercase tracking-[0.16em]">
+          {copy.kicker}
         </p>
         <h2 className="mb-2 text-3xl font-semibold tracking-tight">
-          Что готово и что дальше
+          {copy.title}
         </h2>
-        <p className="text-fd-muted-foreground text-sm">
-          Источник — <code className="font-mono">openspec/changes/</code> и{' '}
-          <code className="font-mono">.agents/docs/scope.md</code>. Без фантазий:
-          каждая фаза — это либо merged change, либо open proposal.
-        </p>
+        <p className="text-fd-muted-foreground text-sm">{copy.subtitle}</p>
       </header>
 
       <ol className="relative space-y-3">
         {PHASES.map((phase) => (
-          <li
-            key={phase.id}
-            className="border-fd-border bg-fd-card relative rounded-xl border p-5"
-          >
-            <PhaseHeader phase={phase} />
-            <PhaseBody phase={phase} />
-          </li>
+          <PhaseItem key={phase.id} phase={phase} locale={locale} copy={copy} />
         ))}
       </ol>
     </div>
   );
 }
 
-function PhaseHeader({ phase }: { phase: Phase }) {
+function PhaseItem({
+  phase,
+  locale,
+  copy,
+}: {
+  phase: Phase;
+  locale: 'ru' | 'en';
+  copy: (typeof COPY)[keyof typeof COPY];
+}) {
+  return (
+    <li className="border-fd-border bg-fd-card relative rounded-xl border p-5">
+      <PhaseHeader phase={phase} locale={locale} />
+      <PhaseBody phase={phase} locale={locale} copy={copy} />
+    </li>
+  );
+}
+
+function PhaseHeader({
+  phase,
+  locale,
+}: {
+  phase: Phase;
+  locale: 'ru' | 'en';
+}) {
   return (
     <div className="mb-3 flex items-baseline justify-between gap-3">
       <div className="flex items-baseline gap-3">
         <code className="bg-fd-muted text-fd-foreground rounded px-1.5 py-0.5 font-mono text-xs">
           {phase.version}
         </code>
-        <h3 className="m-0 text-lg font-semibold">{phase.title}</h3>
+        <h3 className="m-0 text-lg font-semibold">{phase.title[locale]}</h3>
       </div>
       <span
         className={
           'shrink-0 rounded-full border px-2 py-0.5 text-[0.7rem] font-medium uppercase tracking-wider ' +
-          statusClasses(phase.status)
+          STATUS_CLASSES[phase.status]
         }
       >
-        {statusLabel(phase.status)}
+        {STATUS_LABEL[phase.status][locale]}
       </span>
     </div>
   );
 }
 
-function PhaseBody({ phase }: { phase: Phase }) {
+function PhaseBody({
+  phase,
+  locale,
+  copy,
+}: {
+  phase: Phase;
+  locale: 'ru' | 'en';
+  copy: (typeof COPY)[keyof typeof COPY];
+}) {
   if (phase.shipped.length === 0 && phase.planned.length === 0) return null;
 
   return (
     <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
       {phase.shipped.length > 0 ? (
         <BulletList
-          items={phase.shipped}
+          items={phase.shipped.map((entry) => entry[locale])}
           icon={<Check className="text-fd-ok size-3.5 shrink-0" aria-hidden />}
-          label="Уже в коробке"
+          label={copy.shippedLabel}
         />
       ) : null}
       {phase.planned.length > 0 ? (
         <BulletList
-          items={phase.planned}
+          items={phase.planned.map((entry) => entry[locale])}
           icon={<span className="text-fd-muted-foreground text-base leading-none">·</span>}
-          label="Планируется"
+          label={copy.plannedLabel}
         />
       ) : null}
     </div>
@@ -206,7 +337,7 @@ function BulletList({
   label,
 }: {
   items: readonly string[];
-  icon: ReactNode;
+  icon: React.ReactNode;
   label: string;
 }) {
   return (

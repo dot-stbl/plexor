@@ -160,7 +160,7 @@ export function ArchitectureDiagram() {
   const hoveredNode = NODES.find((n) => n.id === hoverId);
 
   return (
-    <div className="not-prose my-6 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
+    <div className="landing-block not-prose my-6 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
       <div className="overflow-hidden rounded-xl border border-fd-border bg-fd-card p-2">
         <svg
           viewBox="0 0 820 240"
@@ -229,6 +229,7 @@ function NodeBlock({
       tabIndex={0}
       role="button"
       aria-label={`${node.label} — ${node.sublabel}`}
+      className="docs-arch-node"
       style={{ cursor: 'pointer', outline: 'none' }}
     >
       <rect
@@ -291,6 +292,7 @@ function EdgeLine({
       stroke={isHighlighted ? 'var(--fd-primary)' : 'var(--fd-border)'}
       strokeWidth={isHighlighted ? 2 : 1}
       strokeDasharray="4 4"
+      className="docs-arch-edge"
     />
   );
 }

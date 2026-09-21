@@ -6,6 +6,7 @@ import { SidebarFooter } from '@/components/sidebar-footer';
 
 export const docsUrl = 'https://plexor.stbl.space';
 export const consoleUrl = 'https://console.plexor.stbl.space';
+export const repoUrl = 'https://github.com/dot-stbl/plexor';
 
 /**
  * UI strings for both locales (no official Russian language pack exists in
@@ -52,28 +53,58 @@ export const translations = i18n
     },
   });
 
+/**
+ * Sidebar header — Plexor brand mark + lowercase `plexor` + a small
+ * `docs` eyebrow underneath. The default fumadocs header packs everything
+ * into one inline span (icon + brand + slash + breadcrumb), which makes
+ * the mark look squished at the sidebar's 16-20px scale and bleeds
+ * into the search trigger below.
+ *
+ * This version wraps the mark in its own sized box (size-7) so the SVG
+ * has air to breathe, and stacks the brand name + eyebrow as a
+ * two-line block with explicit leading. Hover swaps the mark from
+ * `text-fd-foreground` to `text-fd-primary` so it reads as a link.
+ */
+function DocsHeader({ locale }: { locale: string }) {
+  const isEn = locale === 'en';
+  const home = isEn ? '/en' : '/';
+  return (
+    <a
+      href={home}
+      className="docs-brand-link group flex items-center gap-2.5 outline-none"
+    >
+      <span
+        className="docs-brand-mark inline-flex size-7 shrink-0 items-center justify-center text-fd-foreground transition-colors group-hover:text-fd-primary"
+        aria-hidden
+      >
+        <BrandMark />
+      </span>
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span className="truncate text-[15px] font-semibold tracking-tight text-fd-foreground">
+          plexor
+        </span>
+        <span className="truncate text-[11px] font-medium tracking-[0.16em] uppercase text-fd-muted-foreground">
+          {isEn ? 'Documentation' : 'Документация'}
+        </span>
+      </span>
+    </a>
+  );
+}
+
 export function baseOptions(locale: string): BaseLayoutProps {
   return {
     nav: {
-      title: (
-        <span className="inline-flex items-center gap-2 font-medium tracking-tight">
-          <BrandMark />
-          plexor
-          <span className="text-fd-muted-foreground font-normal">/ docs</span>
-        </span>
-      ),
       url: locale === 'en' ? '/en' : '/',
     },
-    links: [
-      {
-        text: locale === 'en' ? 'Open console' : 'Открыть консоль',
-        url: consoleUrl,
-        external: true,
-      },
-    ],
+    // No `links: [{ text: 'Open console' }]` — that button was a generic
+    // SaaS CTA that competed for attention with the actual table of
+    // contents. The console link now lives in the page footer (see
+    // app/(ru)/layout.tsx / (en)/layout.tsx) so it shows once when
+    // readers finish a page, not on every nav render.
     i18n: false,
     themeSwitch: { enabled: false },
     sidebar: {
+      navTitle: <DocsHeader locale={locale} />,
       footer: <SidebarFooter key="docs-sidebar-footer" />,
     },
   } as BaseLayoutProps;

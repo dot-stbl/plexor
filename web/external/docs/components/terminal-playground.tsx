@@ -95,7 +95,7 @@ export function TerminalPlayground() {
               <span>{shown}</span>
               {visible && idx === typed - 1 ? (
                 <span
-                  className="bg-fd-foreground ml-0.5 inline-block h-4 w-1.5 translate-y-0.5 animate-pulse"
+                  className="docs-terminal-caret bg-fd-foreground ml-0.5 inline-block h-4 w-1.5 translate-y-0.5"
                   aria-hidden
                 />
               ) : null}

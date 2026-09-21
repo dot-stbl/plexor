@@ -6,19 +6,47 @@ import { ArrowOutward } from '@nine-thirty-five/material-symbols-react/rounded/7
  * on the right. The asymmetry is the point: every refused pattern has a
  * concrete replacement that names a real Plexor feature.
  *
- * Reads top-to-bottom; each row is one refusal + one alternative. No
- * icons, no badges — typography only. The pattern is too easy to dress up
- * with decorative noise; we want the words to do the work.
+ * Each row is a `×` refusal paired with a `✓` alternative. Typography only;
+ * no badges or extra icons — the words have to do the work. Sourced from
+ * `.agents/docs/architecture.md`, `openspec/specs/branding/spec.md`,
+ * `openspec/changes/fe-themes-branding/proposal.md`.
  */
 interface Row {
   readonly no: string;
   readonly yes: string;
 }
 
-const ROWS: readonly Row[] = [
+const ROWS_RU: readonly Row[] = [
+  {
+    no: 'OpenStack-grade микросервисный зоопарк — 30+ бинарей для деплоя, мониторинга, обновлений и координации.',
+    yes: 'Один Plexor.Host бинарь. Все модули — один процесс. Реплики, когда измеренная нагрузка требует.',
+  },
+  {
+    no: 'Kubernetes как runtime-требование для деплоя приложений.',
+    yes: 'Обычный Podman/Docker run на каждой compute-ноде. App providers — это shell, не Helm.',
+  },
+  {
+    no: 'Helm-чарты, которые дрифтуют между версиями и форками.',
+    yes: 'provider.yaml — версионированный, HMAC-подписанный манифест. Install + upgrade = одна команда.',
+  },
+  {
+    no: 'Принудительный SaaS control plane, account lock-in, vendor-managed secrets.',
+    yes: 'Своё железо, свой Keycloak, свой Ceph. Plexor работает на том, что у вас есть.',
+  },
+  {
+    no: 'UI в пяти местах: console, marketplace, docs, billing, audit.',
+    yes: 'Одна консоль. Marketplace, audit, metering — табы. Без портала-порталов.',
+  },
+  {
+    no: 'Отдельный billing portal, который звонит домой по любому поводу.',
+    yes: 'Опциональный модуль Metering + Invoice. Выключен по умолчанию. Никакого egress.',
+  },
+];
+
+const ROWS_EN: readonly Row[] = [
   {
     no: 'OpenStack-grade microservice sprawl — 30+ binaries to deploy, monitor, patch, and coordinate.',
-    yes: 'One Plexor.Host binary. All modules, one process. Replicas when you actually need them.',
+    yes: 'One Plexor.Host binary. All modules, one process. Replicas when measured load demands.',
   },
   {
     no: 'Kubernetes as a runtime requirement for app deployment.',
@@ -26,7 +54,7 @@ const ROWS: readonly Row[] = [
   },
   {
     no: 'Helm charts that drift across versions and forks.',
-    yes: 'A `provider.yaml` is a versioned, HMAC-signed manifest. Install + upgrade is one command.',
+    yes: 'A provider.yaml is a versioned, HMAC-signed manifest. Install + upgrade is one command.',
   },
   {
     no: 'Forced SaaS control plane, account lock-in, vendor-managed secrets.',
@@ -42,33 +70,16 @@ const ROWS: readonly Row[] = [
   },
 ];
 
-export function Manifesto() {
-  return (
-    <div className="not-prose my-10">
-      <header className="mb-6 max-w-2xl">
-        <p className="text-fd-muted-foreground mb-2 text-xs font-medium uppercase tracking-[0.18em]">
-          Манифест
-        </p>
-        <h2 className="mb-2 text-3xl font-semibold tracking-tight">
-          Что мы не делаем
-        </h2>
-        <p className="text-fd-muted-foreground text-sm">
-          Self-hosted cloud не должен быть копией AWS. Список того, от чего мы
-          отказались, и что предлагаем взамен.
-        </p>
-      </header>
-
-      <div className="grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-[1fr_24px_1fr]">
-        <ColumnHeader side="no">Не делаем</ColumnHeader>
-        <div aria-hidden />
-        <ColumnHeader side="yes">Делаем</ColumnHeader>
-
-        {ROWS.map((row) => (
-          <RowItem key={row.no} row={row} />
-        ))}
-      </div>
-
-      <Footnote>
+const COPY = {
+  ru: {
+    kicker: 'Манифест',
+    title: 'Что мы не делаем',
+    subtitle:
+      'Self-hosted cloud не должен быть копией AWS. Список того, от чего мы отказались, и что предлагаем взамен.',
+    noLabel: 'Не делаем',
+    yesLabel: 'Делаем',
+    footnote: (
+      <>
         Каждый отказ — это осознанное решение, зафиксированное в{' '}
         <a
           href="/concepts/resource-scope"
@@ -85,7 +96,66 @@ export function Manifesto() {
           <ArrowOutward className="size-3" aria-hidden />
         </a>
         .
-      </Footnote>
+      </>
+    ),
+  },
+  en: {
+    kicker: 'Manifesto',
+    title: "What we don't ship",
+    subtitle:
+      "A self-hosted cloud shouldn't be a copy of AWS. Six things we refused, and what we offer instead.",
+    noLabel: "Don't",
+    yesLabel: 'Do',
+    footnote: (
+      <>
+        Every refusal is a deliberate decision, recorded in the{' '}
+        <a
+          href="/en/concepts/resource-scope"
+          className="text-fd-foreground underline decoration-fd-muted-foreground/40 underline-offset-4 hover:decoration-fd-foreground"
+        >
+          architecture docs
+        </a>
+        . Disagree?{' '}
+        <a
+          href="https://github.com/dot-stbl/plexor/issues"
+          className="text-fd-foreground inline-flex items-center gap-1 underline decoration-fd-muted-foreground/40 underline-offset-4 hover:decoration-fd-foreground"
+        >
+          open an issue
+          <ArrowOutward className="size-3" aria-hidden />
+        </a>
+        .
+      </>
+    ),
+  },
+} as const;
+
+export function Manifesto({ locale = 'ru' }: { locale?: 'ru' | 'en' } = {}) {
+  const rows = locale === 'en' ? ROWS_EN : ROWS_RU;
+  const copy = COPY[locale];
+
+  return (
+    <div className="landing-block not-prose my-10">
+      <header className="mb-6 max-w-2xl">
+        <p className="text-fd-muted-foreground mb-2 text-xs font-medium uppercase tracking-[0.16em]">
+          {copy.kicker}
+        </p>
+        <h2 className="mb-2 text-3xl font-semibold tracking-tight">
+          {copy.title}
+        </h2>
+        <p className="text-fd-muted-foreground text-sm">{copy.subtitle}</p>
+      </header>
+
+      <div className="grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-[1fr_24px_1fr]">
+        <ColumnHeader side="no">{copy.noLabel}</ColumnHeader>
+        <div aria-hidden />
+        <ColumnHeader side="yes">{copy.yesLabel}</ColumnHeader>
+
+        {rows.map((row) => (
+          <RowItem key={row.no} row={row} />
+        ))}
+      </div>
+
+      <Footnote>{copy.footnote}</Footnote>
     </div>
   );
 }
@@ -100,9 +170,8 @@ function ColumnHeader({
   return (
     <div
       className={
-        side === 'no'
-          ? 'text-fd-err-ink text-xs font-medium uppercase tracking-[0.18em] md:pt-1'
-          : 'text-fd-ok-ink text-xs font-medium uppercase tracking-[0.18em] md:pt-1'
+        'text-fd-muted-foreground text-xs font-medium uppercase tracking-[0.16em] md:pt-1 ' +
+        (side === 'yes' ? 'md:text-right' : '')
       }
     >
       {children}

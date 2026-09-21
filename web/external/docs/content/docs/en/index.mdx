@@ -5,7 +5,6 @@ description: "Self-hosted cloud. One binary. Modular monolith."
 ---
 
 import { ThemePreview } from '@/components/landing';
-import { TerminalPlayground } from '@/components/terminal-playground';
 import { ArchitectureDiagram } from '@/components/architecture-diagram';
 import { Manifesto } from '@/components/manifesto';
 import { Roadmap } from '@/components/roadmap';
@@ -19,6 +18,7 @@ import { ProvidersDirectory } from '@/components/providers-directory';
   primaryHref="/en/installation"
   secondaryLabel="Architecture"
   secondaryHref="/en/concepts"
+  statusPill={{ tone: 'pending', icon: 'clock', label: 'v0.2 · pre-stable' }}
 />
 
 Plexor is a control plane (`Plexor.Host`) on ASP.NET Core, plus a lightweight NodeAgent on every compute node. No managed services in between: NATS for the event bus, PostgreSQL for state, Ceph or MinIO for object storage. Not an OpenStack-grade microservice zoo, not SaaS with a forced control plane — infrastructure that runs on your hardware, on your terms.
@@ -35,17 +35,17 @@ Plexor.Host exposes REST + gRPC, registers modules via DI composition, emits `ar
 
 ## Manifesto
 
-<Manifesto />
+<Manifesto locale="en" />
 
 ## Providers directory
 
-<ProvidersDirectory />
+<ProvidersDirectory locale="en" />
 
 Install providers are picked once at `plx init` via system probes. App providers ship as YAML manifests — community can publish their own, operators install with `plx provider install <git-url>`. No NuGet plugins, no Helm charts.
 
 ## Roadmap
 
-<Roadmap />
+<Roadmap locale="en" />
 
 ## Next
 
