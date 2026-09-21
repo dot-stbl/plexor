@@ -136,6 +136,16 @@
           "label": "Databases",
           "value": "6",
           "context": "3 PostgreSQL · 3 Redis"
+        },
+        "networks": {
+          "label": "Networks",
+          "value": "0",
+          "context": "0 cluster(s) · nodes ready"
+        },
+        "audit": {
+          "label": "Audit events",
+          "value": "0",
+          "context": "last 24h"
         }
       }
     },
