@@ -3,17 +3,17 @@ import { getMdxComponents } from '@/lib/mdx-components';
 import MdxContent from './content.mdx';
 
 /**
- * `/docs/concepts/` route — loads the sibling content.mdx file and
+ * `/docs/admin/rbac-hardening/` route — loads the sibling content.mdx file and
  * renders it inside the docs chrome.
  */
-export const Route = createFileRoute('/(docs)/docs/concepts/')({
+export const Route = createFileRoute('/(docs)/docs/admin/rbac-hardening/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Concepts — plexor docs" },
+      { title: "RBAC hardening — plexor docs" },
       {
         name: 'description',
-        content: "Mental models for working with Plexor — the resource scope hierarchy, identity and RBAC, workloads and runtimes, networking, storage, quotas, and the audit log.",
+        content: "Why wildcards are dangerous, how to write a least-privilege role for a NodeAgent integration, and why permission changes don't take effect on already-issued JWTs.",
       },
     ],
   }),

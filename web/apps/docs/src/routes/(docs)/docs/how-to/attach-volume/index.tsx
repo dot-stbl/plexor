@@ -3,17 +3,17 @@ import { getMdxComponents } from '@/lib/mdx-components';
 import MdxContent from './content.mdx';
 
 /**
- * `/docs/concepts/` route — loads the sibling content.mdx file and
+ * `/docs/how-to/attach-volume/` route — loads the sibling content.mdx file and
  * renders it inside the docs chrome.
  */
-export const Route = createFileRoute('/(docs)/docs/concepts/')({
+export const Route = createFileRoute('/(docs)/docs/how-to/attach-volume/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Concepts — plexor docs" },
+      { title: "Attach a volume — plexor docs" },
       {
         name: 'description',
-        content: "Mental models for working with Plexor — the resource scope hierarchy, identity and RBAC, workloads and runtimes, networking, storage, quotas, and the audit log.",
+        content: "Provision a block volume, attach it to a workload, and expand it without downtime.",
       },
     ],
   }),

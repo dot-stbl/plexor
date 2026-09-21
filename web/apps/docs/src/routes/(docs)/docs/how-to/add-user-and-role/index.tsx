@@ -3,17 +3,17 @@ import { getMdxComponents } from '@/lib/mdx-components';
 import MdxContent from './content.mdx';
 
 /**
- * `/docs/concepts/` route — loads the sibling content.mdx file and
+ * `/docs/how-to/add-user-and-role/` route — loads the sibling content.mdx file and
  * renders it inside the docs chrome.
  */
-export const Route = createFileRoute('/(docs)/docs/concepts/')({
+export const Route = createFileRoute('/(docs)/docs/how-to/add-user-and-role/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Concepts — plexor docs" },
+      { title: "Add a user and assign a role — plexor docs" },
       {
         name: 'description',
-        content: "Mental models for working with Plexor — the resource scope hierarchy, identity and RBAC, workloads and runtimes, networking, storage, quotas, and the audit log.",
+        content: "Invite a user, choose a built-in or custom role, and bind the role to the right scope.",
       },
     ],
   }),

@@ -1,0 +1,95 @@
+---
+title: "Your first API key"
+description: "Issue an API key for a service account and call a resource over HTTP."
+chapter: "getting-started"
+---
+
+API keys are the operator's tool for service-to-service traffic.
+Plexor's own NodeAgent authenticates with an API key; so do
+integrations you write against Plexor's REST API. This page walks
+through issuing a key and making a first authenticated request.
+
+<Callout type="warning">
+
+The raw API key secret is shown **exactly once** in the create
+dialog. After you close that dialog, Plexor cannot retrieve the
+secret — only its SHA-256 hash is stored. Copy it to a password
+manager before you close the dialog.
+
+</Callout>
+
+## Step 1 — Open the API keys page
+
+From the scope switcher, select the organisation. Open the
+**Access** section in the sidebar and click **API keys**.
+
+<ScreenshotPlaceholder caption="API keys page with the list and the issue button" />
+
+The page shows every key issued at the current org, who owns it,
+which permissions it has, when it last authenticated, and whether it
+has expired or been revoked.
+
+## Step 2 — Issue the key
+
+Click **Issue API key**. The dialog asks for a name and the
+permission set.
+
+Give the key a name that describes its job (`nodeagent-prod-host-1`,
+`backup-runner`). The permission set is the strongest constraint:
+the key's effective permissions are **a subset of the issuing user's
+effective permissions**. Plexor refuses to issue a key with
+permissions the owner does not hold (HTTP 403, code
+`identity.permission.denied`).
+
+<ScreenshotPlaceholder caption="API key create dialog with the secret copied to clipboard" />
+
+Click **Create**. Plexor shows the raw secret exactly once. The
+bearer format is:
+
+```
+Bearer kid_<key_id>.<secret>
+```
+
+where `<key_id>` is the UUID v7 of the key (prefixed `kid_`) and
+`<secret>` is a 43-character base64url string.
+
+## Step 3 — Make a request
+
+The REST API lives at `/api/v1/...`. Every request needs the bearer
+token. The example below lists the workloads in the current folder:
+
+```bash
+curl -sS \
+  -H "Authorization: Bearer kid_0192c8e3-...<your key id>...<your secret>" \
+  https://plexor.example.com/api/v1/workloads
+```
+
+<Callout type="tip">
+
+The default install binds the REST API on the same host as the
+console. If you hit `https://<host>/api/v1/...` you'll be talking to
+the same process that renders the console.
+
+</Callout>
+
+If the request returns `200 OK`, the stack is wired correctly. If it
+returns `401`, the bearer is wrong (case-sensitive, no extra
+whitespace). If it returns `403`, the key does not have the
+required permission — re-check the permissions field on the issue
+dialog.
+
+## Step 4 — Tidy up
+
+Rotate the key from time to time (How-to → Rotate API keys covers
+the recipe). A leaked key can be revoked immediately from the API
+keys page, which sets the key's `RevokedAt` to the present moment.
+Plexor refuses to authenticate against a revoked key, even if the
+secret is still valid.
+
+## Where to go next
+
+API keys are the operator's everyday tool, but they are also the
+mechanism the NodeAgent itself uses. The next chapter covers the
+concepts behind Plexor's resource model — start with **Orgs, teams,
+and folders** if you skipped that earlier, or jump to **Workloads
+and runtimes** when you want to provision something.

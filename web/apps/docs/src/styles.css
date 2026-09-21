@@ -164,3 +164,69 @@
 html.dark {
   color-scheme: dark;
 }
+
+/* =========================================================================
+ * Docs prose — typographic layer applied to every MDX/TSX page through
+ * the `(docs)/route.tsx` layout. The actual heading/paragraph/list/code
+ * styles live inline in `mdx-components.tsx` (so MDX overrides stay
+ * local); this layer carries the layout-level concerns:
+ *
+ *  - reading width (the article column tops out at 44rem so long prose
+ *    doesn't sprawl across the three-column chrome),
+ *  - scroll-margin for anchor jumps to land under the sticky header,
+ *  - tabular-figure code to keep monospace digits aligned in tables,
+ *  - figure spacing so screenshots place predictably between paragraphs.
+ * ========================================================================= */
+
+.docs-prose {
+  max-width: 44rem;
+  color: var(--foreground);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+.docs-prose p {
+  hanging-punctuation: first last;
+}
+
+.docs-prose img {
+  margin-block: 1.5rem;
+  border-radius: var(--radius-lg);
+}
+
+.docs-prose figure {
+  margin-block: 1.5rem;
+}
+
+.docs-prose figcaption {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.docs-prose table {
+  font-variant-numeric: tabular-nums;
+}
+
+.docs-prose :is(h1, h2, h3, h4, h5, h6) {
+  hanging-punctuation: first last;
+}
+
+.docs-prose :is(h2, h3) {
+  letter-spacing: -0.005em;
+}
+
+.docs-prose :not(pre) > code {
+  font-variant-literal-aspect: no-common-ligatures;
+}
+
+.docs-prose aside[role='note'] {
+  font-variant-numeric: tabular-nums;
+}
+
+.docs-prose ul[data-tight] li,
+.docs-prose ol[data-tight] li {
+  margin-block: 0.25rem;
+}
+
+/* Long-form prose: longer paragraphs stay on a 7-pt baseline; tight
+   lists in admin pages use the modifier classes above. */

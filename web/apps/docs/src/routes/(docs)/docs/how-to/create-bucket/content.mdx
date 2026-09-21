@@ -1,0 +1,106 @@
+---
+title: "Create a bucket"
+description: "Provision an S3-compatible bucket, with the access-key copy flow."
+chapter: "how-to"
+---
+
+A bucket is an S3-compatible object store. Clients speak the S3
+HTTP API to it; Plexor handles the storage backend. This page walks
+through creating a bucket and connecting a client to it.
+
+## Step 1 — Create the bucket
+
+Open **Storage → Buckets** and click **Create bucket**.
+
+<ScreenshotPlaceholder caption="Bucket create dialog with name and region fields" />
+
+The dialog asks for two fields:
+
+- **Name** — DNS-label rules: 3–63 lowercase characters, dashes
+  allowed, no underscores, no uppercase. Plexor refuses to create a
+  bucket whose name conflicts with one already registered in the
+  DNS zone (this is a global constraint, not per-Plexor).
+- **Region label** — a free-form label (`eu-central-1`, `home-lab`,
+  `garage-east`). Plexor does not enforce region semantics in the
+  current release; the label is recorded on the bucket and surfaced
+  in the bucket list.
+
+The default bucket policy is private — no anonymous reads, no
+anonymous writes. To make a bucket publicly readable, edit the
+policy after creation; the policy change is an audit-logged event.
+
+## Step 2 — Create an access key
+
+Buckets are accessed with S3 access keys, not with the API keys
+that authenticate against the REST API. Open the bucket's detail
+view and click **Generate access key**.
+
+The dialog shows the **Access key** and **Secret key** exactly
+once. Copy them to a password manager before closing the dialog.
+
+<Callout type="warning">
+
+The S3 access-key secret is shown **exactly once**. After the
+dialog closes, Plexor stores only the SHA-256 hash of the secret.
+You cannot retrieve the secret later; rotating a leaked key
+requires generating a new key and re-issuing the credential to
+every client.
+
+</Callout>
+
+## Step 3 — Configure the client
+
+Any S3 client can connect to the bucket. The endpoint URL is the
+URL of your Plexor host, suffixed with the storage backend's path:
+
+| Backend | Endpoint URL |
+|---|---|
+| Ceph RGW | `https://plexor.example.com:7480` |
+| MinIO | `https://plexor.example.com:9000` |
+
+The exact port depends on the storage backend installed at your
+host. The console's **Storage → Backends** detail view carries the
+endpoint URL for your specific install.
+
+For a brand-new bucket with the default private policy, the
+client's request signs with the access key and secret you
+generated in step 2. A successful `aws s3 ls s3://<bucket-name>--`
+returns an empty list (no objects yet).
+
+For the AWS CLI:
+
+```bash
+aws configure set aws_access_key_id <access-key> --profile plexor-bucket
+aws configure set aws_secret_access_key <secret-key> --profile plexor-bucket
+aws configure set endpoint_url https://plexor.example.com:7480 --profile plexor-bucket
+
+aws s3 ls s3://my-bucket/ --profile plexor-bucket
+```
+
+For other clients (rclone, restic, minio-mc), the configuration
+shape is similar — an access key, a secret, an endpoint URL, and
+the bucket name. The client treats the bucket as S3; Plexor
+translates the requests into the storage-backend-specific calls.
+
+## Step 4 — Upload an object
+
+```bash
+echo "hello, plexor" > hello.txt
+aws s3 cp hello.txt s3://my-bucket/hello.txt --profile plexor-bucket
+```
+
+If the upload succeeds, the object is durable inside the storage
+backend. With Ceph RGW (the default), the object's durability is
+determined by the bucket's replication factor — typically 3x; with
+MinIO (single-host), the object is on the host's local disk and
+shares whatever durability the host's storage has.
+
+## What to do next
+
+- **Edit the bucket policy** to grant read access to other Plexor
+  users — the policy editor surfaces the JSON policy; changes are
+  audited.
+- **Enable versioning** to keep historical versions of overwritten
+  objects. Versioning is a per-bucket setting.
+- **Set up a backup** that uses the bucket as the destination — see
+  **Configure backups**.

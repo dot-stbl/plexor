@@ -3,17 +3,17 @@ import { getMdxComponents } from '@/lib/mdx-components';
 import MdxContent from './content.mdx';
 
 /**
- * `/docs/concepts/` route — loads the sibling content.mdx file and
+ * `/docs/admin/lockout-recovery/` route — loads the sibling content.mdx file and
  * renders it inside the docs chrome.
  */
-export const Route = createFileRoute('/(docs)/docs/concepts/')({
+export const Route = createFileRoute('/(docs)/docs/admin/lockout-recovery/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Concepts — plexor docs" },
+      { title: "Lockout recovery — plexor docs" },
       {
         name: 'description',
-        content: "Mental models for working with Plexor — the resource scope hierarchy, identity and RBAC, workloads and runtimes, networking, storage, quotas, and the audit log.",
+        content: "The 5/10/15 thresholds and the 15-minute/1-hour/24-hour lockout windows, with the manual DB unlock path for break-glass.",
       },
     ],
   }),

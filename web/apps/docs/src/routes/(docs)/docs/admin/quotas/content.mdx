@@ -1,0 +1,116 @@
+---
+title: "Managing quotas"
+description: "Where to set a folder override, what the 80% warning looks like in the UI, and why there is no admin bypass."
+chapter: "admin"
+---
+
+Quotas are the platform's lever for capacity control. This page
+covers the three places to set a quota, what the warning signal
+looks like inside Plexor, and the design choice that there is no
+admin override.
+
+<ScreenshotPlaceholder caption="Quotas assignments page with a per-definition table" />
+
+## Where quotas live
+
+A quota assignment is a row in Plexor's quotas table. There are
+three scopes a quota can live at:
+
+- **Organisation** — applies to the whole org. The default seed
+  places every catalog key at the org with the value from
+  **Concepts → Quotas**.
+- **Team** — overrides org for that team's resources. Use when one
+  team needs higher limits than the org default.
+- **Folder** — overrides team (and org) for that folder's
+  resources. The most common place to set a quota. Folder
+  overrides are how you express "this project deserves a
+  different ceiling than the rest of the team".
+
+The walker resolves the effective value as the **minimum** found
+across the three scopes for a given resource. Folder values win
+over team values; team values win over org values.
+
+## Editing a quota
+
+Open **Admin → Quotas**. The page shows the catalog keys, their
+current effective values, and the assignment scope. To edit:
+
+1. Pick the scope (folder, team, or org).
+2. Pick the catalog key.
+3. Set the new value.
+
+Click **Save**. The change is immediate for any subsequent
+request that hits the walker for that scope. There is no
+"apply" step.
+
+<Callout type="info">
+
+The catalog is closed. You cannot create a new quota key from
+the console — the keys ship with the platform and change only with
+a release. If you need a counter Plexor does not yet track, file
+an issue; the catalog extension is a feature change, not a config
+edit.
+
+</Callout>
+
+## The 80% warning, in the UI
+
+When a request succeeds but crosses the 80% threshold, the
+response carries an `X-Quota-Warning: true` header. The console
+reads the header and surfaces a warning badge on the resource
+that pushed you over.
+
+<ScreenshotPlaceholder caption="Quota warning badge next to a VM in the workloads list" />
+
+The badge stays on the resource's row until the usage drops back
+under the threshold (the operator deletes other workloads) or the
+quota is raised (an admin edits the assignment). The warning is
+**stateful**, not transient — your next request will see the same
+warning until something changes.
+
+The badge is informational. Plexor does not block the next
+request that would deepen the warning. The intent is to give the
+operator visibility into approaching limits, not to gate writes.
+
+## Why there is no admin bypass
+
+When the quota walker returns `Denied`, Plexor does not offer an
+"override" or "force" path. The handler throws a quota exception;
+the API responds with HTTP 429 and `code = "quotas.exceeded"`;
+the request fails.
+
+The reason for the absence is operational: a bypass lets an
+operator push past the limit in a moment of pressure, but the
+limit is the wall that protects the platform. A bypass path
+becomes a regular path through social pressure ("just override
+it, we'll deal with the limit later") until the platform is no
+longer bounded.
+
+The right path past a quota block is one of three:
+
+1. **Reduce the resource count.** Delete workloads, volumes, or
+   buckets that are no longer needed.
+2. **Raise the assignment.** An admin edits the assignment at the
+   appropriate scope. The new value applies on the next request.
+3. **Move resources to a folder with a higher quota.** The
+   resource keeps its data and identity; the new folder has the
+   capacity.
+
+The walker's `current` counter persists across raises. Raising
+from 9 of 10 to 20 makes 9 of 20; the counter does not reset.
+
+## What the operator sees when something is wrong
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `quotas.exceeded` on a creation request | The folder is at its quota | Delete unneeded resources, raise the quota, or move to a folder with capacity. |
+| `X-Quota-Warning: true` on every creation | The folder is at 80%+ but below the limit | Either accept the warning or raise the quota to clear it. |
+| The quota page shows a value different from what was set | The walker resolved a narrower scope's value | Confirm the assignment at the wider scope. The walker always returns the narrowest match. |
+| Audit log shows no `quotas.assignment.changed` after a Save | Save never reached the server | Check the response for a 4xx and retry. |
+
+## What to do next
+
+- **Capacity planning** for moving quotas between scopes as your
+  deployment grows.
+- **Set up quotas** for a folder when the team has outgrown their
+  default.

@@ -1,0 +1,95 @@
+---
+title: "Rotate an SSH key"
+description: "Add a new SSH key, fingerprint-deduped; remove the old one; the LastUsedAt debounce."
+chapter: "how-to"
+---
+
+Plexor stores SSH public keys per user. Workloads that accept SSH
+auth (the default for VMs) match the public key the connecting
+client presents against the user's key list. This page walks
+through adding a new key and removing the old one.
+
+## Step 1 — Open the SSH keys page
+
+From the sidebar, choose **Access → SSH keys**. The page lists
+every key you have registered: its name, its fingerprint (a
+SHA-256 hash of the public key, base64url), and when it last
+authenticated.
+
+<ScreenshotPlaceholder caption="SSH keys page with the list and add button" />
+
+## Step 2 — Add the new key
+
+Click **Add SSH key**. The dialog asks for:
+
+- **Name** — what the key is for (`workstation`,
+  `github-actions`, `laptop-2026`).
+- **Public key** — the OpenSSH-format public key as a single
+  multi-line string. The dialog accepts `ssh-rsa AAAA...`,
+  `ssh-ed25519 AAAA...`, and `ecdsa-sha2-nistp256 AAAA...`.
+
+Click **Add**. Plexor computes the fingerprint (SHA-256 of the
+public key bytes, base64url-encoded), deduplicates against your
+existing keys, and adds it to the list.
+
+<Callout type="info">
+
+Fingerprint deduplication means you cannot add the same public key
+twice under two different names — even from different machines, if
+you happen to copy the same key. The rejection is deliberate: a
+public key is the operator's "trust this client to be me"
+attestation, and giving the same attestation two different labels
+is a recipe for confusion during an incident.
+
+</Callout>
+
+## Step 3 — Verify the new key works
+
+From a workstation that holds the new private key:
+
+```bash
+ssh -i ~/.ssh/<new-private-key> <workload-user>@<workload-address>
+```
+
+A successful login confirms the new key is registered and the
+workload is accepting it.
+
+## Step 4 — Remove the old key
+
+Open the SSH keys page, find the old key, and click **Revoke**.
+Plexor sets the key's `RevokedAt` to the present moment; the
+workload stops accepting it within the next `LastUsedAt` debounce
+window (60 seconds in the current release).
+
+The 60-second debounce is the contract that lets an operator
+stage a rotation: add the new key, verify it works, *then* revoke
+the old one. If the new key fails (wrong paste, wrong permissions
+on the private key file), the old key still works until the
+debounce window closes.
+
+<Callout type="warning">
+
+The debounce is not a delay you can opt out of. If you revoke a
+key and then realize you needed it, you have up to 60 seconds to
+re-add it under a different name (or re-add the same public key
+with the same name after the revocation ages out — the second
+re-add takes the fingerprint as new because the previous row is
+marked revoked, not deleted).
+
+</Callout>
+
+## What the operator sees when something is wrong
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `Add SSH key` says the key is already registered | The key's fingerprint matches another key in your account | Pick a different key. The dedup is intentional. |
+| The new key is accepted but login fails with `Permission denied` | The workload rejects SSH for that user | Confirm the user is created and bound to a role that includes `compute.vms.exec`. |
+| The old key still works after `Revoke` | You are within the 60-second debounce window | Wait for the window to close. |
+| The audit log carries `ssh-key.added` but the workload does not accept the key | The workload is in `Stopped` state | Start the workload and try again. |
+
+## What to do next
+
+- **Issue an API key** if you have scripts that need to authenticate
+  against Plexor (different from SSH keys).
+- **Inspect the audit log** to confirm every key-add and key-revoke
+  has the timestamp and operator you expect.

@@ -13,8 +13,42 @@ import { Route as docsRouteRouteImport } from './routes/(docs)/route'
 import { Route as marketingRouteRouteImport } from './routes/(marketing)/route'
 import { Route as marketingIndexRouteImport } from './routes/(marketing)/index'
 import { Route as docsDocsIndexRouteImport } from './routes/(docs)/docs/index'
-import { Route as docsDocsGettingStartedRouteImport } from './routes/(docs)/docs/getting-started'
 import { Route as docsDocsConceptsIndexRouteImport } from './routes/(docs)/docs/concepts/index'
+import { Route as docsDocsFaqIndexRouteImport } from './routes/(docs)/docs/faq/index'
+import { Route as docsDocsGettingStartedIndexRouteImport } from './routes/(docs)/docs/getting-started/index'
+import { Route as docsDocsAdminAuditLogIndexRouteImport } from './routes/(docs)/docs/admin/audit-log/index'
+import { Route as docsDocsAdminBackupAndDisasterIndexRouteImport } from './routes/(docs)/docs/admin/backup-and-disaster/index'
+import { Route as docsDocsAdminCapacityPlanningIndexRouteImport } from './routes/(docs)/docs/admin/capacity-planning/index'
+import { Route as docsDocsAdminLockoutRecoveryIndexRouteImport } from './routes/(docs)/docs/admin/lockout-recovery/index'
+import { Route as docsDocsAdminQuotasIndexRouteImport } from './routes/(docs)/docs/admin/quotas/index'
+import { Route as docsDocsAdminRbacHardeningIndexRouteImport } from './routes/(docs)/docs/admin/rbac-hardening/index'
+import { Route as docsDocsConceptsAuditIndexRouteImport } from './routes/(docs)/docs/concepts/audit/index'
+import { Route as docsDocsConceptsAuthAndRbacIndexRouteImport } from './routes/(docs)/docs/concepts/auth-and-rbac/index'
+import { Route as docsDocsConceptsComputeAndWorkloadsIndexRouteImport } from './routes/(docs)/docs/concepts/compute-and-workloads/index'
+import { Route as docsDocsConceptsNetworkingIndexRouteImport } from './routes/(docs)/docs/concepts/networking/index'
+import { Route as docsDocsConceptsOrgsTeamsFoldersIndexRouteImport } from './routes/(docs)/docs/concepts/orgs-teams-folders/index'
+import { Route as docsDocsConceptsQuotasIndexRouteImport } from './routes/(docs)/docs/concepts/quotas/index'
+import { Route as docsDocsConceptsStorageIndexRouteImport } from './routes/(docs)/docs/concepts/storage/index'
+import { Route as docsDocsFaqTroubleshootingIndexRouteImport } from './routes/(docs)/docs/faq/troubleshooting/index'
+import { Route as docsDocsGettingStartedCreateScopeIndexRouteImport } from './routes/(docs)/docs/getting-started/create-scope/index'
+import { Route as docsDocsGettingStartedFirstApiKeyIndexRouteImport } from './routes/(docs)/docs/getting-started/first-api-key/index'
+import { Route as docsDocsGettingStartedFirstLoginIndexRouteImport } from './routes/(docs)/docs/getting-started/first-login/index'
+import { Route as docsDocsHowToAddLoadBalancerIndexRouteImport } from './routes/(docs)/docs/how-to/add-load-balancer/index'
+import { Route as docsDocsHowToAddUserAndRoleIndexRouteImport } from './routes/(docs)/docs/how-to/add-user-and-role/index'
+import { Route as docsDocsHowToAttachVolumeIndexRouteImport } from './routes/(docs)/docs/how-to/attach-volume/index'
+import { Route as docsDocsHowToConfigureOidcIndexRouteImport } from './routes/(docs)/docs/how-to/configure-oidc/index'
+import { Route as docsDocsHowToCreateBucketIndexRouteImport } from './routes/(docs)/docs/how-to/create-bucket/index'
+import { Route as docsDocsHowToCreateWorkloadIndexRouteImport } from './routes/(docs)/docs/how-to/create-workload/index'
+import { Route as docsDocsHowToCustomizeBrandingIndexRouteImport } from './routes/(docs)/docs/how-to/customize-branding/index'
+import { Route as docsDocsHowToInstallCommunityThemeIndexRouteImport } from './routes/(docs)/docs/how-to/install-community-theme/index'
+import { Route as docsDocsHowToIssueApiKeyIndexRouteImport } from './routes/(docs)/docs/how-to/issue-api-key/index'
+import { Route as docsDocsHowToManageWorkloadLifecycleIndexRouteImport } from './routes/(docs)/docs/how-to/manage-workload-lifecycle/index'
+import { Route as docsDocsHowToReserveFloatingIpIndexRouteImport } from './routes/(docs)/docs/how-to/reserve-floating-ip/index'
+import { Route as docsDocsHowToRotateSshKeyIndexRouteImport } from './routes/(docs)/docs/how-to/rotate-ssh-key/index'
+import { Route as docsDocsReferenceApiIndexRouteImport } from './routes/(docs)/docs/reference/api/index'
+import { Route as docsDocsReferenceGlossaryIndexRouteImport } from './routes/(docs)/docs/reference/glossary/index'
+import { Route as docsDocsReferencePermissionsIndexRouteImport } from './routes/(docs)/docs/reference/permissions/index'
+import { Route as docsDocsReferenceQuotasReferenceIndexRouteImport } from './routes/(docs)/docs/reference/quotas-reference/index'
 
 const docsRouteRoute = docsRouteRouteImport.update({
   id: '/(docs)',
@@ -34,51 +68,467 @@ const docsDocsIndexRoute = docsDocsIndexRouteImport.update({
   path: '/docs/',
   getParentRoute: () => docsRouteRoute,
 } as any)
-const docsDocsGettingStartedRoute = docsDocsGettingStartedRouteImport.update({
-  id: '/docs/getting-started',
-  path: '/docs/getting-started',
-  getParentRoute: () => docsRouteRoute,
-} as any)
 const docsDocsConceptsIndexRoute = docsDocsConceptsIndexRouteImport.update({
   id: '/docs/concepts/',
   path: '/docs/concepts/',
   getParentRoute: () => docsRouteRoute,
 } as any)
+const docsDocsFaqIndexRoute = docsDocsFaqIndexRouteImport.update({
+  id: '/docs/faq/',
+  path: '/docs/faq/',
+  getParentRoute: () => docsRouteRoute,
+} as any)
+const docsDocsGettingStartedIndexRoute =
+  docsDocsGettingStartedIndexRouteImport.update({
+    id: '/docs/getting-started/',
+    path: '/docs/getting-started/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsAdminAuditLogIndexRoute =
+  docsDocsAdminAuditLogIndexRouteImport.update({
+    id: '/docs/admin/audit-log/',
+    path: '/docs/admin/audit-log/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsAdminBackupAndDisasterIndexRoute =
+  docsDocsAdminBackupAndDisasterIndexRouteImport.update({
+    id: '/docs/admin/backup-and-disaster/',
+    path: '/docs/admin/backup-and-disaster/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsAdminCapacityPlanningIndexRoute =
+  docsDocsAdminCapacityPlanningIndexRouteImport.update({
+    id: '/docs/admin/capacity-planning/',
+    path: '/docs/admin/capacity-planning/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsAdminLockoutRecoveryIndexRoute =
+  docsDocsAdminLockoutRecoveryIndexRouteImport.update({
+    id: '/docs/admin/lockout-recovery/',
+    path: '/docs/admin/lockout-recovery/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsAdminQuotasIndexRoute =
+  docsDocsAdminQuotasIndexRouteImport.update({
+    id: '/docs/admin/quotas/',
+    path: '/docs/admin/quotas/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsAdminRbacHardeningIndexRoute =
+  docsDocsAdminRbacHardeningIndexRouteImport.update({
+    id: '/docs/admin/rbac-hardening/',
+    path: '/docs/admin/rbac-hardening/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsConceptsAuditIndexRoute =
+  docsDocsConceptsAuditIndexRouteImport.update({
+    id: '/docs/concepts/audit/',
+    path: '/docs/concepts/audit/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsConceptsAuthAndRbacIndexRoute =
+  docsDocsConceptsAuthAndRbacIndexRouteImport.update({
+    id: '/docs/concepts/auth-and-rbac/',
+    path: '/docs/concepts/auth-and-rbac/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsConceptsComputeAndWorkloadsIndexRoute =
+  docsDocsConceptsComputeAndWorkloadsIndexRouteImport.update({
+    id: '/docs/concepts/compute-and-workloads/',
+    path: '/docs/concepts/compute-and-workloads/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsConceptsNetworkingIndexRoute =
+  docsDocsConceptsNetworkingIndexRouteImport.update({
+    id: '/docs/concepts/networking/',
+    path: '/docs/concepts/networking/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsConceptsOrgsTeamsFoldersIndexRoute =
+  docsDocsConceptsOrgsTeamsFoldersIndexRouteImport.update({
+    id: '/docs/concepts/orgs-teams-folders/',
+    path: '/docs/concepts/orgs-teams-folders/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsConceptsQuotasIndexRoute =
+  docsDocsConceptsQuotasIndexRouteImport.update({
+    id: '/docs/concepts/quotas/',
+    path: '/docs/concepts/quotas/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsConceptsStorageIndexRoute =
+  docsDocsConceptsStorageIndexRouteImport.update({
+    id: '/docs/concepts/storage/',
+    path: '/docs/concepts/storage/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsFaqTroubleshootingIndexRoute =
+  docsDocsFaqTroubleshootingIndexRouteImport.update({
+    id: '/docs/faq/troubleshooting/',
+    path: '/docs/faq/troubleshooting/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsGettingStartedCreateScopeIndexRoute =
+  docsDocsGettingStartedCreateScopeIndexRouteImport.update({
+    id: '/docs/getting-started/create-scope/',
+    path: '/docs/getting-started/create-scope/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsGettingStartedFirstApiKeyIndexRoute =
+  docsDocsGettingStartedFirstApiKeyIndexRouteImport.update({
+    id: '/docs/getting-started/first-api-key/',
+    path: '/docs/getting-started/first-api-key/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsGettingStartedFirstLoginIndexRoute =
+  docsDocsGettingStartedFirstLoginIndexRouteImport.update({
+    id: '/docs/getting-started/first-login/',
+    path: '/docs/getting-started/first-login/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToAddLoadBalancerIndexRoute =
+  docsDocsHowToAddLoadBalancerIndexRouteImport.update({
+    id: '/docs/how-to/add-load-balancer/',
+    path: '/docs/how-to/add-load-balancer/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToAddUserAndRoleIndexRoute =
+  docsDocsHowToAddUserAndRoleIndexRouteImport.update({
+    id: '/docs/how-to/add-user-and-role/',
+    path: '/docs/how-to/add-user-and-role/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToAttachVolumeIndexRoute =
+  docsDocsHowToAttachVolumeIndexRouteImport.update({
+    id: '/docs/how-to/attach-volume/',
+    path: '/docs/how-to/attach-volume/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToConfigureOidcIndexRoute =
+  docsDocsHowToConfigureOidcIndexRouteImport.update({
+    id: '/docs/how-to/configure-oidc/',
+    path: '/docs/how-to/configure-oidc/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToCreateBucketIndexRoute =
+  docsDocsHowToCreateBucketIndexRouteImport.update({
+    id: '/docs/how-to/create-bucket/',
+    path: '/docs/how-to/create-bucket/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToCreateWorkloadIndexRoute =
+  docsDocsHowToCreateWorkloadIndexRouteImport.update({
+    id: '/docs/how-to/create-workload/',
+    path: '/docs/how-to/create-workload/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToCustomizeBrandingIndexRoute =
+  docsDocsHowToCustomizeBrandingIndexRouteImport.update({
+    id: '/docs/how-to/customize-branding/',
+    path: '/docs/how-to/customize-branding/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToInstallCommunityThemeIndexRoute =
+  docsDocsHowToInstallCommunityThemeIndexRouteImport.update({
+    id: '/docs/how-to/install-community-theme/',
+    path: '/docs/how-to/install-community-theme/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToIssueApiKeyIndexRoute =
+  docsDocsHowToIssueApiKeyIndexRouteImport.update({
+    id: '/docs/how-to/issue-api-key/',
+    path: '/docs/how-to/issue-api-key/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToManageWorkloadLifecycleIndexRoute =
+  docsDocsHowToManageWorkloadLifecycleIndexRouteImport.update({
+    id: '/docs/how-to/manage-workload-lifecycle/',
+    path: '/docs/how-to/manage-workload-lifecycle/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToReserveFloatingIpIndexRoute =
+  docsDocsHowToReserveFloatingIpIndexRouteImport.update({
+    id: '/docs/how-to/reserve-floating-ip/',
+    path: '/docs/how-to/reserve-floating-ip/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsHowToRotateSshKeyIndexRoute =
+  docsDocsHowToRotateSshKeyIndexRouteImport.update({
+    id: '/docs/how-to/rotate-ssh-key/',
+    path: '/docs/how-to/rotate-ssh-key/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsReferenceApiIndexRoute =
+  docsDocsReferenceApiIndexRouteImport.update({
+    id: '/docs/reference/api/',
+    path: '/docs/reference/api/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsReferenceGlossaryIndexRoute =
+  docsDocsReferenceGlossaryIndexRouteImport.update({
+    id: '/docs/reference/glossary/',
+    path: '/docs/reference/glossary/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsReferencePermissionsIndexRoute =
+  docsDocsReferencePermissionsIndexRouteImport.update({
+    id: '/docs/reference/permissions/',
+    path: '/docs/reference/permissions/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsReferenceQuotasReferenceIndexRoute =
+  docsDocsReferenceQuotasReferenceIndexRouteImport.update({
+    id: '/docs/reference/quotas-reference/',
+    path: '/docs/reference/quotas-reference/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof marketingIndexRoute
-  '/docs/getting-started': typeof docsDocsGettingStartedRoute
   '/docs/': typeof docsDocsIndexRoute
   '/docs/concepts/': typeof docsDocsConceptsIndexRoute
+  '/docs/faq/': typeof docsDocsFaqIndexRoute
+  '/docs/getting-started/': typeof docsDocsGettingStartedIndexRoute
+  '/docs/admin/audit-log/': typeof docsDocsAdminAuditLogIndexRoute
+  '/docs/admin/backup-and-disaster/': typeof docsDocsAdminBackupAndDisasterIndexRoute
+  '/docs/admin/capacity-planning/': typeof docsDocsAdminCapacityPlanningIndexRoute
+  '/docs/admin/lockout-recovery/': typeof docsDocsAdminLockoutRecoveryIndexRoute
+  '/docs/admin/quotas/': typeof docsDocsAdminQuotasIndexRoute
+  '/docs/admin/rbac-hardening/': typeof docsDocsAdminRbacHardeningIndexRoute
+  '/docs/concepts/audit/': typeof docsDocsConceptsAuditIndexRoute
+  '/docs/concepts/auth-and-rbac/': typeof docsDocsConceptsAuthAndRbacIndexRoute
+  '/docs/concepts/compute-and-workloads/': typeof docsDocsConceptsComputeAndWorkloadsIndexRoute
+  '/docs/concepts/networking/': typeof docsDocsConceptsNetworkingIndexRoute
+  '/docs/concepts/orgs-teams-folders/': typeof docsDocsConceptsOrgsTeamsFoldersIndexRoute
+  '/docs/concepts/quotas/': typeof docsDocsConceptsQuotasIndexRoute
+  '/docs/concepts/storage/': typeof docsDocsConceptsStorageIndexRoute
+  '/docs/faq/troubleshooting/': typeof docsDocsFaqTroubleshootingIndexRoute
+  '/docs/getting-started/create-scope/': typeof docsDocsGettingStartedCreateScopeIndexRoute
+  '/docs/getting-started/first-api-key/': typeof docsDocsGettingStartedFirstApiKeyIndexRoute
+  '/docs/getting-started/first-login/': typeof docsDocsGettingStartedFirstLoginIndexRoute
+  '/docs/how-to/add-load-balancer/': typeof docsDocsHowToAddLoadBalancerIndexRoute
+  '/docs/how-to/add-user-and-role/': typeof docsDocsHowToAddUserAndRoleIndexRoute
+  '/docs/how-to/attach-volume/': typeof docsDocsHowToAttachVolumeIndexRoute
+  '/docs/how-to/configure-oidc/': typeof docsDocsHowToConfigureOidcIndexRoute
+  '/docs/how-to/create-bucket/': typeof docsDocsHowToCreateBucketIndexRoute
+  '/docs/how-to/create-workload/': typeof docsDocsHowToCreateWorkloadIndexRoute
+  '/docs/how-to/customize-branding/': typeof docsDocsHowToCustomizeBrandingIndexRoute
+  '/docs/how-to/install-community-theme/': typeof docsDocsHowToInstallCommunityThemeIndexRoute
+  '/docs/how-to/issue-api-key/': typeof docsDocsHowToIssueApiKeyIndexRoute
+  '/docs/how-to/manage-workload-lifecycle/': typeof docsDocsHowToManageWorkloadLifecycleIndexRoute
+  '/docs/how-to/reserve-floating-ip/': typeof docsDocsHowToReserveFloatingIpIndexRoute
+  '/docs/how-to/rotate-ssh-key/': typeof docsDocsHowToRotateSshKeyIndexRoute
+  '/docs/reference/api/': typeof docsDocsReferenceApiIndexRoute
+  '/docs/reference/glossary/': typeof docsDocsReferenceGlossaryIndexRoute
+  '/docs/reference/permissions/': typeof docsDocsReferencePermissionsIndexRoute
+  '/docs/reference/quotas-reference/': typeof docsDocsReferenceQuotasReferenceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof marketingIndexRoute
-  '/docs/getting-started': typeof docsDocsGettingStartedRoute
   '/docs': typeof docsDocsIndexRoute
   '/docs/concepts': typeof docsDocsConceptsIndexRoute
+  '/docs/faq': typeof docsDocsFaqIndexRoute
+  '/docs/getting-started': typeof docsDocsGettingStartedIndexRoute
+  '/docs/admin/audit-log': typeof docsDocsAdminAuditLogIndexRoute
+  '/docs/admin/backup-and-disaster': typeof docsDocsAdminBackupAndDisasterIndexRoute
+  '/docs/admin/capacity-planning': typeof docsDocsAdminCapacityPlanningIndexRoute
+  '/docs/admin/lockout-recovery': typeof docsDocsAdminLockoutRecoveryIndexRoute
+  '/docs/admin/quotas': typeof docsDocsAdminQuotasIndexRoute
+  '/docs/admin/rbac-hardening': typeof docsDocsAdminRbacHardeningIndexRoute
+  '/docs/concepts/audit': typeof docsDocsConceptsAuditIndexRoute
+  '/docs/concepts/auth-and-rbac': typeof docsDocsConceptsAuthAndRbacIndexRoute
+  '/docs/concepts/compute-and-workloads': typeof docsDocsConceptsComputeAndWorkloadsIndexRoute
+  '/docs/concepts/networking': typeof docsDocsConceptsNetworkingIndexRoute
+  '/docs/concepts/orgs-teams-folders': typeof docsDocsConceptsOrgsTeamsFoldersIndexRoute
+  '/docs/concepts/quotas': typeof docsDocsConceptsQuotasIndexRoute
+  '/docs/concepts/storage': typeof docsDocsConceptsStorageIndexRoute
+  '/docs/faq/troubleshooting': typeof docsDocsFaqTroubleshootingIndexRoute
+  '/docs/getting-started/create-scope': typeof docsDocsGettingStartedCreateScopeIndexRoute
+  '/docs/getting-started/first-api-key': typeof docsDocsGettingStartedFirstApiKeyIndexRoute
+  '/docs/getting-started/first-login': typeof docsDocsGettingStartedFirstLoginIndexRoute
+  '/docs/how-to/add-load-balancer': typeof docsDocsHowToAddLoadBalancerIndexRoute
+  '/docs/how-to/add-user-and-role': typeof docsDocsHowToAddUserAndRoleIndexRoute
+  '/docs/how-to/attach-volume': typeof docsDocsHowToAttachVolumeIndexRoute
+  '/docs/how-to/configure-oidc': typeof docsDocsHowToConfigureOidcIndexRoute
+  '/docs/how-to/create-bucket': typeof docsDocsHowToCreateBucketIndexRoute
+  '/docs/how-to/create-workload': typeof docsDocsHowToCreateWorkloadIndexRoute
+  '/docs/how-to/customize-branding': typeof docsDocsHowToCustomizeBrandingIndexRoute
+  '/docs/how-to/install-community-theme': typeof docsDocsHowToInstallCommunityThemeIndexRoute
+  '/docs/how-to/issue-api-key': typeof docsDocsHowToIssueApiKeyIndexRoute
+  '/docs/how-to/manage-workload-lifecycle': typeof docsDocsHowToManageWorkloadLifecycleIndexRoute
+  '/docs/how-to/reserve-floating-ip': typeof docsDocsHowToReserveFloatingIpIndexRoute
+  '/docs/how-to/rotate-ssh-key': typeof docsDocsHowToRotateSshKeyIndexRoute
+  '/docs/reference/api': typeof docsDocsReferenceApiIndexRoute
+  '/docs/reference/glossary': typeof docsDocsReferenceGlossaryIndexRoute
+  '/docs/reference/permissions': typeof docsDocsReferencePermissionsIndexRoute
+  '/docs/reference/quotas-reference': typeof docsDocsReferenceQuotasReferenceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(docs)': typeof docsRouteRouteWithChildren
   '/(marketing)': typeof marketingRouteRouteWithChildren
   '/(marketing)/': typeof marketingIndexRoute
-  '/(docs)/docs/getting-started': typeof docsDocsGettingStartedRoute
   '/(docs)/docs/': typeof docsDocsIndexRoute
   '/(docs)/docs/concepts/': typeof docsDocsConceptsIndexRoute
+  '/(docs)/docs/faq/': typeof docsDocsFaqIndexRoute
+  '/(docs)/docs/getting-started/': typeof docsDocsGettingStartedIndexRoute
+  '/(docs)/docs/admin/audit-log/': typeof docsDocsAdminAuditLogIndexRoute
+  '/(docs)/docs/admin/backup-and-disaster/': typeof docsDocsAdminBackupAndDisasterIndexRoute
+  '/(docs)/docs/admin/capacity-planning/': typeof docsDocsAdminCapacityPlanningIndexRoute
+  '/(docs)/docs/admin/lockout-recovery/': typeof docsDocsAdminLockoutRecoveryIndexRoute
+  '/(docs)/docs/admin/quotas/': typeof docsDocsAdminQuotasIndexRoute
+  '/(docs)/docs/admin/rbac-hardening/': typeof docsDocsAdminRbacHardeningIndexRoute
+  '/(docs)/docs/concepts/audit/': typeof docsDocsConceptsAuditIndexRoute
+  '/(docs)/docs/concepts/auth-and-rbac/': typeof docsDocsConceptsAuthAndRbacIndexRoute
+  '/(docs)/docs/concepts/compute-and-workloads/': typeof docsDocsConceptsComputeAndWorkloadsIndexRoute
+  '/(docs)/docs/concepts/networking/': typeof docsDocsConceptsNetworkingIndexRoute
+  '/(docs)/docs/concepts/orgs-teams-folders/': typeof docsDocsConceptsOrgsTeamsFoldersIndexRoute
+  '/(docs)/docs/concepts/quotas/': typeof docsDocsConceptsQuotasIndexRoute
+  '/(docs)/docs/concepts/storage/': typeof docsDocsConceptsStorageIndexRoute
+  '/(docs)/docs/faq/troubleshooting/': typeof docsDocsFaqTroubleshootingIndexRoute
+  '/(docs)/docs/getting-started/create-scope/': typeof docsDocsGettingStartedCreateScopeIndexRoute
+  '/(docs)/docs/getting-started/first-api-key/': typeof docsDocsGettingStartedFirstApiKeyIndexRoute
+  '/(docs)/docs/getting-started/first-login/': typeof docsDocsGettingStartedFirstLoginIndexRoute
+  '/(docs)/docs/how-to/add-load-balancer/': typeof docsDocsHowToAddLoadBalancerIndexRoute
+  '/(docs)/docs/how-to/add-user-and-role/': typeof docsDocsHowToAddUserAndRoleIndexRoute
+  '/(docs)/docs/how-to/attach-volume/': typeof docsDocsHowToAttachVolumeIndexRoute
+  '/(docs)/docs/how-to/configure-oidc/': typeof docsDocsHowToConfigureOidcIndexRoute
+  '/(docs)/docs/how-to/create-bucket/': typeof docsDocsHowToCreateBucketIndexRoute
+  '/(docs)/docs/how-to/create-workload/': typeof docsDocsHowToCreateWorkloadIndexRoute
+  '/(docs)/docs/how-to/customize-branding/': typeof docsDocsHowToCustomizeBrandingIndexRoute
+  '/(docs)/docs/how-to/install-community-theme/': typeof docsDocsHowToInstallCommunityThemeIndexRoute
+  '/(docs)/docs/how-to/issue-api-key/': typeof docsDocsHowToIssueApiKeyIndexRoute
+  '/(docs)/docs/how-to/manage-workload-lifecycle/': typeof docsDocsHowToManageWorkloadLifecycleIndexRoute
+  '/(docs)/docs/how-to/reserve-floating-ip/': typeof docsDocsHowToReserveFloatingIpIndexRoute
+  '/(docs)/docs/how-to/rotate-ssh-key/': typeof docsDocsHowToRotateSshKeyIndexRoute
+  '/(docs)/docs/reference/api/': typeof docsDocsReferenceApiIndexRoute
+  '/(docs)/docs/reference/glossary/': typeof docsDocsReferenceGlossaryIndexRoute
+  '/(docs)/docs/reference/permissions/': typeof docsDocsReferencePermissionsIndexRoute
+  '/(docs)/docs/reference/quotas-reference/': typeof docsDocsReferenceQuotasReferenceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/docs/getting-started' | '/docs/' | '/docs/concepts/'
+  fullPaths:
+    | '/'
+    | '/docs/'
+    | '/docs/concepts/'
+    | '/docs/faq/'
+    | '/docs/getting-started/'
+    | '/docs/admin/audit-log/'
+    | '/docs/admin/backup-and-disaster/'
+    | '/docs/admin/capacity-planning/'
+    | '/docs/admin/lockout-recovery/'
+    | '/docs/admin/quotas/'
+    | '/docs/admin/rbac-hardening/'
+    | '/docs/concepts/audit/'
+    | '/docs/concepts/auth-and-rbac/'
+    | '/docs/concepts/compute-and-workloads/'
+    | '/docs/concepts/networking/'
+    | '/docs/concepts/orgs-teams-folders/'
+    | '/docs/concepts/quotas/'
+    | '/docs/concepts/storage/'
+    | '/docs/faq/troubleshooting/'
+    | '/docs/getting-started/create-scope/'
+    | '/docs/getting-started/first-api-key/'
+    | '/docs/getting-started/first-login/'
+    | '/docs/how-to/add-load-balancer/'
+    | '/docs/how-to/add-user-and-role/'
+    | '/docs/how-to/attach-volume/'
+    | '/docs/how-to/configure-oidc/'
+    | '/docs/how-to/create-bucket/'
+    | '/docs/how-to/create-workload/'
+    | '/docs/how-to/customize-branding/'
+    | '/docs/how-to/install-community-theme/'
+    | '/docs/how-to/issue-api-key/'
+    | '/docs/how-to/manage-workload-lifecycle/'
+    | '/docs/how-to/reserve-floating-ip/'
+    | '/docs/how-to/rotate-ssh-key/'
+    | '/docs/reference/api/'
+    | '/docs/reference/glossary/'
+    | '/docs/reference/permissions/'
+    | '/docs/reference/quotas-reference/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/docs/getting-started' | '/docs' | '/docs/concepts'
+  to:
+    | '/'
+    | '/docs'
+    | '/docs/concepts'
+    | '/docs/faq'
+    | '/docs/getting-started'
+    | '/docs/admin/audit-log'
+    | '/docs/admin/backup-and-disaster'
+    | '/docs/admin/capacity-planning'
+    | '/docs/admin/lockout-recovery'
+    | '/docs/admin/quotas'
+    | '/docs/admin/rbac-hardening'
+    | '/docs/concepts/audit'
+    | '/docs/concepts/auth-and-rbac'
+    | '/docs/concepts/compute-and-workloads'
+    | '/docs/concepts/networking'
+    | '/docs/concepts/orgs-teams-folders'
+    | '/docs/concepts/quotas'
+    | '/docs/concepts/storage'
+    | '/docs/faq/troubleshooting'
+    | '/docs/getting-started/create-scope'
+    | '/docs/getting-started/first-api-key'
+    | '/docs/getting-started/first-login'
+    | '/docs/how-to/add-load-balancer'
+    | '/docs/how-to/add-user-and-role'
+    | '/docs/how-to/attach-volume'
+    | '/docs/how-to/configure-oidc'
+    | '/docs/how-to/create-bucket'
+    | '/docs/how-to/create-workload'
+    | '/docs/how-to/customize-branding'
+    | '/docs/how-to/install-community-theme'
+    | '/docs/how-to/issue-api-key'
+    | '/docs/how-to/manage-workload-lifecycle'
+    | '/docs/how-to/reserve-floating-ip'
+    | '/docs/how-to/rotate-ssh-key'
+    | '/docs/reference/api'
+    | '/docs/reference/glossary'
+    | '/docs/reference/permissions'
+    | '/docs/reference/quotas-reference'
   id:
     | '__root__'
     | '/(docs)'
     | '/(marketing)'
     | '/(marketing)/'
-    | '/(docs)/docs/getting-started'
     | '/(docs)/docs/'
     | '/(docs)/docs/concepts/'
+    | '/(docs)/docs/faq/'
+    | '/(docs)/docs/getting-started/'
+    | '/(docs)/docs/admin/audit-log/'
+    | '/(docs)/docs/admin/backup-and-disaster/'
+    | '/(docs)/docs/admin/capacity-planning/'
+    | '/(docs)/docs/admin/lockout-recovery/'
+    | '/(docs)/docs/admin/quotas/'
+    | '/(docs)/docs/admin/rbac-hardening/'
+    | '/(docs)/docs/concepts/audit/'
+    | '/(docs)/docs/concepts/auth-and-rbac/'
+    | '/(docs)/docs/concepts/compute-and-workloads/'
+    | '/(docs)/docs/concepts/networking/'
+    | '/(docs)/docs/concepts/orgs-teams-folders/'
+    | '/(docs)/docs/concepts/quotas/'
+    | '/(docs)/docs/concepts/storage/'
+    | '/(docs)/docs/faq/troubleshooting/'
+    | '/(docs)/docs/getting-started/create-scope/'
+    | '/(docs)/docs/getting-started/first-api-key/'
+    | '/(docs)/docs/getting-started/first-login/'
+    | '/(docs)/docs/how-to/add-load-balancer/'
+    | '/(docs)/docs/how-to/add-user-and-role/'
+    | '/(docs)/docs/how-to/attach-volume/'
+    | '/(docs)/docs/how-to/configure-oidc/'
+    | '/(docs)/docs/how-to/create-bucket/'
+    | '/(docs)/docs/how-to/create-workload/'
+    | '/(docs)/docs/how-to/customize-branding/'
+    | '/(docs)/docs/how-to/install-community-theme/'
+    | '/(docs)/docs/how-to/issue-api-key/'
+    | '/(docs)/docs/how-to/manage-workload-lifecycle/'
+    | '/(docs)/docs/how-to/reserve-floating-ip/'
+    | '/(docs)/docs/how-to/rotate-ssh-key/'
+    | '/(docs)/docs/reference/api/'
+    | '/(docs)/docs/reference/glossary/'
+    | '/(docs)/docs/reference/permissions/'
+    | '/(docs)/docs/reference/quotas-reference/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,13 +566,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof docsDocsIndexRouteImport
       parentRoute: typeof docsRouteRoute
     }
-    '/(docs)/docs/getting-started': {
-      id: '/(docs)/docs/getting-started'
-      path: '/docs/getting-started'
-      fullPath: '/docs/getting-started'
-      preLoaderRoute: typeof docsDocsGettingStartedRouteImport
-      parentRoute: typeof docsRouteRoute
-    }
     '/(docs)/docs/concepts/': {
       id: '/(docs)/docs/concepts/'
       path: '/docs/concepts'
@@ -130,19 +573,347 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof docsDocsConceptsIndexRouteImport
       parentRoute: typeof docsRouteRoute
     }
+    '/(docs)/docs/faq/': {
+      id: '/(docs)/docs/faq/'
+      path: '/docs/faq'
+      fullPath: '/docs/faq/'
+      preLoaderRoute: typeof docsDocsFaqIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/getting-started/': {
+      id: '/(docs)/docs/getting-started/'
+      path: '/docs/getting-started'
+      fullPath: '/docs/getting-started/'
+      preLoaderRoute: typeof docsDocsGettingStartedIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/admin/audit-log/': {
+      id: '/(docs)/docs/admin/audit-log/'
+      path: '/docs/admin/audit-log'
+      fullPath: '/docs/admin/audit-log/'
+      preLoaderRoute: typeof docsDocsAdminAuditLogIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/admin/backup-and-disaster/': {
+      id: '/(docs)/docs/admin/backup-and-disaster/'
+      path: '/docs/admin/backup-and-disaster'
+      fullPath: '/docs/admin/backup-and-disaster/'
+      preLoaderRoute: typeof docsDocsAdminBackupAndDisasterIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/admin/capacity-planning/': {
+      id: '/(docs)/docs/admin/capacity-planning/'
+      path: '/docs/admin/capacity-planning'
+      fullPath: '/docs/admin/capacity-planning/'
+      preLoaderRoute: typeof docsDocsAdminCapacityPlanningIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/admin/lockout-recovery/': {
+      id: '/(docs)/docs/admin/lockout-recovery/'
+      path: '/docs/admin/lockout-recovery'
+      fullPath: '/docs/admin/lockout-recovery/'
+      preLoaderRoute: typeof docsDocsAdminLockoutRecoveryIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/admin/quotas/': {
+      id: '/(docs)/docs/admin/quotas/'
+      path: '/docs/admin/quotas'
+      fullPath: '/docs/admin/quotas/'
+      preLoaderRoute: typeof docsDocsAdminQuotasIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/admin/rbac-hardening/': {
+      id: '/(docs)/docs/admin/rbac-hardening/'
+      path: '/docs/admin/rbac-hardening'
+      fullPath: '/docs/admin/rbac-hardening/'
+      preLoaderRoute: typeof docsDocsAdminRbacHardeningIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/concepts/audit/': {
+      id: '/(docs)/docs/concepts/audit/'
+      path: '/docs/concepts/audit'
+      fullPath: '/docs/concepts/audit/'
+      preLoaderRoute: typeof docsDocsConceptsAuditIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/concepts/auth-and-rbac/': {
+      id: '/(docs)/docs/concepts/auth-and-rbac/'
+      path: '/docs/concepts/auth-and-rbac'
+      fullPath: '/docs/concepts/auth-and-rbac/'
+      preLoaderRoute: typeof docsDocsConceptsAuthAndRbacIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/concepts/compute-and-workloads/': {
+      id: '/(docs)/docs/concepts/compute-and-workloads/'
+      path: '/docs/concepts/compute-and-workloads'
+      fullPath: '/docs/concepts/compute-and-workloads/'
+      preLoaderRoute: typeof docsDocsConceptsComputeAndWorkloadsIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/concepts/networking/': {
+      id: '/(docs)/docs/concepts/networking/'
+      path: '/docs/concepts/networking'
+      fullPath: '/docs/concepts/networking/'
+      preLoaderRoute: typeof docsDocsConceptsNetworkingIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/concepts/orgs-teams-folders/': {
+      id: '/(docs)/docs/concepts/orgs-teams-folders/'
+      path: '/docs/concepts/orgs-teams-folders'
+      fullPath: '/docs/concepts/orgs-teams-folders/'
+      preLoaderRoute: typeof docsDocsConceptsOrgsTeamsFoldersIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/concepts/quotas/': {
+      id: '/(docs)/docs/concepts/quotas/'
+      path: '/docs/concepts/quotas'
+      fullPath: '/docs/concepts/quotas/'
+      preLoaderRoute: typeof docsDocsConceptsQuotasIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/concepts/storage/': {
+      id: '/(docs)/docs/concepts/storage/'
+      path: '/docs/concepts/storage'
+      fullPath: '/docs/concepts/storage/'
+      preLoaderRoute: typeof docsDocsConceptsStorageIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/faq/troubleshooting/': {
+      id: '/(docs)/docs/faq/troubleshooting/'
+      path: '/docs/faq/troubleshooting'
+      fullPath: '/docs/faq/troubleshooting/'
+      preLoaderRoute: typeof docsDocsFaqTroubleshootingIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/getting-started/create-scope/': {
+      id: '/(docs)/docs/getting-started/create-scope/'
+      path: '/docs/getting-started/create-scope'
+      fullPath: '/docs/getting-started/create-scope/'
+      preLoaderRoute: typeof docsDocsGettingStartedCreateScopeIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/getting-started/first-api-key/': {
+      id: '/(docs)/docs/getting-started/first-api-key/'
+      path: '/docs/getting-started/first-api-key'
+      fullPath: '/docs/getting-started/first-api-key/'
+      preLoaderRoute: typeof docsDocsGettingStartedFirstApiKeyIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/getting-started/first-login/': {
+      id: '/(docs)/docs/getting-started/first-login/'
+      path: '/docs/getting-started/first-login'
+      fullPath: '/docs/getting-started/first-login/'
+      preLoaderRoute: typeof docsDocsGettingStartedFirstLoginIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/add-load-balancer/': {
+      id: '/(docs)/docs/how-to/add-load-balancer/'
+      path: '/docs/how-to/add-load-balancer'
+      fullPath: '/docs/how-to/add-load-balancer/'
+      preLoaderRoute: typeof docsDocsHowToAddLoadBalancerIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/add-user-and-role/': {
+      id: '/(docs)/docs/how-to/add-user-and-role/'
+      path: '/docs/how-to/add-user-and-role'
+      fullPath: '/docs/how-to/add-user-and-role/'
+      preLoaderRoute: typeof docsDocsHowToAddUserAndRoleIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/attach-volume/': {
+      id: '/(docs)/docs/how-to/attach-volume/'
+      path: '/docs/how-to/attach-volume'
+      fullPath: '/docs/how-to/attach-volume/'
+      preLoaderRoute: typeof docsDocsHowToAttachVolumeIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/configure-oidc/': {
+      id: '/(docs)/docs/how-to/configure-oidc/'
+      path: '/docs/how-to/configure-oidc'
+      fullPath: '/docs/how-to/configure-oidc/'
+      preLoaderRoute: typeof docsDocsHowToConfigureOidcIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/create-bucket/': {
+      id: '/(docs)/docs/how-to/create-bucket/'
+      path: '/docs/how-to/create-bucket'
+      fullPath: '/docs/how-to/create-bucket/'
+      preLoaderRoute: typeof docsDocsHowToCreateBucketIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/create-workload/': {
+      id: '/(docs)/docs/how-to/create-workload/'
+      path: '/docs/how-to/create-workload'
+      fullPath: '/docs/how-to/create-workload/'
+      preLoaderRoute: typeof docsDocsHowToCreateWorkloadIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/customize-branding/': {
+      id: '/(docs)/docs/how-to/customize-branding/'
+      path: '/docs/how-to/customize-branding'
+      fullPath: '/docs/how-to/customize-branding/'
+      preLoaderRoute: typeof docsDocsHowToCustomizeBrandingIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/install-community-theme/': {
+      id: '/(docs)/docs/how-to/install-community-theme/'
+      path: '/docs/how-to/install-community-theme'
+      fullPath: '/docs/how-to/install-community-theme/'
+      preLoaderRoute: typeof docsDocsHowToInstallCommunityThemeIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/issue-api-key/': {
+      id: '/(docs)/docs/how-to/issue-api-key/'
+      path: '/docs/how-to/issue-api-key'
+      fullPath: '/docs/how-to/issue-api-key/'
+      preLoaderRoute: typeof docsDocsHowToIssueApiKeyIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/manage-workload-lifecycle/': {
+      id: '/(docs)/docs/how-to/manage-workload-lifecycle/'
+      path: '/docs/how-to/manage-workload-lifecycle'
+      fullPath: '/docs/how-to/manage-workload-lifecycle/'
+      preLoaderRoute: typeof docsDocsHowToManageWorkloadLifecycleIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/reserve-floating-ip/': {
+      id: '/(docs)/docs/how-to/reserve-floating-ip/'
+      path: '/docs/how-to/reserve-floating-ip'
+      fullPath: '/docs/how-to/reserve-floating-ip/'
+      preLoaderRoute: typeof docsDocsHowToReserveFloatingIpIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/rotate-ssh-key/': {
+      id: '/(docs)/docs/how-to/rotate-ssh-key/'
+      path: '/docs/how-to/rotate-ssh-key'
+      fullPath: '/docs/how-to/rotate-ssh-key/'
+      preLoaderRoute: typeof docsDocsHowToRotateSshKeyIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/reference/api/': {
+      id: '/(docs)/docs/reference/api/'
+      path: '/docs/reference/api'
+      fullPath: '/docs/reference/api/'
+      preLoaderRoute: typeof docsDocsReferenceApiIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/reference/glossary/': {
+      id: '/(docs)/docs/reference/glossary/'
+      path: '/docs/reference/glossary'
+      fullPath: '/docs/reference/glossary/'
+      preLoaderRoute: typeof docsDocsReferenceGlossaryIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/reference/permissions/': {
+      id: '/(docs)/docs/reference/permissions/'
+      path: '/docs/reference/permissions'
+      fullPath: '/docs/reference/permissions/'
+      preLoaderRoute: typeof docsDocsReferencePermissionsIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/reference/quotas-reference/': {
+      id: '/(docs)/docs/reference/quotas-reference/'
+      path: '/docs/reference/quotas-reference'
+      fullPath: '/docs/reference/quotas-reference/'
+      preLoaderRoute: typeof docsDocsReferenceQuotasReferenceIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
   }
 }
 
 interface docsRouteRouteChildren {
-  docsDocsGettingStartedRoute: typeof docsDocsGettingStartedRoute
   docsDocsIndexRoute: typeof docsDocsIndexRoute
   docsDocsConceptsIndexRoute: typeof docsDocsConceptsIndexRoute
+  docsDocsFaqIndexRoute: typeof docsDocsFaqIndexRoute
+  docsDocsGettingStartedIndexRoute: typeof docsDocsGettingStartedIndexRoute
+  docsDocsAdminAuditLogIndexRoute: typeof docsDocsAdminAuditLogIndexRoute
+  docsDocsAdminBackupAndDisasterIndexRoute: typeof docsDocsAdminBackupAndDisasterIndexRoute
+  docsDocsAdminCapacityPlanningIndexRoute: typeof docsDocsAdminCapacityPlanningIndexRoute
+  docsDocsAdminLockoutRecoveryIndexRoute: typeof docsDocsAdminLockoutRecoveryIndexRoute
+  docsDocsAdminQuotasIndexRoute: typeof docsDocsAdminQuotasIndexRoute
+  docsDocsAdminRbacHardeningIndexRoute: typeof docsDocsAdminRbacHardeningIndexRoute
+  docsDocsConceptsAuditIndexRoute: typeof docsDocsConceptsAuditIndexRoute
+  docsDocsConceptsAuthAndRbacIndexRoute: typeof docsDocsConceptsAuthAndRbacIndexRoute
+  docsDocsConceptsComputeAndWorkloadsIndexRoute: typeof docsDocsConceptsComputeAndWorkloadsIndexRoute
+  docsDocsConceptsNetworkingIndexRoute: typeof docsDocsConceptsNetworkingIndexRoute
+  docsDocsConceptsOrgsTeamsFoldersIndexRoute: typeof docsDocsConceptsOrgsTeamsFoldersIndexRoute
+  docsDocsConceptsQuotasIndexRoute: typeof docsDocsConceptsQuotasIndexRoute
+  docsDocsConceptsStorageIndexRoute: typeof docsDocsConceptsStorageIndexRoute
+  docsDocsFaqTroubleshootingIndexRoute: typeof docsDocsFaqTroubleshootingIndexRoute
+  docsDocsGettingStartedCreateScopeIndexRoute: typeof docsDocsGettingStartedCreateScopeIndexRoute
+  docsDocsGettingStartedFirstApiKeyIndexRoute: typeof docsDocsGettingStartedFirstApiKeyIndexRoute
+  docsDocsGettingStartedFirstLoginIndexRoute: typeof docsDocsGettingStartedFirstLoginIndexRoute
+  docsDocsHowToAddLoadBalancerIndexRoute: typeof docsDocsHowToAddLoadBalancerIndexRoute
+  docsDocsHowToAddUserAndRoleIndexRoute: typeof docsDocsHowToAddUserAndRoleIndexRoute
+  docsDocsHowToAttachVolumeIndexRoute: typeof docsDocsHowToAttachVolumeIndexRoute
+  docsDocsHowToConfigureOidcIndexRoute: typeof docsDocsHowToConfigureOidcIndexRoute
+  docsDocsHowToCreateBucketIndexRoute: typeof docsDocsHowToCreateBucketIndexRoute
+  docsDocsHowToCreateWorkloadIndexRoute: typeof docsDocsHowToCreateWorkloadIndexRoute
+  docsDocsHowToCustomizeBrandingIndexRoute: typeof docsDocsHowToCustomizeBrandingIndexRoute
+  docsDocsHowToInstallCommunityThemeIndexRoute: typeof docsDocsHowToInstallCommunityThemeIndexRoute
+  docsDocsHowToIssueApiKeyIndexRoute: typeof docsDocsHowToIssueApiKeyIndexRoute
+  docsDocsHowToManageWorkloadLifecycleIndexRoute: typeof docsDocsHowToManageWorkloadLifecycleIndexRoute
+  docsDocsHowToReserveFloatingIpIndexRoute: typeof docsDocsHowToReserveFloatingIpIndexRoute
+  docsDocsHowToRotateSshKeyIndexRoute: typeof docsDocsHowToRotateSshKeyIndexRoute
+  docsDocsReferenceApiIndexRoute: typeof docsDocsReferenceApiIndexRoute
+  docsDocsReferenceGlossaryIndexRoute: typeof docsDocsReferenceGlossaryIndexRoute
+  docsDocsReferencePermissionsIndexRoute: typeof docsDocsReferencePermissionsIndexRoute
+  docsDocsReferenceQuotasReferenceIndexRoute: typeof docsDocsReferenceQuotasReferenceIndexRoute
 }
 
 const docsRouteRouteChildren: docsRouteRouteChildren = {
-  docsDocsGettingStartedRoute: docsDocsGettingStartedRoute,
   docsDocsIndexRoute: docsDocsIndexRoute,
   docsDocsConceptsIndexRoute: docsDocsConceptsIndexRoute,
+  docsDocsFaqIndexRoute: docsDocsFaqIndexRoute,
+  docsDocsGettingStartedIndexRoute: docsDocsGettingStartedIndexRoute,
+  docsDocsAdminAuditLogIndexRoute: docsDocsAdminAuditLogIndexRoute,
+  docsDocsAdminBackupAndDisasterIndexRoute:
+    docsDocsAdminBackupAndDisasterIndexRoute,
+  docsDocsAdminCapacityPlanningIndexRoute:
+    docsDocsAdminCapacityPlanningIndexRoute,
+  docsDocsAdminLockoutRecoveryIndexRoute:
+    docsDocsAdminLockoutRecoveryIndexRoute,
+  docsDocsAdminQuotasIndexRoute: docsDocsAdminQuotasIndexRoute,
+  docsDocsAdminRbacHardeningIndexRoute: docsDocsAdminRbacHardeningIndexRoute,
+  docsDocsConceptsAuditIndexRoute: docsDocsConceptsAuditIndexRoute,
+  docsDocsConceptsAuthAndRbacIndexRoute: docsDocsConceptsAuthAndRbacIndexRoute,
+  docsDocsConceptsComputeAndWorkloadsIndexRoute:
+    docsDocsConceptsComputeAndWorkloadsIndexRoute,
+  docsDocsConceptsNetworkingIndexRoute: docsDocsConceptsNetworkingIndexRoute,
+  docsDocsConceptsOrgsTeamsFoldersIndexRoute:
+    docsDocsConceptsOrgsTeamsFoldersIndexRoute,
+  docsDocsConceptsQuotasIndexRoute: docsDocsConceptsQuotasIndexRoute,
+  docsDocsConceptsStorageIndexRoute: docsDocsConceptsStorageIndexRoute,
+  docsDocsFaqTroubleshootingIndexRoute: docsDocsFaqTroubleshootingIndexRoute,
+  docsDocsGettingStartedCreateScopeIndexRoute:
+    docsDocsGettingStartedCreateScopeIndexRoute,
+  docsDocsGettingStartedFirstApiKeyIndexRoute:
+    docsDocsGettingStartedFirstApiKeyIndexRoute,
+  docsDocsGettingStartedFirstLoginIndexRoute:
+    docsDocsGettingStartedFirstLoginIndexRoute,
+  docsDocsHowToAddLoadBalancerIndexRoute:
+    docsDocsHowToAddLoadBalancerIndexRoute,
+  docsDocsHowToAddUserAndRoleIndexRoute: docsDocsHowToAddUserAndRoleIndexRoute,
+  docsDocsHowToAttachVolumeIndexRoute: docsDocsHowToAttachVolumeIndexRoute,
+  docsDocsHowToConfigureOidcIndexRoute: docsDocsHowToConfigureOidcIndexRoute,
+  docsDocsHowToCreateBucketIndexRoute: docsDocsHowToCreateBucketIndexRoute,
+  docsDocsHowToCreateWorkloadIndexRoute: docsDocsHowToCreateWorkloadIndexRoute,
+  docsDocsHowToCustomizeBrandingIndexRoute:
+    docsDocsHowToCustomizeBrandingIndexRoute,
+  docsDocsHowToInstallCommunityThemeIndexRoute:
+    docsDocsHowToInstallCommunityThemeIndexRoute,
+  docsDocsHowToIssueApiKeyIndexRoute: docsDocsHowToIssueApiKeyIndexRoute,
+  docsDocsHowToManageWorkloadLifecycleIndexRoute:
+    docsDocsHowToManageWorkloadLifecycleIndexRoute,
+  docsDocsHowToReserveFloatingIpIndexRoute:
+    docsDocsHowToReserveFloatingIpIndexRoute,
+  docsDocsHowToRotateSshKeyIndexRoute: docsDocsHowToRotateSshKeyIndexRoute,
+  docsDocsReferenceApiIndexRoute: docsDocsReferenceApiIndexRoute,
+  docsDocsReferenceGlossaryIndexRoute: docsDocsReferenceGlossaryIndexRoute,
+  docsDocsReferencePermissionsIndexRoute:
+    docsDocsReferencePermissionsIndexRoute,
+  docsDocsReferenceQuotasReferenceIndexRoute:
+    docsDocsReferenceQuotasReferenceIndexRoute,
 }
 
 const docsRouteRouteWithChildren = docsRouteRoute._addFileChildren(

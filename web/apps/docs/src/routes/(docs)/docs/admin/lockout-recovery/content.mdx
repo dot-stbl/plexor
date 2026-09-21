@@ -1,0 +1,134 @@
+---
+title: "Lockout recovery"
+description: "The 5/10/15 thresholds and the 15-minute/1-hour/24-hour lockout windows, with the manual DB unlock path for break-glass."
+chapter: "admin"
+---
+
+Plexor locks a user account after a sequence of failed logins.
+This page covers the threshold-and-window schedule, what the
+operator sees when a user is locked out, and the manual unlock
+recipe for break-glass situations.
+
+<DiagramPlaceholder id="D5" caption="Lockout thresholds: 5/15min, 10/1h, 15/24h" />
+
+## The threshold schedule
+
+Failed-login tracking is per-user, not per-organisation. The
+counter increments on each consecutive failed login; a successful
+login resets the counter to zero.
+
+| Failed count | Lockout duration |
+|---|---|
+| 5 | 15 minutes |
+| 10 | 1 hour |
+| 15 | 24 hours |
+
+The counter is on the user row (`failed_login_count` and
+`locked_until`). A locked user sees HTTP 423 with `code =
+identity.credentials.locked` and the unlock timestamp in the
+detail. The counter does not reset on a successful login during
+the lockout window — the lockout expires first, then the user can
+authenticate, then the counter resets to zero.
+
+The threshold schedule is **not configurable** in the current
+release. Operators who need different thresholds file a feature
+request; the schedule is encoded in the platform's identity
+module and changes with a release.
+
+## What the operator sees when a user is locked out
+
+The lockout state surfaces in three places:
+
+- The user's detail page shows `Status: locked` and the unlock
+  timestamp.
+- The audit log carries the lockout event with `action =
+  identity.user.locked` and the lockout duration in the payload.
+- The user themselves sees HTTP 423 and `Locked until <timestamp>`
+  in the response.
+
+The 15-minute window for the first threshold is short enough that
+most operators wait it out. The 1-hour and 24-hour windows are
+long enough that the operator is usually the one the user pages.
+
+<Callout type="info">
+
+If the user genuinely forgot the password, the recovery path is
+**reset the password** through the **Users** page, not "wait for
+the lockout to expire". A password reset clears the lockout
+state. The recipe is in the how-to chapter.
+
+</Callout>
+
+## The manual unlock path
+
+When a password reset is not appropriate (the lockout is
+correct, the user simply needs the clock to roll over, and the
+operator cannot wait), the break-glass path is a direct database
+edit:
+
+```sql
+UPDATE sigil.users
+   SET failed_login_count = 0,
+       locked_until       = NULL
+ WHERE email = '<the-locked-user-email>';
+```
+
+The path requires direct database access. Plexor does not expose
+"unlock" through the REST API — the explicit policy is that
+lockouts run their course, and password resets are the user-facing
+recovery path.
+
+The audit log records the SQL edit as `database.users.unlock`
+(no actor — system event). The next login attempt increments the
+counter from zero; the lockout does not recur unless the user
+fails again.
+
+<Callout type="warning">
+
+The direct-DB unlock is break-glass. It bypasses the audit trail
+for "who reset the lockout and why". If your organisation's
+compliance regime requires non-bypassable recovery, set up
+process monitoring on the `users` table and alert on changes to
+`locked_until` outside the password-reset flow.
+
+</Callout>
+
+## Why lockouts exist
+
+Lockouts are an anti-brute-force mechanism. Without them, a
+script could try a million passwords against a known user. With
+them, after five failures the script has to wait 15 minutes
+before trying again.
+
+The threshold schedule trades off:
+
+- **5 failures / 15 minutes** — protects against typos. A user who
+  mistypes five times in a row is having a bad day, not an attack.
+- **10 failures / 1 hour** — protects against casual brute force.
+  An attacker with knowledge of the username would still need to
+  wait an hour per 10 attempts.
+- **15 failures / 24 hours** — protects against sustained attack.
+  After 15 failures, the user is effectively unusable until the
+  operator intervenes.
+
+The schedule assumes the lockout is **per user**, not per source
+IP. A targeted attacker can spread attempts across many usernames;
+a per-IP lockout would catch that pattern, but it also breaks
+shared NATs (a coffee-shop Wi-Fi where everyone shares one IP).
+The platform picks the user-level lockout as the lesser evil.
+
+## What the operator sees when something is wrong
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| A user is locked out but does not remember failing | They typed the wrong password 5+ times yesterday | Wait the window out, or reset the password. |
+| The audit log shows many `identity.user.locked` events for many users at once | Credential stuffing — a leaked password list being tried | Reset passwords for the affected users; the audit log carries the source. |
+| The unlock SQL did not take effect | The query hit a read replica | Re-run against the primary. Plexor's writes are on the primary; the read replicas have stale state. |
+| A user with valid credentials cannot log in during a lockout window | The lockout is in effect, even though they have the right password | Wait for `locked_until` to pass. |
+
+## What to do next
+
+- **Inspect the audit log** for the lockout timeline and the
+  surrounding authentication events.
+- **Rotate API keys** if a key's authentication failures have
+  pushed the service user into lockout.

@@ -1,0 +1,122 @@
+---
+title: "Workloads and runtimes"
+description: "What a workload is, which runtimes ship, and what the lifecycle states mean."
+chapter: "concepts"
+---
+
+A workload is anything Plexor runs on your behalf: a virtual machine,
+a Linux container, a Kubernetes pod. The control plane does not know
+how to run a workload — it knows how to schedule one on a runtime,
+and which runtimes ship depends on what you chose at install.
+
+## What a workload is
+
+Every workload has a kind: `vm`, `lxc`, `k8s.pod`, or `container`.
+The kind is the operator-facing label; under the hood the control
+plane passes a typed spec to the chosen runtime. A `vm` workload on
+the `kvm` runtime maps to a libvirt domain; a `k8s.pod` workload on
+the `k3s` runtime maps to a pod on the cluster.
+
+A workload also has a name (unique per cluster), a folder (the
+scope it lives in), and a lifecycle state. The state is the most
+important operator-facing field — it tells you whether the workload
+is doing what you asked.
+
+<ScreenshotPlaceholder caption="Workloads list with state chips across runtimes" />
+
+## The lifecycle states
+
+A workload moves through five states. Every transition goes through
+the same state machine, which is the only place `Workload.State` is
+mutated.
+
+<DiagramPlaceholder id="D2" caption="Workload state machine: Pending → Provisioning → Running → Stopped" />
+
+The states, in order:
+
+- **Pending** — the workload exists but has not yet been picked up
+  by a node agent. The control plane accepted the request and
+  recorded the spec; the agent has not started provisioning yet.
+- **Provisioning** — the node agent accepted the work and is
+  allocating resources on the runtime. The hypervisor is reading
+  the disk image; the container runtime is pulling the image; the
+  pod scheduler is picking a node.
+- **Running** — the runtime reports success. The workload is active
+  and reachable.
+- **Stopped** — the runtime shut the workload down on operator
+  request. The spec, the disk image, and the audit trail are
+  preserved; the workload can be restarted.
+- **Failed** — the runtime reported an error during provisioning or
+  during operation. The `LastMessage` field carries the error string
+  the agent reported.
+
+The transitions an operator can drive:
+
+| From | To | How |
+|---|---|---|
+| Pending | Provisioning | Start |
+| Pending | Failed | Operator delete (cancelled before the agent picked it up) |
+| Provisioning | Running | Agent reports success |
+| Provisioning | Failed | Agent reports failure |
+| Running | Stopped | Stop |
+| Running | Failed | Agent reports runtime error |
+| Stopped | Pending | Restart |
+
+A transition that is not on the graph returns a stable error code
+(`compute.workload.invalid_transition`). The state machine is the
+only place `Workload.State` is mutated — direct assignments are a
+code-review reject.
+
+## The runtimes that ship
+
+The current release ships three runtimes, selected at install time
+and recorded on the cluster row:
+
+- **docker-compose** — the default. Workloads become Compose services
+  managed by the Docker daemon on the host. Good fit for
+  straightforward Linux containers with simple networking.
+- **podman-quadlet** — for operators who prefer rootless containers
+  or want a systemd-style lifecycle. Workloads become Quadlet unit
+  files translated into pods.
+- **k3s** — for Kubernetes-shaped workloads. The control plane
+  schedules pods onto a k3s cluster running on the host.
+
+The runtime is **immutable after install**. Switching from
+`docker-compose` to `k3s` means a fresh cluster and an explicit
+workload migration — there is no in-place upgrade path. This is
+deliberate: cross-runtime migration is a different problem from
+cross-version upgrade, and the platform should not pretend
+otherwise.
+
+## What a workload's spec carries
+
+The spec the operator submits is a small JSON document. Required
+fields are `kind`, `image` (for VMs and containers), `cpu` (vCPU
+count), `ramGb`, and `diskGb`. Optional fields cover port mappings,
+volume mounts, environment variables, and runtime-specific extras.
+The platform-level schema is small; runtime-specific extras live in
+the same JSON document so the operator does not need to learn a
+separate file format per backend.
+
+A workload's spec is **opaque to the control plane**. The control
+plane records the spec verbatim; the node agent parses it before
+calling the runtime. A new runtime can introduce a new spec field
+without touching the control plane, and a missing field in an old
+spec is the runtime's problem to handle (with a typed error rather
+than a silent default).
+
+## What the operator sees when a workload goes wrong
+
+Two fields matter when a workload is not Running:
+
+- `LastMessage` — the most recent error string the agent reported.
+  Common values: `image not found`, `libvirt domain failed to
+  start`, `no node has capacity`.
+- `LastReportedAt` — when the agent last checked in. If this is
+  more than a few minutes in the past while the workload is still
+  listed as `Running`, the agent may have lost the workload and a
+  restart is the safest path.
+
+The audit log carries the full state-change history. The recipe
+for investigating a stuck workload is in the FAQ → Troubleshooting
+recipes page.

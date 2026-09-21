@@ -1,0 +1,100 @@
+---
+title: "Create a workload"
+description: "Provision a VM, container, or pod through the console, with the equivalent API call."
+chapter: "how-to"
+---
+
+A workload is anything Plexor runs on your behalf. This page walks
+through creating one through the console, then shows the equivalent
+REST API call for scripts and integrations.
+
+## Before you start
+
+Make sure the scope switcher is pointing at the folder where you
+want the workload to live. Workloads are folder-scoped; creating one
+inside the wrong folder is the most common operator mistake.
+
+You also need permission to create workloads in that folder —
+`compute.vms.create` for VMs, `compute.workloads.create` for
+containers and pods. If the **Create** button is greyed out, check
+your role bindings.
+
+## Step 1 — Open the create dialog
+
+From the sidebar, choose **Compute → Workloads**, then click
+**Create workload**.
+
+<ScreenshotPlaceholder caption="Create-workload dialog with the runtime picker expanded" />
+
+The dialog has three sections:
+
+- **Identity** — name (kebab-case, unique per cluster), kind
+  (`vm`, `lxc`, `k8s.pod`, `container`), and runtime (the
+  cluster's runtime — `docker-compose`, `podman-quadlet`, or
+  `k3s`).
+- **Resources** — vCPU count, RAM in GiB, root disk size in GiB.
+  The defaults are sized for a small Linux workload; raise them if
+  the workload needs more.
+- **Source** — image (for VMs and containers) or registry reference
+  (for Kubernetes pods). The image field is a drop-down of the
+  images already in your cluster's library; see **Share a VM image**
+  to add new ones.
+
+## Step 2 — Submit
+
+Click **Create**. Plexor records the workload as `Pending`. The
+node agent picks it up and starts the provisioning state machine;
+within seconds the workload moves through `Provisioning` to
+`Running`.
+
+The progress is visible in the workload detail view. If the
+provisioning fails, the workload moves to `Failed` and the
+`LastMessage` field carries the agent's error string.
+
+## Step 3 — Verify
+
+From the workloads list, confirm the workload shows the green
+`Running` chip. Click into the detail view to see the assigned node,
+the runtime-local id (a UUID for VMs, a pod name for Kubernetes), and
+the timestamps for each state transition.
+
+## The equivalent API call
+
+Every step above corresponds to a single REST call. The example
+below creates a small Linux VM in the current folder:
+
+```bash
+curl -sS -X POST \
+  -H "Authorization: Bearer kid_<your-key-id>.<your-secret>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "my-vm",
+    "kind": "vm",
+    "image": "ubuntu-24.04",
+    "cpu": 2,
+    "ramGb": 4,
+    "diskGb": 20
+  }' \
+  https://plexor.example.com/api/v1/workloads
+```
+
+The response carries the workload's id and the initial `Pending`
+state. Poll `GET /api/v1/workloads/{id}` until the state reaches
+`Running` or `Failed`.
+
+<Callout type="tip">
+
+The API expects the folder's id, not its slug. The folder id is
+visible in the URL when you browse the console; the slug is the
+URL-safe name. Most operator scripts cache the folder id once at
+the top of the run.
+
+</Callout>
+
+## What to do next
+
+- **Attach a volume** if the workload needs persistent storage.
+- **Reserve a floating IP** and assign it to the workload if it
+  needs inbound traffic.
+- **Open the workload's Activity tab** to see the state machine
+  history.

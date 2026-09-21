@@ -1,5 +1,15 @@
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentProps } from 'react';
+import {
+  Callout,
+  Diagram,
+  DiagramPlaceholder,
+  Kbd,
+  PlatformMatrix,
+  Screenshot,
+  ScreenshotPlaceholder,
+  Step,
+} from '@/components/mdx';
 
 /**
  * MDX components — the docs site reuses the Plexor DS prose typography
@@ -7,6 +17,12 @@ import type { ComponentProps } from 'react';
  * These primitives read theme tokens (`text-foreground`, `border-border`,
  * `bg-surface-2`, …) so headings, code blocks, and quotes inherit the
  * active preset without bespoke colour declarations.
+ *
+ * The MDX-only components (`Callout`, `Step`, `Screenshot`,
+ * `ScreenshotPlaceholder`, `Kbd`, `Diagram`, `DiagramPlaceholder`,
+ * `PlatformMatrix`) are registered globally so every MDX file in the
+ * docs site can use them without an explicit import. Authors write
+ * `<Callout type="warning">` not `import { Callout } from '@/components/mdx'`.
  *
  * Future work: extract these into `@plexor/ui/mdx` once a second
  * consumer (a blog, a status page) makes it worthwhile; for v1 the
@@ -123,6 +139,17 @@ function a(props: ComponentProps<'a'>) {
   );
 }
 
+function table(props: ComponentProps<'table'>) {
+  return (
+    <div className="my-6 overflow-x-auto">
+      <table
+        {...props}
+        className="w-full border-collapse text-sm [&_th]:py-2 [&_th]:pr-4 [&_th]:text-left [&_th]:font-mono [&_th]:text-[10px] [&_th]:font-medium [&_th]:uppercase [&_th]:tracking-[0.14em] [&_th]:text-muted-2 [&_td]:py-2 [&_td]:pr-4 [&_td]:align-top [&_td]:text-foreground [&_tr]:border-b [&_tr]:border-border"
+      />
+    </div>
+  );
+}
+
 export function getMdxComponents(): MDXComponents {
   return {
     h1,
@@ -138,5 +165,14 @@ export function getMdxComponents(): MDXComponents {
     pre,
     hr,
     a,
+    table,
+    Callout,
+    Step,
+    Screenshot,
+    ScreenshotPlaceholder,
+    Kbd,
+    Diagram,
+    DiagramPlaceholder,
+    PlatformMatrix,
   };
 }

@@ -1,0 +1,139 @@
+---
+title: "Quotas"
+description: "Why quotas exist, how folder → team → org resolution walks the hierarchy, the 80% warning signal, and the catalog keys that ship in the current release."
+chapter: "concepts"
+---
+
+A quota is a cap on a countable thing — how many VMs, how many
+volumes, how many floating IPs, how many API requests in an hour.
+Quotas are how Plexor prevents one tenant from exhausting host
+capacity and how it provides per-organisation capacity limits
+without coupling the two concerns.
+
+<Callout type="info">
+
+The right mental model for quotas is "limits, not budgets". A limit
+caps a counter that the platform manages for you; Plexor does not
+let you over-spend, raise a balance, or carry over quota between
+periods. If you need a budget-style abstraction, build it on top of
+quotas.
+
+</Callout>
+
+## The shape of a quota
+
+Every quota has a **key** (the catalog identifier), a **scope**
+(organisation, team, or folder), and a **value** (the numeric cap).
+The scope is what makes quotas powerful: a single resource can be
+capped differently at different levels of the hierarchy.
+
+The catalog ships these keys in the current release:
+
+| Key | Counts | Default |
+|---|---|---|
+| `compute.vms.count` | Number of VMs in the scope. | 100 |
+| `compute.vms.vcpu` | Cumulative vCPU across VMs. | 256 |
+| `compute.vms.ram_gb` | Cumulative RAM GiB across VMs. | 1024 |
+| `compute.clusters.count` | Clusters in the org. | 10 |
+| `compute.workloads.count` | Workloads across clusters in the org. | 100 |
+| `storage.volumes.count` | Volumes in the scope. | 200 |
+| `storage.volumes.gb` | Cumulative volume GiB. | 4096 |
+| `network.floating_ips.count` | Floating IPs in the scope. | 10 |
+| `network.load_balancers.count` | Load balancers in the scope. | 20 |
+| `api.requests.per_hour.user` | Per-user request count, hourly window. | 1000 |
+| `api.requests.per_hour.org` | Per-org aggregate, hourly window. | 10000 |
+
+The default values are seeded on every organisation at creation
+time. The seeding is idempotent — re-running the seeder on an
+existing organisation does not overwrite the operator's edits.
+
+## How the effective value is resolved
+
+When a workload creation request hits a quota check, Plexor walks
+the scope hierarchy and returns the **minimum** value found.
+
+<DiagramPlaceholder id="D3" caption="Scope-resolution walker: folder → team → org → default" />
+
+The walker is deterministic:
+
+1. If a folder-scoped assignment exists for the quota key, the
+   folder's value wins — regardless of any team- or org-scoped
+   assignment.
+2. Else, if a team-scoped assignment exists for the quota key, the
+   team's value wins.
+3. Else, if an org-scoped assignment exists for the quota key, the
+   org's value wins.
+4. Else, the catalog's built-in default value wins.
+
+The walker reports which scope's value was selected — so an audit
+entry can cite the source. The audit log is where the walker shows
+up most often: "VM creation was blocked because the folder
+`project-alpha` has 9 of 10 VMs."
+
+## The 80% warning and the 100% block
+
+Two signals come out of a quota check:
+
+- **80% reached** — the request succeeded, but
+  `current + requested > 0.8 × effective_limit`. Plexor returns an
+  `AllowedWithWarning` result. The HTTP response carries an
+  `X-Quota-Warning: true` header. The console surfaces a warning
+  badge next to the resource that pushed you over.
+- **100% reached** — the request would exceed the limit. Plexor
+  returns `Denied`. The handler throws a quota exception; the API
+  responds with HTTP 429 and the problem details
+  include `code = "quotas.exceeded"`, `extensions.limit`, `extensions.used`,
+  and `extensions.requested`.
+
+There is no admin override or bypass flow in the current release.
+The path past a quota block is to raise the assignment — an admin
+edits `QuotaAssignment.Value` at the appropriate scope. Raising the
+assignment does not reset the current usage counter; if you had 9 of
+10 VMs and you raise to 20, you now have 9 of 20.
+
+## Where the check happens
+
+A quota check happens **inside the same database transaction** as
+the resource write. The check, the lock, and the resource INSERT
+are atomic: a failed resource creation rolls back the reserved quota.
+This is the contract that makes the 80% warning signal honest — the
+platform never over-promises a capacity it cannot fulfil.
+
+For workloads and other resources whose creation involves a node
+agent, the check happens at the control plane, before the command
+is queued for the agent. If the check denies, the operator sees a
+quota-blocked response without the agent ever attempting the work.
+
+## Rate limits
+
+Two of the catalog keys (`api.requests.per_hour.user` and
+`api.requests.per_hour.org`) are **rate limits**, not resource caps.
+They use a sliding window: Plexor keeps a row per request, counts
+those in the last hour, and denies the request when the count would
+push either limit past its cap.
+
+A rate-limit check applies to **both** the user (or API key) and
+the organisation. Plexor returns the more restrictive of the two
+results — a runaway service account that exceeds its personal limit
+does not get a free pass through the org's limit, and an account
+held inside a noisy org gets blocked by the org limit even when its
+own limit is generous.
+
+The rate-limit table is bounded by a daily cleanup service that
+deletes events older than the longest retention window (1 hour).
+The cleanup runs once a day; it does not need to be tightly
+scheduled because the table is small (one row per request).
+
+## What an operator normally touches
+
+The everyday case is **editing an assignment**. The admin guide
+covers the recipe in detail. In short: open the **Quotas** page,
+pick a scope (org, team, or folder), pick a quota key, and adjust
+the value. The change takes effect at the next resource-creation
+request that hits the walker for that scope — there is no "apply"
+step.
+
+The watcher case is the **80% warning badge**. When you see one,
+the right response is to either reduce the resource count or raise
+the quota. There is no third option in the current release; Plexor
+will not silently raise the limit for you.

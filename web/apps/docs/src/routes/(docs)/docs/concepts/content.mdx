@@ -1,71 +1,27 @@
 ---
-title: Concepts
-description: How Plexor is organised — organisation, team and folder, and the resource scope hierarchy that ties them together.
+title: "Concepts"
+description: "Mental models for working with Plexor — the resource scope hierarchy, identity and RBAC, workloads and runtimes, networking, storage, quotas, and the audit log."
+chapter: "concepts"
 ---
 
-# Concepts
+Concept pages explain how Plexor works — the mental models that turn
+the console's UI into something predictable. They describe Plexor's
+behaviour, not its internals. Read them when you need a name for
+something; skip them when you already know the term.
 
-Plexor groups everything you run inside a single hierarchy: three
-levels, each with its own job. The split is deliberate — it is the
-simplest structure that lets a team of five to fifteen share a
-deployment with other teams without bolting on a custom access layer.
+The eight pages in this chapter:
 
-## Organisation
+- **Orgs, teams, and folders** — the 3-tier scope hierarchy.
+- **Authentication and RBAC** — local users, OIDC, JWT, API keys.
+- **Workloads and runtimes** — what a workload is, which runtimes
+  ship, and what the lifecycle states mean.
+- **Networking, FIPs, and load balancers** — VPCs, subnets, floating
+  IPs, and load balancers.
+- **Storage: volumes and buckets** — block volumes vs S3 buckets.
+- **Quotas** — folder → team → org resolution walker, the 80%
+  warning signal, and the catalog keys.
+- **Audit log** — every state-changing call writes an entry.
 
-The **organisation** is the top of the hierarchy. Every Plexor
-deployment has exactly one. Users, teams and resources all live inside
-it. The organisation is what your identity provider talks to, what an
-invoice covers, and what the audit log scopes to.
-
-Multi-organisation deploys are out of scope in the current release —
-they land in a later phase.
-
-## Team
-
-A **team** is a group of people who share access to a slice of the
-deployment — typically five to fifteen users. Roles (admin, operator,
-viewer) can be scoped to a team, so a "platform team" can hold the
-keys to destructive actions while every other team runs their own
-workloads without that reach.
-
-Team-scoped endpoints land in the next phase; teams are first-class
-entities now.
-
-## Folder
-
-A **folder** is where resources actually live: virtual machines,
-Kubernetes clusters, app installs. Most resources in Plexor are
-folder-scoped by default. Folders let one team separate concerns —
-one folder per environment (`dev`, `staging`, `prod`) or per project
-(`project-alpha`, `project-beta`) without spinning up a new
-organisation each time.
-
-## The resource scope hierarchy
-
-A resource sits at one of three levels. Which level it lives at
-decides who can see it.
-
-| Resource lives at... | Who can see it |
-|---|---|
-| Organisation | Everyone in the organisation. Shared infrastructure — a shared `k8s-prod` cluster, a shared CI database. Writes are admin-only and audit-logged. |
-| Organisation + Team | Everyone in the team. Team-shared services and databases. |
-| Organisation + Team + Folder | Everyone in the folder. The default for most workloads. |
-
-The levels cascade downward: a folder-scoped resource is implicitly
-team- and organisation-scoped too, and a team-scoped resource is
-implicitly organisation-scoped.
-
-Resources default to **folder-scoped**. Organisation- and team-scoped
-resources are opt-in for things that genuinely need to be shared —
-the creation path for those is admin-only and writes leave an
-audit-trail entry.
-
-## Why three levels and not one big namespace
-
-Without the hierarchy, multi-team deployments either land everything
-in one shared namespace (everyone sees everyone else's resources,
-role bindings balloon) or layer a custom access system on top of a
-flat namespace. The three-level hierarchy is the smallest structure
-that lets an operator express "I want this visible to the team but
-not to the rest of the organisation" without writing any
-authorisation code themselves.
+If you only have time for one of them, read **Orgs, teams, and
+folders** first. Almost everything in the rest of the documentation
+refers to scope, and scope is what that page explains.

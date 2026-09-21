@@ -1,0 +1,68 @@
+---
+title: "Customize the console's brand"
+description: "Set the name, logo, accent colour, and custom CSS — with the live preview."
+chapter: "how-to"
+---
+
+The console's brand is configurable per organisation. Open
+**Admin → Branding** to change the operator-visible name, the
+console logo, the accent colour, and a small custom-CSS escape
+hatch. Every change is previewed live before it saves.
+
+<ScreenshotPlaceholder caption="Admin branding page with the form on the left and the live preview on the right" />
+
+## Step 1 — Open the branding page
+
+From the sidebar, choose **Admin → Branding**. The page has two
+columns: the form on the left, the live preview on the right. Every
+form edit is reflected in the preview within ~200 ms; no need to
+save and reload.
+
+## Step 2 — Edit the fields
+
+| Field | Effect |
+|---|---|
+| Brand name | Top-of-page wordmark. Up to 32 characters. |
+| Logo image | Replaces the wordmark icon. PNG, JPG, or SVG. Max 256 KiB. |
+| Accent colour | Primary surface tint. Hex (`#0066ff`) or `oklch()` value. |
+| Surface tint | Secondary surface for headers and cards. |
+| Custom CSS | An escape hatch for anything the form does not cover. Max 16 KiB. |
+
+The accent colour drives the focus ring, the link colour, and the
+primary button. The surface tint drives the page header and the
+card backgrounds. The two are coordinated — picking an accent and
+a surface from the same hue keeps the chrome coherent.
+
+<Callout type="warning">
+
+The custom-CSS field is parsed and applied inside a sandboxed
+`<style>` element. It cannot introduce JavaScript, cannot reach
+outside the console's CSS scope, and cannot inject external
+resources (`@import` of remote URLs is rejected). The 16 KiB cap
+prevents accidental megabytes of CSS.
+
+</Callout>
+
+## Step 3 — Save and roll out
+
+Click **Save**. The new brand takes effect for the current
+organisation immediately. There is no staging environment in the
+current release; the preview is the staging environment.
+
+If you want to roll the brand out across the operator-visible
+console but keep your changes draftable, save the form values to
+a local file before clicking **Save**. Restore them by pasting
+back into the same fields.
+
+## What the operator sees when something is wrong
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Logo does not appear | File exceeds 256 KiB or wrong content type | Resize or re-export the image. |
+| Accent colour is invisible on buttons | Accent and surface tint are too close in luminance | Pick a higher-contrast tint. |
+| Custom CSS does not apply | Selector does not match the rendered DOM, or syntax error | Open the browser's element inspector and check whether your selector matches. Plexor refuses to save CSS with a syntax error. |
+| Other organisations see your changes | Branding is org-scoped; this means your scope switcher was on the wrong org | Switch to the right org and check whether the brand is set there too. |
+
+The audit log records every branding change. The audit entry
+records the operator, the timestamp, and the changed fields (not
+the values — the brand is not security-sensitive).
