@@ -10,8 +10,7 @@ import { Label } from '@/shared/ui/primitives/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { cn } from '@/shared/lib/utils';
 import { routeHead } from '@/shared/lib/route-head';
-import { listPresets } from '@/shared/lib/themes/registry';
-import { applyPreset } from '@/shared/lib/themes/apply-tokens';
+import { listPresets, applyPreset } from '@plexor/ui/themes';
 import {
   useGlobalBranding,
   useOrgBranding,

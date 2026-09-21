@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import i18n from '@/shared/lib/i18n';
-import { applyPreset } from '@/shared/lib/themes/apply-tokens';
-import { getPreset, DEFAULT_PRESET_ID as REGISTRY_DEFAULT_PRESET_ID } from '@/shared/lib/themes/registry';
+import { applyPreset } from '@plexor/ui/themes';
+import { getPreset, DEFAULT_PRESET_ID as REGISTRY_DEFAULT_PRESET_ID } from '@/shared/lib/themes';
 import { readSession } from '@/features/auth/session-storage';
 
 /**

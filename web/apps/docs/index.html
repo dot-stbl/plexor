@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1C1B1F" />
+
+    <meta name="description" content="plexor — self-hosted cloud platform docs" />
+    <meta name="application-name" content="plexor docs" />
+    <meta name="generator" content="Plexor Docs" />
+    <meta name="robots" content="index,follow" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>plexor docs</title>
+
+    <!-- Inline boot script: read the persisted preset from localStorage
+         and stamp data-theme + .dark on <html> before React mounts.
+         Mirrors console's main.tsx applyThemeEarly(), but reads the
+         per-app key the docs site uses (`plexor-theme`) rather than
+         the per-user preferences key. Duplicated on purpose: this
+         runs before any module loader and cannot import from @plexor/ui. -->
+    <script>
+      (function () {
+        try {
+          var raw = window.localStorage.getItem('plexor-theme');
+          var resolved = raw;
+          if (!resolved) {
+            var prefersDark =
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches;
+            resolved = prefersDark ? 'dark' : 'light';
+          }
+          if (resolved === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          document.documentElement.setAttribute('data-theme-mode', resolved);
+        } catch (e) {
+          // localStorage unavailable — first paint falls through to :root
+        }
+      })();
+    </script>
+  </head>
+  <body class="bg-background text-foreground antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

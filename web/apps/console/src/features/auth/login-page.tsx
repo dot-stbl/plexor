@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from '@/shared/ui/primitives/alert';
 import { Separator } from '@/shared/ui/primitives/separator';
 import { Spinner } from '@/shared/ui/primitives/spinner';
 import { HelpTooltip } from '@/shared/ui/primitives/help-tooltip';
-import { PlexorMark } from '@/shared/ui/app-shell/plexor-mark';
+import { PlexorMark } from '@plexor/ui/brand';
 import { cn } from '@/lib/utils';
 import { postAuthLogin } from '@/shared/api';
 import { useFeatureFlag } from '@/shared/lib/feature-flags/feature-flag-context';

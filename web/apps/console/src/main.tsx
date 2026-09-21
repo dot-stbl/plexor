@@ -175,8 +175,8 @@ async function applyBootPreset() {
   const presetId = getBootConfig().theme.defaultPresetId;
   if (!presetId || presetId === 'plexor-default-light') return;
   try {
-    const { getPreset } = await import('@/shared/lib/themes/registry');
-    const { applyPreset } = await import('@/shared/lib/themes/apply-tokens');
+    const { getPreset } = await import('@/shared/lib/themes');
+    const { applyPreset } = await import('@plexor/ui/themes');
     const preset = getPreset(presetId);
     if (preset) {
       applyPreset(preset);
@@ -195,8 +195,8 @@ async function applyBootPreset() {
 async function applyBootCommunityTheme() {
   try {
     const { getBrandingTheme } = await import('@/shared/api');
-    const { listCommunityThemes } = await import('@/shared/lib/themes/registry');
-    const { applyPreset } = await import('@/shared/lib/themes/apply-tokens');
+    const { listCommunityThemes } = await import('@/shared/lib/themes');
+    const { applyPreset } = await import('@plexor/ui/themes');
     const installation = await getBrandingTheme();
     const themes = listCommunityThemes();
     const theme = themes.find((entry) => entry.id === installation.themeId);

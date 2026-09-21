@@ -16,10 +16,8 @@
  * Plexor.Host OpenAPI contract.
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  listCommunityThemes,
-  type CommunityTheme,
-} from '@/shared/lib/themes';
+import { listCommunityThemes } from '@/shared/lib/themes';
+import type { CommunityTheme } from '@/shared/lib/themes/community-themes';
 import {
   getBrandingThemeQueryKey,
   useDeleteBrandingTheme,

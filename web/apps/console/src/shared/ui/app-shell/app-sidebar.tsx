@@ -40,7 +40,7 @@ import {
   type AppRoute,
 } from './nav-config';
 import { AppLauncher } from './app-launcher';
-import { PlexorMark } from './plexor-mark';
+import { PlexorMark } from '@plexor/ui/brand';
 
 type SidebarItem = { title: string; icon: Icon; to?: AppRoute };
 

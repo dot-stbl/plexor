@@ -1,0 +1,148 @@
+/* =========================================================================
+ * Plexor Design System — first-paint baseline for themed tokens.
+ *
+ * This file is the SINGLE SOURCE OF TRUTH for first-paint OKLCH values.
+ * `@plexor/ui/themes/presets.ts` ships the same vocabulary as JS objects;
+ * `applyPreset()` writes the same CSS custom properties at runtime when
+ * the user picks a different preset.
+ *
+ * A consumer's styles.css imports this BEFORE Tailwind layers:
+ *
+ *   @import '@plexor/ui/tokens.css';
+ *   @import 'tailwindcss';
+ *
+ * The non-themed design-system constants (`--z-base`, `--container-xs`,
+ * `--text-2xs`, etc.) live in the consumer's CSS — they don't depend on
+ * theme and don't need a runtime override.
+ * ========================================================================= */
+
+:root {
+  /* ─── Surface (3 layers) ─── */
+  --background: oklch(98% 0.005 250);
+  --card: oklch(100% 0 0);
+  --popover: oklch(100% 0 0);
+  --secondary: oklch(97% 0.006 250);
+  --muted: oklch(97% 0.006 250);
+
+  /* ─── Ink (4 levels) ─── */
+  --foreground: oklch(22% 0.02 240);
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --secondary-foreground: var(--foreground);
+  --muted-foreground: oklch(50% 0.018 240);
+
+  /* ─── Borders (2 levels) ─── */
+  --border: oklch(91% 0.008 240);
+  --border-2: oklch(85% 0.008 240);
+  --input: var(--border);
+
+  /* ─── Plexor DS extra scale (surfaces / secondary ink) ─── */
+  --surface-2: oklch(97% 0.006 250);
+  --surface-3: oklch(95% 0.008 240);
+  --fg-2: oklch(35% 0.018 240);
+  --muted-2: oklch(65% 0.014 240);
+
+  /* ─── Accent (Plexor DS — monochrome dark ink, NOT blue) ─── */
+  --accent: oklch(28% 0.02 255);
+  --accent-foreground: oklch(100% 0 0);
+  --ring: var(--accent);
+
+  /* ─── Destructive ─── */
+  --destructive: oklch(58% 0.20 25);
+  --destructive-foreground: oklch(98% 0.005 250);
+
+  /* ─── Status semantics (4 colors × 3 levels each) ─── */
+  --ok: oklch(58% 0.16 145);
+  --ok-soft: oklch(95% 0.03 145);
+  --ok-ink: oklch(45% 0.13 145);
+  --err: oklch(58% 0.20 25);
+  --warn: oklch(58% 0.10 75);
+  --idle: oklch(50% 0.012 240);
+  --info: oklch(58% 0.14 240);
+  --err-soft: oklch(96% 0.03 25);
+  --err-ink: oklch(50% 0.17 25);
+  --warn-soft: oklch(96% 0.05 75);
+  --warn-ink: oklch(48% 0.10 75);
+  --idle-soft: oklch(95% 0.006 240);
+  --idle-ink: oklch(45% 0.012 240);
+
+  /* ─── Radius (shadcn default) ─── */
+  --radius: 0.5rem;
+
+  /* ─── Chart colors (shadcn defaults — OK) ─── */
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+
+  /* ─── Sidebar (shadcn defaults — keep) ─── */
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(17% 0.012 250);
+  --card: oklch(21% 0.014 250);
+  --popover: oklch(21% 0.014 250);
+  --secondary: oklch(25% 0.015 250);
+  --muted: oklch(25% 0.015 250);
+
+  --foreground: oklch(94% 0.006 250);
+  --card-foreground: var(--foreground);
+  --popover-foreground: var(--foreground);
+  --secondary-foreground: var(--foreground);
+  --muted-foreground: oklch(66% 0.012 250);
+
+  --border: oklch(30% 0.012 250);
+  --border-2: oklch(38% 0.014 250);
+  --input: var(--border);
+
+  --surface-2: oklch(25% 0.015 250);
+  --surface-3: oklch(28% 0.016 250);
+  --fg-2: oklch(82% 0.008 250);
+  --muted-2: oklch(52% 0.012 250);
+
+  --accent: oklch(92% 0.006 250);
+  --accent-foreground: oklch(20% 0.02 250);
+  --ring: var(--accent);
+
+  --destructive: oklch(68% 0.18 25);
+  --destructive-foreground: oklch(98% 0.005 250);
+
+  --ok: oklch(72% 0.15 145);
+  --ok-soft: oklch(32% 0.05 145);
+  --ok-ink: oklch(85% 0.13 145);
+  --err: oklch(68% 0.18 25);
+  --warn: oklch(75% 0.10 75);
+  --idle: oklch(72% 0.012 240);
+  --info: oklch(72% 0.13 240);
+  --err-soft: oklch(33% 0.06 25);
+  --err-ink: oklch(83% 0.14 25);
+  --warn-soft: oklch(33% 0.05 75);
+  --warn-ink: oklch(87% 0.10 75);
+  --idle-soft: oklch(30% 0.006 250);
+  --idle-ink: oklch(72% 0.01 250);
+
+  /* Charts are the shadcn gray scale — same in both modes by design. */
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}

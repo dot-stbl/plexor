@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@plexor/ui": ["./src/index.ts"],
+      "@plexor/ui/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["**/dist", "**/node_modules"]
+}

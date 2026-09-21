@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["vite/client", "node"],
+    "types": ["vite/client", "node", "mdx"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
@@ -9,6 +9,6 @@
       "@plexor/ui/*": ["../../packages/ui/src/*"]
     }
   },
-  "include": ["src", ".storybook", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
-  "exclude": ["src/shared/api/src"]
+  "include": ["src", "vite.config.ts", "vitest.config.ts", ".mdx"],
+  "exclude": ["**/dist", "**/node_modules", "src/routeTree.gen.ts"]
 }

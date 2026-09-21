@@ -20,6 +20,7 @@
     "gen:tech-icons": "node scripts/gen-tech-icons.cjs"
   },
   "dependencies": {
+    "@plexor/ui": "workspace:*",
     "@fontsource-variable/onest": "^5.2.11",
     "@hookform/resolvers": "3.10.0",
     "@iconify/react": "^6.0.2",

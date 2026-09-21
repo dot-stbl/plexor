@@ -9,12 +9,8 @@ import { Badge } from '@/shared/ui/primitives/badge';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { cn } from '@/shared/lib/utils';
 import { routeHead } from '@/shared/lib/route-head';
-import { applyPreset } from '@/shared/lib/themes/apply-tokens';
-import {
-  getPreset,
-  listPresets,
-  type ThemePreset,
-} from '@/shared/lib/themes';
+import { applyPreset, type ThemePreset } from '@plexor/ui/themes';
+import { getPreset, listPresets } from '@/shared/lib/themes';
 import {
   useCommunityThemes,
   useActivateTheme,

@@ -15,3 +15,4 @@ export function PlexorMark(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
