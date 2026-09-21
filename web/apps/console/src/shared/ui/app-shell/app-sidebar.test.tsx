@@ -208,3 +208,33 @@ describe('AppSidebar — feature-flag-gated sections', () => {
     expect(screen.getByTestId('sidebar-settings-link')).toBeInTheDocument();
   });
 });
+
+describe('AppSidebar — brand header logo (no external GitHub URL)', () => {
+  beforeEach(() => {
+    clearSession();
+    localStorage.removeItem('plexor.feature-flags');
+  });
+
+  it('uses the local stbl-logo.svg in the home link (no PlexorMark, no raw.githubusercontent)', () => {
+    renderSidebar();
+
+    // The home link is the brand anchor at the top of the rail; its
+    // aria-label is the translated "Go home".
+    const homeLink = screen.getByRole('link', { name: /go home/i });
+    expect(homeLink).toBeInTheDocument();
+
+    // First child of the link is the brand mark — StblMark renders <img>
+    // pointing at the locally-vendored SVG.
+    const mark = homeLink.querySelector('img');
+    expect(mark).not.toBeNull();
+    expect(mark?.getAttribute('src')).toBe('/stbl-logo.svg');
+    expect(mark?.getAttribute('alt')).toBe('');
+
+    // Regression guards: the PlexorMark SVG (purple/dark complex path)
+    // and the github.com raw URL must NOT appear in the brand header.
+    // A future revert to either would re-introduce the fragility the
+    // STBL mark replaced (offline-broken chrome, GitHub CDN delay).
+    expect(homeLink.querySelector('svg path[fill="currentColor"]')).toBeNull();
+    expect(document.body.innerHTML).not.toContain('raw.githubusercontent.com');
+  });
+});
