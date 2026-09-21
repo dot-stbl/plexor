@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// OrgAuthProviderControllerHelpers — file-static helpers pulled out
-// of OrgAuthProvidersController to satisfy the no-private-methods
+// OrgAuthProviderControllerHelpers — file-static helpers shared by
+// OrgAuthProviderController (GET / PUT) and OrgAuthProviderTestController
+// (POST .../test). Pulled out to satisfy the no-private-methods
 // convention (class-layout-and-tooling.md §1a / §9.4 — Controller /
-// minimal API endpoint). The controller is a thin orchestration
-// layer; entity → response projection, ProblemDetails construction,
+// minimal API endpoint). The controllers are thin orchestration
+// layers; entity → response projection, ProblemDetails construction,
 // the OIDC discovery-document fetch + parse, and the Phase 5.2
 // audit-emit payload composition live here.
 // ============================================================================
@@ -20,8 +21,9 @@ using Plexor.Shared.Kernel.Audit;
 namespace Plexor.Host.Controllers;
 
 /// <summary>
-///     Helpers for <see cref="OrgAuthProvidersController" />. Each
-///     public method on the controller is a one-line orchestration
+///     Helpers for <see cref="OrgAuthProviderController" /> and
+///     <see cref="OrgAuthProviderTestController" />. Each
+///     public method on the controllers is a one-line orchestration
 ///     call into this file; the per-method logic lives here.
 /// </summary>
 internal static class OrgAuthProviderControllerHelpers
