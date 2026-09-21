@@ -136,6 +136,16 @@
           "label": "Базы данных",
           "value": "6",
           "context": "3 PostgreSQL · 3 Redis"
+        },
+        "networks": {
+          "label": "Сети",
+          "value": "0",
+          "context": "0 кластер(ов) · ноды готовы"
+        },
+        "audit": {
+          "label": "События аудита",
+          "value": "0",
+          "context": "за последние 24 ч"
         }
       }
     },

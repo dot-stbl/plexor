@@ -267,3 +267,54 @@ describe('AppLauncher — i18n summary cards', () => {
     expect(description?.textContent).toBe('Project sections and quick links');
   });
 });
+
+/**
+ * Bug 2 (2026-09-21): "in app menu I still see shell.launcher.summary…"
+ *
+ * Root cause: `mocks/launcher-summary.ts` referenced three summary cards
+ * via `labelKey: 'shell.launcher.summary.{vms,networks,audit}.label'`, but
+ * only `vms` was defined in the locale JSONs. `networks` and `audit` were
+ * missing, so i18next returned the raw key path and the user saw
+ * "shell.launcher.summary.networks.label" / "shell.launcher.summary.audit.label"
+ * rendered into the launcher UI.
+ *
+ * The `i18n-keys.test.ts` parity test catches `t('foo.bar')` LITERAL
+ * references in source code but does NOT catch `labelKey: 'foo.bar'` —
+ * the lookup-by-property pattern is invisible to its static regex. So we
+ * guard against the regression here at the component-render level instead.
+ */
+describe('AppLauncher — SUMMARY card labels resolve (regression for "shell.launcher.summary…" leak)', () => {
+  /**
+   * Pick the SUMMARY stat card whose label contains the given string. The
+   * launcher renders 3 stat cards in a row; each card has a label, value,
+   * and context. The label comes from `t(labelKey)` and is the only thing
+   * the user would see if the key didn't resolve.
+   */
+  function getSummaryStatByLabel(labelText: string): HTMLElement {
+    const matches = Array.from(document.querySelectorAll<HTMLElement>('[data-slot="stat"]'))
+      .filter((el) => el.textContent?.includes(labelText));
+    if (matches.length !== 1) {
+      throw new Error(
+        `expected exactly one SUMMARY stat labelled "${labelText}", found ${matches.length}`,
+      );
+    }
+    return matches[0];
+  }
+
+  it('Networks summary card resolves shell.launcher.summary.networks.label → "Networks"', () => {
+    renderLauncher();
+    // Before the fix this card's label was "shell.launcher.summary.networks.label"
+    // (raw key path leaked into the DOM). With the key added, the label
+    // becomes the translated string.
+    const networksCard = getSummaryStatByLabel('Networks');
+    expect(networksCard.textContent).toContain('Networks');
+    expect(networksCard.textContent).not.toContain('shell.launcher.summary.networks');
+  });
+
+  it('Audit summary card resolves shell.launcher.summary.audit.label → "Audit events"', () => {
+    renderLauncher();
+    const auditCard = getSummaryStatByLabel('Audit events');
+    expect(auditCard.textContent).toContain('Audit events');
+    expect(auditCard.textContent).not.toContain('shell.launcher.summary.audit');
+  });
+});
