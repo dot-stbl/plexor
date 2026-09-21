@@ -72,8 +72,6 @@ public sealed class HmacThemeManifestVerifier : IThemeManifestVerifier
     private static readonly byte[] SeedSalt =
         Encoding.UTF8.GetBytes("Plexor.Host.ThemeManifest.Sign.v1");
 
-    private static readonly JsonSerializerOptions CanonicalJson = JsonSerializerOptions.Web;
-
     private readonly IDataProtector protector;
     private readonly byte[] hmacKey;
 
@@ -114,7 +112,7 @@ public sealed class HmacThemeManifestVerifier : IThemeManifestVerifier
     /// </summary>
     private static byte[] Canonicalise(ThemeManifest manifest)
     {
-        var json = JsonSerializer.Serialize(manifest, CanonicalJson);
+        var json = JsonSerializer.Serialize(manifest, JsonSerializerOptions.Web);
         return Encoding.UTF8.GetBytes(json);
     }
 }
