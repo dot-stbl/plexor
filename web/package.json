@@ -9,7 +9,12 @@
     "build": "bun --filter '@plexor/console' build",
     "test": "bun --filter '@plexor/console' test",
     "lint": "bun --filter '@plexor/console' lint",
-    "typecheck": "bun --filter '@plexor/console' typecheck"
+    "typecheck": "bun --filter '@plexor/console' typecheck",
+    "dev:docs": "bun --filter '@plexor/docs' dev",
+    "build:docs": "bun --filter '@plexor/docs' build",
+    "test:docs": "bun --filter '@plexor/docs' test",
+    "lint:docs": "bun --filter '@plexor/docs' lint",
+    "typecheck:docs": "bun --filter '@plexor/docs' typecheck"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
