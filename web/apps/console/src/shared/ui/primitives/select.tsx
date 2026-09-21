@@ -182,16 +182,22 @@ function PlexorSelectContent({ children, className }: PlexorSelectContentProps) 
             className={cn(
               "group/select-item relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-xs/relaxed outline-hidden select-none",
               "data-[focused=true]:bg-accent data-[focused=true]:text-accent-foreground",
+              "data-[selected=true]:bg-accent/40 data-[selected=true]:text-accent-foreground",
               "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
               item.className,
             )}
           >
             <span className="flex-1 whitespace-nowrap">{item.label}</span>
-            <span className="ml-auto flex shrink-0 items-center justify-center">
-              <Check
-                aria-hidden
-                className="size-3.5 text-foreground group-data-[focused]/select-item:text-accent-foreground"
-              />
+            {/* Check only visible on the selected item — otherwise every
+               option looks ticked, which is what users see now. RAC sets
+               data-selected=true on the ListBoxItem itself; the wrapper
+               span inherits via group-data-[selected=true] from
+               .group/select-item on the parent. */}
+            <span
+              aria-hidden
+              className="ml-auto flex shrink-0 items-center justify-center opacity-0 group-data-[selected=true]/select-item:opacity-100"
+            >
+              <Check className="size-3.5 text-foreground group-data-[focused]/select-item:text-accent-foreground" />
             </span>
           </ListBoxItem>
         )}
