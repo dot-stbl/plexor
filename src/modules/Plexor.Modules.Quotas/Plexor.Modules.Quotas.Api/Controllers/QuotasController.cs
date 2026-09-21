@@ -1,24 +1,26 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// QuotasController — REST endpoints for the quotas capability (4.5.g.2).
-// Mounts four GET endpoints under /api/v1/quotas: definitions (catalog),
-// assignments (per-scope), usage (per-scope, with effective limit), and
-// effective (per-definition resolved value).
+// QuotasController — read-only REST endpoints for the quotas capability
+// (4.5.g.2). Mounts four GET endpoints under /api/v1/quotas: definitions
+// (catalog), assignments (per-scope list), usage (per-scope with effective
+// limit), and effective (per-definition resolved value).
 //
-// Write endpoints (PUT / DELETE on assignments) land in 4.5.g.3.
+// Write endpoints (PUT / DELETE on assignments) live in
+// <see cref="QuotaAssignmentsController" /> per api-design.md §6
+// (resource controller split — assignments CRUD is a different concern
+// from the catalog/scope reads here, including the audit emitter
+// dependency the reads do not need).
 //
 // All endpoints are gated by [RequirePermission(QuotaPermissions.Read)].
 // Tenant scoping is enforced at the query level by passing
 // currentUser.TenantId as the orgId filter to the repositories.
 // ============================================================================
 
-using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Plexor.Modules.Quotas.Api.Models;
 using Plexor.Modules.Quotas.Application.Quotas;
-using Plexor.Modules.Quotas.Domain;
 using Plexor.Shared.Authorization;
 using Plexor.Shared.Contracts.Routes;
 using Plexor.Shared.Kernel.Identity;
@@ -27,9 +29,10 @@ using Plexor.Shared.Kernel.Quotas;
 namespace Plexor.Modules.Quotas.Api.Controllers;
 
 /// <summary>
-///     Stable route names referenced by <c>[HttpGet(..., Name = ...)]</c>
-///     and the OpenAPI document generator. File-scoped so the constants
-///     stay local to the file that owns them (constructors-and-fields.md).
+///     Stable route names for the read endpoints. The write-side
+///     route names live next to <see cref="QuotaAssignmentsController" />.
+///     File-scoped so the constants stay local to the file that
+///     owns them (constructors-and-fields.md).
 /// </summary>
 file static class QuotasRouteNames
 {
@@ -44,36 +47,28 @@ file static class QuotasRouteNames
 
     /// <summary><c>GET /api/v1/quotas/effective</c> — list resolved effective values.</summary>
     public const string EffectiveList = "quotas-effective-list";
-
-    /// <summary><c>PUT /api/v1/quotas/assignments</c> — upsert one assignment.</summary>
-    public const string AssignmentsUpsert = "quotas-assignments-upsert";
-
-    /// <summary><c>DELETE /api/v1/quotas/assignments/{assignmentId}</c> — remove one assignment.</summary>
-    public const string AssignmentsDelete = "quotas-assignments-delete";
 }
 
 /// <summary>
-///     Read + write endpoints for the quotas capability. Mounted at
+///     Read endpoints for the quotas capability. Mounted at
 ///     <c>/api/v1/quotas/*</c> via <see cref="ApiRoutes.Base" />.
-///     Read endpoints require <c>quotas.read</c>; PUT / DELETE require
-///     <c>quotas.assign.org</c>. Tenant scoping is enforced at the
-///     query level by passing <c>currentUser.TenantId</c> as the orgId
-///     filter to the repositories.
+///     Read endpoints require <c>quotas.read</c>; PUT / DELETE on
+///     assignments live in <see cref="QuotaAssignmentsController" />
+///     and require <c>quotas.assign.org</c>. Tenant scoping is
+///     enforced at the query level by passing
+///     <c>currentUser.TenantId</c> as the orgId filter to the
+///     repositories.
 /// </summary>
 /// <param name="catalog">Scoped <see cref="IQuotaCatalog" /> —
 /// reads the catalog rows.</param>
 /// <param name="assignments">Scoped <see cref="IQuotaAssignmentRepository" /> —
-/// reads + writes QuotaAssignment rows at the requested scope + org.</param>
+/// reads QuotaAssignment rows at the requested scope + org.</param>
 /// <param name="usage">Scoped <see cref="IQuotaUsageReader" /> —
 /// reads the latest consumption snapshots at the requested scope + org.</param>
 /// <param name="resolver">Scoped <see cref="IQuotaScopeResolver" /> —
 /// resolves the effective limit via the folder → org → default walk.</param>
-/// <param name="auditEmitter">Scoped <see cref="IQuotaAuditEmitter" /> —
-/// emits <c>AssignmentChanged</c> on PUT and <c>AssignmentRemoved</c> on
-/// DELETE (4.5.h).</param>
 /// <param name="currentUser">Scoped <see cref="ICurrentUser" /> —
-/// supplies the caller's <c>TenantId</c> + <c>UserId</c> for
-/// tenant-scoped queries and audit context.</param>
+/// supplies the caller's <c>TenantId</c> for tenant-scoped queries.</param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/quotas")]
 [Tags(["quotas"])]
@@ -83,7 +78,6 @@ public sealed class QuotasController(
     IQuotaAssignmentRepository assignments,
     IQuotaUsageReader usage,
     IQuotaScopeResolver resolver,
-    IQuotaAuditEmitter auditEmitter,
     ICurrentUser currentUser) : ControllerBase
 {
     /// <summary>
@@ -232,142 +226,5 @@ public sealed class QuotasController(
             cancellationToken);
 
         return Ok(entries);
-    }
-
-    /// <summary>
-    ///     <c>PUT /api/v1/quotas/assignments</c> — create or update one
-    ///     quota assignment at the requested scope. Tenant-scoped: the
-    ///     assignment's <c>OrgId</c> is set from
-    ///     <see cref="ICurrentUser.TenantId" />, so callers in Org X
-    ///     cannot create or modify Org Y's rows. The body is validated
-    ///     by <see cref="Api.Validation.UpsertQuotaAssignmentRequestValidator" />
-    ///     before any catalog lookup.
-    /// </summary>
-    /// <param name="request">Body — catalog key, scope, value, optional
-    /// period.</param>
-    /// <param name="validator">Scoped <see cref="IValidator{T}" /> for
-    /// the request body.</param>
-    /// <param name="cancellationToken">Cooperative cancellation.</param>
-    [HttpPut("assignments", Name = QuotasRouteNames.AssignmentsUpsert)]
-    [EndpointSummary("Create or update a quota assignment at the org scope")]
-    [RequirePermission(QuotaPermissions.AssignOrg)]
-    [ProducesResponseType<QuotaAssignmentSummary>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<QuotaAssignmentSummary>> UpsertAssignmentAsync(
-        [FromBody] UpsertQuotaAssignmentRequest request,
-        [FromServices] IValidator<UpsertQuotaAssignmentRequest> validator,
-        CancellationToken cancellationToken)
-    {
-
-        var validation = await validator.ValidateAsync(request, cancellationToken);
-        if (!validation.IsValid)
-        {
-            return QuotasControllerHelpers.InvalidRequestResponse(
-                validation.ToDictionary());
-        }
-
-        if (!QuotasControllerHelpers.TryParseScope(request.ScopeKind, out var kind))
-        {
-
-            // Should be unreachable: the validator already rejected any
-            // ScopeKind outside {org, team, folder}. Defensive against
-            // a future validator change.
-            return QuotasControllerHelpers.InvalidScopeProblem(request.ScopeKind);
-        }
-
-        var definition = await catalog.FindByKeyAsync(request.DefinitionKey, cancellationToken);
-        if (definition is null)
-        {
-            return Problem(
-                detail: $"No QuotaDefinition with key '{request.DefinitionKey}'.",
-                instance: HttpContext.Request.Path,
-                statusCode: StatusCodes.Status404NotFound,
-                title: "Unknown quota definition");
-        }
-
-        var period = string.IsNullOrEmpty(request.Period)
-            ? definition.Period
-            : Enum.Parse<QuotaPeriod>(request.Period);
-
-        var scope = new QuotaScope(kind, request.ScopeId, currentUser.TenantId);
-        var row = await assignments.UpsertAsync(
-            definition.Id,
-            scope,
-            request.Value,
-            period,
-            currentUser.UserId,
-            cancellationToken);
-
-        await auditEmitter.EmitAsync(
-            QuotaAuditEvent.AssignmentChanged,
-            new QuotaAuditContext(
-                OrgId: currentUser.TenantId,
-                ActorUserId: currentUser.UserId,
-                DefinitionKey: request.DefinitionKey,
-                ScopeKind: kind.ToString(),
-                ScopeId: request.ScopeId,
-                AssignmentId: row.Id),
-            cancellationToken);
-
-        return Ok(QuotasControllerHelpers.MapToSummary(row, definition));
-    }
-
-    /// <summary>
-    ///     <c>DELETE /api/v1/quotas/assignments/{assignmentId}</c> —
-    ///     remove one assignment. Tenant-scoped: a row whose
-    ///     <c>OrgId</c> doesn't match the caller's
-    ///     <see cref="ICurrentUser.TenantId" /> returns 404 — same
-    ///     shape as a missing id, so callers can't probe another
-    ///     org's assignment ids. The dictionary key of the affected
-    ///     <c>QuotaDefinition</c> is resolved BEFORE delete so the
-    ///     audit event can carry it (the assignment row only holds
-    ///     <c>DefinitionId</c>).
-    /// </summary>
-    /// <param name="assignmentId">UUID v7 of the assignment row.</param>
-    /// <param name="cancellationToken">Cooperative cancellation.</param>
-    [HttpDelete("assignments/{assignmentId:guid}", Name = QuotasRouteNames.AssignmentsDelete)]
-    [RequirePermission(QuotaPermissions.AssignOrg)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteAssignmentAsync(
-        Guid assignmentId,
-        CancellationToken cancellationToken)
-    {
-        var existing = await assignments.FindAsync(assignmentId, cancellationToken);
-        if (existing is null || existing.OrgId != currentUser.TenantId)
-        {
-            return Problem(
-                detail: $"No assignment '{assignmentId}' in the caller's org.",
-                instance: HttpContext.Request.Path,
-                statusCode: StatusCodes.Status404NotFound,
-                title: "Assignment not found");
-        }
-
-        // Resolve the catalog key BEFORE delete so the audit event can
-        // carry the stable wire identifier. The assignment row only
-        // stores DefinitionId — the FK to quota_definitions may not be
-        // preloaded, so a catalog lookup is the safe path. Missing
-        // catalog row falls back to a sentinel — defensive against a
-        // catalog row being removed while an assignment still
-        // references it (shouldn't happen but the shape stays valid).
-        var definitions = await catalog.ListAllAsync(cancellationToken);
-        var keyById = QuotasControllerHelpers.BuildDefinitionKeyMap(definitions);
-        var definitionKey = keyById.GetValueOrDefault(existing.DefinitionId, "(deleted)");
-
-        await assignments.DeleteAsync(assignmentId, cancellationToken);
-
-        await auditEmitter.EmitAsync(
-            QuotaAuditEvent.AssignmentRemoved,
-            new QuotaAuditContext(
-                OrgId: currentUser.TenantId,
-                ActorUserId: currentUser.UserId,
-                DefinitionKey: definitionKey,
-                ScopeKind: existing.ScopeKind.ToString(),
-                ScopeId: existing.ScopeId,
-                AssignmentId: assignmentId),
-            cancellationToken);
-
-        return NoContent();
     }
 }
