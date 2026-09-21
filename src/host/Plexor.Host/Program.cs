@@ -70,7 +70,6 @@ using Plexor.Modules.Storage.Application.Installers;
 using Plexor.Modules.Storage.Infrastructure.Installers;
 using Plexor.Modules.Storage.Infrastructure.Persistence;
 using Plexor.Providers.VSphere.Api.Endpoints;
-using Plexor.Providers.VSphere.Api.Installers;
 using Plexor.Providers.VSphere.Infrastructure.Installers;
 using Plexor.Providers.VSphere.Infrastructure.Persistence;
 using Plexor.Providers.VSphere.Installers;
@@ -355,7 +354,6 @@ builder.Services.AddNetworkApiCore();
 // tick in v1 — the refresh endpoint forces a pull on demand.
 builder.Services.AddVSphereProvider(builder.Configuration);
 builder.Services.AddVSphereInfrastructureCore();
-builder.Services.AddVSphereApiCore();
 // Audit retention (Phase 5.3) — bind AuditOptions so the daily
 // sweep BackgroundService picks up RetentionDays / CleanupInterval /
 // BatchSize / SweepHourUtc. ValidateDataAnnotations + ValidateOnStart

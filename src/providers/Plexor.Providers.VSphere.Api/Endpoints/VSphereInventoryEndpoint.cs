@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Plexor.Providers.VSphere.Api.Models;
+using Plexor.Providers.VSphere.Api.Models.Inventory;
 using Plexor.Providers.VSphere.Infrastructure.Persistence;
 using Plexor.Shared.Contracts.Routes;
 
