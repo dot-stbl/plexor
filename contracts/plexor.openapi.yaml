@@ -28,6 +28,8 @@ tags:
     description: Per-org identity provider configuration (OIDC, LDAP, ...)
   - name: oidc
     description: OIDC sign-in flow (anonymous, browser-driven)
+  - name: vsphere
+    description: vSphere runtime provider — inventory read/refresh + template clone (issue #77)
 
 paths:
   /vms:
@@ -816,6 +818,86 @@ paths:
         default:
           $ref: '#/components/responses/Problem'
 
+  # ───────────────────────── vsphere ─────────────────────────
+  /vsphere/inventory:
+    get:
+      operationId: getVSphereInventory
+      tags: [vsphere]
+      summary: Read the cached vSphere inventory
+      description: >
+        Returns the latest vSphere inventory snapshot — header
+        metadata + per-cluster / per-host / per-VM rows. 503 when
+        the vSphere provider is not configured OR no snapshot has
+        ever been written (caller should POST /vsphere/inventory/refresh
+        first). 502 when vCenter is unreachable.
+      responses:
+        '200':
+          description: The latest cached inventory snapshot.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VSphereInventoryResponse' }
+        '503':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /vsphere/inventory/refresh:
+    post:
+      operationId: refreshVSphereInventory
+      tags: [vsphere]
+      summary: Force a fresh vSphere inventory pull
+      description: >
+        Triggers a synchronous refresh — the call blocks until the
+        new snapshot has been written. Returns 202 with the snapshot
+        id. 503 when the provider is unconfigured, 502 when vCenter
+        is unreachable.
+      responses:
+        '202':
+          description: Refresh succeeded — the new snapshot id is in the body.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VSphereInventoryRefreshResponse' }
+        '502':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  /vsphere/clone:
+    post:
+      operationId: cloneVSphereTemplate
+      tags: [vsphere]
+      summary: Clone a vSphere template into a target VM folder
+      description: >
+        Clones a template (resolved by display name against the
+        latest inventory) into the target folder path, then powers
+        the new VM on. 200 on success, 404 when the template name
+        isn't in the latest snapshot, 503 when unconfigured or the
+        inventory is empty, 502 when vCenter rejects the clone,
+        504 when vCenter times out.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VSphereCloneRequestBody' }
+      responses:
+        '200':
+          description: Clone succeeded.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VSphereCloneResponse' }
+        '404':
+          $ref: '#/components/responses/Problem'
+        '502':
+          $ref: '#/components/responses/Problem'
+        '503':
+          $ref: '#/components/responses/Problem'
+        '504':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
 components:
   parameters:
     VmId:
@@ -1435,3 +1517,148 @@ components:
           nullable: true
           description: Provider-specific diagnostics (discovery URL, JWKS URL, bind subject, ...). Free-form.
           additionalProperties: true
+
+    VSphereInventorySnapshotHeader:
+      type: object
+      description: Snapshot header for GET /api/v1/vsphere/inventory. Carries the snapshot id + per-resource row counts + the refresh timestamp.
+      required: [id, vcenterMoref, datacenterCount, clusterCount, hostCount, virtualMachineCount, refreshedAt]
+      properties:
+        id: { type: string, format: uuid, description: "Snapshot id (UUID v7)." }
+        vcenterMoref:
+          type: string
+          description: "vCenter identifier the snapshot was pulled from."
+          example: primary
+        datacenterCount: { type: integer, minimum: 0, example: 1 }
+        clusterCount: { type: integer, minimum: 0, example: 2 }
+        hostCount: { type: integer, minimum: 0, example: 6 }
+        virtualMachineCount: { type: integer, minimum: 0, example: 42 }
+        refreshedAt: { type: string, format: date-time, description: "UTC timestamp the snapshot was written." }
+
+    VSphereInventoryClusterRow:
+      type: object
+      description: Cluster row in the vSphere inventory snapshot.
+      required: [moref, name, datacenterMoref, drsEnabled]
+      properties:
+        moref: { type: string, example: domain-c7, description: "Cluster mo-ref." }
+        name: { type: string, example: cluster-prod-01 }
+        datacenterMoref: { type: string, example: datacenter-2, description: "Parent datacenter mo-ref." }
+        drsEnabled:
+          type: boolean
+          description: "When true, vSphere DRS handles initial placement + load balancing."
+          example: true
+
+    VSphereInventoryHostRow:
+      type: object
+      description: ESXi host row in the vSphere inventory snapshot.
+      required: [moref, name, clusterMoref, connectionState, cpuCores, memoryMib]
+      properties:
+        moref: { type: string, example: host-21, description: "Host mo-ref." }
+        name: { type: string, example: esxi-01.corp.example.com }
+        clusterMoref: { type: string, example: domain-c7, description: "Parent cluster mo-ref." }
+        connectionState:
+          type: string
+          enum: [CONNECTED, DISCONNECTED, NOT_RESPONDING]
+          example: CONNECTED
+        cpuCores: { type: integer, minimum: 0, example: 32, description: "Total logical CPU cores (sockets × cores)." }
+        memoryMib:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 262144
+          description: "Total physical memory in MiB."
+
+    VSphereInventoryVirtualMachineRow:
+      type: object
+      description: Virtual machine row in the vSphere inventory snapshot (non-template only).
+      required: [moref, name, powerState, cpuCount, memoryMib]
+      properties:
+        moref: { type: string, example: vm-1234, description: "VM mo-ref." }
+        name: { type: string, example: web-prod-01 }
+        folderPath:
+          type: string
+          nullable: true
+          example: /Datacenter/vm/Tenants/Acme
+          description: "Inventory folder path; null when at root."
+        powerState:
+          type: string
+          enum: [POWERED_ON, POWERED_OFF, SUSPENDED]
+          example: POWERED_ON
+        cpuCount: { type: integer, minimum: 0, example: 4, description: "CPU count allocated to the VM." }
+        memoryMib:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 16384
+          description: "Memory in MiB allocated to the VM."
+        hostMoref:
+          type: string
+          nullable: true
+          example: host-21
+          description: "Parent host mo-ref; null for templates (currently never returned — templates are out of scope for v1)."
+
+    VSphereInventoryResponse:
+      type: object
+      description: Top-level response for GET /api/v1/vsphere/inventory. Bundles the snapshot header + the per-resource row lists so the caller can render the inventory in a single round trip.
+      required: [snapshot, clusters, hosts, virtualMachines]
+      properties:
+        snapshot: { $ref: '#/components/schemas/VSphereInventorySnapshotHeader' }
+        clusters:
+          type: array
+          items: { $ref: '#/components/schemas/VSphereInventoryClusterRow' }
+        hosts:
+          type: array
+          items: { $ref: '#/components/schemas/VSphereInventoryHostRow' }
+        virtualMachines:
+          type: array
+          items: { $ref: '#/components/schemas/VSphereInventoryVirtualMachineRow' }
+
+    VSphereInventoryRefreshResponse:
+      type: object
+      description: Body for the 202 response on POST /api/v1/vsphere/inventory/refresh.
+      required: [snapshotId, status]
+      properties:
+        snapshotId: { type: string, format: uuid, description: "The newly written snapshot id." }
+        status:
+          type: string
+          enum: [SUCCESS]
+          example: SUCCESS
+
+    VSphereCloneRequestBody:
+      type: object
+      description: Body for POST /api/v1/vsphere/clone.
+      required: [templateName, name]
+      properties:
+        templateName:
+          type: string
+          minLength: 1
+          example: ubuntu-22.04-base
+          description: "Display name of the source template. Resolved against the latest cached inventory; a missing template surfaces as 404."
+        name:
+          type: string
+          minLength: 1
+          example: web-prod-01
+          description: "Display name for the new VM."
+        folderPath:
+          type: string
+          nullable: true
+          example: /Datacenter/vm/Tenants/Acme
+          description: "Inventory folder path for the new VM; null when the caller does not care (vCenter default folder)."
+
+    VSphereCloneResponse:
+      type: object
+      description: Body for the 200 response on POST /api/v1/vsphere/clone.
+      required: [vmMoref, status]
+      properties:
+        runId:
+          type: string
+          format: uuid
+          nullable: true
+          description: "Audit-trail row id (UUID v7). Null when the service omits it."
+        vmMoref:
+          type: string
+          description: "vCenter mo-ref for the new VM."
+          example: vm-5678
+        status:
+          type: string
+          enum: [SUCCESS]
+          example: SUCCESS

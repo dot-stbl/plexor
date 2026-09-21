@@ -55,6 +55,10 @@ import {
   getOidcAuthorizeHandler,
   getOidcCallbackHandler,
   postOidcLogoutHandler,
+  // vSphere (3 — issue #77)
+  getVSphereInventoryHandler,
+  refreshVSphereInventoryHandler,
+  cloneVSphereTemplateHandler,
   // Fixtures
   createVmList,
   createVmDetail,
@@ -73,6 +77,12 @@ import {
   createAuditQueryResponse,
   createOrgAuthProviderConfigResponse,
   createOrgAuthProviderTestResult,
+  createVSphereInventoryResponse,
+  createVSphereInventoryClusterRow,
+  createVSphereInventoryHostRow,
+  createVSphereInventoryVirtualMachineRow,
+  createVSphereInventoryRefreshResponse,
+  createVSphereCloneResponse,
 } from '@/shared/api';
 
 // Deterministic mocks — same data every reload (stable UI + screenshots).
@@ -111,6 +121,104 @@ const fleet = FLEET.map((vm) => ({
 const fleetById: Map<string, (typeof fleet)[number]> = new Map(
   fleet.map((vm) => [vm.id, vm]),
 );
+
+// ───────────────────────── vSphere fixture data (issue #77) ─────────────────────────
+//
+// Hand-curated inventory so the list renders a realistic mix of
+// clusters / hosts / VMs. The snapshot id is stable across reloads so
+// the inventory list + the refresh-handler response line up.
+const VSPHERE_SNAPSHOT_ID = '01928374-aaa0-7000-8000-000000000001';
+const VSPHERE_VCENTER_MOREF = 'primary';
+const VSPHERE_DATACENTER_MOREF = 'datacenter-2';
+const VSPHERE_INVENTORY_FIXTURE = {
+  snapshot: {
+    id: VSPHERE_SNAPSHOT_ID,
+    vcenterMoref: VSPHERE_VCENTER_MOREF,
+    datacenterCount: 1,
+    clusterCount: 2,
+    hostCount: 3,
+    virtualMachineCount: 4,
+    refreshedAt: '2026-09-21T08:00:00Z',
+  },
+  clusters: [
+    createVSphereInventoryClusterRow({
+      moref: 'domain-c7',
+      name: 'cluster-prod-01',
+      datacenterMoref: VSPHERE_DATACENTER_MOREF,
+      drsEnabled: true,
+    }),
+    createVSphereInventoryClusterRow({
+      moref: 'domain-c8',
+      name: 'cluster-staging-01',
+      datacenterMoref: VSPHERE_DATACENTER_MOREF,
+      drsEnabled: false,
+    }),
+  ],
+  hosts: [
+    createVSphereInventoryHostRow({
+      moref: 'host-21',
+      name: 'esxi-01.corp.example.com',
+      clusterMoref: 'domain-c7',
+      connectionState: 'CONNECTED',
+      cpuCores: 32,
+      memoryMib: 262144,
+    }),
+    createVSphereInventoryHostRow({
+      moref: 'host-22',
+      name: 'esxi-02.corp.example.com',
+      clusterMoref: 'domain-c7',
+      connectionState: 'CONNECTED',
+      cpuCores: 32,
+      memoryMib: 262144,
+    }),
+    createVSphereInventoryHostRow({
+      moref: 'host-23',
+      name: 'esxi-staging-01.corp.example.com',
+      clusterMoref: 'domain-c8',
+      connectionState: 'DISCONNECTED',
+      cpuCores: 16,
+      memoryMib: 131072,
+    }),
+  ],
+  virtualMachines: [
+    createVSphereInventoryVirtualMachineRow({
+      moref: 'vm-1234',
+      name: 'web-prod-01',
+      folderPath: '/Datacenter/vm/Tenants/Acme',
+      powerState: 'POWERED_ON',
+      cpuCount: 4,
+      memoryMib: 16384,
+      hostMoref: 'host-21',
+    }),
+    createVSphereInventoryVirtualMachineRow({
+      moref: 'vm-1235',
+      name: 'db-prod-01',
+      folderPath: '/Datacenter/vm/Tenants/Acme',
+      powerState: 'POWERED_ON',
+      cpuCount: 8,
+      memoryMib: 32768,
+      hostMoref: 'host-21',
+    }),
+    createVSphereInventoryVirtualMachineRow({
+      moref: 'vm-1236',
+      name: 'ubuntu-22.04-base',
+      folderPath: '/Datacenter/vm/Templates',
+      powerState: 'POWERED_OFF',
+      cpuCount: 2,
+      memoryMib: 4096,
+      hostMoref: 'host-22',
+    }),
+    createVSphereInventoryVirtualMachineRow({
+      moref: 'vm-1237',
+      name: 'staging-api',
+      folderPath: '/Datacenter/vm/Tenants/Acme/Staging',
+      powerState: 'SUSPENDED',
+      cpuCount: 2,
+      memoryMib: 8192,
+      hostMoref: 'host-23',
+    }),
+  ],
+};
 
 export const handlers: RequestHandler[] = [
   // ───────────────────────── VMs (6) ─────────────────────────
@@ -190,4 +298,27 @@ export const handlers: RequestHandler[] = [
   getOidcAuthorizeHandler({ redirectUrl: 'https://mock-idp.example.com/authorize' }),
   getOidcCallbackHandler({ status: 'ok' }),
   postOidcLogoutHandler(),
+
+  // ───────────────────────── vSphere (3 — issue #77) ─────────────────────────
+  //
+  // Hand-curated inventory so the list renders a realistic mix of
+  // clusters / hosts / VMs. The refresh handler increments the
+  // snapshot id + refreshes `RefreshedAt`; the clone handler echoes a
+  // deterministic new VM mo-ref so the success toast is stable.
+  getVSphereInventoryHandler(
+    createVSphereInventoryResponse(VSPHERE_INVENTORY_FIXTURE),
+  ),
+  refreshVSphereInventoryHandler(
+    createVSphereInventoryRefreshResponse({
+      snapshotId: VSPHERE_SNAPSHOT_ID,
+      status: 'SUCCESS',
+    }),
+  ),
+  cloneVSphereTemplateHandler(
+    createVSphereCloneResponse({
+      runId: '01928374-bbb0-7000-8000-000000000001',
+      vmMoref: 'vm-9001',
+      status: 'SUCCESS',
+    }),
+  ),
 ];

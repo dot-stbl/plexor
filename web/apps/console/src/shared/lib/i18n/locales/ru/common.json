@@ -55,6 +55,8 @@
     "lxcDesc": "Системные контейнеры (LXD)",
     "k8sTitle": "K8s-кластеры",
     "k8sDesc": "Managed K3s",
+    "vsphereTitle": "vSphere-инвентарь",
+    "vsphereDesc": "Кластеры, хосты, ВМ из vCenter",
     "vpcTitle": "VPC и подсети",
     "vpcDesc": "Изолированные сети",
     "sgTitle": "Security Groups",
@@ -850,6 +852,56 @@
       "empty": "В этом билде нет зарегистрированных сторонних тем.",
       "loadError": "Не удалось загрузить маркетплейс тем.",
       "brandingHint": "операторские умолчания (логотип, акцент, фавикон), влияющие на всех пользователей."
+    }
+  },
+  "vsphere": {
+    "inventory": {
+      "title": "vSphere-инвентарь",
+      "summary": "кластеров · хостов · ВМ",
+      "vcenterLabel": "vCenter",
+      "refresh": "Обновить",
+      "refreshing": "Обновление…",
+      "clustersTitle": "Кластеры ({{count}})",
+      "clustersEmpty": "В снимке нет кластеров.",
+      "hostsTitle": "Хосты ({{count}})",
+      "hostsEmpty": "В снимке нет ESXi-хостов.",
+      "vmsTitle": "Виртуальные машины ({{count}})",
+      "vmsEmpty": "В снимке нет ВМ.",
+      "datacenter": "Датацентр",
+      "cluster": "Кластер",
+      "folder": "Папка",
+      "host": "Хост",
+      "drs": "DRS",
+      "drsOn": "Вкл",
+      "drsOff": "Выкл",
+      "powerState": "Питание",
+      "cloneCta": "Клонировать из шаблона",
+      "errorTitle": "Не удалось загрузить vSphere-инвентарь",
+      "empty": {
+        "title": "Снимок vSphere ещё не снят",
+        "description": "Запустите снимок из vCenter — результат появится здесь и обновит список инвентаря."
+      }
+    },
+    "clone": {
+      "title": "Клонировать ВМ из шаблона vSphere",
+      "description": "Клонировать шаблон в целевую папку ВМ и включить питание.",
+      "card": {
+        "title": "Источник и цель",
+        "description": "Обработчик разрешает имя шаблона и путь к папке по последнему снимку инвентаря."
+      },
+      "templateName": "Имя шаблона",
+      "templateNameHelp": "Отображаемое имя исходного шаблона. Должно существовать как ВМ или ранее клонированный шаблон в последнем снимке.",
+      "templateNamePlaceholder": "например ubuntu-22.04-base",
+      "name": "Имя новой ВМ",
+      "nameHelp": "Отображаемое имя в vCenter и в Plexor-инвентаре.",
+      "namePlaceholder": "например web-prod-02",
+      "folderPath": "Путь к целевой папке",
+      "folderPathHelp": "Необязательно. Если пусто, vCenter использует папку по умолчанию.",
+      "folderPathPlaceholder": "/Datacenter/vm/Tenants/Acme",
+      "submit": "Клонировать и включить",
+      "success": "Клонирована {{name}}",
+      "errorTitle": "Ошибка клонирования",
+      "errorGeneric": "Запрос на клонирование не выполнен."
     }
   }
 }
