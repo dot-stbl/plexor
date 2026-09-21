@@ -67,9 +67,9 @@ public static class ClustersInfrastructureInstaller
         services.AddScoped<ICommandHandler<NodeHeartbeatCommand, NodeHeartbeatResult>, NodeHeartbeatCommandHandler>();
         services.AddScoped<ICommandHandler<ListNodesQuery, IReadOnlyList<NodeSummary>>, ListNodesQueryHandler>();
 
-        // Workload handlers — see WorkloadCommandHandlers.cs +
-        // WorkloadReadHandlers.cs. Create / Delete / List / Get split
-        // across two files following the Cluster pattern.
+        // Workload handlers — see CreateWorkloadCommandHandler.cs,
+        // DeleteWorkloadCommandHandler.cs, WorkloadReadHandlers.cs
+        // (one file per command per folder-organization §1).
         services.AddScoped<ICommandHandler<CreateWorkloadCommand, WorkloadSummary>, CreateWorkloadCommandHandler>();
         services.AddScoped<ICommandHandler<DeleteWorkloadCommand, Unit>, DeleteWorkloadCommandHandler>();
         services.AddScoped<ICommandHandler<ListWorkloadsQuery, PageResult<WorkloadSummary>>, ListWorkloadsQueryHandler>();
