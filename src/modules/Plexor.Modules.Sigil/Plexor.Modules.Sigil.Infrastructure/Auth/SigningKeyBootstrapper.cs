@@ -70,12 +70,12 @@ public sealed class SigningKeyBootstrapper(
                 "Generated and stored active signing key (kid={Kid}, alg={Algorithm}).",
                 key.Kid, key.Algorithm);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             // Likely a race with another host that inserted the
             // same kid. Log and retry once — the second call to
             // GetActiveAsync should find the winner.
-            logger.LogWarning(ex,
+            logger.LogWarning(exception,
                 "Failed to insert signing key (kid={Kid}); retrying with the existing key.",
                 kid);
 

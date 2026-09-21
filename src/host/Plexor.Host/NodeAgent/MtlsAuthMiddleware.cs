@@ -78,9 +78,9 @@ public sealed class MtlsAuthMiddleware(
         {
             nodeId = IdParse.ParseNodeId(cn);
         }
-        catch (FormatException ex)
+        catch (FormatException exception)
         {
-            logger.LogWarning(ex, "Client cert CN '{Cn}' is not a valid Plexor NodeId.", cn);
+            logger.LogWarning(exception, "Client cert CN '{Cn}' is not a valid Plexor NodeId.", cn);
             await RejectMtlsAsync(context, "CN is not a Plexor NodeId", context.RequestAborted);
             return;
         }

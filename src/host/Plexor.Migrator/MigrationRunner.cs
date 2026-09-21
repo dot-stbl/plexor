@@ -73,9 +73,9 @@ internal sealed class MigrationRunner(
 
             logger.LogInformation("plexor-migrator: all migrations applied.");
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            logger.LogCritical(ex, "plexor-migrator: migration failed.");
+            logger.LogCritical(exception, "plexor-migrator: migration failed.");
             lifetime.StopApplication();
             throw;
         }

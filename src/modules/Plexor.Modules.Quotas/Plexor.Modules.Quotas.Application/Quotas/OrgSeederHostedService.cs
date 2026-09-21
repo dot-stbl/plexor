@@ -59,10 +59,10 @@ public sealed class OrgSeederHostedService(
         {
             orgIds = await orgIdsProvider(cancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             logger.LogWarning(
-                ex,
+                exception,
                 "OrgSeeder: could not enumerate orgs; skipping seed.");
             return;
         }

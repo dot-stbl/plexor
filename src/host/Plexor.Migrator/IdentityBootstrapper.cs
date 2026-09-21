@@ -206,9 +206,9 @@ internal sealed class IdentityBootstrapper(
 
             lifetime.StopApplication();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            logger.LogCritical(ex,
+            logger.LogCritical(exception,
                 "IdentityBootstrapper: unexpected failure during first-run seed.");
             lifetime.StopApplication();
             throw;

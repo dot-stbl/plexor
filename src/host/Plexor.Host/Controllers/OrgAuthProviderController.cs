@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 // ============================================================================
-// OrgAuthProviderController — REST endpoints for the per-org auth-provider
-// configuration resource (4.6.1). Mounts two endpoints under
+// OrgAuthProvidersController — per-organization auth-provider
+// configuration REST surface (4.6.1). Mounts three endpoints under
 // /api/v1/iam/orgs/{orgId}/auth-provider:
 //
-//   GET   — fetch the current config (OIDC secret masked).
-//   PUT   — upsert the config (provider switch + OIDC fields).
-//
-// The OIDC connection test lives in
-// <see cref="OrgAuthProviderTestController" /> — lifecycle verb on the
-// same URL prefix per api-design.md §6 (different concern, split surface).
+//   GET    — fetch the current config (OIDC secret masked).
+//   PUT    — upsert the config (provider switch + OIDC fields).
+//   POST .../test — run the OIDC discovery fetch + parse.
 //
 // All endpoints are tenant-scoped: a user in Org X SHALL NOT
 // view or mutate Org Y's row (404 when the URL orgId doesn't
@@ -22,12 +19,14 @@
 // AddControllers() because it lives in this assembly.
 // ============================================================================
 
+using System.Security.Cryptography;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Plexor.Host.Models;
+using Plexor.Host.Validation;
 using Plexor.Modules.Realm.Domain.Entities;
 using Plexor.Modules.Realm.Infrastructure.AuthProviders;
 using Plexor.Modules.Realm.Infrastructure.Persistence;
@@ -53,13 +52,16 @@ file static class OrgAuthProviderRouteNames
 
     /// <summary>PUT /api/v1/iam/orgs/{orgId}/auth-provider — upsert the config.</summary>
     public const string ConfigUpsert = "org-auth-provider-upsert";
+
+    /// <summary>POST /api/v1/iam/orgs/{orgId}/auth-provider/test — OIDC connection test.</summary>
+    public const string ConfigTest = "org-auth-provider-test";
 }
 
 /// <summary>
 ///     Default OIDC scope list shipped on every fresh
 ///     <see cref="OrgAuthProviderConfig" /> row. Always includes
 ///     <c>openid</c> + <c>profile</c> + <c>email</c>; an admin can
-///     extend via PUT. <see cref="OrgAuthProviderController" />
+///     extend via PUT. <see cref="OrgAuthProvidersController" />
 ///     references the same array on every PUT (CA1861 — array
 ///     literal lifted to a static field).
 /// </summary>
@@ -90,6 +92,10 @@ file static class OrgAuthProviderDefaults
 /// <c>Microsoft.AspNetCore.DataProtection.IDataProtectionProvider</c>.
 /// Encapsulates the purpose string so a different-purpose
 /// protector elsewhere can't decrypt the same ciphertext.</param>
+/// <param name="httpClientFactory">
+/// Scoped <see cref="IHttpClientFactory" /> — used by the
+/// <c>/test</c> endpoint to fetch the OIDC discovery
+/// document.</param>
 /// <param name="auditEmitter">
 ///     Scoped <see cref="IAuditEmitter" /> — emits the
 ///     <c>org.auth_provider.changed</c> event on every successful
@@ -99,16 +105,19 @@ file static class OrgAuthProviderDefaults
 /// <param name="clock">Injected <see cref="TimeProvider" /> for the
 /// <c>updated_at</c> stamps on PUT (per <c>time-and-wire-format.md</c>
 /// §3).</param>
+/// <param name="logger">Structured logger.</param>
 [ApiController]
 [Route($"{ApiRoutes.Base}/iam/orgs/{{orgId:guid}}/auth-provider")]
 [Tags(["auth-providers"])]
 [Authorize]
-public sealed class OrgAuthProviderController(
+public sealed class OrgAuthProvidersController(
     RealmDbContext db,
     ICurrentUser currentUser,
     OrgAuthProviderSecretProtector secretProtector,
+    IHttpClientFactory httpClientFactory,
     IAuditEmitter auditEmitter,
-    TimeProvider clock) : ControllerBase
+    TimeProvider clock,
+    ILogger<OrgAuthProvidersController> logger) : ControllerBase
 {
     /// <summary>
     ///     <c>GET /api/v1/iam/orgs/{orgId}/auth-provider</c> —
@@ -255,6 +264,11 @@ public sealed class OrgAuthProviderController(
                     cancellationToken);
         }
 
+        logger.LogInformation(
+            "OrgAuthProvidersController: org {OrgId} auth-provider set to {Provider}.",
+            orgId,
+            provider);
+
         var refreshed = await db.OrgAuthProviderConfigs
             .AsNoTracking()
             .FirstAsync(config => config.OrgId == orgId, cancellationToken);
@@ -271,5 +285,97 @@ public sealed class OrgAuthProviderController(
             cancellationToken);
 
         return Ok(OrgAuthProviderControllerHelpers.MapToResponse(refreshed));
+    }
+
+    /// <summary>
+    ///     <c>POST /api/v1/iam/orgs/{orgId}/auth-provider/test</c> —
+    ///     run the OIDC connection test against the configured
+    ///     authority. The endpoint decrypts the stored client
+    ///     secret locally (never included in the response) and
+    ///     fetches the discovery document at
+    ///     <c>{authority}/.well-known/openid-configuration</c>.
+    ///     Tenant-scoped: 404 when the URL <c>orgId</c> doesn't
+    ///     match the caller's
+    ///     <see cref="ICurrentUser.TenantId" />.
+    /// </summary>
+    /// <param name="orgId">Org id from the URL.</param>
+    /// <param name="cancellationToken">Cooperative cancellation.</param>
+    [HttpPost("test", Name = OrgAuthProviderRouteNames.ConfigTest)]
+    [EndpointSummary("Test the OIDC connection for the per-org auth-provider config")]
+    [RequirePermission(AuthProviderPermissions.Update)]
+    [ProducesResponseType<OrgAuthProviderTestResult>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<OrgAuthProviderTestResult>> TestAsync(
+        Guid orgId,
+        CancellationToken cancellationToken)
+    {
+        if (orgId != currentUser.TenantId)
+        {
+            return OrgAuthProviderControllerHelpers.ConfigNotFound(orgId, HttpContext.Request.Path);
+        }
+
+        var row = await db.OrgAuthProviderConfigs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(config => config.OrgId == orgId, cancellationToken);
+
+        if (row is null || row.Provider != OrgAuthProvider.Oidc || row.OidcAuthority is null)
+        {
+            return Problem(
+                detail: "Cannot test — provider is not OIDC for this org.",
+                instance: HttpContext.Request.Path,
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Provider is not OIDC");
+        }
+
+        // Decrypt the client secret. The decrypt result is held
+        // in memory only for the duration of the HTTP call; it is
+        // never logged, never returned in the response, never
+        // persisted in plaintext.
+        string? plaintextSecret = null;
+        if (!string.IsNullOrEmpty(row.OidcClientSecretProtected))
+        {
+            try
+            {
+                plaintextSecret = secretProtector.Decrypt(row.OidcClientSecretProtected);
+            }
+            catch (CryptographicException exception)
+            {
+                // IDataProtector.Unprotect throws CryptographicException on a
+                // keyring rotation or malformed ciphertext — exactly the
+                // failure modes that need to surface to the operator who
+                // hit the test endpoint. Log + rethrow so the test returns
+                // 500 instead of pretending the discovery probe succeeded
+                // against an unrecoverable secret.
+                logger.LogWarning(
+                    exception,
+                    "OrgAuthProvidersController.TestAsync: failed to decrypt the OIDC client secret for org {OrgId}; " +
+                    "the keyring may have rotated and the stored ciphertext is unrecoverable.",
+                    orgId);
+                throw;
+            }
+        }
+
+        var discoveryUrl = OrgAuthProviderControllerHelpers.BuildDiscoveryDocumentUrl(row.OidcAuthority);
+        var fetch = await OrgAuthProviderControllerHelpers.FetchDiscoveryAsync(
+            discoveryUrl,
+            httpClientFactory,
+            cancellationToken);
+
+        var result = new OrgAuthProviderTestResult
+        {
+            Connected = fetch.Connected,
+            DiscoveryDocumentUrl = fetch.Connected ? discoveryUrl : null,
+            AvailableScopes = fetch.Scopes ?? [],
+            Error = fetch.Error,
+        };
+
+        // plaintextSecret is intentionally NOT included in the
+        // response. The controller never echoes a decrypted
+        // secret — it would be a leak vector. The test is
+        // intentionally a "is the authority reachable" probe, not
+        // a full PKCE handshake. PKCE lands in 4.6.3.
+        _ = plaintextSecret;
+
+        return Ok(result);
     }
 }

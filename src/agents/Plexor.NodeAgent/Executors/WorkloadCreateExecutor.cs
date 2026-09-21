@@ -73,10 +73,10 @@ public sealed class WorkloadCreateExecutor(
             // heartbeat cycle to learn the runtime handle.
             return ExecutorResult.OkWithLocalId(workload.Id);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             return ExecutorResult.Fail(
-                $"workload.create exception: {ex.GetType().Name}: {ex.Message}");
+                $"workload.create exception: {exception.GetType().Name}: {exception.Message}");
         }
     }
 }

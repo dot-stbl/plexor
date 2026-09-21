@@ -172,9 +172,9 @@ public sealed class ThemeInstallationsController(
 
             return Ok(ThemeInstallationsControllerHelpers.ToResponse(row, registry));
         }
-        catch (UnknownThemeException ex)
+        catch (UnknownThemeException exception)
         {
-            return ThemeInstallationsControllerHelpers.UnknownTheme(ex.ThemeId);
+            return ThemeInstallationsControllerHelpers.UnknownTheme(exception.ThemeId);
         }
     }
 

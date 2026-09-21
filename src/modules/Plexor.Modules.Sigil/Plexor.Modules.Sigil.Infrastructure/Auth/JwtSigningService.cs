@@ -165,13 +165,13 @@ public sealed class JwtSigningService(
 
             return new VerifyResult.Success(principal);
         }
-        catch (SecurityTokenMalformedException ex)
+        catch (SecurityTokenMalformedException exception)
         {
-            return new VerifyResult.Malformed(ex.Message);
+            return new VerifyResult.Malformed(exception.Message);
         }
-        catch (SecurityTokenException ex)
+        catch (SecurityTokenException exception)
         {
-            return new VerifyResult.Invalid(ex.Message);
+            return new VerifyResult.Invalid(exception.Message);
         }
     }
 

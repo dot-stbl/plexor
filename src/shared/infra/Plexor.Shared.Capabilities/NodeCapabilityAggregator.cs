@@ -67,14 +67,14 @@ public sealed class NodeCapabilityAggregator(
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             // Don't let one broken probe kill the whole report.
             // The control plane's scheduler treats absent
             // capabilities as "node doesn't have it" — exactly
             // what we want for a probe that failed.
             logger.LogWarning(
-                ex,
+                exception,
                 "Capability probe {Provider} failed; skipping its contribution",
                 probe.ProviderName);
         }

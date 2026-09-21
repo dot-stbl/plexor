@@ -48,7 +48,7 @@ public sealed class LinuxBridgeBackend(ILogger<LinuxBridgeBackend> logger) : INe
                 $"net-define {LinuxBridgeBackendXml.BuildNetworkXml(networkSpec.Name)}",
                 cancellationToken);
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("already", StringComparison.OrdinalIgnoreCase))
+        catch (InvalidOperationException exception) when (exception.Message.Contains("already", StringComparison.OrdinalIgnoreCase))
         {
             // Network already defined — fine. Continue to net-start
             // in case it's not running.
@@ -90,7 +90,7 @@ public sealed class LinuxBridgeBackend(ILogger<LinuxBridgeBackend> logger) : INe
                 $"net-destroy {handle.Reference}",
                 cancellationToken);
         }
-        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+        catch (Exception exception) when (exception is InvalidOperationException or System.ComponentModel.Win32Exception)
         {
             // Network wasn't running, or virsh missing. Continue to undefine.
         }
@@ -102,7 +102,7 @@ public sealed class LinuxBridgeBackend(ILogger<LinuxBridgeBackend> logger) : INe
                 $"net-undefine {handle.Reference}",
                 cancellationToken);
         }
-        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+        catch (Exception exception) when (exception is InvalidOperationException or System.ComponentModel.Win32Exception)
         {
             // Network didn't exist, or virsh missing. Treat as success — idempotent.
         }

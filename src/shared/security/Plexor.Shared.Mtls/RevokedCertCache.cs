@@ -93,12 +93,12 @@ public sealed class RevokedCertCache(
             }
             cacheLoadedAt = DateTimeOffset.UtcNow;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             // If the DB is unreachable, fail open — the cert is
             // accepted. A failing-closed policy here would lock out
             // the whole cluster on a transient DB blip.
-            logger.LogWarning(ex, "Failed to refresh revoked-cert cache; allowing cert.");
+            logger.LogWarning(exception, "Failed to refresh revoked-cert cache; allowing cert.");
         }
     }
 }

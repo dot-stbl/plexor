@@ -87,10 +87,10 @@ internal sealed class NodeAgentWorker(
             {
                 return;
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 logger.LogWarning(
-                    ex,
+                    exception,
                     "Join failed; retrying in {Backoff}",
                     JoinRetryInterval);
 
@@ -203,12 +203,12 @@ internal sealed class NodeAgentWorker(
 
                 logger.LogDebug("Heartbeat sent for {NodeId}", current.NodeId);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 // Transient transport failure (network blip,
                 // host restarting). Log and try again next tick.
                 logger.LogWarning(
-                    ex,
+                    exception,
                     "Heartbeat failed for {NodeId}; will retry next tick",
                     current.NodeId);
             }
@@ -246,13 +246,13 @@ internal sealed class NodeAgentWorker(
             {
                 return;
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 // Transient failure (host unreachable, 503,
                 // circuit breaker open). Log and back off one
                 // poll interval before trying again.
                 logger.LogWarning(
-                    ex,
+                    exception,
                     "Poll failed for {NodeId}; retrying in {Backoff}",
                     current.NodeId,
                     PollInterval);
@@ -288,13 +288,13 @@ internal sealed class NodeAgentWorker(
                 result.CommandId,
                 result.Status);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             // Result-submission failure is more serious than a
             // poll failure: the host will eventually time out the
             // command. Log loudly so the operator sees it.
             logger.LogError(
-                ex,
+                exception,
                 "Failed to submit result for {CommandId} ({Status})",
                 result.CommandId,
                 result.Status);
