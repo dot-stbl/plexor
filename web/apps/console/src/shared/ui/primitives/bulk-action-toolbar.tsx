@@ -69,7 +69,7 @@ export function BulkActionToolbar({
       role="region"
       aria-label={`${count} ${label}`}
       className={cn(
-        'fixed left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-lg border border-border bg-card px-4 py-1.5 shadow-lg',
+        'fixed left-1/2 z-popover flex -translate-x-1/2 items-center gap-3 rounded-lg border border-border bg-card px-4 py-1.5 shadow-lg',
         'animate-in slide-in-from-bottom-4 fade-in duration-200',
         bottomClass,
         className,

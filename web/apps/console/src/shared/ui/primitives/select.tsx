@@ -166,7 +166,7 @@ function PlexorSelectContent({ children, className }: PlexorSelectContentProps) 
     <Popover
       data-slot="select-content"
       className={cn(
-        "min-w-(--anchor-width) origin-(--transform-origin) bg-clip-padding",
+        "z-popover min-w-(--anchor-width) origin-(--transform-origin) bg-clip-padding",
         "overflow-hidden rounded-md bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10",
         "data-entering:animate-in data-entering:fade-in-0 data-entering:zoom-in-95",
         "data-exiting:animate-out data-exiting:fade-out-0 data-exiting:zoom-out-95",

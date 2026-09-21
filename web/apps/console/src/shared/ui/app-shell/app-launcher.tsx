@@ -209,15 +209,15 @@ export function AppLauncher({
       // Children that need clicks (dim overlay below, launcher panel as a
       // sibling inside this portal) re-enable pointer-events explicitly
       // because pointer-events doesn't inherit 'auto' from 'none'.
-      className="pointer-events-none fixed inset-0 z-40"
+      className="pointer-events-none fixed inset-0 z-fixed"
     >
       {/* Dim everything except the sidebar (left of this) and the menu cards.
-          Covers the header (z-10) too → menu overlaps it. */}
+          Covers the header (z-sticky) too → menu overlaps it. */}
       <div
         aria-hidden="true"
         onClick={close}
         className={cn(
-          'pointer-events-auto fixed inset-y-0 right-0 z-30 bg-black/40 backdrop-blur-sm transition-opacity duration-200',
+          'pointer-events-auto fixed inset-y-0 right-0 z-sticky bg-black/40 backdrop-blur-sm transition-opacity duration-200',
           sideOffset,
           phase === 'exit' ? 'opacity-0' : 'opacity-100',
         )}
@@ -225,7 +225,7 @@ export function AppLauncher({
       <div
         data-od-id="launcher"
         className={cn(
-          'pointer-events-auto fixed inset-y-0 z-40 flex h-full w-[min(760px,60vw)] flex-col bg-transparent outline-none transition-[transform,opacity] duration-200 ease-out',
+          'pointer-events-auto fixed inset-y-0 z-fixed flex h-full w-[min(760px,60vw)] flex-col bg-transparent outline-none transition-[transform,opacity] duration-200 ease-out',
           sideOffset,
           phase === 'enter' && '-translate-x-4 opacity-0',
           phase === 'exit' && '-translate-x-4 opacity-0',
