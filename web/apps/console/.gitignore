@@ -1,2 +1,7 @@
 .tanstack/
 dist-storybook/
+
+# Local Playwright diagnostic scripts (repro tooling for tooltip + visual bugs)
+repro/
+repro-screenshots/
+
