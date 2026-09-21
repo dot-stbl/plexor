@@ -875,6 +875,10 @@
       "drsOn": "On",
       "drsOff": "Off",
       "powerState": "Power state",
+      "powerOn": "Powered on",
+      "powerOff": "Powered off",
+      "suspended": "Suspended",
+      "refreshed": "vSphere inventory refreshed",
       "cloneCta": "Clone from template",
       "errorTitle": "Failed to load vSphere inventory",
       "empty": {
@@ -900,6 +904,7 @@
       "folderPathPlaceholder": "/Datacenter/vm/Tenants/Acme",
       "submit": "Clone and power on",
       "success": "Cloned {{name}}",
+      "morefField": "vm.moref = {{moref}}",
       "errorTitle": "Clone failed",
       "errorGeneric": "The clone request did not complete."
     }

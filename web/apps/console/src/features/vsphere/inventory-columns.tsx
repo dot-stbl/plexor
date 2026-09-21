@@ -10,11 +10,13 @@ import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { CopyableText } from '@/shared/ui/primitives/copyable-text';
 import { mapVSpherePowerStateToVariant } from './power-state';
 
-const POWER_STATE_FILTER_OPTIONS: { value: 'POWERED_ON' | 'POWERED_OFF' | 'SUSPENDED'; label: string }[] = [
-  { value: 'POWERED_ON', label: 'Powered on' },
-  { value: 'POWERED_OFF', label: 'Powered off' },
-  { value: 'SUSPENDED', label: 'Suspended' },
-];
+function buildPowerStateFilterOptions(t: TFunction): { value: 'POWERED_ON' | 'POWERED_OFF' | 'SUSPENDED'; label: string }[] {
+  return [
+    { value: 'POWERED_ON', label: t('vsphere.inventory.powerOn') },
+    { value: 'POWERED_OFF', label: t('vsphere.inventory.powerOff') },
+    { value: 'SUSPENDED', label: t('vsphere.inventory.suspended') },
+  ];
+}
 
 /**
  * Column set for the vSphere cluster table. One declaration per
@@ -183,7 +185,7 @@ export function getVSphereVmColumns(t: TFunction): ColumnDef<VSphereInventoryVir
         filter: {
           type: 'select',
           param: 'powerState',
-          options: POWER_STATE_FILTER_OPTIONS,
+          options: buildPowerStateFilterOptions(t),
           placeholder: t('vsphere.inventory.powerState'),
         },
       },

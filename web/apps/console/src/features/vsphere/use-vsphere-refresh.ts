@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useRefreshVSphereInventory } from '@/shared/api';
 import { useInvalidateVSphereInventory } from './use-vsphere-inventory';
@@ -10,6 +11,7 @@ import { useInvalidateVSphereInventory } from './use-vsphere-inventory';
  * inspect the new snapshot id if needed.
  */
 export function useVSphereRefresh() {
+  const { t } = useTranslation();
   const mutation = useRefreshVSphereInventory();
   const invalidate = useInvalidateVSphereInventory();
 
@@ -19,7 +21,7 @@ export function useVSphereRefresh() {
       mutation.mutate(undefined, {
         onSuccess: () => {
           invalidate();
-          toast.success('vSphere inventory refreshed');
+          toast.success(t('vsphere.inventory.refreshed'));
         },
       });
     },

@@ -43,7 +43,9 @@ export function VSphereCloneForm() {
 
   if (clone.isSuccess) {
     toast.success(t('vsphere.clone.success', { name: name.trim() }), {
-      description: `vm.moref = ${clone.data?.vmMoref ?? '—'}`,
+      description: t('vsphere.clone.morefField', {
+        moref: clone.data?.vmMoref ?? '—',
+      }),
     });
     void navigate({ to: '/vsphere' });
   } else if (clone.isError) {

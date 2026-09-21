@@ -875,6 +875,10 @@
       "drsOn": "Вкл",
       "drsOff": "Выкл",
       "powerState": "Питание",
+      "powerOn": "Включена",
+      "powerOff": "Выключена",
+      "suspended": "Приостановлена",
+      "refreshed": "vSphere-инвентарь обновлён",
       "cloneCta": "Клонировать из шаблона",
       "errorTitle": "Не удалось загрузить vSphere-инвентарь",
       "empty": {
@@ -900,6 +904,7 @@
       "folderPathPlaceholder": "/Datacenter/vm/Tenants/Acme",
       "submit": "Клонировать и включить",
       "success": "Клонирована {{name}}",
+      "morefField": "vm.moref = {{moref}}",
       "errorTitle": "Ошибка клонирования",
       "errorGeneric": "Запрос на клонирование не выполнен."
     }
