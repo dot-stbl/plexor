@@ -42,7 +42,7 @@ public sealed class VSphereInventoryRefresherShould
     ///     correct counts.
     /// </summary>
     [Fact(DisplayName = "Given mocked vCenter, when RefreshAsync runs, then writes one snapshot header with the counts")]
-    public async Task RefreshAsync_WritesSnapshotHeader_WithCorrectCountsAsync()
+    public async Task RefreshAsyncWritesSnapshotHeaderWithCorrectCountsAsync()
     {
         var client = Substitute.For<IVSphereClient>();
         client.ListDatacentersAsync(Arg.Any<CancellationToken>())
@@ -88,7 +88,7 @@ public sealed class VSphereInventoryRefresherShould
     ///     their respective tables with the expected counts.
     /// </summary>
     [Fact(DisplayName = "Given mocked vCenter, when RefreshAsync runs, then writes per-resource child rows")]
-    public async Task RefreshAsync_WritesPerResourceChildRowsAsync()
+    public async Task RefreshAsyncWritesPerResourceChildRowsAsync()
     {
         var client = Substitute.For<IVSphereClient>();
         client.ListDatacentersAsync(Arg.Any<CancellationToken>())
@@ -121,7 +121,7 @@ public sealed class VSphereInventoryRefresherShould
     ///     refresh — no stale rows).
     /// </summary>
     [Fact(DisplayName = "Given a prior snapshot, when RefreshAsync runs, then replaces it atomically")]
-    public async Task RefreshAsync_ReplacesPriorSnapshotAtomicAsync()
+    public async Task RefreshAsyncReplacesPriorSnapshotAtomicAsync()
     {
         var client = Substitute.For<IVSphereClient>();
         client.ListDatacentersAsync(Arg.Any<CancellationToken>())

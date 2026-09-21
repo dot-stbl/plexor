@@ -14,6 +14,7 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Refit;
 
 namespace Plexor.Providers.VSphere.Installers;
@@ -53,24 +54,26 @@ public static class VSphereClientInstaller
 
         services.AddSingleton<VSphereBasicAuthHandler>();
 
-        var section = configuration.GetSection(VSphereOptions.SectionName);
-        var vCenterUrl = section["VCenterUrl"];
-
         // AddRefitClient + AddStandardResilienceHandler — the canonical
-        // pattern from http-resilience-refit.md §2. Bearer handler
-        // sits before resilience in the chain so auth failures are
-        // surfaced immediately (no retry on 401).
+        // pattern from http-resilience-refit.md §2. The handler chain
+        // is outer-first from the consumer: resilience is registered
+        // LAST (innermost), so it wraps the auth handler. A 401 from
+        // basic-auth will be retried by Polly until MaxRetryAttempts
+        // is exhausted (basic-auth is idempotent, so this is fine).
+        // Per-request timeouts come from AddStandardResilienceHandler's
+        // TotalRequestTimeout — do NOT also set HttpClient.Timeout
+        // here, that creates two competing timeout sources.
         services
             .AddRefitClient<IVSphereClient>()
-            .ConfigureHttpClient(client =>
+            .ConfigureHttpClient((sp, client) =>
             {
+                var vCenterUrl = sp.GetRequiredService<IOptions<VSphereOptions>>().Value.VCenterUrl;
                 if (!string.IsNullOrWhiteSpace(vCenterUrl))
                 {
                     client.BaseAddress = new Uri(vCenterUrl);
                 }
 
                 client.DefaultRequestHeaders.UserAgent.ParseAdd("Plexor-Host/0.1");
-                client.Timeout = TimeSpan.FromMinutes(2);
             })
             .AddHttpMessageHandler<VSphereBasicAuthHandler>()
             .AddStandardResilienceHandler();

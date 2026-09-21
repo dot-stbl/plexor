@@ -31,14 +31,15 @@ internal static class VSphereTestDb
     ///     is suppressed so the inventory refresher's
     ///     atomic-replace transaction becomes a no-op in tests.
     /// </summary>
-    public static async Task<VSphereDbContext> CreateAsync()
+    public static async Task<VSphereDbContext> CreateAsync(
+        CancellationToken cancellationToken = default)
     {
         var options = new DbContextOptionsBuilder<VSphereDbContext>()
             .UseInMemoryDatabase($"vsphere-test-{Guid.NewGuid():N}")
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
         var db = new VSphereDbContext(options);
-        await db.Database.EnsureCreatedAsync();
+        await db.Database.EnsureCreatedAsync(cancellationToken);
         return db;
     }
 }

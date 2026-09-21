@@ -40,7 +40,7 @@ public sealed class VSphereProvisioningServiceShould
     ///     the result carries the same fields.
     /// </summary>
     [Fact(DisplayName = "Given successful Refit call, when CloneTemplateAsync runs, then writes SUCCESS audit row")]
-    public async Task CloneTemplateAsync_OnSuccess_WritesSuccessAuditRowAsync()
+    public async Task CloneTemplateAsyncOnSuccessWritesSuccessAuditRowAsync()
     {
         var client = Substitute.For<IVSphereClient>();
         client.CloneTemplateAsync(Arg.Any<VSphereCloneRequest>(), Arg.Any<CancellationToken>())
@@ -83,7 +83,7 @@ public sealed class VSphereProvisioningServiceShould
     ///     result carries Status = "FAILED" with a null VM mo-ref.
     /// </summary>
     [Fact(DisplayName = "Given Refit failure, when CloneTemplateAsync runs, then writes FAILED audit row")]
-    public async Task CloneTemplateAsync_OnRefitFailure_WritesFailedAuditRowAsync()
+    public async Task CloneTemplateAsyncOnRefitFailureWritesFailedAuditRowAsync()
     {
         var client = Substitute.For<IVSphereClient>();
         client.CloneTemplateAsync(Arg.Any<VSphereCloneRequest>(), Arg.Any<CancellationToken>())
