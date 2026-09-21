@@ -55,3 +55,62 @@ jobs:
         run: |
           git diff --exit-code -- web/apps/console/src/shared/api/src web/tooling/codegen
           test -z "$(git status --porcelain -- web/apps/console/src/shared/api/src web/tooling/codegen)"
+
+  # Visual regression — runs Storybook test-runner against the committed
+  # PNG baselines in `.storybook/__screenshots__/`. The top-level
+  # workflow `paths:` filter already restricts to `web/**`, so this only
+  # runs when web code is touched. We do NOT add a finer "stories only"
+  # filter at this layer because every CSS / token / layout edit tends
+  # to affect a story render too — running the cheap (~30s) check on
+  # every web change keeps drift tight. If this becomes noisy we can
+  # add `dorny/paths-filter` and skip when only docs change.
+  #
+  # Baselines are CI-generated (ubuntu-latest) — see scripts/visual-tests.md
+  # for the local/CI pixel-rendering note.
+  visual-tests:
+    needs: web
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web/apps/console
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+
+      - name: Install workspace
+        run: bun install
+        working-directory: web
+
+      # Install Playwright Chromium (the @playwright/test workspace dep
+      # brings the test runner; the browser binary is downloaded here).
+      # We use --with-deps so the Ubuntu libs Chromium needs are present.
+      - name: Install Playwright Chromium
+        run: bunx playwright install --with-deps chromium
+
+      # Run the visual regression suite. The orchestrator script builds
+      # Storybook, serves it statically, runs the test-runner, kills the
+      # server, and cleans up test artifacts. Baselines are read from
+      # `.storybook/__screenshots__/` (committed). On diff, exit non-zero
+      # and the diff PNGs land in `.storybook/__screenshots__/__diff_output__/`
+      # for review (uploaded as an artifact below).
+      - name: Run visual regression
+        run: bun run test:visual
+
+      # Upload diff artifacts on failure so reviewers can see what
+      # changed without re-running locally. The action only fires on
+      # failure (if: failure()), keeping storage costs zero on green.
+      - name: Upload diff artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-test-diffs
+          path: |
+            web/apps/console/.storybook/__screenshots__/__diff_output__/
+            web/apps/console/test-results/
+            web/apps/console/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
