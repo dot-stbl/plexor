@@ -1,0 +1,12 @@
+---
+title: "VPC & Subnets"
+icon: "Network"
+description: "VPC как изоляция тенанта, subnets как зоны."
+---
+
+TODO: страница в работе.
+
+- `Vpc { Id, TenantId, ProjectId, Cidr, Name, ... }`
+- `Subnet { Id, VpcId, Cidr, Region, Zone }`
+- `POST /api/v1/network/vpcs`, `POST /api/v1/network/vpcs/{id}/subnets`
+- Subnet должен быть в CIDR родительского VPC

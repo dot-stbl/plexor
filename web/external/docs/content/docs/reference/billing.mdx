@@ -1,0 +1,12 @@
+---
+title: "Billing"
+icon: "ScrollText"
+description: "Metering + invoice (внутренний account)."
+---
+
+TODO: страница в работе.
+
+- NATS-subscribers эмитят `metering.used` event с каждым state transition
+- `MeteringAggregator` (BackgroundService) раз в час делает rollups в `metering_hourly`
+- `InvoiceGenerator` (cron) генерирует invoice за прошлый месяц
+- Pricing rules в `plexor.yaml`: `vm.small = 0.01 USD/hour` и т.п.

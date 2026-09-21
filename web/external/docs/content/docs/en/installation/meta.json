@@ -1,0 +1,4 @@
+{
+  "title": "Installation",
+  "pages": ["single-node", "multi-node", "upgrade"]
+}

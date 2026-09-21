@@ -1,0 +1,65 @@
+---
+title: "Getting started"
+icon: "Rocket"
+description: "First login, web UI, plx CLI, app structure."
+---
+
+## Registration
+
+Access to Plexor is via the **Keycloak OIDC flow**. Accounts are created by a platform administrator or via self-registration (when a tenant enables that option).
+
+1. Open [plexor.stbl.space](https://plexor.stbl.space) (or your self-hosted URL).
+2. Click "Sign in" — the Keycloak login page opens.
+3. After a successful OIDC flow, a JWT with `tenant_id` is stored in the session cookie.
+
+## First login
+
+After login, you land in the web console:
+
+- **Tenants & Projects** — top-left selector for Organization / Project.
+- **Compute** — list of VMs in the selected Project.
+- **Marketplace** — app providers catalog.
+- **Settings** — SSH keys, API keys, profile.
+
+## plx CLI
+
+For terminal work — `plx` (NativeAOT binary). Install:
+
+```bash
+curl -fsSL https://plexor.stbl.space/install.sh | bash
+```
+
+Basic commands:
+
+```bash
+plx auth login
+plx tenants list
+plx compute vms list
+plx provider list
+plx provider install-instance wordpress
+```
+
+## What's where
+
+| Section | What's inside |
+|---|---|
+| Compute → VMs | VM list, create/start/stop/snapshot |
+| Compute → Flavors | VM sizes (small/medium/large) |
+| Compute → Images | OS images (Ubuntu, Debian, AlmaLinux) |
+| Network → VPCs | Virtual Private Clouds |
+| Network → Floating IPs | Public IPs for VMs |
+| Network → Load Balancers | L4/L7 LBs on HAProxy |
+| Storage → Volumes | Block disks |
+| Storage → Buckets | S3-compatible object storage |
+| Identity → Users | Tenant users |
+| Identity → SSH Keys | Public keys for VMs |
+| Identity → API Keys | Tokens for integrations |
+| Marketplace → Catalog | List of app providers |
+| Marketplace → Instances | Running instances |
+| Settings | Profile, session, MFA |
+
+## Next
+
+- [Tenants & Projects](/en/concepts/tenants-and-projects) — hierarchy and quotas.
+- [Authentication](/en/concepts/authentication) — how OIDC and RBAC work.
+- [Marketplace](/en/marketplace) — app providers and how to deploy WordPress in one command.

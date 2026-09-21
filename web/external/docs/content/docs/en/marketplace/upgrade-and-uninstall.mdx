@@ -1,0 +1,11 @@
+---
+title: "Upgrade & Uninstall"
+icon: "Terminal"
+description: "App instance lifecycle: upgrade to a new version, uninstall."
+---
+
+TODO: page in progress.
+
+- `plx provider upgrade <instance-id> --to-version 0.3.0`
+- State: `running → upgrading → running` (or `failed`)
+- `DELETE /api/v1/marketplace/instances/{id}` — uninstall, async 202

@@ -1,0 +1,143 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+/*
+ * Plexor docs theme — нейтральная бумажная палитра, акцент в фиолетово-cyan
+ * диапазоне (бренд-марка). Семья с приложением console, не близнец:
+ *  - приложение = плотный интерфейс; доки = бумага — читальня, а не операционная;
+ *  - акцент приложения спокойнее: indigo на светлом, cyan на тёмном;
+ *  - тёмная тема доков на пол-шага темнее приложения.
+ */
+
+:root {
+  --background: #fdfdfc;
+  --foreground: #1a1a2e;
+  --card: #f7f5f0;
+  --card-foreground: #1a1a2e;
+  --popover: #faf9f7;
+  --popover-foreground: #1a1a2e;
+  --primary: #4f46e5;
+  --primary-foreground: #fdfdfc;
+  --secondary: #ebe8e1;
+  --secondary-foreground: #1a1a2e;
+  --muted: #f2f0ec;
+  --muted-foreground: #6b7280;
+  --accent: #e4dfd6;
+  --accent-foreground: #1a1a2e;
+  --destructive: #b91c1c;
+  --border: #dcd6ca;
+  --input: #dcd6ca;
+  --ring: #6366f1;
+  --radius: 0.625rem;
+
+  --color-fd-background: #fdfdfc;
+  --color-fd-foreground: #1a1a2e;
+  --color-fd-card: #f7f5f0;
+  --color-fd-primary: #4f46e5;
+  --color-fd-primary-foreground: #fdfdfc;
+  --color-fd-muted: #f2f0ec;
+  --color-fd-muted-foreground: #6b7280;
+  --color-fd-border: #dcd6ca;
+  --color-fd-ring: #6366f1;
+  --color-fd-accent: #e4dfd6;
+  --color-fd-accent-foreground: #1a1a2e;
+
+  --fd-layout-width: 97rem;
+}
+
+.dark {
+  --background: #14131a;
+  --foreground: #eeebe4;
+  --card: #1c1b22;
+  --card-foreground: #eeebe4;
+  --popover: #1a191f;
+  --popover-foreground: #eeebe4;
+  --primary: #22d3ee;
+  --primary-foreground: #14131a;
+  --secondary: #2b2a30;
+  --secondary-foreground: #eeebe4;
+  --muted: #23222a;
+  --muted-foreground: #9ca3af;
+  --accent: #34313a;
+  --accent-foreground: #eeebe4;
+  --destructive: #f87171;
+  --border: #32303a;
+  --input: #32303a;
+  --ring: #22d3ee;
+
+  --color-fd-background: #14131a;
+  --color-fd-foreground: #eeebe4;
+  --color-fd-card: #1c1b22;
+  --color-fd-primary: #22d3ee;
+  --color-fd-primary-foreground: #14131a;
+  --color-fd-muted: #23222a;
+  --color-fd-muted-foreground: #9ca3af;
+  --color-fd-border: #32303a;
+  --color-fd-ring: #22d3ee;
+  --color-fd-accent: #34313a;
+  --color-fd-accent-foreground: #eeebe4;
+}
+
+.docs-theme-square,
+.docs-theme-square * {
+  border-radius: 0.375rem !important;
+}
+
+html {
+  scrollbar-gutter: stable;
+  scrollbar-color: #c0b6a0 #f2f0ec;
+  scrollbar-width: thin;
+}
+
+.dark {
+  scrollbar-color: #4d4942 #1c1b22;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f2f0ec;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c0b6a0;
+  border-radius: 8px;
+  border: 2px solid #f2f0ec;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #968a74;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1c1b22;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4d4942;
+  border-color: #1c1b22;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #676156;
+}
+
+#nd-sidebar ::-webkit-scrollbar,
+[data-slot='table-container'] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+#nd-sidebar ::-webkit-scrollbar-thumb,
+[data-slot='table-container'] ::-webkit-scrollbar-thumb {
+  border-width: 1px;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}

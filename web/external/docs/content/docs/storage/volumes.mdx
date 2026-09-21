@@ -1,0 +1,11 @@
+---
+title: "Volumes"
+icon: "HardDrive"
+description: "Block storage: Ceph RBD или local-lvm, attach к VM."
+---
+
+TODO: страница в работе.
+
+- `Volume { Id, TenantId, ProjectId, SizeGb, Type, Status, AttachedToVmId? }`
+- `POST /api/v1/storage/volumes`, `POST /api/v1/storage/volumes/{id}/attach`
+- Install provider: `ceph-rbd` (multi-node) или `local-lvm` (single-node)

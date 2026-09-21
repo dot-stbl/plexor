@@ -1,0 +1,4 @@
+{
+  "title": "Marketplace",
+  "pages": ["index", "browse-and-install", "authoring-provider", "upgrade-and-uninstall", "catalog"]
+}

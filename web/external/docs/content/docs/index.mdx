@@ -1,0 +1,94 @@
+---
+title: "Plexor"
+icon: "Info"
+description: "Self-hosted cloud platform — Organization → Project иерархия, multi-tenant IAM, marketplace app providers, REST API."
+---
+
+import { Cards, Card } from 'fumadocs-ui/components/card';
+import {
+  Building2,
+  Cloud,
+  KeyRound,
+  Layers,
+  Network,
+  Server,
+  ShoppingBag,
+  Terminal,
+} from 'lucide-react';
+import { BrandMark } from '@/components/brand-mark';
+
+<DocsHero
+  mark={<BrandMark className="size-14 text-fd-foreground" />}
+  title="Plexor"
+  subtitle="Self-hosted cloud platform — модульный монолит на .NET с multi-tenant IAM, marketplace app providers и REST/OpenAPI API."
+  primaryLabel="Начало работы"
+  primaryHref="/getting-started"
+  secondaryLabel="Открыть консоль"
+  secondaryHref="https://console.plexor.stbl.space"
+/>
+
+Plexor поднимает свой control plane в одном бинарнике (`Plexor.Host`) с PostgreSQL как state DB, NATS как event bus, и node-агентами на каждой compute-ноде. Compute, Network, Storage, Identity, Tenants, Billing, Telemetry, Marketplace — модули внутри одного бинаря (modular monolith, extraction-ready по измеренному bottleneck'у).
+
+## Что умеет платформа
+
+<Cards>
+  <Card
+    icon={<Building2 className="size-4" aria-hidden />}
+    title="Tenants & Projects"
+    description="Иерархия Organization → Project с per-tenant и per-project квотами. Каждый ресурс живёт в одной из этих scope-зон."
+  />
+  <Card
+    icon={<Server className="size-4" aria-hidden />}
+    title="Compute"
+    description="Виртуальные машины (KVM по умолчанию, LXD/Firecracker как альтернативы), flavors, images, lifecycle, snapshots, noVNC-консоль."
+  />
+  <Card
+    icon={<Network className="size-4" aria-hidden />}
+    title="Network"
+    description="VPC, subnets, security groups, floating IP, load balancer, DNS-зоны. OVS/Cilium для overlay-сети."
+  />
+  <Card
+    icon={<Cloud className="size-4" aria-hidden />}
+    title="Storage"
+    description="Block volumes (Ceph RBD / local-lvm), S3-compatible buckets (Ceph RGW / MinIO), снапшоты VM и volume."
+  />
+  <Card
+    icon={<KeyRound className="size-4" aria-hidden />}
+    title="Identity"
+    description="OIDC через Keycloak, RBAC с permissions формата compute.vms.create, SSH-ключи, API-ключи для service accounts."
+  />
+  <Card
+    icon={<ShoppingBag className="size-4" aria-hidden />}
+    title="Marketplace"
+    description="Каталог app providers (WordPress, PostgreSQL, Redis, Keycloak, Ghost, custom). Установка одной командой, автор — через YAML provider spec."
+  />
+  <Card
+    icon={<Layers className="size-4" aria-hidden />}
+    title="Metering & Billing"
+    description="NATS-events от всех state transitions, rollups в metering_hourly, invoice-генерация раз в месяц."
+  />
+  <Card
+    icon={<Terminal className="size-4" aria-hidden />}
+    title="API & CLI"
+    description="OpenAPI source-generator эмитит artifacts/openapi.json на каждом build. Kubb генерит TS-клиент для web. CLI `plx` — NativeAOT binary."
+  />
+</Cards>
+
+## App providers vs install providers
+
+Plexor различает **install providers** (KVM, Ceph, OVS — выбор инфраструктуры при `plx init`) и **app providers** (WordPress, PostgreSQL — шаблоны развертывания user apps через marketplace). App providers — это YAML с shell-командами, не NuGet-плагины: см. [Marketplace](/marketplace).
+
+## Безопасность
+
+Multi-tenant by default: всё через `tenant_id` в JWT claims, глобальные EF Core query filters. Audit log на каждое мутирующее действие, append-only с retention 7 лет. Secrets — только в env / vault, не в config-файлах.
+
+## Начните отсюда
+
+<Cards>
+  <Card title="Начало работы" description="Первый заход, web UI, plx CLI, структура приложения." href="/getting-started" />
+  <Card title="Tenants & Projects" description="Иерархия Organization → Project и её scope-семантика." href="/concepts/tenants-and-projects" />
+  <Card title="Authentication" description="OIDC flow, JWT claims, RBAC permissions." href="/concepts/authentication" />
+  <Card title="Virtual Machines" description="Lifecycle VM: create, start, stop, snapshot, console." href="/compute/virtual-machines" />
+  <Card title="Marketplace" description="App providers: каталог, install, upgrade, как сделать свой." href="/marketplace" />
+  <Card title="Installation" description="Single-node setup, multi-node setup, upgrade." href="/installation" />
+</Cards>

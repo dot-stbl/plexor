@@ -1,0 +1,25 @@
+{
+  "title": "Plexor",
+  "pages": [
+    "---Plexor---",
+    "index",
+    "getting-started",
+    "---Concepts---",
+    "...concepts",
+    "---Access---",
+    "...identity",
+    "---Resources---",
+    "...compute",
+    "...network",
+    "...storage",
+    "---Marketplace---",
+    "...marketplace",
+    "---Installation---",
+    "...installation",
+    "---Operations---",
+    "...operations",
+    "---Reference---",
+    "...reference",
+    "faq"
+  ]
+}

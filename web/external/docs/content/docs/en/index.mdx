@@ -1,0 +1,62 @@
+---
+title: "Plexor"
+icon: "Info"
+description: "Self-hosted cloud platform — Organization → Project hierarchy, multi-tenant IAM, marketplace app providers, REST API."
+---
+
+import { Cards, Card } from 'fumadocs-ui/components/card';
+import {
+  Building2,
+  Cloud,
+  KeyRound,
+  Layers,
+  Network,
+  Server,
+  ShoppingBag,
+  Terminal,
+} from 'lucide-react';
+import { BrandMark } from '@/components/brand-mark';
+
+<DocsHero
+  mark={<BrandMark className="size-14 text-fd-foreground" />}
+  title="Plexor"
+  subtitle="Self-hosted cloud platform — modular monolith on .NET with multi-tenant IAM, marketplace app providers and a REST/OpenAPI API."
+  primaryLabel="Getting started"
+  primaryHref="/en/getting-started"
+  secondaryLabel="Open console"
+  secondaryHref="https://console.plexor.stbl.space"
+/>
+
+Plexor runs its control plane in a single binary (`Plexor.Host`) with PostgreSQL as state DB, NATS as event bus, and a node-agent on every compute node. Compute, Network, Storage, Identity, Tenants, Billing, Telemetry, Marketplace are modules inside one binary (modular monolith, extraction-ready by measured bottleneck).
+
+## What the platform does
+
+<Cards>
+  <Card icon={<Building2 className="size-4" aria-hidden />} title="Tenants & Projects" description="Organization → Project hierarchy with per-tenant and per-project quotas. Every resource lives in one of these scope zones." />
+  <Card icon={<Server className="size-4" aria-hidden />} title="Compute" description="Virtual machines (KVM default, LXD/Firecracker as alternatives), flavors, images, lifecycle, snapshots, noVNC console." />
+  <Card icon={<Network className="size-4" aria-hidden />} title="Network" description="VPC, subnets, security groups, floating IP, load balancer, DNS zones. OVS/Cilium for overlay networking." />
+  <Card icon={<Cloud className="size-4" aria-hidden />} title="Storage" description="Block volumes (Ceph RBD / local-lvm), S3-compatible buckets (Ceph RGW / MinIO), VM and volume snapshots." />
+  <Card icon={<KeyRound className="size-4" aria-hidden />} title="Identity" description="OIDC via Keycloak, RBAC with permissions like compute.vms.create, SSH keys, API keys for service accounts." />
+  <Card icon={<ShoppingBag className="size-4" aria-hidden />} title="Marketplace" description="App providers catalog (WordPress, PostgreSQL, Redis, Keycloak, Ghost, custom). One-command install, authoring via YAML provider spec." />
+  <Card icon={<Layers className="size-4" aria-hidden />} title="Metering & Billing" description="NATS events from every state transition, rollups into metering_hourly, monthly invoice generation." />
+  <Card icon={<Terminal className="size-4" aria-hidden />} title="API & CLI" description="OpenAPI source-generator emits artifacts/openapi.json on every build. Kubb generates a TS client for the web. CLI `plx` is a NativeAOT binary." />
+</Cards>
+
+## App providers vs install providers
+
+Plexor distinguishes **install providers** (KVM, Ceph, OVS — infrastructure choice at `plx init`) from **app providers** (WordPress, PostgreSQL — user-app deployment templates via marketplace). App providers are YAML with shell commands, not NuGet plugins: see [Marketplace](/en/marketplace).
+
+## Security
+
+Multi-tenant by default: everything flows through `tenant_id` in JWT claims, global EF Core query filters. Audit log on every mutating action, append-only with 7-year retention. Secrets live only in env / vault, never in config files.
+
+## Start here
+
+<Cards>
+  <Card title="Getting started" description="First login, web UI, plx CLI, app structure." href="/en/getting-started" />
+  <Card title="Tenants & Projects" description="Organization → Project hierarchy and its scope semantics." href="/en/concepts/tenants-and-projects" />
+  <Card title="Authentication" description="OIDC flow, JWT claims, RBAC permissions." href="/en/concepts/authentication" />
+  <Card title="Virtual Machines" description="VM lifecycle: create, start, stop, snapshot, console." href="/en/compute/virtual-machines" />
+  <Card title="Marketplace" description="App providers: catalog, install, upgrade, authoring." href="/en/marketplace" />
+  <Card title="Installation" description="Single-node setup, multi-node setup, upgrade." href="/en/installation" />
+</Cards>

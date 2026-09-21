@@ -1,0 +1,16 @@
+---
+title: "API"
+icon: "Terminal"
+description: "REST API, авторизация, фильтры, версионирование."
+---
+
+TODO: страница в работе.
+
+- Endpoints: `/api/v1/{module}/{resource}`
+- OpenAPI spec: `artifacts/openapi.json` на каждом build
+- Auth: `Authorization: Bearer <JWT>`
+- Версионирование: URL prefix (`/api/v1`, `/api/v2`)
+- Фильтры: Yandex-Cloud-style `?filter=status.phase=RUNNING`
+- Pagination: cursor-based
+- Idempotency: `Idempotency-Key` header (24h cache)
+- Error format: RFC 9457 ProblemDetails

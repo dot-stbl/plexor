@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="75 78 350 350">
+  <!-- Favicon only (navbar BrandLogo is separate). Cropped tight so the mark reads at 16px. -->
+  <style>
+    path { fill: #0a0a0a; }
+    @media (prefers-color-scheme: dark) { path { fill: #fafafa; } }
+  </style>
+  <path d="M292.315 98L202.47 322.451H279.538L292.315 290.532L336.933 402H414L292.315 98Z" />
+  <path d="M106.496 348.292L85 402H247.697L269.193 348.292H106.496Z" />
+</svg>

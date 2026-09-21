@@ -1,0 +1,4 @@
+{
+  "title": "Концепции",
+  "pages": ["tenants-and-projects", "authentication", "resource-scope"]
+}

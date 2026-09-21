@@ -1,0 +1,12 @@
+---
+title: "Billing"
+icon: "ScrollText"
+description: "Metering + invoice (internal account)."
+---
+
+TODO: page in progress.
+
+- NATS subscribers emit `metering.used` events on every state transition
+- `MeteringAggregator` rolls up hourly into `metering_hourly`
+- `InvoiceGenerator` (cron) generates an invoice for the previous month
+- Pricing rules in `plexor.yaml`
