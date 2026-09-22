@@ -71,8 +71,8 @@ function VmsPage() {
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
   const handleRowClick = useCallback((vm: { id: string; name: string }) => {
-    toast(t('table.openRow', { name: vm.name }), { description: `id=${vm.id}` });
-  }, [t]);
+    void navigate({ to: '/vms/$id', params: { id: vm.id } });
+  }, [navigate]);
 
   const confirmDelete = useCallback(() => {
     setDeleteOpen(false);
