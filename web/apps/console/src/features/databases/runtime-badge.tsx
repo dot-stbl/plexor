@@ -32,7 +32,7 @@ export function RuntimeBadge({ runtime, className }: RuntimeBadgeProps) {
         meta.class === 'delegated' ? 'border-dashed border-border-2' : 'border-border',
         className,
       )}
-      title={`${meta.label} · ${meta.class} — ${meta.blurb}`}
+      title={`${meta.label} — ${meta.class} — ${meta.blurb}`}
     >
       <RuntimeIcon className="size-3.5 text-muted-foreground" />
       {meta.label}

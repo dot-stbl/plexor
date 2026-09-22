@@ -53,7 +53,7 @@ export function AuditTimelineList() {
                   </div>
                   {entry.targetId && (
                     <div className="truncate font-mono text-[11px] text-muted-foreground">
-                      {entry.targetKind} · {entry.targetId}
+                      {entry.targetKind}/{entry.targetId}
                     </div>
                   )}
                 </div>
