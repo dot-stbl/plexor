@@ -181,7 +181,7 @@ function CreateVmPage() {
   const handleCreate = () => {
     if (!canCreate) return;
     toast(`Creating VM ${effectiveName}`, {
-      description: `${selectedImage?.name ?? 'image'} · ${vcpu} vCPU / ${SizeUtils.format(ramBytes)} · ${SizeUtils.format(bootDiskBytes)} on ${STORAGE_LABELS[effBootPool]} · ${selectedNode?.hostname ?? '—'}`,
+      description: `${selectedImage?.name ?? 'image'}, ${vcpu} vCPU / ${SizeUtils.format(ramBytes)}, ${SizeUtils.format(bootDiskBytes)} on ${STORAGE_LABELS[effBootPool]}, node ${selectedNode?.hostname ?? '—'}`,
     });
     void navigate({ to: '/vms' });
   };
@@ -248,7 +248,7 @@ function CreateVmPage() {
                     options={readyNodes.map((n) => n.id)}
                     render={(id) => {
                       const n = readyNodes.find((x) => x.id === id);
-                      return n ? `${n.hostname} · ${n.role === 'control' ? 'control-plane' : 'compute'}` : id;
+                      return n ? `${n.hostname} — ${n.role === 'control' ? 'control-plane' : 'compute'}` : id;
                     }}
                     placeholder={t('vms.new.nodePlaceholder')}
                   />
@@ -316,8 +316,10 @@ function CreateVmPage() {
                       <TechIcon slug={selectedImage.techSlug ?? ''} className="size-4" />
                       <Badge variant="outline">{`${selectedImage.os} ${selectedImage.version}`}</Badge>
                       <Badge variant="outline" className="font-mono">{selectedImage.arch}</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        image <Size bytes={selectedImage.sizeBytes} /> · min disk <Size bytes={selectedImage.minDiskBytes} />
+                      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span>image <Size bytes={selectedImage.sizeBytes} /></span>
+                        <span className="inline-block h-2.5 w-px bg-border" aria-hidden />
+                        <span>min disk <Size bytes={selectedImage.minDiskBytes} /></span>
                       </span>
                     </div>
                   )}
@@ -567,28 +569,29 @@ function CreateVmPage() {
               <SummaryRow label={t('vms.new.form.image')}>{selectedImage ? selectedImage.name : '—'}</SummaryRow>
               <SummaryRow label={t('vms.new.form.placement')}>
                 {selectedNode ? selectedNode.hostname : '—'}
-                {selectedCluster ? ` · ${selectedCluster.name}` : ''}
+                {selectedCluster ? <span className="text-muted-foreground">, cluster {selectedCluster.name}</span> : ''}
               </SummaryRow>
               <SummaryRow label={t('vms.new.form.cpu')}>
                 <MonoNum>{vcpu}</MonoNum> vCPU <span className="text-muted-foreground">({sockets}×{cores}, {cpuType})</span>
               </SummaryRow>
               <SummaryRow label={t('vms.new.form.memory')}>
                 <Size bytes={ramBytes} />
-                {ballooning ? <span className="text-muted-foreground"> · {t('vms.new.form.balloon')}</span> : null}
+                {ballooning ? <span className="text-muted-foreground">, {t('vms.new.form.balloon')}</span> : null}
               </SummaryRow>
               <SummaryRow label={t('vms.new.form.bootDisk')}>
-                <Size bytes={bootDiskBytes} /> <span className="text-muted-foreground">· {STORAGE_LABELS[effBootPool] ?? effBootPool}</span>
+                <Size bytes={bootDiskBytes} />
+                <span className="text-muted-foreground">, {STORAGE_LABELS[effBootPool] ?? effBootPool}</span>
               </SummaryRow>
               {extraDisks.length > 0 && (
                 <SummaryRow label={t('vms.new.form.extraDisks')}>
-                  <MonoNum>{extraDisks.length}</MonoNum> · <Size bytes={extraDiskBytes} />
+                  <MonoNum>{extraDisks.length}</MonoNum> disks, <Size bytes={extraDiskBytes} />
                 </SummaryRow>
               )}
               <SummaryRow label={t('vms.new.network')}>
-                {vpc} · {ipMode === 'dhcp' ? 'DHCP' : ipAddress || 'static'}
+                {vpc}, {ipMode === 'dhcp' ? 'DHCP' : ipAddress || 'static'}
               </SummaryRow>
               <SummaryRow label={t('vms.new.form.firmware')}>
-                {machineType} · {firmware.toUpperCase()}
+                {machineType}, {firmware.toUpperCase()}
               </SummaryRow>
             </div>
           </SummaryPanel>

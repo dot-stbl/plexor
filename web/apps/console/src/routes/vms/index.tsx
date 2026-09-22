@@ -76,7 +76,7 @@ function VmsPage() {
 
   const confirmDelete = useCallback(() => {
     setDeleteOpen(false);
-    toast(`${t('common.delete')} · ${selectedIds.size}`);
+    toast(`${t('common.delete')} (${selectedIds.size})`);
     clearSelection();
   }, [t, selectedIds.size, clearSelection]);
 
@@ -144,15 +144,15 @@ function VmsPage() {
         count={selectedIds.size}
         onClear={clearSelection}
         onStart={() => {
-          toast(`${t('common.start')} · ${selectedIds.size}`);
+          toast(`${t('common.start')} (${selectedIds.size})`);
           clearSelection();
         }}
         onStop={() => {
-          toast(`${t('common.stop')} · ${selectedIds.size}`);
+          toast(`${t('common.stop')} (${selectedIds.size})`);
           clearSelection();
         }}
         onReboot={() => {
-          toast(`${t('common.reboot')} · ${selectedIds.size}`);
+          toast(`${t('common.reboot')} (${selectedIds.size})`);
           clearSelection();
         }}
         onDelete={() => setDeleteOpen(true)}
