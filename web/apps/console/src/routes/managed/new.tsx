@@ -49,9 +49,9 @@ export const Route = createFileRoute('/managed/new')({
  * степени двойки) — как физически бьётся диск/память, а не круглые 500.
  */
 const PRESETS = [
-  { value: 'small', title: '2 vCPU · 8 GiB', subtitle: 'disk 64 GiB', cpu: 2, ram: 8, disk: 64 },
-  { value: 'medium', title: '4 vCPU · 16 GiB', subtitle: 'disk 256 GiB', cpu: 4, ram: 16, disk: 256 },
-  { value: 'large', title: '8 vCPU · 32 GiB', subtitle: 'disk 512 GiB', cpu: 8, ram: 32, disk: 512 },
+  { value: 'small', title: '2 vCPU, 8 GiB', subtitle: 'disk 64 GiB', cpu: 2, ram: 8, disk: 64 },
+  { value: 'medium', title: '4 vCPU, 16 GiB', subtitle: 'disk 256 GiB', cpu: 4, ram: 16, disk: 256 },
+  { value: 'large', title: '8 vCPU, 32 GiB', subtitle: 'disk 512 GiB', cpu: 8, ram: 32, disk: 512 },
 ];
 
 /**
@@ -108,7 +108,7 @@ function CreateClusterPage() {
   const handleCreate = () => {
     if (!engine || !runtime) return;
     toast(t('managed.new.toast', { name: effectiveName }), {
-      description: `${engine.name} · ${resources.cpu} vCPU / ${SizeUtils.format(resources.ramBytes)} / ${SizeUtils.format(resources.diskBytes)} · ${RUNTIME_META[runtime].label} · ${targetNode ?? '—'}`,
+      description: `${engine.name}, ${resources.cpu} vCPU / ${SizeUtils.format(resources.ramBytes)} / ${SizeUtils.format(resources.diskBytes)}, ${RUNTIME_META[runtime].label}, node ${targetNode ?? '—'}`,
     });
     void navigate({ to: backRoute });
   };
@@ -355,17 +355,17 @@ function CreateClusterPage() {
           >
             <div>
               <SummaryRow label={t('managed.new.form.summaryEngine')}>
-                {engine.name} · v{engine.version}
+                {engine.name} — v{engine.version}
               </SummaryRow>
               <SummaryRow label={t('managed.new.form.summaryResources')}>
-                <MonoNum>{resources.cpu}</MonoNum> vCPU · <Size bytes={resources.ramBytes} />
+                <MonoNum>{resources.cpu}</MonoNum> vCPU, <Size bytes={resources.ramBytes} />
               </SummaryRow>
               <SummaryRow label={t('managed.new.form.summaryDisk')}>
                 <Size bytes={resources.diskBytes} />
               </SummaryRow>
               <SummaryRow label={t('managed.new.form.summaryPlacement')}>
                 {runtime ? RUNTIME_META[runtime].label : '—'}
-                {targetNode ? ` · ${targetNode}` : ''}
+                {targetNode ? <span className="text-muted-foreground">, node {targetNode}</span> : ''}
               </SummaryRow>
               <SummaryRow label={t('managed.new.form.summaryBackups')}>
                 {backupsAllowed && backups ? (
