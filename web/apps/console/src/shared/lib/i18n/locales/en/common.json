@@ -391,6 +391,16 @@
         "startFailed": "Could not start VM",
         "stopFailed": "Could not stop VM",
         "deleteFailed": "Could not delete VM"
+      },
+      "console": {
+        "title": "Console & terminal",
+        "description": "VNC display and SSH shell for this VM. Both stream through the Plexor.NodeAgent; in this preview the agent isn't deployed, so the viewers are inert placeholders.",
+        "tabConsole": "Console",
+        "tabTerminal": "Terminal",
+        "consoleUnavailable": "Console preview unavailable — backend agent required.",
+        "consoleUnavailableDetail": "When Plexor.NodeAgent is deployed, this opens a noVNC stream to the VM's graphical display.",
+        "terminalUnavailable": "Terminal session requires the Plexor.NodeAgent (not deployed in this preview).",
+        "terminalUnavailableDetail": "When the agent is deployed, this opens a WebSocket to ws://nodeagent/vms/{{id}}/shell and forwards stdin/stdout."
       }
     }
   },
@@ -955,7 +965,10 @@
       "dns": "Copy DNS",
       "id": "Copy ID",
       "ip": "Copy IP",
-      "zone": "Copy zone"
+      "zone": "Copy zone",
+      "name": "Copy name",
+      "image": "Copy image",
+      "machineType": "Copy machine type"
     },
     "openRow": "Open {{name}}"
   },
