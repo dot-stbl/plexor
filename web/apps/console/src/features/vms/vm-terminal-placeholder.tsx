@@ -90,7 +90,7 @@ export function TerminalPlaceholder({ vmId }: TerminalPlaceholderProps) {
     // anywhere. This is the honest placeholder behaviour: the user
     // sees what the eventual integration looks like, but no fake
     // "command not found" loops that would pretend to be live.
-    const disposable = terminal.onData((data) => {
+    const disposable = terminal.onData((data: string) => {
       if (data === '\r') {
         terminal.write('\r\n');
         terminal.write('\x1b[32m$\x1b[0m ');
