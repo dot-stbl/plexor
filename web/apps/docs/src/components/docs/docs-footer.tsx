@@ -22,7 +22,7 @@ export function DocsFooter(): ReactNode {
         >
           Edit on GitHub →
         </a>
-        <span className="font-mono">@plexor/docs · v0.2 · pre-stable</span>
+        <span className="font-mono">@plexor/docs v0.2 pre-stable</span>
       </div>
     </footer>
   );

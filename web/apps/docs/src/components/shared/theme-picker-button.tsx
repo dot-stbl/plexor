@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
-import { applyPreset, presets } from '@plexor/ui/themes';
+import { useCallback, useEffect, useState } from 'react';
+import { LightMode } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { applyPreset, presets, type ThemePreset } from '@plexor/ui/themes';
 
 /**
  * Tiny theme-cycle button. Cycles through the built-in presets in
@@ -8,10 +9,14 @@ import { applyPreset, presets } from '@plexor/ui/themes';
  * inline boot script reads) and writes `data-theme` on `<html>` so
  * the rest of the app reads the right tokens immediately.
  *
- * Both marketing and docs chromes mount this same component — the
- * label is supplied by the parent via `className`, not hard-coded
- * here, because the marketing header shows "Тема" while the docs
- * header shows "Theme".
+ * Renders a single Material Symbols `LightMode` glyph at 16px. The
+ * icon is the same on every chrome — there is no per-parent copy.
+ * Parents style the surrounding button (color, hover, layout) via
+ * `className`; the icon's `size-4` className handles glyph dimensions.
+ *
+ * The aria-label mirrors the active preset so screen readers know
+ * what the click will toggle away from. The label updates on mount
+ * and after each cycle by listening to `data-theme` on `<html>`.
  *
  * No exposed state: the button is stateless beyond the imperative
  * cycle. The next paint reads the data-theme attribute directly, so
@@ -22,6 +27,23 @@ import { applyPreset, presets } from '@plexor/ui/themes';
 const STORAGE_KEY = 'plexor-theme';
 
 export function ThemePickerButton({ className }: { className?: string }) {
+  const [active, setActive] = useState<ThemePreset | null>(null);
+
+  useEffect(() => {
+    const read = () => {
+      const id = document.documentElement.dataset.theme ?? '';
+      const match = presets.find((preset) => preset.id === id) ?? null;
+      setActive(match);
+    };
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   const cycle = useCallback(() => {
     const root = document.documentElement;
     const currentId = root.dataset.theme ?? presets[0]?.id ?? '';
@@ -36,9 +58,17 @@ export function ThemePickerButton({ className }: { className?: string }) {
     }
   }, []);
 
+  const label = active ? `Theme: ${active.id} — click to switch` : 'Switch theme';
+
   return (
-    <button type="button" onClick={cycle} className={className}>
-      theme
+    <button
+      type="button"
+      onClick={cycle}
+      aria-label={label}
+      title={label}
+      className={className}
+    >
+      <LightMode className="size-4" />
     </button>
   );
 }

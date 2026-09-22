@@ -5,13 +5,13 @@ import { ThemePickerButton } from '@/components/shared/theme-picker-button';
 
 /**
  * Docs header — three discrete slots left-to-right:
- *   1. Brand cluster: PlexorMark + "plexor" wordmark + "· docs" eyebrow.
+ *   1. Brand cluster: PlexorMark + "plexor" wordmark + "docs" eyebrow.
  *      The brand cluster links back to `/` (the landing) so the header
  *      is a constant escape hatch out of the docs section.
  *   2. Breadcrumb — the parent chain of the current page, drawn from
  *      `useMatches()` by `DocsBreadcrumb`. Hidden at /docs/getting-started
  *      (no parent inside the docs group).
- *   3. Theme picker — tiny uppercase button, same one the marketing
+ *   3. Theme picker — tiny icon-only button, same one the marketing
  *      chrome uses.
  *
  * Sticky + blurred so the article scrolls under it. Height matches
@@ -29,15 +29,15 @@ export function DocsHeader() {
         >
           <PlexorMark className="h-6 w-6 text-foreground" />
           <span className="text-sm font-semibold tracking-tight">plexor</span>
-          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-muted-2">
-            · docs
+          <span className="font-mono text-[10px] font-medium tracking-[0.16em] text-muted-2">
+            docs
           </span>
         </Link>
 
         <DocsBreadcrumb className="min-w-0 flex-1 truncate text-xs text-muted-2" />
 
         <nav className="ml-auto flex shrink-0 items-center gap-4">
-          <ThemePickerButton className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-muted-2 transition-colors duration-fast ease-out hover:text-foreground" />
+          <ThemePickerButton className="flex items-center text-muted-2 transition-colors duration-fast ease-out hover:text-foreground" />
         </nav>
       </div>
     </header>

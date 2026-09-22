@@ -35,7 +35,7 @@ export function MarketingFooter() {
             Console
           </a>
         </div>
-        <span className="font-mono">plexor · v0.2 · pre-stable</span>
+        <span className="font-mono">plexor v0.2 pre-stable</span>
       </div>
     </footer>
   );

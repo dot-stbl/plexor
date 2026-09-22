@@ -6,7 +6,7 @@ import { ThemePickerButton } from '@/components/shared/theme-picker-button';
  * Landing header — PlexorMark + lowercase wordmark on the left, a
  * single "Documentation" link in the centre-right that points at the
  * docs entry point (`/docs/getting-started`, the install + first-boot
- * path), and a tiny theme-cycle button on the right.
+ * path), and a tiny theme-cycle icon button on the right.
  *
  * Sticky + blurred so the hero scrolls under it without losing the
  * navigation affordance; v1 ships one outbound link, the docs entry
@@ -33,11 +33,11 @@ export function MarketingHeader() {
         <nav className="ml-auto flex items-center gap-4">
           <Link
             to="/docs/getting-started"
-            className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-muted-2 transition-colors duration-fast ease-out hover:text-foreground"
+            className="text-xs transition-colors duration-fast ease-out hover:text-foreground"
           >
             Documentation →
           </Link>
-          <ThemePickerButton className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-muted-2 transition-colors duration-fast ease-out hover:text-foreground" />
+          <ThemePickerButton className="flex items-center text-muted-2 transition-colors duration-fast ease-out hover:text-foreground" />
         </nav>
       </div>
     </header>
