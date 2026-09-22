@@ -18,6 +18,7 @@ import {
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { CopyableText } from '@/shared/ui/primitives/copyable-text';
+import { CopyButton } from '@/shared/ui/primitives/copy-button';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { Skeleton } from '@/shared/ui/primitives/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/primitives/alert';
@@ -92,6 +93,12 @@ function DetailRow({ label, children }: DetailRowProps) {
   );
 }
 
+/** Right-aligned cell that places a value and an inline Copy affordance flush
+ *  against each other. Single-line when both fit; the value truncates. */
+function InlineValue({ children }: { children: React.ReactNode }) {
+  return <span className="inline-flex items-center justify-end gap-1.5">{children}</span>;
+}
+
 function VmDetailBody({ vm }: { vm: VmDetail }) {
   const { t } = useTranslation();
   const isProvisioning = vm.status === 'provisioning';
@@ -141,7 +148,12 @@ function VmDetailBody({ vm }: { vm: VmDetail }) {
             <CardDescription>{vm.id}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
-            <DetailRow label={t('vms.detail.field.name')}>{vm.name}</DetailRow>
+            <DetailRow label={t('vms.detail.field.name')}>
+              <InlineValue>
+                {vm.name}
+                <CopyButton value={vm.name} copyLabel={t('table.copy.name')} />
+              </InlineValue>
+            </DetailRow>
             <DetailRow label={t('vms.detail.field.id')}>
               <CopyableText value={vm.id} copyLabel={t('table.copy.id')}>
                 <MonoNum muted>{vm.id}</MonoNum>
@@ -157,8 +169,18 @@ function VmDetailBody({ vm }: { vm: VmDetail }) {
                 {vm.zone}
               </CopyableText>
             </DetailRow>
-            <DetailRow label={t('vms.detail.field.image')}>{vm.image}</DetailRow>
-            <DetailRow label={t('vms.detail.field.machineType')}>{vm.machineType}</DetailRow>
+            <DetailRow label={t('vms.detail.field.image')}>
+              <InlineValue>
+                {vm.image}
+                <CopyButton value={vm.image} copyLabel={t('table.copy.image')} />
+              </InlineValue>
+            </DetailRow>
+            <DetailRow label={t('vms.detail.field.machineType')}>
+              <InlineValue>
+                {vm.machineType}
+                <CopyButton value={vm.machineType} copyLabel={t('table.copy.machineType')} />
+              </InlineValue>
+            </DetailRow>
             <DetailRow label={t('vms.detail.field.vcpu')}>
               <MonoNum>{vm.vcpu}</MonoNum>
             </DetailRow>
@@ -207,7 +229,12 @@ function VmDetailBody({ vm }: { vm: VmDetail }) {
               <CardDescription>{vm.project}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
-              <DetailRow label={t('vms.detail.field.project')}>{vm.project}</DetailRow>
+              <DetailRow label={t('vms.detail.field.project')}>
+              <InlineValue>
+                {vm.project}
+                <CopyButton value={vm.project} copyLabel={t('table.copy.name')} />
+              </InlineValue>
+            </DetailRow>
               <DetailRow label={t('vms.detail.field.vpc')}>
                 <CopyableText value={vm.vpcId} copyLabel={t('table.copy.id')}>
                   <MonoNum muted>{vm.vpcId}</MonoNum>
