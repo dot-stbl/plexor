@@ -764,8 +764,7 @@
     "empty": {
       "title": "No usage recorded",
       "description": "Plexor self-hosted does not bill — this page is a read-only projection of resource usage. It will populate once your project has running resources."
-    },
-    "soon": "Billing automation for self-hosted land in Phase 6+."
+    }
   },
   "managed": {
     "title": "Data platform",

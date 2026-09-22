@@ -147,8 +147,6 @@ function BillingPage() {
             </div>
           </CardContent>
         </Card>
-
-        <p className="text-xs text-muted-foreground">{t('billing.soon')}</p>
       </div>
     </PageTemplate>
   );
