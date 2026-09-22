@@ -34,6 +34,7 @@ import { Route as docsDocsFaqTroubleshootingIndexRouteImport } from './routes/(d
 import { Route as docsDocsGettingStartedCreateScopeIndexRouteImport } from './routes/(docs)/docs/getting-started/create-scope/index'
 import { Route as docsDocsGettingStartedFirstApiKeyIndexRouteImport } from './routes/(docs)/docs/getting-started/first-api-key/index'
 import { Route as docsDocsGettingStartedFirstLoginIndexRouteImport } from './routes/(docs)/docs/getting-started/first-login/index'
+import { Route as docsDocsGettingStartedInstallIndexRouteImport } from './routes/(docs)/docs/getting-started/install/index'
 import { Route as docsDocsHowToAddLoadBalancerIndexRouteImport } from './routes/(docs)/docs/how-to/add-load-balancer/index'
 import { Route as docsDocsHowToAddUserAndRoleIndexRouteImport } from './routes/(docs)/docs/how-to/add-user-and-role/index'
 import { Route as docsDocsHowToAttachVolumeIndexRouteImport } from './routes/(docs)/docs/how-to/attach-volume/index'
@@ -191,6 +192,12 @@ const docsDocsGettingStartedFirstLoginIndexRoute =
     path: '/docs/getting-started/first-login/',
     getParentRoute: () => docsRouteRoute,
   } as any)
+const docsDocsGettingStartedInstallIndexRoute =
+  docsDocsGettingStartedInstallIndexRouteImport.update({
+    id: '/docs/getting-started/install/',
+    path: '/docs/getting-started/install/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
 const docsDocsHowToAddLoadBalancerIndexRoute =
   docsDocsHowToAddLoadBalancerIndexRouteImport.update({
     id: '/docs/how-to/add-load-balancer/',
@@ -300,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/docs/getting-started/create-scope/': typeof docsDocsGettingStartedCreateScopeIndexRoute
   '/docs/getting-started/first-api-key/': typeof docsDocsGettingStartedFirstApiKeyIndexRoute
   '/docs/getting-started/first-login/': typeof docsDocsGettingStartedFirstLoginIndexRoute
+  '/docs/getting-started/install/': typeof docsDocsGettingStartedInstallIndexRoute
   '/docs/how-to/add-load-balancer/': typeof docsDocsHowToAddLoadBalancerIndexRoute
   '/docs/how-to/add-user-and-role/': typeof docsDocsHowToAddUserAndRoleIndexRoute
   '/docs/how-to/attach-volume/': typeof docsDocsHowToAttachVolumeIndexRoute
@@ -339,6 +347,7 @@ export interface FileRoutesByTo {
   '/docs/getting-started/create-scope': typeof docsDocsGettingStartedCreateScopeIndexRoute
   '/docs/getting-started/first-api-key': typeof docsDocsGettingStartedFirstApiKeyIndexRoute
   '/docs/getting-started/first-login': typeof docsDocsGettingStartedFirstLoginIndexRoute
+  '/docs/getting-started/install': typeof docsDocsGettingStartedInstallIndexRoute
   '/docs/how-to/add-load-balancer': typeof docsDocsHowToAddLoadBalancerIndexRoute
   '/docs/how-to/add-user-and-role': typeof docsDocsHowToAddUserAndRoleIndexRoute
   '/docs/how-to/attach-volume': typeof docsDocsHowToAttachVolumeIndexRoute
@@ -381,6 +390,7 @@ export interface FileRoutesById {
   '/(docs)/docs/getting-started/create-scope/': typeof docsDocsGettingStartedCreateScopeIndexRoute
   '/(docs)/docs/getting-started/first-api-key/': typeof docsDocsGettingStartedFirstApiKeyIndexRoute
   '/(docs)/docs/getting-started/first-login/': typeof docsDocsGettingStartedFirstLoginIndexRoute
+  '/(docs)/docs/getting-started/install/': typeof docsDocsGettingStartedInstallIndexRoute
   '/(docs)/docs/how-to/add-load-balancer/': typeof docsDocsHowToAddLoadBalancerIndexRoute
   '/(docs)/docs/how-to/add-user-and-role/': typeof docsDocsHowToAddUserAndRoleIndexRoute
   '/(docs)/docs/how-to/attach-volume/': typeof docsDocsHowToAttachVolumeIndexRoute
@@ -422,6 +432,7 @@ export interface FileRouteTypes {
     | '/docs/getting-started/create-scope/'
     | '/docs/getting-started/first-api-key/'
     | '/docs/getting-started/first-login/'
+    | '/docs/getting-started/install/'
     | '/docs/how-to/add-load-balancer/'
     | '/docs/how-to/add-user-and-role/'
     | '/docs/how-to/attach-volume/'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/docs/getting-started/create-scope'
     | '/docs/getting-started/first-api-key'
     | '/docs/getting-started/first-login'
+    | '/docs/getting-started/install'
     | '/docs/how-to/add-load-balancer'
     | '/docs/how-to/add-user-and-role'
     | '/docs/how-to/attach-volume'
@@ -502,6 +514,7 @@ export interface FileRouteTypes {
     | '/(docs)/docs/getting-started/create-scope/'
     | '/(docs)/docs/getting-started/first-api-key/'
     | '/(docs)/docs/getting-started/first-login/'
+    | '/(docs)/docs/getting-started/install/'
     | '/(docs)/docs/how-to/add-load-balancer/'
     | '/(docs)/docs/how-to/add-user-and-role/'
     | '/(docs)/docs/how-to/attach-volume/'
@@ -700,6 +713,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof docsDocsGettingStartedFirstLoginIndexRouteImport
       parentRoute: typeof docsRouteRoute
     }
+    '/(docs)/docs/getting-started/install/': {
+      id: '/(docs)/docs/getting-started/install/'
+      path: '/docs/getting-started/install'
+      fullPath: '/docs/getting-started/install/'
+      preLoaderRoute: typeof docsDocsGettingStartedInstallIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
     '/(docs)/docs/how-to/add-load-balancer/': {
       id: '/(docs)/docs/how-to/add-load-balancer/'
       path: '/docs/how-to/add-load-balancer'
@@ -824,6 +844,7 @@ interface docsRouteRouteChildren {
   docsDocsGettingStartedCreateScopeIndexRoute: typeof docsDocsGettingStartedCreateScopeIndexRoute
   docsDocsGettingStartedFirstApiKeyIndexRoute: typeof docsDocsGettingStartedFirstApiKeyIndexRoute
   docsDocsGettingStartedFirstLoginIndexRoute: typeof docsDocsGettingStartedFirstLoginIndexRoute
+  docsDocsGettingStartedInstallIndexRoute: typeof docsDocsGettingStartedInstallIndexRoute
   docsDocsHowToAddLoadBalancerIndexRoute: typeof docsDocsHowToAddLoadBalancerIndexRoute
   docsDocsHowToAddUserAndRoleIndexRoute: typeof docsDocsHowToAddUserAndRoleIndexRoute
   docsDocsHowToAttachVolumeIndexRoute: typeof docsDocsHowToAttachVolumeIndexRoute
@@ -871,6 +892,8 @@ const docsRouteRouteChildren: docsRouteRouteChildren = {
     docsDocsGettingStartedFirstApiKeyIndexRoute,
   docsDocsGettingStartedFirstLoginIndexRoute:
     docsDocsGettingStartedFirstLoginIndexRoute,
+  docsDocsGettingStartedInstallIndexRoute:
+    docsDocsGettingStartedInstallIndexRoute,
   docsDocsHowToAddLoadBalancerIndexRoute:
     docsDocsHowToAddLoadBalancerIndexRoute,
   docsDocsHowToAddUserAndRoleIndexRoute: docsDocsHowToAddUserAndRoleIndexRoute,
