@@ -23,6 +23,7 @@ import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { Skeleton } from '@/shared/ui/primitives/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/primitives/alert';
 import { mapVmStatusToVariant } from '@/features/vms';
+import { VmConsoleCard } from '@/features/vms/vm-console-card';
 
 /**
  * /vms/$id page stories.
@@ -282,6 +283,8 @@ function VmDetailBody({ vm }: { vm: VmDetail }) {
             </CardContent>
           </Card>
 
+          <VmConsoleCard vmId={vm.id} />
+
           <Card className="gap-0 p-0">
             <CardHeader className="gap-0.5 border-b border-border p-4">
               <CardTitle className="text-sm">{t('vms.detail.section.lifecycle')}</CardTitle>
@@ -390,4 +393,14 @@ export const Loading: Story = {
 /** Not found: 404 alert when the VM doesn't exist. */
 export const NotFound: Story = {
   render: () => <VmDetailNotFoundBody id="00000000-0000-0000-0000-000000000000" />,
+};
+
+/** Console tab: noVNC placeholder — "Console preview unavailable". */
+export const ConsoleTab: Story = {
+  render: () => <VmConsoleCard vmId={RUNNING_VM.id} />,
+};
+
+/** Terminal tab: xterm.js placeholder, disconnected, banner explains. */
+export const TerminalTab: Story = {
+  render: () => <VmConsoleCard vmId={RUNNING_VM.id} defaultTab="terminal" />,
 };

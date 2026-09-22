@@ -41,6 +41,7 @@ import {
   AlertDialogTitle
 } from '@/shared/ui/primitives/alert-dialog';
 import { mapVmStatusToVariant } from '@/features/vms';
+import { VmConsoleCard } from '@/features/vms/vm-console-card';
 import { useDocumentTitle } from '@/shared/lib/use-document-title';
 import { routeHead } from '@/shared/lib/route-head';
 
@@ -370,6 +371,8 @@ function VmDetailPage() {
                   ) : null}
                 </CardContent>
               </Card>
+
+              <VmConsoleCard vmId={vm.id} />
 
               <Card className="gap-0 p-0">
                 <CardHeader className="gap-0.5 border-b border-border p-4">
