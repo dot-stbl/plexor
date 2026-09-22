@@ -209,13 +209,13 @@ describe('AppSidebar — feature-flag-gated sections', () => {
   });
 });
 
-describe('AppSidebar — brand header logo (no external GitHub URL)', () => {
+describe('AppSidebar — brand header (PlexorMark chrome + StblMark on the "by stbl" line)', () => {
   beforeEach(() => {
     clearSession();
     localStorage.removeItem('plexor.feature-flags');
   });
 
-  it('uses the local stbl-logo.svg in the home link (no PlexorMark, no raw.githubusercontent)', () => {
+  it('uses PlexorMark in the chrome of the home link and StblMark on the "by stbl" line', () => {
     renderSidebar();
 
     // The home link is the brand anchor at the top of the rail; its
@@ -223,18 +223,38 @@ describe('AppSidebar — brand header logo (no external GitHub URL)', () => {
     const homeLink = screen.getByRole('link', { name: /go home/i });
     expect(homeLink).toBeInTheDocument();
 
-    // First child of the link is the brand mark — StblMark renders <img>
-    // pointing at the locally-vendored SVG.
-    const mark = homeLink.querySelector('img');
-    expect(mark).not.toBeNull();
-    expect(mark?.getAttribute('src')).toBe('/stbl-logo.svg');
-    expect(mark?.getAttribute('alt')).toBe('');
+    // Chrome — PlexorMark renders an inline SVG with a `currentColor`
+    // path. The chrome MUST be PlexorMark (the previous swap to StblMark
+    // here was the wrong fix — the user wanted the inline "by stbl"
+    // indicator replaced, not the brand chrome).
+    const chromeSvg = homeLink.querySelector('svg path[fill="currentColor"]');
+    expect(chromeSvg).not.toBeNull();
 
-    // Regression guards: the PlexorMark SVG (purple/dark complex path)
-    // and the github.com raw URL must NOT appear in the brand header.
-    // A future revert to either would re-introduce the fragility the
-    // STBL mark replaced (offline-broken chrome, GitHub CDN delay).
-    expect(homeLink.querySelector('svg path[fill="currentColor"]')).toBeNull();
+    // "by stbl" — StblMark renders an <img> pointing at the locally-
+    // vendored SVG. The inline 2-square SVG that lived in this slot
+    // before the fix is gone, replaced by the proper brand mark.
+    const allImages = homeLink.querySelectorAll('img');
+    const stblMarkImg = Array.from(allImages).find(
+      (img) => img.getAttribute('src') === '/stbl-logo.svg',
+    );
+    expect(stblMarkImg).toBeDefined();
+    expect(stblMarkImg?.getAttribute('alt')).toBe('');
+
+    // Regression guard: the github.com raw URL must NOT appear in the
+    // brand header — StblMark points at the locally-vendored SVG so the
+    // chrome doesn't depend on github.com being reachable (offline dev,
+    // air-gapped deploys, slow CDN).
     expect(document.body.innerHTML).not.toContain('raw.githubusercontent.com');
+  });
+
+  it('does not render the inline 2-square svg in the "by stbl" slot', () => {
+    renderSidebar();
+
+    // The original inline indicator was a 64x64 viewBox SVG with two
+    // stacked rects (foreground 64x64 + background 32x32 offset 16,16).
+    // That mark is gone — StblMark owns the slot.
+    const homeLink = screen.getByRole('link', { name: /go home/i });
+    const legacyRect = homeLink.querySelector('svg rect[width="64"][height="64"]');
+    expect(legacyRect).toBeNull();
   });
 });
