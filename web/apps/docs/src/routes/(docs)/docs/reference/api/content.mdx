@@ -87,17 +87,35 @@ Every error response is RFC 9457 problem-details JSON. The `code`
 field carries a stable dot.case identifier; clients branch on
 `code`, never on `message`.
 
-| Code | Meaning |
-|---|---|
-| `identity.credentials.invalid` | Wrong email or password. |
-| `identity.credentials.locked` | Account is locked. |
-| `identity.credentials.provider_mismatch` | Wrong auth flow for the tenant's provider. |
-| `identity.token.expired` | JWT `exp` is in the past. |
-| `identity.token.replay_detected` | Refresh-token reuse; family revoked. |
-| `identity.permission.denied` | Permission check failed (HTTP 403). |
-| `quotas.exceeded` | Quota walker returned Denied (HTTP 429). |
-| `compute.workload.invalid_transition` | State-machine rejected a transition. |
-| `validation.failed` | Request body failed validation (HTTP 400). |
+<TypeTable>
+  <TypeRow name="identity.credentials.invalid" type="string" required>
+    Wrong email or password.
+  </TypeRow>
+  <TypeRow name="identity.credentials.locked" type="string" required>
+    Account is locked.
+  </TypeRow>
+  <TypeRow name="identity.credentials.provider_mismatch" type="string" required>
+    Wrong auth flow for the tenant's provider.
+  </TypeRow>
+  <TypeRow name="identity.token.expired" type="string" required>
+    JWT `exp` is in the past.
+  </TypeRow>
+  <TypeRow name="identity.token.replay_detected" type="string" required>
+    Refresh-token reuse; family revoked.
+  </TypeRow>
+  <TypeRow name="identity.permission.denied" type="string" required>
+    Permission check failed (HTTP 403).
+  </TypeRow>
+  <TypeRow name="quotas.exceeded" type="string" required>
+    Quota walker returned Denied (HTTP 429).
+  </TypeRow>
+  <TypeRow name="compute.workload.invalid_transition" type="string" required>
+    State-machine rejected a transition.
+  </TypeRow>
+  <TypeRow name="validation.failed" type="string" required>
+    Request body failed validation (HTTP 400).
+  </TypeRow>
+</TypeTable>
 
 The full catalog is in the source code's `ProviderException`
 subclasses; this list is the operator-facing subset.

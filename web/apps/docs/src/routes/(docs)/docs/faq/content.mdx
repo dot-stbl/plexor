@@ -7,57 +7,55 @@ chapter: "faq"
 Common questions, short answers. For the deeper story, follow the
 "See" link at the end of each answer.
 
-## Can two organisations share a workload?
+<Accordions allowsMultiple={false}>
+  <Accordion title="Can two organisations share a workload?">
+    No — scope is exclusive. A workload lives at exactly one
+    `(org, team, folder)` triple. If a workload is useful to two
+    organisations, the right shape is to fork the workload into each
+    organisation and run it as two separate workloads. The data and
+    config can stay in sync via a shared bucket.
 
-No — scope is exclusive. A workload lives at exactly one
-(org, team, folder) triple. If a workload is useful to two
-organisations, the right shape is to fork the workload into each
-organisation and run it as two separate workloads. The data and
-config can stay in sync via a shared bucket.
+    See: **Concepts → Orgs, teams, and folders**.
+  </Accordion>
+  <Accordion title="Why is my quota warning not going away?">
+    Because raising the assignment does not reset the current usage
+    counter. If you have 9 of 10 VMs, raise to 20, and the
+    `X-Quota-Warning: true` stays on the next request — you now have
+    9 of 20, but the counter still reads 9, and 9 is still over 80%
+    of 20 is 16. Either reduce the workload count or raise the quota
+    high enough that usage drops under the new 80% threshold.
 
-See: **Concepts → Orgs, teams, and folders**.
+    See: **Concepts → Quotas**, **Admin → Managing quotas**.
+  </Accordion>
+  <Accordion title="I removed a permission from a role. Why does the user still have it?">
+    The 15-minute JWT snapshot window. JWTs are issued at login with
+    a 15-minute lifetime; the `permissions[]` claim is a snapshot of
+    the user's effective permissions at sign time. The change does
+    not take effect on an already-issued token until it expires or
+    the user refreshes. Force-logout by suspending the user or
+    revoking their refresh token.
 
-## Why is my quota warning not going away?
+    See: **Admin → RBAC hardening**.
+  </Accordion>
+  <Accordion title="Can I delete a built-in role?">
+    No. Built-in roles are immutable: they cannot be edited, and a
+    delete returns 409. The reason is that built-in roles carry
+    implied semantics the platform depends on (every platform code path
+    that checks for `admin` expects the role to be present and
+    unmodified). To customize, create a new role with your
+    permission set and bind it instead.
 
-Because raising the assignment does not reset the current usage
-counter. If you have 9 of 10 VMs, raise to 20, and the
-`X-Quota-Warning: true` stays on the next request — you now have
-9 of 20, but the counter still reads 9, and 9 is still over 80%
-of 20 is 16. Either reduce the workload count or raise the quota
-high enough that usage drops under the new 80% threshold.
+    See: **Reference → Permissions catalog**.
+  </Accordion>
+  <Accordion title="Can I have multiple Plexor hosts?">
+    Each host is a self-contained cluster in the current release.
+    Multi-cluster coordination — one Host orchestrating many clusters
+    across hosts — is on the roadmap (Phase 7+). Today, two hosts =
+    two independent Plexors.
 
-See: **Concepts → Quotas**, **Admin → Managing quotas**.
-
-## I removed a permission from a role. Why does the user still have it?
-
-The 15-minute JWT snapshot window. JWTs are issued at login with
-a 15-minute lifetime; the `permissions[]` claim is a snapshot of
-the user's effective permissions at sign time. The change does
-not take effect on an already-issued token until it expires or
-the user refreshes. Force-logout by suspending the user or
-revoking their refresh token.
-
-See: **Admin → RBAC hardening**.
-
-## Can I delete a built-in role?
-
-No. Built-in roles are immutable: they cannot be edited, and a
-delete returns 409. The reason is that built-in roles carry
-implied semantics the platform depends on (every platform code path
-that checks for `admin` expects the role to be present and
-unmodified). To customize, create a new role with your
-permission set and bind it instead.
-
-See: **Reference → Permissions catalog**.
-
-## Can I have multiple Plexor hosts?
-
-Each host is a self-contained cluster in the current release.
-Multi-cluster coordination — one Host orchestrating many clusters
-across hosts — is on the roadmap (Phase 7+). Today, two hosts =
-two independent Plexors.
-
-See: **Welcome to Plexor** for the current scope.
+    See: **Welcome to Plexor** for the current scope.
+  </Accordion>
+</Accordions>
 
 ## Where is the data stored?
 

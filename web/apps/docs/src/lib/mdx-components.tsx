@@ -1,6 +1,8 @@
 import type { MDXComponents } from 'mdx/types';
 import type { ComponentProps } from 'react';
 import {
+  Accordion,
+  Accordions,
   Callout,
   Diagram,
   DiagramPlaceholder,
@@ -9,6 +11,8 @@ import {
   Screenshot,
   ScreenshotPlaceholder,
   Step,
+  TypeRow,
+  TypeTable,
 } from '@/components/mdx';
 
 /**
@@ -166,6 +170,8 @@ export function getMdxComponents(): MDXComponents {
     hr,
     a,
     table,
+    Accordion,
+    Accordions,
     Callout,
     Step,
     Screenshot,
@@ -174,5 +180,7 @@ export function getMdxComponents(): MDXComponents {
     Diagram,
     DiagramPlaceholder,
     PlatformMatrix,
+    TypeRow,
+    TypeTable,
   };
 }
