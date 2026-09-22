@@ -44,7 +44,7 @@ function LxcPage() {
   const sel = useRowSelection(filtered);
 
   const bulk = (label: string) => {
-    toast(`${label} · ${sel.selectedIds.size}`);
+    toast(`${label} (${sel.selectedIds.size})`);
     sel.clear();
   };
 
