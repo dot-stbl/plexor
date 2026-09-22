@@ -391,6 +391,16 @@
         "startFailed": "Не удалось запустить ВМ",
         "stopFailed": "Не удалось остановить ВМ",
         "deleteFailed": "Не удалось удалить ВМ"
+      },
+      "console": {
+        "title": "Консоль и терминал",
+        "description": "VNC-дисплей и SSH-шелл для этой ВМ. Оба потока идут через Plexor.NodeAgent; в этом превью агент не развёрнут, поэтому оба зрителя — пустые заглушки.",
+        "tabConsole": "Консоль",
+        "tabTerminal": "Терминал",
+        "consoleUnavailable": "Превью консоли недоступно — требуется агент на бэкенде.",
+        "consoleUnavailableDetail": "Когда Plexor.NodeAgent развёрнут, здесь стартует noVNC-поток к графическому дисплею ВМ.",
+        "terminalUnavailable": "Сессия терминала требует Plexor.NodeAgent (в превью не развёрнут).",
+        "terminalUnavailableDetail": "Когда агент развёрнут, здесь откроется WebSocket к ws://nodeagent/vms/{{id}}/shell с пробросом stdin/stdout."
       }
     }
   },
@@ -955,7 +965,10 @@
       "dns": "Копировать DNS",
       "id": "Копировать ID",
       "ip": "Копировать IP",
-      "zone": "Копировать зону"
+      "zone": "Копировать зону",
+      "name": "Копировать имя",
+      "image": "Копировать образ",
+      "machineType": "Копировать тип машины"
     },
     "openRow": "Открыть {{name}}"
   },
