@@ -73,17 +73,20 @@ function ClusterDetailPage() {
         title={cluster.name}
         width="wide"
         description={
-          <>
+          <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
             <span className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] uppercase">
               v{cluster.hostVersion}
-            </span>{' '}
-            <span className="text-muted-foreground">·</span>{' '}
-            <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum>{' '}
-            <span className="text-muted-foreground">{t('clusters.detail.nodesReady')} ·</span>{' '}
-            <MonoNum>{activeTokens}</MonoNum> <span className="text-muted-foreground">{t('clusters.detail.activeTokens')} ·</span>{' '}
-            <MonoNum muted>{formatUptime(cluster.uptimeSeconds)}</MonoNum>{' '}
+            </span>
+            <span className="inline-block h-3 w-px bg-border" aria-hidden />
+            <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum>
+            <span className="text-muted-foreground">{t('clusters.detail.nodesReady')}</span>
+            <span className="inline-block h-3 w-px bg-border" aria-hidden />
+            <MonoNum>{activeTokens}</MonoNum>
+            <span className="text-muted-foreground">{t('clusters.detail.activeTokens')}</span>
+            <span className="inline-block h-3 w-px bg-border" aria-hidden />
+            <MonoNum muted>{formatUptime(cluster.uptimeSeconds)}</MonoNum>
             <span className="text-muted-foreground">uptime</span>
-          </>
+          </span>
         }
         actions={
           <>
@@ -106,8 +109,9 @@ function ClusterDetailPage() {
               <div className="space-y-0.5">
                 <CardTitle className="text-sm">{t('clusters.detail.installProviders')}</CardTitle>
                 <CardDescription>
-                  {t('clusters.detail.providersChosenAt')} <code className="rounded bg-muted px-1 font-mono text-[10px]">plx init</code>{' '}
-                  · endpoint{' '}
+                  {t('clusters.detail.providersChosenAt')} <code className="rounded bg-muted px-1 font-mono text-[10px]">plx init</code>
+                  <span className="mx-1.5 inline-block h-3 w-px bg-border align-middle" aria-hidden />
+                  endpoint{' '}
                   <MonoNum muted>{cluster.endpoint}</MonoNum>
                 </CardDescription>
               </div>

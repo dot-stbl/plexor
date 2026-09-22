@@ -61,9 +61,14 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
             </StatusPill>
             <Badge variant="outline">v{cluster.hostVersion}</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">
-            <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum> {t('clusters.card.nodesReady')} ·{' '}
-            uptime <MonoNum muted>{formatUptime(cluster.uptimeSeconds)}</MonoNum>
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>
+              <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum> {t('clusters.card.nodesReady')}
+            </span>
+            <span className="inline-block h-3 w-px bg-border" aria-hidden />
+            <span>
+              uptime <MonoNum muted>{formatUptime(cluster.uptimeSeconds)}</MonoNum>
+            </span>
           </p>
         </div>
         <Button size="sm" render={<Link to="/clusters/$id" params={{ id: cluster.id }} />}>
