@@ -24,7 +24,9 @@
     "stop": "Stop",
     "reboot": "Reboot",
     "selected": "selected",
-    "nothingFound": "Nothing found"
+    "nothingFound": "Nothing found",
+    "yes": "Yes",
+    "no": "No"
   },
   "nav": {
     "sections": {
@@ -337,6 +339,58 @@
         "image": "Image",
         "bootDisk": "Boot disk",
         "balloon": "balloon"
+      }
+    },
+    "detail": {
+      "title": "Virtual machine",
+      "subtitle": "Identity, placement and lifecycle controls.",
+      "back": "Back to VMs",
+      "notFound": "VM not found",
+      "notFoundDescription": "No virtual machine with id {{id}} in this organization.",
+      "section": {
+        "identity": "Identity",
+        "placement": "Placement",
+        "lifecycle": "Lifecycle",
+        "network": "Network"
+      },
+      "field": {
+        "name": "Name",
+        "id": "ID",
+        "status": "Status",
+        "role": "Role",
+        "image": "OS image",
+        "machineType": "Machine type",
+        "vcpu": "vCPU",
+        "ram": "RAM",
+        "disk": "Disk",
+        "internalIp": "Internal IP",
+        "publicIp": "Public IP",
+        "zone": "Zone",
+        "project": "Project",
+        "vpc": "VPC",
+        "subnet": "Subnet",
+        "securityGroups": "Security groups",
+        "diskEncrypted": "Disk encryption",
+        "createdAt": "Created",
+        "updatedAt": "Updated",
+        "tags": "Tags",
+        "tagsEmpty": "No tags"
+      },
+      "lifecycle": {
+        "start": "Start",
+        "stop": "Stop",
+        "delete": "Delete",
+        "deleteTitle": "Delete this VM?",
+        "deleteDescription": "This action is irreversible. VM resources and associated disks will be released.",
+        "provisioningHint": "VM is provisioning — lifecycle controls are unavailable.",
+        "errorHint": "VM is in error state. Start or stop to attempt recovery.",
+        "startedToast": "Starting {{name}}",
+        "stoppedToast": "Stopping {{name}}",
+        "deletedToast": "Deleting {{name}}",
+        "deleteSuccessToast": "{{name}} deleted",
+        "startFailed": "Could not start VM",
+        "stopFailed": "Could not stop VM",
+        "deleteFailed": "Could not delete VM"
       }
     }
   },

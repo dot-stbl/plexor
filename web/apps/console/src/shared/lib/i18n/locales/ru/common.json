@@ -24,7 +24,9 @@
     "stop": "Остановить",
     "reboot": "Перезагрузить",
     "selected": "выбрано",
-    "nothingFound": "Ничего не найдено"
+    "nothingFound": "Ничего не найдено",
+    "yes": "Да",
+    "no": "Нет"
   },
   "nav": {
     "sections": {
@@ -337,6 +339,58 @@
         "image": "Образ",
         "bootDisk": "Загрузочный диск",
         "balloon": "баллунинг"
+      }
+    },
+    "detail": {
+      "title": "Виртуальная машина",
+      "subtitle": "Идентичность, размещение и управление жизненным циклом.",
+      "back": "К списку ВМ",
+      "notFound": "ВМ не найдена",
+      "notFoundDescription": "В этой организации нет виртуальной машины с id {{id}}.",
+      "section": {
+        "identity": "Идентичность",
+        "placement": "Размещение",
+        "lifecycle": "Жизненный цикл",
+        "network": "Сеть"
+      },
+      "field": {
+        "name": "Имя",
+        "id": "ID",
+        "status": "Статус",
+        "role": "Роль",
+        "image": "Образ ОС",
+        "machineType": "Тип машины",
+        "vcpu": "vCPU",
+        "ram": "RAM",
+        "disk": "Диск",
+        "internalIp": "Внутренний IP",
+        "publicIp": "Публичный IP",
+        "zone": "Зона",
+        "project": "Проект",
+        "vpc": "VPC",
+        "subnet": "Subnet",
+        "securityGroups": "Группы безопасности",
+        "diskEncrypted": "Шифрование диска",
+        "createdAt": "Создана",
+        "updatedAt": "Обновлена",
+        "tags": "Теги",
+        "tagsEmpty": "Нет тегов"
+      },
+      "lifecycle": {
+        "start": "Запустить",
+        "stop": "Остановить",
+        "delete": "Удалить",
+        "deleteTitle": "Удалить эту ВМ?",
+        "deleteDescription": "Действие необратимо. Ресурсы ВМ и связанные диски будут освобождены.",
+        "provisioningHint": "ВМ в процессе provisioning — управление недоступно.",
+        "errorHint": "ВМ в состоянии ошибки. Запустите или остановите для попытки восстановления.",
+        "startedToast": "Запускаем {{name}}",
+        "stoppedToast": "Останавливаем {{name}}",
+        "deletedToast": "Удаляем {{name}}",
+        "deleteSuccessToast": "{{name}} удалена",
+        "startFailed": "Не удалось запустить ВМ",
+        "stopFailed": "Не удалось остановить ВМ",
+        "deleteFailed": "Не удалось удалить ВМ"
       }
     }
   },
