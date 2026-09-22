@@ -10,9 +10,12 @@ export default defineConfig({
     TanStackRouterVite({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.ts',
-      // Skip co-located `*.test.tsx` / `*.test.ts` files so component tests
-      // don't get pulled into the route tree at build / test time.
-      routeFileIgnorePattern: '\\.test\\.(tsx|ts)$',
+      // Skip co-located `*.test.{tsx,ts}` and `*.stories.tsx` files so
+      // component tests + Storybook stories don't get pulled into the
+      // route tree at build / test time. Stories live in `routes/` next
+      // to their routes (per page-authoring.md) but never export `Route`,
+      // so the plugin warns and exits 1 without this filter.
+      routeFileIgnorePattern: '\\.(test|stories)\\.(tsx|ts)$',
     }),
     react(),
     tailwindcss(),
