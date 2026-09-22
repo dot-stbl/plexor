@@ -7,11 +7,16 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
  * Diátaxis split from the docs content plan:
  *
  *   01 Getting started — tutorials (4 pages).
- *   02 Concepts — mental models (8 pages).
- *   03 How-to — task recipes (12 pages).
- *   04 Admin — operations + hardening (6 pages).
- *   05 Reference — catalogs (3 pages).
+ *   02 Concepts — mental models (8 pages; eight product surfaces).
+ *   03 How-to — task recipes (10 pages).
+ *   04 Admin — operations + hardening (7 pages).
+ *   05 Reference — catalogs (4 pages).
  *   06 FAQ / Troubleshooting — symptom → fix (2 pages).
+ *
+ * The eight product surfaces are: compute, networking, storage,
+ * identity, marketplace, quotas, audit, console theming. Themes is
+ * one of them — it lives under Admin as a single page (not a chapter
+ * of its own) and does not appear in Concepts.
  *
  * Each chapter with sub-pages is collapsible; the active chapter (the
  * chapter the active route lives in) auto-expands, even if the user
@@ -90,8 +95,6 @@ const CHAPTERS: readonly DocsChapter[] = [
       { slug: '/docs/how-to/add-user-and-role', title: 'Add a user & role' },
       { slug: '/docs/how-to/issue-api-key', title: 'Issue an API key' },
       { slug: '/docs/how-to/configure-oidc', title: 'Configure OIDC' },
-      { slug: '/docs/how-to/customize-branding', title: 'Customize the brand' },
-      { slug: '/docs/how-to/install-community-theme', title: 'Install a community theme' },
       { slug: '/docs/how-to/rotate-ssh-key', title: 'Rotate an SSH key' },
     ],
   },
@@ -106,6 +109,7 @@ const CHAPTERS: readonly DocsChapter[] = [
       { slug: '/docs/admin/lockout-recovery', title: 'Lockout recovery' },
       { slug: '/docs/admin/backup-and-disaster', title: 'Backup & disaster avoidance' },
       { slug: '/docs/admin/capacity-planning', title: 'Capacity planning' },
+      { slug: '/docs/admin/theming-console', title: 'Theming the console' },
     ],
   },
   {

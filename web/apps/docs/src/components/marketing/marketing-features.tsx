@@ -6,12 +6,17 @@
  * into a shared model.
  *
  * Each card answers "what does the operator get?" — not "what module
- * shipped?". Internal architecture (Plexor.Host, providers, themes)
- * is named only when the operator touches it from the UI or CLI.
+ * shipped?". Internal architecture (Plexor.Host, providers) is named
+ * only when the operator touches it from the UI or CLI.
  *
- *   01 — Compute, network and storage on your existing servers
+ *   01 — Compute, network, and storage on your existing servers
  *   02 — A catalog of ready-to-run apps
- *   03 — Pick the look you run Plexor in
+ *   03 — Identity, audit, and quotas out of the box
+ *
+ * Themes is one feature among the eight product surfaces (compute,
+ * networking, storage, identity, marketplace, quotas, audit, console
+ * theming) — it lives under Admin → Theming the console and is not
+ * promoted on the landing.
  */
 interface FeatureCard {
   readonly eyebrow: string;
@@ -22,7 +27,7 @@ interface FeatureCard {
 const FEATURES: readonly FeatureCard[] = [
   {
     eyebrow: '01',
-    title: 'Compute, network and storage on your hardware',
+    title: 'Compute, network, and storage on your hardware',
     summary:
       'Virtual machines, private networks, security groups, floating IPs, load balancers, block volumes and S3 buckets — all driven through one binary on the servers you already own.',
   },
@@ -34,9 +39,9 @@ const FEATURES: readonly FeatureCard[] = [
   },
   {
     eyebrow: '03',
-    title: 'Pick the look you run Plexor in',
+    title: 'Identity, audit, and quotas out of the box',
     summary:
-      'Three built-in palettes out of the box (light, dark and a blue-tinted dark mode). Operators choose per organization — atomic swap, no restart, with a small CSS escape hatch for the rest.',
+      'Per-org users and roles, flat permission strings with no wildcards, an append-only audit log on every state change, and folder-level quotas that warn at 80% and deny past 100%. No plugin to install.',
   },
 ];
 

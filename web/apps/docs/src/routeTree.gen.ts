@@ -22,6 +22,7 @@ import { Route as docsDocsAdminCapacityPlanningIndexRouteImport } from './routes
 import { Route as docsDocsAdminLockoutRecoveryIndexRouteImport } from './routes/(docs)/docs/admin/lockout-recovery/index'
 import { Route as docsDocsAdminQuotasIndexRouteImport } from './routes/(docs)/docs/admin/quotas/index'
 import { Route as docsDocsAdminRbacHardeningIndexRouteImport } from './routes/(docs)/docs/admin/rbac-hardening/index'
+import { Route as docsDocsAdminThemingConsoleIndexRouteImport } from './routes/(docs)/docs/admin/theming-console/index'
 import { Route as docsDocsConceptsAuditIndexRouteImport } from './routes/(docs)/docs/concepts/audit/index'
 import { Route as docsDocsConceptsAuthAndRbacIndexRouteImport } from './routes/(docs)/docs/concepts/auth-and-rbac/index'
 import { Route as docsDocsConceptsComputeAndWorkloadsIndexRouteImport } from './routes/(docs)/docs/concepts/compute-and-workloads/index'
@@ -39,8 +40,6 @@ import { Route as docsDocsHowToAttachVolumeIndexRouteImport } from './routes/(do
 import { Route as docsDocsHowToConfigureOidcIndexRouteImport } from './routes/(docs)/docs/how-to/configure-oidc/index'
 import { Route as docsDocsHowToCreateBucketIndexRouteImport } from './routes/(docs)/docs/how-to/create-bucket/index'
 import { Route as docsDocsHowToCreateWorkloadIndexRouteImport } from './routes/(docs)/docs/how-to/create-workload/index'
-import { Route as docsDocsHowToCustomizeBrandingIndexRouteImport } from './routes/(docs)/docs/how-to/customize-branding/index'
-import { Route as docsDocsHowToInstallCommunityThemeIndexRouteImport } from './routes/(docs)/docs/how-to/install-community-theme/index'
 import { Route as docsDocsHowToIssueApiKeyIndexRouteImport } from './routes/(docs)/docs/how-to/issue-api-key/index'
 import { Route as docsDocsHowToManageWorkloadLifecycleIndexRouteImport } from './routes/(docs)/docs/how-to/manage-workload-lifecycle/index'
 import { Route as docsDocsHowToReserveFloatingIpIndexRouteImport } from './routes/(docs)/docs/how-to/reserve-floating-ip/index'
@@ -118,6 +117,12 @@ const docsDocsAdminRbacHardeningIndexRoute =
   docsDocsAdminRbacHardeningIndexRouteImport.update({
     id: '/docs/admin/rbac-hardening/',
     path: '/docs/admin/rbac-hardening/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsAdminThemingConsoleIndexRoute =
+  docsDocsAdminThemingConsoleIndexRouteImport.update({
+    id: '/docs/admin/theming-console/',
+    path: '/docs/admin/theming-console/',
     getParentRoute: () => docsRouteRoute,
   } as any)
 const docsDocsConceptsAuditIndexRoute =
@@ -222,18 +227,6 @@ const docsDocsHowToCreateWorkloadIndexRoute =
     path: '/docs/how-to/create-workload/',
     getParentRoute: () => docsRouteRoute,
   } as any)
-const docsDocsHowToCustomizeBrandingIndexRoute =
-  docsDocsHowToCustomizeBrandingIndexRouteImport.update({
-    id: '/docs/how-to/customize-branding/',
-    path: '/docs/how-to/customize-branding/',
-    getParentRoute: () => docsRouteRoute,
-  } as any)
-const docsDocsHowToInstallCommunityThemeIndexRoute =
-  docsDocsHowToInstallCommunityThemeIndexRouteImport.update({
-    id: '/docs/how-to/install-community-theme/',
-    path: '/docs/how-to/install-community-theme/',
-    getParentRoute: () => docsRouteRoute,
-  } as any)
 const docsDocsHowToIssueApiKeyIndexRoute =
   docsDocsHowToIssueApiKeyIndexRouteImport.update({
     id: '/docs/how-to/issue-api-key/',
@@ -295,6 +288,7 @@ export interface FileRoutesByFullPath {
   '/docs/admin/lockout-recovery/': typeof docsDocsAdminLockoutRecoveryIndexRoute
   '/docs/admin/quotas/': typeof docsDocsAdminQuotasIndexRoute
   '/docs/admin/rbac-hardening/': typeof docsDocsAdminRbacHardeningIndexRoute
+  '/docs/admin/theming-console/': typeof docsDocsAdminThemingConsoleIndexRoute
   '/docs/concepts/audit/': typeof docsDocsConceptsAuditIndexRoute
   '/docs/concepts/auth-and-rbac/': typeof docsDocsConceptsAuthAndRbacIndexRoute
   '/docs/concepts/compute-and-workloads/': typeof docsDocsConceptsComputeAndWorkloadsIndexRoute
@@ -312,8 +306,6 @@ export interface FileRoutesByFullPath {
   '/docs/how-to/configure-oidc/': typeof docsDocsHowToConfigureOidcIndexRoute
   '/docs/how-to/create-bucket/': typeof docsDocsHowToCreateBucketIndexRoute
   '/docs/how-to/create-workload/': typeof docsDocsHowToCreateWorkloadIndexRoute
-  '/docs/how-to/customize-branding/': typeof docsDocsHowToCustomizeBrandingIndexRoute
-  '/docs/how-to/install-community-theme/': typeof docsDocsHowToInstallCommunityThemeIndexRoute
   '/docs/how-to/issue-api-key/': typeof docsDocsHowToIssueApiKeyIndexRoute
   '/docs/how-to/manage-workload-lifecycle/': typeof docsDocsHowToManageWorkloadLifecycleIndexRoute
   '/docs/how-to/reserve-floating-ip/': typeof docsDocsHowToReserveFloatingIpIndexRoute
@@ -335,6 +327,7 @@ export interface FileRoutesByTo {
   '/docs/admin/lockout-recovery': typeof docsDocsAdminLockoutRecoveryIndexRoute
   '/docs/admin/quotas': typeof docsDocsAdminQuotasIndexRoute
   '/docs/admin/rbac-hardening': typeof docsDocsAdminRbacHardeningIndexRoute
+  '/docs/admin/theming-console': typeof docsDocsAdminThemingConsoleIndexRoute
   '/docs/concepts/audit': typeof docsDocsConceptsAuditIndexRoute
   '/docs/concepts/auth-and-rbac': typeof docsDocsConceptsAuthAndRbacIndexRoute
   '/docs/concepts/compute-and-workloads': typeof docsDocsConceptsComputeAndWorkloadsIndexRoute
@@ -352,8 +345,6 @@ export interface FileRoutesByTo {
   '/docs/how-to/configure-oidc': typeof docsDocsHowToConfigureOidcIndexRoute
   '/docs/how-to/create-bucket': typeof docsDocsHowToCreateBucketIndexRoute
   '/docs/how-to/create-workload': typeof docsDocsHowToCreateWorkloadIndexRoute
-  '/docs/how-to/customize-branding': typeof docsDocsHowToCustomizeBrandingIndexRoute
-  '/docs/how-to/install-community-theme': typeof docsDocsHowToInstallCommunityThemeIndexRoute
   '/docs/how-to/issue-api-key': typeof docsDocsHowToIssueApiKeyIndexRoute
   '/docs/how-to/manage-workload-lifecycle': typeof docsDocsHowToManageWorkloadLifecycleIndexRoute
   '/docs/how-to/reserve-floating-ip': typeof docsDocsHowToReserveFloatingIpIndexRoute
@@ -378,6 +369,7 @@ export interface FileRoutesById {
   '/(docs)/docs/admin/lockout-recovery/': typeof docsDocsAdminLockoutRecoveryIndexRoute
   '/(docs)/docs/admin/quotas/': typeof docsDocsAdminQuotasIndexRoute
   '/(docs)/docs/admin/rbac-hardening/': typeof docsDocsAdminRbacHardeningIndexRoute
+  '/(docs)/docs/admin/theming-console/': typeof docsDocsAdminThemingConsoleIndexRoute
   '/(docs)/docs/concepts/audit/': typeof docsDocsConceptsAuditIndexRoute
   '/(docs)/docs/concepts/auth-and-rbac/': typeof docsDocsConceptsAuthAndRbacIndexRoute
   '/(docs)/docs/concepts/compute-and-workloads/': typeof docsDocsConceptsComputeAndWorkloadsIndexRoute
@@ -395,8 +387,6 @@ export interface FileRoutesById {
   '/(docs)/docs/how-to/configure-oidc/': typeof docsDocsHowToConfigureOidcIndexRoute
   '/(docs)/docs/how-to/create-bucket/': typeof docsDocsHowToCreateBucketIndexRoute
   '/(docs)/docs/how-to/create-workload/': typeof docsDocsHowToCreateWorkloadIndexRoute
-  '/(docs)/docs/how-to/customize-branding/': typeof docsDocsHowToCustomizeBrandingIndexRoute
-  '/(docs)/docs/how-to/install-community-theme/': typeof docsDocsHowToInstallCommunityThemeIndexRoute
   '/(docs)/docs/how-to/issue-api-key/': typeof docsDocsHowToIssueApiKeyIndexRoute
   '/(docs)/docs/how-to/manage-workload-lifecycle/': typeof docsDocsHowToManageWorkloadLifecycleIndexRoute
   '/(docs)/docs/how-to/reserve-floating-ip/': typeof docsDocsHowToReserveFloatingIpIndexRoute
@@ -420,6 +410,7 @@ export interface FileRouteTypes {
     | '/docs/admin/lockout-recovery/'
     | '/docs/admin/quotas/'
     | '/docs/admin/rbac-hardening/'
+    | '/docs/admin/theming-console/'
     | '/docs/concepts/audit/'
     | '/docs/concepts/auth-and-rbac/'
     | '/docs/concepts/compute-and-workloads/'
@@ -437,8 +428,6 @@ export interface FileRouteTypes {
     | '/docs/how-to/configure-oidc/'
     | '/docs/how-to/create-bucket/'
     | '/docs/how-to/create-workload/'
-    | '/docs/how-to/customize-branding/'
-    | '/docs/how-to/install-community-theme/'
     | '/docs/how-to/issue-api-key/'
     | '/docs/how-to/manage-workload-lifecycle/'
     | '/docs/how-to/reserve-floating-ip/'
@@ -460,6 +449,7 @@ export interface FileRouteTypes {
     | '/docs/admin/lockout-recovery'
     | '/docs/admin/quotas'
     | '/docs/admin/rbac-hardening'
+    | '/docs/admin/theming-console'
     | '/docs/concepts/audit'
     | '/docs/concepts/auth-and-rbac'
     | '/docs/concepts/compute-and-workloads'
@@ -477,8 +467,6 @@ export interface FileRouteTypes {
     | '/docs/how-to/configure-oidc'
     | '/docs/how-to/create-bucket'
     | '/docs/how-to/create-workload'
-    | '/docs/how-to/customize-branding'
-    | '/docs/how-to/install-community-theme'
     | '/docs/how-to/issue-api-key'
     | '/docs/how-to/manage-workload-lifecycle'
     | '/docs/how-to/reserve-floating-ip'
@@ -502,6 +490,7 @@ export interface FileRouteTypes {
     | '/(docs)/docs/admin/lockout-recovery/'
     | '/(docs)/docs/admin/quotas/'
     | '/(docs)/docs/admin/rbac-hardening/'
+    | '/(docs)/docs/admin/theming-console/'
     | '/(docs)/docs/concepts/audit/'
     | '/(docs)/docs/concepts/auth-and-rbac/'
     | '/(docs)/docs/concepts/compute-and-workloads/'
@@ -519,8 +508,6 @@ export interface FileRouteTypes {
     | '/(docs)/docs/how-to/configure-oidc/'
     | '/(docs)/docs/how-to/create-bucket/'
     | '/(docs)/docs/how-to/create-workload/'
-    | '/(docs)/docs/how-to/customize-branding/'
-    | '/(docs)/docs/how-to/install-community-theme/'
     | '/(docs)/docs/how-to/issue-api-key/'
     | '/(docs)/docs/how-to/manage-workload-lifecycle/'
     | '/(docs)/docs/how-to/reserve-floating-ip/'
@@ -627,6 +614,13 @@ declare module '@tanstack/react-router' {
       path: '/docs/admin/rbac-hardening'
       fullPath: '/docs/admin/rbac-hardening/'
       preLoaderRoute: typeof docsDocsAdminRbacHardeningIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/admin/theming-console/': {
+      id: '/(docs)/docs/admin/theming-console/'
+      path: '/docs/admin/theming-console'
+      fullPath: '/docs/admin/theming-console/'
+      preLoaderRoute: typeof docsDocsAdminThemingConsoleIndexRouteImport
       parentRoute: typeof docsRouteRoute
     }
     '/(docs)/docs/concepts/audit/': {
@@ -748,20 +742,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof docsDocsHowToCreateWorkloadIndexRouteImport
       parentRoute: typeof docsRouteRoute
     }
-    '/(docs)/docs/how-to/customize-branding/': {
-      id: '/(docs)/docs/how-to/customize-branding/'
-      path: '/docs/how-to/customize-branding'
-      fullPath: '/docs/how-to/customize-branding/'
-      preLoaderRoute: typeof docsDocsHowToCustomizeBrandingIndexRouteImport
-      parentRoute: typeof docsRouteRoute
-    }
-    '/(docs)/docs/how-to/install-community-theme/': {
-      id: '/(docs)/docs/how-to/install-community-theme/'
-      path: '/docs/how-to/install-community-theme'
-      fullPath: '/docs/how-to/install-community-theme/'
-      preLoaderRoute: typeof docsDocsHowToInstallCommunityThemeIndexRouteImport
-      parentRoute: typeof docsRouteRoute
-    }
     '/(docs)/docs/how-to/issue-api-key/': {
       id: '/(docs)/docs/how-to/issue-api-key/'
       path: '/docs/how-to/issue-api-key'
@@ -832,6 +812,7 @@ interface docsRouteRouteChildren {
   docsDocsAdminLockoutRecoveryIndexRoute: typeof docsDocsAdminLockoutRecoveryIndexRoute
   docsDocsAdminQuotasIndexRoute: typeof docsDocsAdminQuotasIndexRoute
   docsDocsAdminRbacHardeningIndexRoute: typeof docsDocsAdminRbacHardeningIndexRoute
+  docsDocsAdminThemingConsoleIndexRoute: typeof docsDocsAdminThemingConsoleIndexRoute
   docsDocsConceptsAuditIndexRoute: typeof docsDocsConceptsAuditIndexRoute
   docsDocsConceptsAuthAndRbacIndexRoute: typeof docsDocsConceptsAuthAndRbacIndexRoute
   docsDocsConceptsComputeAndWorkloadsIndexRoute: typeof docsDocsConceptsComputeAndWorkloadsIndexRoute
@@ -849,8 +830,6 @@ interface docsRouteRouteChildren {
   docsDocsHowToConfigureOidcIndexRoute: typeof docsDocsHowToConfigureOidcIndexRoute
   docsDocsHowToCreateBucketIndexRoute: typeof docsDocsHowToCreateBucketIndexRoute
   docsDocsHowToCreateWorkloadIndexRoute: typeof docsDocsHowToCreateWorkloadIndexRoute
-  docsDocsHowToCustomizeBrandingIndexRoute: typeof docsDocsHowToCustomizeBrandingIndexRoute
-  docsDocsHowToInstallCommunityThemeIndexRoute: typeof docsDocsHowToInstallCommunityThemeIndexRoute
   docsDocsHowToIssueApiKeyIndexRoute: typeof docsDocsHowToIssueApiKeyIndexRoute
   docsDocsHowToManageWorkloadLifecycleIndexRoute: typeof docsDocsHowToManageWorkloadLifecycleIndexRoute
   docsDocsHowToReserveFloatingIpIndexRoute: typeof docsDocsHowToReserveFloatingIpIndexRoute
@@ -875,6 +854,7 @@ const docsRouteRouteChildren: docsRouteRouteChildren = {
     docsDocsAdminLockoutRecoveryIndexRoute,
   docsDocsAdminQuotasIndexRoute: docsDocsAdminQuotasIndexRoute,
   docsDocsAdminRbacHardeningIndexRoute: docsDocsAdminRbacHardeningIndexRoute,
+  docsDocsAdminThemingConsoleIndexRoute: docsDocsAdminThemingConsoleIndexRoute,
   docsDocsConceptsAuditIndexRoute: docsDocsConceptsAuditIndexRoute,
   docsDocsConceptsAuthAndRbacIndexRoute: docsDocsConceptsAuthAndRbacIndexRoute,
   docsDocsConceptsComputeAndWorkloadsIndexRoute:
@@ -898,10 +878,6 @@ const docsRouteRouteChildren: docsRouteRouteChildren = {
   docsDocsHowToConfigureOidcIndexRoute: docsDocsHowToConfigureOidcIndexRoute,
   docsDocsHowToCreateBucketIndexRoute: docsDocsHowToCreateBucketIndexRoute,
   docsDocsHowToCreateWorkloadIndexRoute: docsDocsHowToCreateWorkloadIndexRoute,
-  docsDocsHowToCustomizeBrandingIndexRoute:
-    docsDocsHowToCustomizeBrandingIndexRoute,
-  docsDocsHowToInstallCommunityThemeIndexRoute:
-    docsDocsHowToInstallCommunityThemeIndexRoute,
   docsDocsHowToIssueApiKeyIndexRoute: docsDocsHowToIssueApiKeyIndexRoute,
   docsDocsHowToManageWorkloadLifecycleIndexRoute:
     docsDocsHowToManageWorkloadLifecycleIndexRoute,

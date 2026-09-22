@@ -3,7 +3,11 @@ import { Link } from '@tanstack/react-router';
 /**
  * Bottom-of-landing CTA strip — single purpose: keep the docs exit
  * path visible after the manifesto + roadmap push it offscreen. The
- * copy is operator-facing ("install guide, operations, troubleshooting")
+ * destination is `/docs/getting-started` (the install + first-boot
+ * path), not a theming page; the CTA deliberately points at where an
+ * operator starts running Plexor, not where they configure its look.
+ *
+ * Voice: operator-facing ("install, run, troubleshoot, extend")
  * rather than engineering ("what is inside the binary").
  */
 export function MarketingCta() {

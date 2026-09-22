@@ -12,7 +12,9 @@ import { MarketingCta } from '@/components/marketing/marketing-cta';
  *
  * Voice: operator, not engineer. The meta description tells a search-
  * result reader what Plexor does for the person running it — not what
- * it is built on.
+ * it is built on. The lead is the eight product surfaces (compute,
+ * networking, storage, identity, marketplace, quotas, audit, console
+ * theming) — themes is one of them, not the headline.
  */
 export const Route = createFileRoute('/(marketing)/')({
   component: Landing,
@@ -22,7 +24,7 @@ export const Route = createFileRoute('/(marketing)/')({
       {
         name: 'description',
         content:
-          'Plexor is a self-hosted cloud platform. Run virtual machines, private networks, block and object storage on the servers already in your rack — and add Postgres, Redis, Keycloak or your own apps from a built-in catalog.',
+          'Plexor is a self-hosted cloud platform. Run virtual machines, private networks, block and object storage on the servers already in your rack — with identity, quotas, audit, and an app catalog out of the box.',
       },
     ],
   }),

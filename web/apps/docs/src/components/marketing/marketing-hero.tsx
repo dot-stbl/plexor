@@ -7,7 +7,10 @@ import { PlexorMark } from '@plexor/ui/brand';
  * "how it's organized"). The CTAs use TR `Link` so the SPA router
  * stays intact.
  *
- * Voice: second-person, operator vocabulary. The technical surface
+ * Voice: second-person, operator vocabulary. The lead paragraph leads
+ * with the eight product surfaces (compute, networking, storage,
+ * identity, marketplace, quotas, audit, console theming) — themes is
+ * one feature among them, not the headline. The technical surface
  * ("one binary, one process") stays because operators install it;
  * what is removed is the engineering positioning ("no microservices
  * sprawl", "modular monolith"), which belongs in the rationale docs,

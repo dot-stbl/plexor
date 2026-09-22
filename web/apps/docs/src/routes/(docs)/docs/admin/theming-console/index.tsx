@@ -3,17 +3,18 @@ import { getMdxComponents } from '@/lib/mdx-components';
 import MdxContent from './content.mdx';
 
 /**
- * `/docs/how-to/customize-branding/` route — loads the sibling content.mdx file and
+ * `/docs/admin/theming-console/` route — loads the sibling content.mdx file and
  * renders it inside the docs chrome.
  */
-export const Route = createFileRoute('/(docs)/docs/how-to/customize-branding/')({
+export const Route = createFileRoute('/(docs)/docs/admin/theming-console/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Customize the console's brand — plexor docs" },
+      { title: 'Theming the console — plexor docs' },
       {
         name: 'description',
-        content: "Set the name, logo, accent colour, and custom CSS — with the live preview.",
+        content:
+          'Set the brand name, logo and accent colour, or apply a community theme from the marketplace.',
       },
     ],
   }),
