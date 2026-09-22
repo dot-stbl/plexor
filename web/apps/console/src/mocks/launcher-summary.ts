@@ -51,7 +51,7 @@ export function makeLauncherSummary(): LauncherSummaryCard[] {
       labelKey: 'shell.launcher.summary.networks.label',
       to: '/networks',
       value: `${clusters.ready}/${clusters.total}`,
-      context: `${clusters.clusters} cluster(s) · nodes ready`,
+      context: `${clusters.clusters} clusters, nodes ready`,
     },
     {
       id: 'audit',

@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
  *    слева, карет справа), контент внутри рамки.
  */
 export interface DisclosureProps {
-  /** Текст-триггер (напр. «Advanced · CPU type, NUMA»). */
+  /** Текст-триггер (напр. «Advanced — CPU type, NUMA»). */
   summary: ReactNode;
   children: ReactNode;
   defaultOpen?: boolean;
