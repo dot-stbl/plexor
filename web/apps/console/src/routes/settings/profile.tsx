@@ -109,7 +109,7 @@ function SettingsProfilePage() {
           <CardHeader>
             <CardTitle>{t('settings.theme.heading')}</CardTitle>
             <CardDescription>
-              {preferences.accent} · {preferences.fontSize}
+              {preferences.accent} — {preferences.fontSize}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -141,7 +141,7 @@ function SettingsProfilePage() {
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <div className="min-w-0">
-                <div className="text-xs font-medium">{t('preferences.accent')} · {t('preferences.fontSize')}</div>
+                <div className="text-xs font-medium">{t('preferences.accent')} — {t('preferences.fontSize')}</div>
                 <div className="text-[11px] text-muted-foreground">
                   {t('preferences.fontSizeDescription')}
                 </div>
