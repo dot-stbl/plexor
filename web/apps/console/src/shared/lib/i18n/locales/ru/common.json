@@ -137,12 +137,12 @@
         "databases": {
           "label": "Базы данных",
           "value": "6",
-          "context": "3 PostgreSQL · 3 Redis"
+          "context": "3 PostgreSQL, 3 Redis"
         },
         "networks": {
           "label": "Сети",
           "value": "0",
-          "context": "0 кластер(ов) · ноды готовы"
+          "context": "0 кластеров, ноды не готовы"
         },
         "audit": {
           "label": "События аудита",
@@ -251,7 +251,7 @@
         "placement": "Размещение",
         "placementDescription": "На каком узле размещается ВМ. Новые ВМ принимают только готовые узлы.",
         "nodeHelp": "Self-hosted: ВМ работает на конкретном узле, а не в абстрактной зоне.",
-        "hypervisorAdvanced": "Дополнительно · Гипервизор (машина, прошивка, тип CPU)",
+        "hypervisorAdvanced": "Дополнительно — Гипервизор (машина, прошивка, тип CPU)",
         "machineType": "Тип машины",
         "machineTypeHelp": "q35 предоставляет современный PCIe; i440fx — для устаревших гостевых систем.",
         "firmware": "Прошивка",
@@ -267,7 +267,7 @@
         "cpuHelp": "vCPU = сокеты × ядра (модель Proxmox).",
         "memory": "Память",
         "memoryHelp": "Точный размер, вплоть до МиБ. Ограничено свободной памятью узла.",
-        "computeAdvanced": "Дополнительно · Тип CPU, NUMA, баллунинг памяти",
+        "computeAdvanced": "Дополнительно — Тип CPU, NUMA, баллунинг памяти",
         "numa": "NUMA",
         "numaHelp": "Показать гостю NUMA-топологию хоста — для больших многосокетных ВМ.",
         "ballooning": "Баллунинг",
@@ -283,7 +283,7 @@
         "bootDiskSizeHelp": "Вплоть до МиБ. Должно быть ≥ минимального диска образа.",
         "bus": "Шина",
         "busHelp": "VirtIO SCSI — современный вариант по умолчанию; SATA для совместимости.",
-        "storageAdvanced": "Дополнительно · Кэш, эмуляция SSD, discard, IO-поток, дополнительные диски",
+        "storageAdvanced": "Дополнительно — Кэш, эмуляция SSD, discard, IO-поток, дополнительные диски",
         "cacheMode": "Режим кэша",
         "cacheModeHelp": "`none` безопаснее всего с Ceph/ZFS; `writeback` быстрее всего, но требует ИБП.",
         "ssdEmulation": "Эмуляция SSD",
@@ -300,7 +300,7 @@
         "vpcSubnetHelp": "Целевые VPC + подсеть, к которым подключается основной NIC ВМ. Задают пул DHCP и зону брандмауэра.",
         "ipAddress": "IP-адрес",
         "ipAddressHelp": "DHCP из подсети или задайте статический адрес + шлюз.",
-        "networkAdvanced": "Дополнительно · Модель NIC, VLAN, брандмауэр, ограничение скорости",
+        "networkAdvanced": "Дополнительно — Модель NIC, VLAN, брандмауэр, ограничение скорости",
         "nicModel": "Модель NIC",
         "nicModelHelp": "VirtIO — самый быстрый; e1000/rtl8139 для гостей без драйверов VirtIO.",
         "vlanTag": "Метка VLAN",
@@ -316,7 +316,7 @@
         "authentication": "Аутентификация",
         "authenticationHelp": "Рекомендуется SSH-ключ; пароль опционален.",
         "passwordPlaceholder": "Пароль",
-        "accessAdvanced": "Дополнительно · cloud-init user-data, DNS",
+        "accessAdvanced": "Дополнительно — cloud-init user-data, DNS",
         "userData": "user-data",
         "userDataHelp": "Дополнительный YAML cloud-init, применяемый при первой загрузке (packages, run-cmd…).",
         "dnsServers": "DNS-серверы",
@@ -446,7 +446,7 @@
         "modeHelp": "HA запускает 3 control-plane ноды с кворумом embedded etcd.",
         "datastoreLabel": "Datastore",
         "datastoreHelp": "Embedded etcd (self-managed кворум) или внешний SQL datastore.",
-        "advancedApiServer": "Advanced · API server",
+        "advancedApiServer": "Advanced — API server",
         "nodePlacementLabel": "Размещение нод",
         "nodePlacementHelp": "Пусть scheduler размещает control-plane ноды автоматически, или закрепите их за конкретными хостами.",
         "pinSelectionComingSoon": "Выбор закрепления скоро появится.",
@@ -463,7 +463,7 @@
         "ingressHelp": "Встроенный ingress-контроллер для HTTP-маршрутизации.",
         "loadBalancerLabel": "Load balancer",
         "loadBalancerHelp": "Как Service типа LoadBalancer получают адрес. ServiceLB (klipper) — по умолчанию в K3s.",
-        "advancedCidrs": "Advanced · CIDRs",
+        "advancedCidrs": "Advanced — CIDRs",
         "podCidrLabel": "Pod CIDR",
         "podCidrHelp": "Диапазон адресов, из которого выделяются поды.",
         "serviceCidrLabel": "Service CIDR",
@@ -555,7 +555,7 @@
           "memoryHelp": "Точный размер, вплоть до МиБ. Ограничено свободной памятью узла.",
           "swapLabel": "Подкачка",
           "swapHelp": "Подкачка контейнера. 0 отключает подкачку.",
-          "advanced": "Дополнительно · Лимит CPU, единицы CPU",
+          "advanced": "Дополнительно — Лимит CPU, единицы CPU",
           "cpuLimitLabel": "Лимит CPU",
           "cpuLimitHelp": "Жёсткий предел в ядрах (дробные значения через cgroup хоста). 0 = без ограничения.",
           "cpuUnitsLabel": "Единицы CPU",
@@ -569,7 +569,7 @@
           "poolHelp": "Бэкенд, на котором размещается корневая ФС — предлагается выбранным узлом (Ceph, LVM-Thin, ZFS…).",
           "sizeLabel": "Размер корневой ФС",
           "sizeHelp": "Вплоть до МиБ.",
-          "advanced": "Дополнительно · Точки монтирования",
+          "advanced": "Дополнительно — Точки монтирования",
           "mountsLabel": "Точки монтирования",
           "mountsDescription": "Дополнительные тома данных, монтируемые в контейнер.",
           "addMount": "Добавить точку монтирования"
@@ -581,7 +581,7 @@
           "ipLabel": "IP-адрес",
           "ipHelp": "DHCP из подсети или закрепить статический адрес + шлюз.",
           "ipAria": "Назначение IP",
-          "advanced": "Дополнительно · Интерфейс, VLAN, файрвол, ограничение скорости",
+          "advanced": "Дополнительно — Интерфейс, VLAN, файрвол, ограничение скорости",
           "nicLabel": "Имя интерфейса",
           "nicHelp": "Имя внутри контейнера.",
           "vlanLabel": "Метка VLAN",
@@ -652,7 +652,7 @@
         "description": "Установите Plexor на своём сервере через {{code}} или ISO-образ, затем зарегистрируйте control-plane здесь.",
         "docsLabel": "Документация по установке"
       },
-      "summary": "{{clusters}} кластер(ов) · {{ready}}/{{total}} нод(ов) ready"
+      "summary": "{{clusters}} кластеров, {{ready}}/{{total}} нод готово"
     },
     "detail": {
       "notFound": "Кластер не найден",
@@ -738,7 +738,7 @@
     "title": "Сети и VPC",
     "description": "VPC, подсети и security groups проекта.",
     "create": "Создать сеть",
-    "summary": "{{networks}} VPC · {{subnets}} подсетей · {{active}} активных",
+    "summary": "{{networks}} VPC, {{subnets}} подсетей, {{active}} активных",
     "table": {
       "cidr": "CIDR",
       "subnets": "Подсети",
@@ -822,7 +822,7 @@
   },
   "managed": {
     "title": "Платформа данных",
-    "description": "running of · бэкапы, HA, тонкая настройка",
+    "description": "running of, бэкапы, HA, тонкая настройка",
     "create": "Создать {{engine}}",
     "empty": {
       "title": "Нет инстансов {{engine}}",
@@ -876,7 +876,7 @@
         "summaryDisk": "Диск",
         "summaryPlacement": "Размещение",
         "summaryBackups": "Резервные копии",
-        "summaryBackupsOn": "вкл · {{count}} дней",
+        "summaryBackupsOn": "включено, {{count}} дн.",
         "sourceLabel": "Источник",
         "providesLabel": "Предоставляет (binding)"
       },
