@@ -42,7 +42,7 @@ export default defineConfig({
     // header (LAN testing, containerised runs, eventual nginx upstream).
     // Localhost browsing still works — `0.0.0.0` listens on loopback too.
     host: '0.0.0.0',
-    port: 5174,
+    port: 17101,
     strictPort: true,
     cors: true,
   },
@@ -50,7 +50,8 @@ export default defineConfig({
   // Preview is what nginx will proxy to in production-like local testing.
   preview: {
     host: '0.0.0.0',
-    port: 5174,
+    port: 17111,
+    strictPort: true,
   },
   appType: 'spa',
   build: {

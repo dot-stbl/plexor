@@ -34,9 +34,17 @@ export default defineConfig({
     include: ['@kubb/plugin-client/clients/axios', 'axios'],
   },
   server: {
-    port: 5173,
+    host: '0.0.0.0',
+    port: 17100,
     strictPort: true,
     cors: true,
+  },
+  // Same host-agnostic bind for `vite preview` of the built `dist/`.
+  // Preview is what nginx will proxy to in production-like local testing.
+  preview: {
+    host: '0.0.0.0',
+    port: 17110,
+    strictPort: true,
   },
   // SPA fallback — TanStack Router uses History API navigation, so
   // direct hits on /vms/new, /clusters/$id etc. need to be served
