@@ -40,7 +40,7 @@ import {
   type AppRoute,
 } from './nav-config';
 import { AppLauncher } from './app-launcher';
-import { StblMark } from '@plexor/ui/brand';
+import { PlexorMark, StblMark } from '@plexor/ui/brand';
 
 type SidebarItem = { title: string; icon: Icon; to?: AppRoute };
 
@@ -135,7 +135,7 @@ export function AppSidebar() {
                   className="h-6 w-auto shrink-0 group-data-[collapsible=icon]:h-5"
                 />
               ) : (
-                <StblMark className="h-6 w-auto shrink-0 group-data-[collapsible=icon]:h-5" />
+                <PlexorMark className="h-6 w-auto shrink-0 group-data-[collapsible=icon]:h-5" />
               )}
               <div className="flex flex-col group-data-[collapsible=icon]:hidden">
                 <span className="text-sm font-semibold tracking-tight leading-tight">
@@ -143,14 +143,7 @@ export function AppSidebar() {
                 </span>
                 <span className="flex items-center gap-1 font-mono text-[10px] leading-tight text-muted-foreground/70">
                   by
-                  <svg
-                    viewBox="0 0 64 64"
-                    className="inline-block size-2.5"
-                    aria-hidden="true"
-                  >
-                    <rect width="64" height="64" className="fill-foreground" />
-                    <rect x="16" y="16" width="32" height="32" className="fill-background" />
-                  </svg>
+                  <StblMark className="size-2.5" />
                   stbl
                 </span>
               </div>
