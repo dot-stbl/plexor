@@ -35,15 +35,15 @@ export function TokenRow({ clusterId, token }: TokenRowProps) {
         <div className="text-sm font-medium">{token.label}</div>
         <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
           <span>{token.intendedRole === 'control' ? 'control-plane' : 'compute'}</span>
-          <span aria-hidden>·</span>
+          <span className="inline-block h-2.5 w-px bg-border" aria-hidden />
           <span>issued {new Date(token.issuedAt).toLocaleDateString('ru-RU')}</span>
-          <span aria-hidden>·</span>
+          <span className="inline-block h-2.5 w-px bg-border" aria-hidden />
           <span>
             expires <MonoNum>{new Date(token.expiresAt).toLocaleDateString('ru-RU')}</MonoNum>
           </span>
           {token.redeemedByNodeId && (
             <>
-              <span aria-hidden>·</span>
+              <span className="inline-block h-2.5 w-px bg-border" aria-hidden />
               <span>redeemed by <MonoNum>{token.redeemedByNodeId}</MonoNum></span>
             </>
           )}

@@ -50,9 +50,9 @@ export function NodeRow({ node }: NodeRowProps) {
           <MonoNum className="text-sm">{node.hostname}</MonoNum>
           <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-[0.06em]">
             <span>{ROLE_LABEL[node.role]}</span>
-            <span aria-hidden>·</span>
+            <span className="inline-block h-2.5 w-px bg-border" aria-hidden />
             <span>v{node.isoVersion}</span>
-            <span aria-hidden>·</span>
+            <span className="inline-block h-2.5 w-px bg-border" aria-hidden />
             <span>joined {new Date(node.joinedAt).toLocaleDateString('ru-RU')}</span>
           </p>
         </div>

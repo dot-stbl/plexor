@@ -13,7 +13,7 @@ import type { DbEngine, DbCluster, RuntimeHost } from '@/features/databases/data
 
 /**
  * Топология: node-b — Docker-хост, node-c — single-node k8s, node-a даёт
- * VM/LXC. availability: vm→a,b · lxc→a,b · docker→b · k8s→c.
+ * VM/LXC. availability: vm→a,b; lxc→a,b; docker→b; k8s→c.
  */
 const HOSTS: RuntimeHost[] = [
   { nodeId: 'node-a', hostname: 'node-a.local', runtimes: ['vm', 'lxc'] },

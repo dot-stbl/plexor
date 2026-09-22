@@ -88,10 +88,10 @@ export function getVmColumns(t: TFunction): ColumnDef<Vm>[] {
     {
       id: 'flavor',
       header: t('table.flavor'),
-      accessorFn: (row) => `${row.vcpu} vCPU · ${row.ramGb} GB`,
+      accessorFn: (row) => `${row.vcpu} vCPU, ${row.ramGb} GB`,
       cell: ({ getValue }) => (
         <span className="text-muted-foreground">
-          <MonoNum>{String(getValue()).split(' ')[0]}</MonoNum> vCPU ·{' '}
+          <MonoNum>{String(getValue()).split(' ')[0]}</MonoNum> vCPU,{' '}
           <MonoNum>{String(getValue()).split(' ')[2]}</MonoNum> GB
         </span>
       ),

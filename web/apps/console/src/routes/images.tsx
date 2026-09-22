@@ -109,7 +109,7 @@ function ImagesPage() {
             icon: <Delete />,
             variant: 'destructive',
             onClick: () => {
-              toast(`${t('common.delete')} · ${sel.selectedIds.size}`);
+              toast(`${t('common.delete')} (${sel.selectedIds.size})`);
               sel.clear();
             },
           },

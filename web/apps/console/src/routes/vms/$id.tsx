@@ -202,7 +202,7 @@ function VmDetailPage() {
               <StatusPill variant={mapVmStatusToVariant(vm.status)} size="sm">
                 {vm.status}
               </StatusPill>
-              <span className="text-muted-foreground">·</span>
+              <span className="inline-block h-3 w-px bg-border" aria-hidden />
               <span className="text-muted-foreground">{t('vms.detail.subtitle')}</span>
             </span>
           }
