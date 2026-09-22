@@ -63,7 +63,7 @@ export function getK8sColumns(t: TFunction): ColumnDef<K8sCluster>[] {
       accessorKey: 'cpNodes',
       cell: ({ row }) => (
         <span>
-          <MonoNum>{row.original.cpNodes}</MonoNum> cp ·{' '}
+          <MonoNum>{row.original.cpNodes}</MonoNum> cp,{' '}
           <MonoNum>{row.original.workerNodes}</MonoNum> wk
         </span>
       ),
