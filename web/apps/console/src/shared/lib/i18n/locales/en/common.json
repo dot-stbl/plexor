@@ -683,17 +683,88 @@
   "networks": {
     "title": "Networks and VPC",
     "description": "VPC, subnets and security groups for the project.",
-    "create": "Create network"
+    "create": "Create network",
+    "summary": "{{networks}} VPC(s) · {{subnets}} subnets · {{active}} active",
+    "table": {
+      "cidr": "CIDR",
+      "subnets": "Subnets",
+      "bindings": "Bindings",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusDraft": "Draft"
+    },
+    "empty": {
+      "title": "No networks yet",
+      "description": "Create a VPC to give your resources an isolated address space. Subnets, security groups and floating IPs all hang off a VPC.",
+      "docs": {
+        "vpc": "How VPC works",
+        "subnets": "Subnets and routing",
+        "sg": "Security groups"
+      },
+      "cta": "Create first VPC"
+    }
   },
   "audit": {
     "title": "Audit log",
     "description": "History of user and system actions in the project.",
-    "filter": "Filter"
+    "filter": "Filter",
+    "empty": {
+      "title": "No audit events yet",
+      "description": "Audit rows appear here as users and services act on the project — the first one will land once you create, edit, or delete a resource.",
+      "docs": {
+        "audit": "What gets audited",
+        "retention": "Retention and export"
+      }
+    },
+    "error": {
+      "fetch": "Failed to load the audit log."
+    }
   },
   "billing": {
     "title": "Billing",
     "description": "Resource billing and consumption by project.",
-    "export": "Export"
+    "export": "Export",
+    "currentPlan": {
+      "heading": "Current plan",
+      "name": "Self-hosted — {{edition}}",
+      "renews": "Renews",
+      "support": "Support",
+      "supportValue": "Community (GitHub)",
+      "seats": "Seats",
+      "seatsValue": "{{used}}/{{limit}} active",
+      "cta": "Manage subscription"
+    },
+    "usage": {
+      "heading": "Usage this month",
+      "compute": "Compute (vCPU hours)",
+      "storage": "Storage (GB-month)",
+      "egress": "Egress (GB)",
+      "of": "of {{limit}}",
+      "resetNote": "Counter resets on the 1st of next month."
+    },
+    "invoices": {
+      "heading": "Invoices",
+      "number": "Invoice",
+      "issued": "Issued",
+      "amount": "Amount",
+      "status": "Status",
+      "statusPaid": "Paid",
+      "statusOpen": "Open",
+      "statusVoid": "Void",
+      "empty": "No invoices yet",
+      "emptyDescription": "Invoices are issued on the 1st of each month for the previous month."
+    },
+    "payment": {
+      "heading": "Payment method",
+      "method": "Method",
+      "methodValue": "Bank transfer",
+      "details": "IBAN",
+      "cta": "Update details"
+    },
+    "empty": {
+      "title": "No usage recorded",
+      "description": "Plexor self-hosted does not bill — this page is a read-only projection of resource usage. It will populate once your project has running resources."
+    }
   },
   "managed": {
     "title": "Data platform",
@@ -787,6 +858,10 @@
   "table": {
     "name": "Name",
     "id": "ID",
+    "action": "Action",
+    "actor": "Actor",
+    "target": "Target",
+    "occurredAt": "Occurred at",
     "status": "Status",
     "ip": "IP",
     "zone": "Zone",

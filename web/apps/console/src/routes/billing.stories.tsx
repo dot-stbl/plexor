@@ -1,7 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { Download } from '@nine-thirty-five/material-symbols-react/rounded/700';
-import { useTranslation } from 'react-i18next';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Download } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { Receipt } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Button } from '@/shared/ui/primitives/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
@@ -9,31 +10,26 @@ import { Stat } from '@/shared/ui/primitives/stat';
 import { Progress } from '@/shared/ui/primitives/progress';
 import { DataTable } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
-import { Receipt } from '@nine-thirty-five/material-symbols-react/rounded/700';
-import { getInvoiceColumns, useBilling } from '@/features/billing';
-import { routeHead } from '@/shared/lib/route-head';
+import { getInvoiceColumns } from '@/features/billing';
+import {
+  getBillingSnapshot,
+  type BillingSnapshot,
+} from '@/shared/api/mocks/handmade/billing';
 
 /**
- * /billing — read-only projection of resource usage for the self-hosted
- * edition. Plexor self-hosted does not bill; this page mirrors the
- * contract shape we will eventually wire (Phase 6+), and lets a tenant
- * see what usage would be billed if they switched to a managed edition.
+ * /billing page stories.
  *
- * Layout: 4 cards stacked — current plan, usage (3 progress bars),
- * invoices table (or empty state), payment method. All data comes from
- * a synchronous handmade mock until kubb handlers exist (see the
- * README in `shared/api/mocks/handmade/billing.ts`).
+ * The route reads from a handmade mock via `useBilling()`; stories use the
+ * same factory so the page body renders identically to the real page. Two
+ * states:
+ *   Default: full page with empty invoices card (the realistic first-run state).
+ *   WithInvoices: same page but with a few example invoices, so the table
+ *                 path is captured too.
  */
-export const Route = createFileRoute('/billing')({
-  component: BillingPage,
-  ...routeHead('Billing'),
-});
 
-function BillingPage() {
+function BillingPageBody({ snapshot }: { snapshot: BillingSnapshot }) {
   const { t } = useTranslation();
-  const { snapshot } = useBilling();
   const columns = useMemo(() => getInvoiceColumns(t), [t]);
-
   return (
     <PageTemplate
       title={t('billing.title')}
@@ -151,3 +147,53 @@ function BillingPage() {
     </PageTemplate>
   );
 }
+
+const meta = {
+  title: 'Pages/Billing',
+  parameters: { layout: 'fullscreen' },
+} satisfies Meta;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+/** Default: realistic first-run state (no invoices yet). */
+export const Default: Story = {
+  render: () => <BillingPageBody snapshot={getBillingSnapshot()} />,
+};
+
+/** WithInvoices: a few historical invoices so the table path is captured. */
+export const WithInvoices: Story = {
+  render: () => {
+    const base = getBillingSnapshot();
+    const augmented: BillingSnapshot = {
+      ...base,
+      invoices: [
+        {
+          id: 'inv-2026-08',
+          number: 'PLX-2026-008',
+          issuedAt: '2026-09-01T00:00:00Z',
+          amountMinor: 0,
+          currency: 'EUR',
+          status: 'paid',
+        },
+        {
+          id: 'inv-2026-07',
+          number: 'PLX-2026-007',
+          issuedAt: '2026-08-01T00:00:00Z',
+          amountMinor: 0,
+          currency: 'EUR',
+          status: 'paid',
+        },
+        {
+          id: 'inv-2026-06',
+          number: 'PLX-2026-006',
+          issuedAt: '2026-07-01T00:00:00Z',
+          amountMinor: 0,
+          currency: 'EUR',
+          status: 'void',
+        },
+      ],
+    };
+    return <BillingPageBody snapshot={augmented} />;
+  },
+};

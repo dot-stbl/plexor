@@ -37,6 +37,9 @@ export type AppRoute =
   | '/audit'
   | '/clusters'
   | '/managed/postgres'
+  | '/managed/redis'
+  | '/managed/kafka'
+  | '/managed/clickhouse'
   | '/admin/branding'
   | '/admin/theme-marketplace'
   | '/admin/audit'
@@ -148,12 +151,11 @@ export const SECTIONS: Section[] = [
     label: 'nav.sections.databases',
     caption: 'nav.sections.databasesCaption',
     icon: Database,
-    soon: true,
     pages: [
-      { title: 'nav.postgresTitle', description: 'nav.postgresDesc', icon: Database },
-      { title: 'nav.redisTitle', description: 'nav.redisDesc', icon: Bolt },
-      { title: 'nav.clickhouseTitle', description: 'nav.clickhouseDesc', icon: BarChart },
-      { title: 'nav.kafkaTitle', description: 'nav.kafkaDesc', icon: Bolt },
+      { title: 'nav.postgresTitle', description: 'nav.postgresDesc', icon: Database, to: '/managed/postgres' },
+      { title: 'nav.redisTitle', description: 'nav.redisDesc', icon: Bolt, to: '/managed/redis' },
+      { title: 'nav.clickhouseTitle', description: 'nav.clickhouseDesc', icon: BarChart, to: '/managed/clickhouse' },
+      { title: 'nav.kafkaTitle', description: 'nav.kafkaDesc', icon: Bolt, to: '/managed/kafka' },
       { title: 'nav.registryTitle', description: 'nav.registryDesc', icon: Package },
     ],
   },
