@@ -22,15 +22,11 @@ scope it lives in), and a lifecycle state. The state is the most
 important operator-facing field — it tells you whether the workload
 is doing what you asked.
 
-<ScreenshotPlaceholder caption="Workloads list with state chips across runtimes" />
-
 ## The lifecycle states
 
 A workload moves through five states. Every transition goes through
 the same state machine, which is the only place `Workload.State` is
 mutated.
-
-<DiagramPlaceholder id="D2" caption="Workload state machine: Pending → Provisioning → Running → Stopped" />
 
 The states, in order:
 

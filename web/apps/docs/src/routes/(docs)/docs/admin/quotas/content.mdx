@@ -9,8 +9,6 @@ covers the three places to set a quota, what the warning signal
 looks like inside Plexor, and the design choice that there is no
 admin override.
 
-<ScreenshotPlaceholder caption="Quotas assignments page with a per-definition table" />
-
 ## Where quotas live
 
 A quota assignment is a row in Plexor's quotas table. There are
@@ -59,8 +57,6 @@ When a request succeeds but crosses the 80% threshold, the
 response carries an `X-Quota-Warning: true` header. The console
 reads the header and surfaces a warning badge on the resource
 that pushed you over.
-
-<ScreenshotPlaceholder caption="Quota warning badge next to a VM in the workloads list" />
 
 The badge stays on the resource's row until the usage drops back
 under the threshold (the operator deletes other workloads) or the

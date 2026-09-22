@@ -52,8 +52,6 @@ existing organisation does not overwrite the operator's edits.
 When a workload creation request hits a quota check, Plexor walks
 the scope hierarchy and returns the **minimum** value found.
 
-<DiagramPlaceholder id="D3" caption="Scope-resolution walker: folder → team → org → default" />
-
 The walker is deterministic:
 
 1. If a folder-scoped assignment exists for the quota key, the
