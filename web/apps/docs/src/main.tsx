@@ -6,6 +6,7 @@ import { routeTree } from './routeTree.gen';
 
 import './styles.css';
 import { applyBootPreset } from './lib/apply-theme';
+import { DocsNotFound } from '@/components/docs/docs-not-found';
 
 /**
  * Apply the persisted/auto theme preset BEFORE first render so the docs
@@ -22,6 +23,7 @@ applyBootPreset();
 const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
+  defaultNotFoundComponent: DocsNotFound,
 });
 
 declare module '@tanstack/react-router' {
