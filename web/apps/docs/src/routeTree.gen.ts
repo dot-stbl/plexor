@@ -13,9 +13,12 @@ import { Route as docsRouteRouteImport } from './routes/(docs)/route'
 import { Route as marketingRouteRouteImport } from './routes/(marketing)/route'
 import { Route as marketingIndexRouteImport } from './routes/(marketing)/index'
 import { Route as docsDocsIndexRouteImport } from './routes/(docs)/docs/index'
+import { Route as docsDocsAdminIndexRouteImport } from './routes/(docs)/docs/admin/index'
 import { Route as docsDocsConceptsIndexRouteImport } from './routes/(docs)/docs/concepts/index'
 import { Route as docsDocsFaqIndexRouteImport } from './routes/(docs)/docs/faq/index'
 import { Route as docsDocsGettingStartedIndexRouteImport } from './routes/(docs)/docs/getting-started/index'
+import { Route as docsDocsHowToIndexRouteImport } from './routes/(docs)/docs/how-to/index'
+import { Route as docsDocsReferenceIndexRouteImport } from './routes/(docs)/docs/reference/index'
 import { Route as docsDocsAdminAuditLogIndexRouteImport } from './routes/(docs)/docs/admin/audit-log/index'
 import { Route as docsDocsAdminBackupAndDisasterIndexRouteImport } from './routes/(docs)/docs/admin/backup-and-disaster/index'
 import { Route as docsDocsAdminCapacityPlanningIndexRouteImport } from './routes/(docs)/docs/admin/capacity-planning/index'
@@ -71,6 +74,11 @@ const docsDocsIndexRoute = docsDocsIndexRouteImport.update({
   path: '/docs/',
   getParentRoute: () => docsRouteRoute,
 } as any)
+const docsDocsAdminIndexRoute = docsDocsAdminIndexRouteImport.update({
+  id: '/docs/admin/',
+  path: '/docs/admin/',
+  getParentRoute: () => docsRouteRoute,
+} as any)
 const docsDocsConceptsIndexRoute = docsDocsConceptsIndexRouteImport.update({
   id: '/docs/concepts/',
   path: '/docs/concepts/',
@@ -87,6 +95,16 @@ const docsDocsGettingStartedIndexRoute =
     path: '/docs/getting-started/',
     getParentRoute: () => docsRouteRoute,
   } as any)
+const docsDocsHowToIndexRoute = docsDocsHowToIndexRouteImport.update({
+  id: '/docs/how-to/',
+  path: '/docs/how-to/',
+  getParentRoute: () => docsRouteRoute,
+} as any)
+const docsDocsReferenceIndexRoute = docsDocsReferenceIndexRouteImport.update({
+  id: '/docs/reference/',
+  path: '/docs/reference/',
+  getParentRoute: () => docsRouteRoute,
+} as any)
 const docsDocsAdminAuditLogIndexRoute =
   docsDocsAdminAuditLogIndexRouteImport.update({
     id: '/docs/admin/audit-log/',
@@ -307,9 +325,12 @@ const docsDocsGettingStartedInstallIsoIndexRoute =
 export interface FileRoutesByFullPath {
   '/': typeof marketingIndexRoute
   '/docs/': typeof docsDocsIndexRoute
+  '/docs/admin/': typeof docsDocsAdminIndexRoute
   '/docs/concepts/': typeof docsDocsConceptsIndexRoute
   '/docs/faq/': typeof docsDocsFaqIndexRoute
   '/docs/getting-started/': typeof docsDocsGettingStartedIndexRoute
+  '/docs/how-to/': typeof docsDocsHowToIndexRoute
+  '/docs/reference/': typeof docsDocsReferenceIndexRoute
   '/docs/admin/audit-log/': typeof docsDocsAdminAuditLogIndexRoute
   '/docs/admin/backup-and-disaster/': typeof docsDocsAdminBackupAndDisasterIndexRoute
   '/docs/admin/capacity-planning/': typeof docsDocsAdminCapacityPlanningIndexRoute
@@ -350,9 +371,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof marketingIndexRoute
   '/docs': typeof docsDocsIndexRoute
+  '/docs/admin': typeof docsDocsAdminIndexRoute
   '/docs/concepts': typeof docsDocsConceptsIndexRoute
   '/docs/faq': typeof docsDocsFaqIndexRoute
   '/docs/getting-started': typeof docsDocsGettingStartedIndexRoute
+  '/docs/how-to': typeof docsDocsHowToIndexRoute
+  '/docs/reference': typeof docsDocsReferenceIndexRoute
   '/docs/admin/audit-log': typeof docsDocsAdminAuditLogIndexRoute
   '/docs/admin/backup-and-disaster': typeof docsDocsAdminBackupAndDisasterIndexRoute
   '/docs/admin/capacity-planning': typeof docsDocsAdminCapacityPlanningIndexRoute
@@ -396,9 +420,12 @@ export interface FileRoutesById {
   '/(marketing)': typeof marketingRouteRouteWithChildren
   '/(marketing)/': typeof marketingIndexRoute
   '/(docs)/docs/': typeof docsDocsIndexRoute
+  '/(docs)/docs/admin/': typeof docsDocsAdminIndexRoute
   '/(docs)/docs/concepts/': typeof docsDocsConceptsIndexRoute
   '/(docs)/docs/faq/': typeof docsDocsFaqIndexRoute
   '/(docs)/docs/getting-started/': typeof docsDocsGettingStartedIndexRoute
+  '/(docs)/docs/how-to/': typeof docsDocsHowToIndexRoute
+  '/(docs)/docs/reference/': typeof docsDocsReferenceIndexRoute
   '/(docs)/docs/admin/audit-log/': typeof docsDocsAdminAuditLogIndexRoute
   '/(docs)/docs/admin/backup-and-disaster/': typeof docsDocsAdminBackupAndDisasterIndexRoute
   '/(docs)/docs/admin/capacity-planning/': typeof docsDocsAdminCapacityPlanningIndexRoute
@@ -441,9 +468,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/docs/'
+    | '/docs/admin/'
     | '/docs/concepts/'
     | '/docs/faq/'
     | '/docs/getting-started/'
+    | '/docs/how-to/'
+    | '/docs/reference/'
     | '/docs/admin/audit-log/'
     | '/docs/admin/backup-and-disaster/'
     | '/docs/admin/capacity-planning/'
@@ -484,9 +514,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/docs'
+    | '/docs/admin'
     | '/docs/concepts'
     | '/docs/faq'
     | '/docs/getting-started'
+    | '/docs/how-to'
+    | '/docs/reference'
     | '/docs/admin/audit-log'
     | '/docs/admin/backup-and-disaster'
     | '/docs/admin/capacity-planning'
@@ -529,9 +562,12 @@ export interface FileRouteTypes {
     | '/(marketing)'
     | '/(marketing)/'
     | '/(docs)/docs/'
+    | '/(docs)/docs/admin/'
     | '/(docs)/docs/concepts/'
     | '/(docs)/docs/faq/'
     | '/(docs)/docs/getting-started/'
+    | '/(docs)/docs/how-to/'
+    | '/(docs)/docs/reference/'
     | '/(docs)/docs/admin/audit-log/'
     | '/(docs)/docs/admin/backup-and-disaster/'
     | '/(docs)/docs/admin/capacity-planning/'
@@ -605,6 +641,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof docsDocsIndexRouteImport
       parentRoute: typeof docsRouteRoute
     }
+    '/(docs)/docs/admin/': {
+      id: '/(docs)/docs/admin/'
+      path: '/docs/admin'
+      fullPath: '/docs/admin/'
+      preLoaderRoute: typeof docsDocsAdminIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
     '/(docs)/docs/concepts/': {
       id: '/(docs)/docs/concepts/'
       path: '/docs/concepts'
@@ -624,6 +667,20 @@ declare module '@tanstack/react-router' {
       path: '/docs/getting-started'
       fullPath: '/docs/getting-started/'
       preLoaderRoute: typeof docsDocsGettingStartedIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/how-to/': {
+      id: '/(docs)/docs/how-to/'
+      path: '/docs/how-to'
+      fullPath: '/docs/how-to/'
+      preLoaderRoute: typeof docsDocsHowToIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/reference/': {
+      id: '/(docs)/docs/reference/'
+      path: '/docs/reference'
+      fullPath: '/docs/reference/'
+      preLoaderRoute: typeof docsDocsReferenceIndexRouteImport
       parentRoute: typeof docsRouteRoute
     }
     '/(docs)/docs/admin/audit-log/': {
@@ -883,9 +940,12 @@ declare module '@tanstack/react-router' {
 
 interface docsRouteRouteChildren {
   docsDocsIndexRoute: typeof docsDocsIndexRoute
+  docsDocsAdminIndexRoute: typeof docsDocsAdminIndexRoute
   docsDocsConceptsIndexRoute: typeof docsDocsConceptsIndexRoute
   docsDocsFaqIndexRoute: typeof docsDocsFaqIndexRoute
   docsDocsGettingStartedIndexRoute: typeof docsDocsGettingStartedIndexRoute
+  docsDocsHowToIndexRoute: typeof docsDocsHowToIndexRoute
+  docsDocsReferenceIndexRoute: typeof docsDocsReferenceIndexRoute
   docsDocsAdminAuditLogIndexRoute: typeof docsDocsAdminAuditLogIndexRoute
   docsDocsAdminBackupAndDisasterIndexRoute: typeof docsDocsAdminBackupAndDisasterIndexRoute
   docsDocsAdminCapacityPlanningIndexRoute: typeof docsDocsAdminCapacityPlanningIndexRoute
@@ -926,9 +986,12 @@ interface docsRouteRouteChildren {
 
 const docsRouteRouteChildren: docsRouteRouteChildren = {
   docsDocsIndexRoute: docsDocsIndexRoute,
+  docsDocsAdminIndexRoute: docsDocsAdminIndexRoute,
   docsDocsConceptsIndexRoute: docsDocsConceptsIndexRoute,
   docsDocsFaqIndexRoute: docsDocsFaqIndexRoute,
   docsDocsGettingStartedIndexRoute: docsDocsGettingStartedIndexRoute,
+  docsDocsHowToIndexRoute: docsDocsHowToIndexRoute,
+  docsDocsReferenceIndexRoute: docsDocsReferenceIndexRoute,
   docsDocsAdminAuditLogIndexRoute: docsDocsAdminAuditLogIndexRoute,
   docsDocsAdminBackupAndDisasterIndexRoute:
     docsDocsAdminBackupAndDisasterIndexRoute,
