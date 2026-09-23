@@ -49,6 +49,9 @@ import { Route as docsDocsReferenceApiIndexRouteImport } from './routes/(docs)/d
 import { Route as docsDocsReferenceGlossaryIndexRouteImport } from './routes/(docs)/docs/reference/glossary/index'
 import { Route as docsDocsReferencePermissionsIndexRouteImport } from './routes/(docs)/docs/reference/permissions/index'
 import { Route as docsDocsReferenceQuotasReferenceIndexRouteImport } from './routes/(docs)/docs/reference/quotas-reference/index'
+import { Route as docsDocsGettingStartedInstallAirgapIndexRouteImport } from './routes/(docs)/docs/getting-started/install/airgap/index'
+import { Route as docsDocsGettingStartedInstallCliIndexRouteImport } from './routes/(docs)/docs/getting-started/install/cli/index'
+import { Route as docsDocsGettingStartedInstallIsoIndexRouteImport } from './routes/(docs)/docs/getting-started/install/iso/index'
 
 const docsRouteRoute = docsRouteRouteImport.update({
   id: '/(docs)',
@@ -282,6 +285,24 @@ const docsDocsReferenceQuotasReferenceIndexRoute =
     path: '/docs/reference/quotas-reference/',
     getParentRoute: () => docsRouteRoute,
   } as any)
+const docsDocsGettingStartedInstallAirgapIndexRoute =
+  docsDocsGettingStartedInstallAirgapIndexRouteImport.update({
+    id: '/docs/getting-started/install/airgap/',
+    path: '/docs/getting-started/install/airgap/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsGettingStartedInstallCliIndexRoute =
+  docsDocsGettingStartedInstallCliIndexRouteImport.update({
+    id: '/docs/getting-started/install/cli/',
+    path: '/docs/getting-started/install/cli/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
+const docsDocsGettingStartedInstallIsoIndexRoute =
+  docsDocsGettingStartedInstallIsoIndexRouteImport.update({
+    id: '/docs/getting-started/install/iso/',
+    path: '/docs/getting-started/install/iso/',
+    getParentRoute: () => docsRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof marketingIndexRoute
@@ -322,6 +343,9 @@ export interface FileRoutesByFullPath {
   '/docs/reference/glossary/': typeof docsDocsReferenceGlossaryIndexRoute
   '/docs/reference/permissions/': typeof docsDocsReferencePermissionsIndexRoute
   '/docs/reference/quotas-reference/': typeof docsDocsReferenceQuotasReferenceIndexRoute
+  '/docs/getting-started/install/airgap/': typeof docsDocsGettingStartedInstallAirgapIndexRoute
+  '/docs/getting-started/install/cli/': typeof docsDocsGettingStartedInstallCliIndexRoute
+  '/docs/getting-started/install/iso/': typeof docsDocsGettingStartedInstallIsoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof marketingIndexRoute
@@ -362,6 +386,9 @@ export interface FileRoutesByTo {
   '/docs/reference/glossary': typeof docsDocsReferenceGlossaryIndexRoute
   '/docs/reference/permissions': typeof docsDocsReferencePermissionsIndexRoute
   '/docs/reference/quotas-reference': typeof docsDocsReferenceQuotasReferenceIndexRoute
+  '/docs/getting-started/install/airgap': typeof docsDocsGettingStartedInstallAirgapIndexRoute
+  '/docs/getting-started/install/cli': typeof docsDocsGettingStartedInstallCliIndexRoute
+  '/docs/getting-started/install/iso': typeof docsDocsGettingStartedInstallIsoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -405,6 +432,9 @@ export interface FileRoutesById {
   '/(docs)/docs/reference/glossary/': typeof docsDocsReferenceGlossaryIndexRoute
   '/(docs)/docs/reference/permissions/': typeof docsDocsReferencePermissionsIndexRoute
   '/(docs)/docs/reference/quotas-reference/': typeof docsDocsReferenceQuotasReferenceIndexRoute
+  '/(docs)/docs/getting-started/install/airgap/': typeof docsDocsGettingStartedInstallAirgapIndexRoute
+  '/(docs)/docs/getting-started/install/cli/': typeof docsDocsGettingStartedInstallCliIndexRoute
+  '/(docs)/docs/getting-started/install/iso/': typeof docsDocsGettingStartedInstallIsoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -447,6 +477,9 @@ export interface FileRouteTypes {
     | '/docs/reference/glossary/'
     | '/docs/reference/permissions/'
     | '/docs/reference/quotas-reference/'
+    | '/docs/getting-started/install/airgap/'
+    | '/docs/getting-started/install/cli/'
+    | '/docs/getting-started/install/iso/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -487,6 +520,9 @@ export interface FileRouteTypes {
     | '/docs/reference/glossary'
     | '/docs/reference/permissions'
     | '/docs/reference/quotas-reference'
+    | '/docs/getting-started/install/airgap'
+    | '/docs/getting-started/install/cli'
+    | '/docs/getting-started/install/iso'
   id:
     | '__root__'
     | '/(docs)'
@@ -529,6 +565,9 @@ export interface FileRouteTypes {
     | '/(docs)/docs/reference/glossary/'
     | '/(docs)/docs/reference/permissions/'
     | '/(docs)/docs/reference/quotas-reference/'
+    | '/(docs)/docs/getting-started/install/airgap/'
+    | '/(docs)/docs/getting-started/install/cli/'
+    | '/(docs)/docs/getting-started/install/iso/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -818,6 +857,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof docsDocsReferenceQuotasReferenceIndexRouteImport
       parentRoute: typeof docsRouteRoute
     }
+    '/(docs)/docs/getting-started/install/airgap/': {
+      id: '/(docs)/docs/getting-started/install/airgap/'
+      path: '/docs/getting-started/install/airgap'
+      fullPath: '/docs/getting-started/install/airgap/'
+      preLoaderRoute: typeof docsDocsGettingStartedInstallAirgapIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/getting-started/install/cli/': {
+      id: '/(docs)/docs/getting-started/install/cli/'
+      path: '/docs/getting-started/install/cli'
+      fullPath: '/docs/getting-started/install/cli/'
+      preLoaderRoute: typeof docsDocsGettingStartedInstallCliIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
+    '/(docs)/docs/getting-started/install/iso/': {
+      id: '/(docs)/docs/getting-started/install/iso/'
+      path: '/docs/getting-started/install/iso'
+      fullPath: '/docs/getting-started/install/iso/'
+      preLoaderRoute: typeof docsDocsGettingStartedInstallIsoIndexRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
   }
 }
 
@@ -859,6 +919,9 @@ interface docsRouteRouteChildren {
   docsDocsReferenceGlossaryIndexRoute: typeof docsDocsReferenceGlossaryIndexRoute
   docsDocsReferencePermissionsIndexRoute: typeof docsDocsReferencePermissionsIndexRoute
   docsDocsReferenceQuotasReferenceIndexRoute: typeof docsDocsReferenceQuotasReferenceIndexRoute
+  docsDocsGettingStartedInstallAirgapIndexRoute: typeof docsDocsGettingStartedInstallAirgapIndexRoute
+  docsDocsGettingStartedInstallCliIndexRoute: typeof docsDocsGettingStartedInstallCliIndexRoute
+  docsDocsGettingStartedInstallIsoIndexRoute: typeof docsDocsGettingStartedInstallIsoIndexRoute
 }
 
 const docsRouteRouteChildren: docsRouteRouteChildren = {
@@ -913,6 +976,12 @@ const docsRouteRouteChildren: docsRouteRouteChildren = {
     docsDocsReferencePermissionsIndexRoute,
   docsDocsReferenceQuotasReferenceIndexRoute:
     docsDocsReferenceQuotasReferenceIndexRoute,
+  docsDocsGettingStartedInstallAirgapIndexRoute:
+    docsDocsGettingStartedInstallAirgapIndexRoute,
+  docsDocsGettingStartedInstallCliIndexRoute:
+    docsDocsGettingStartedInstallCliIndexRoute,
+  docsDocsGettingStartedInstallIsoIndexRoute:
+    docsDocsGettingStartedInstallIsoIndexRoute,
 }
 
 const docsRouteRouteWithChildren = docsRouteRoute._addFileChildren(

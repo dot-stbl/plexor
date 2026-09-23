@@ -4,6 +4,8 @@ import {
   Accordion,
   Accordions,
   Callout,
+  Choice,
+  Choices,
   Diagram,
   DiagramPlaceholder,
   Kbd,
@@ -24,7 +26,7 @@ import {
  *
  * The MDX-only components (`Callout`, `Step`, `Screenshot`,
  * `ScreenshotPlaceholder`, `Kbd`, `Diagram`, `DiagramPlaceholder`,
- * `PlatformMatrix`) are registered globally so every MDX file in the
+ * `PlatformMatrix`, `Choices`, `Choice`) are registered globally so every MDX file in the
  * docs site can use them without an explicit import. Authors write
  * `<Callout type="warning">` not `import { Callout } from '@/components/mdx'`.
  *
@@ -173,6 +175,8 @@ export function getMdxComponents(): MDXComponents {
     Accordion,
     Accordions,
     Callout,
+    Choice,
+    Choices,
     Step,
     Screenshot,
     ScreenshotPlaceholder,

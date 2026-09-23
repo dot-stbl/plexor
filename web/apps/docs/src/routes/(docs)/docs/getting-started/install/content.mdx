@@ -5,7 +5,7 @@ chapter: "getting-started"
 ---
 
 Plexor is designed to be installed **once**, on hardware you own, and
-then run unattended for the rest of its life. This page walks the two
+then run unattended for the rest of its life. This page walks the
 supported install paths and what to do immediately after the host
 comes up. If you already have a Plexor host reachable on the network
 and just need to get in, skip to [First login](/docs/getting-started/first-login).
@@ -22,14 +22,25 @@ here.
 
 </Callout>
 
-## Which install path is right for you?
+## Choose how to install
 
-Plexor supports two install paths. Pick one.
-
-| Path | When | What you get |
-|---|---|---|
-| **Bootable ISO** | Bare metal, single-tenant, the host IS Plexor | A dedicated appliance-style host. The OS, the host process, and the runtime are all installed from the ISO. |
-| **`plx init`** | Existing Linux host (Debian / Ubuntu LTS, RHEL-compatible) | A side-by-side install on a host that also runs other things. Plexor takes a non-conflicting port range and an XFS data directory. |
+<Choices>
+  <Choice title="Bootable ISO" icon="disc" href="/docs/getting-started/install/iso/">
+    Download a bootable image, flash to USB, boot the target machine.
+    The installer picks the right drivers automatically; nothing to
+    install by hand. Best for dedicated hardware.
+  </Choice>
+  <Choice title="CLI on a Linux host" icon="terminal" href="/docs/getting-started/install/cli/">
+    Run `plx init` on an existing Ubuntu 22.04 / AlmaLinux 9 host.
+    Plexor takes over the box and registers it as the first control-
+    plane node. Best for development and VMs on existing infra.
+  </Choice>
+  <Choice title="Air-gapped bundle" icon="package" href="/docs/getting-started/install/airgap/">
+    Download a tarball, copy it across the air gap, run the local
+    installer. No internet access required at install time. Best
+    for regulated environments.
+  </Choice>
+</Choices>
 
 Both paths produce the same result: a running `Plexor.Host` process that
 the console can talk to, with a bootstrap admin user ready to take a

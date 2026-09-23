@@ -3,6 +3,9 @@
  * them in one import. Re-exports each component alongside the props
  * type so MDX frontmatter can reference them when needed.
  */
+export { Choice, Choices } from './choices';
+export type { ChoiceProps, ChoicesProps } from './choices';
+
 export { Accordion, Accordions } from './accordion';
 export type { AccordionProps, AccordionsProps } from './accordion';
 
