@@ -7,14 +7,23 @@ Frontend for Plexor Portal. bun workspaces + Vite + React + TanStack.
 ```
 web/
 ├── apps/
-│   └── console/          # Plexor Portal (Vite SPA)
+│   ├── console/          # Plexor Portal (Vite SPA, dev port 17100)
+│   └── docs/             # Plexor public docs site (Vite SPA, dev port 17101)
 ├── shared/
 │   ├── ui/               # Plexor DS (shadcn-style on Base UI)
 │   ├── lib/              # hooks, utils
 │   └── api/              # generated (kubb) — gitignored
 └── tooling/
-    └── codegen/          # kubb config + custom plugins
+    ├── codegen/          # kubb config + custom plugins
+    └── stories/          # MDX prose / docs primitives (shared)
 ```
+
+`web/apps/docs/` serves both the marketing landing (`/`) and the
+operator-facing documentation (`/docs/*`). It shares `@plexor/ui` and
+the Plexor DS tokens with `@plexor/console`. Full details, dev
+workflow, MDX primitives, theming, and routing rules live in
+`web/apps/docs/AGENTS.md`; page inventory in `web/docs/CONTENT-PLAN.md`;
+dev port assignments in `web/docs/PORTS.md`.
 
 ## Setup
 
