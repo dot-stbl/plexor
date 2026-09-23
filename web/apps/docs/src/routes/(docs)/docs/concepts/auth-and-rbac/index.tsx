@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/concepts/auth-and-rbac/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Authentication and RBAC — plexor docs" },
+      { title: "Authentication and RBAC" },
       {
         name: 'description',
         content: "How Plexor authenticates a request — local users, OIDC, JWT claims, API keys, and the permission catalog.",

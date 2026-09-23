@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/concepts/audit/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Audit log — plexor docs" },
+      { title: "Audit log" },
       {
         name: 'description',
         content: "Every state-changing call writes an entry — what the columns mean, how to query, and the retention window.",

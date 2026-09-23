@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/getting-started/first-login/'
   component: Page,
   head: () => ({
     meta: [
-      { title: "First login — plexor docs" },
+      { title: "First login" },
       {
         name: 'description',
         content: "Get the operator into the console for the first time and set the admin password.",

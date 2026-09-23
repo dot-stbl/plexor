@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/admin/capacity-planning/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Capacity planning — plexor docs" },
+      { title: "Capacity planning" },
       {
         name: 'description',
         content: "Default org-seeded quotas, when to raise the org versus adding a folder override, and what to watch on dashboards.",

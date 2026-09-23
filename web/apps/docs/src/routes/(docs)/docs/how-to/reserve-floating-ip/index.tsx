@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/how-to/reserve-floating-ip/')
   component: Page,
   head: () => ({
     meta: [
-      { title: "Reserve a floating IP — plexor docs" },
+      { title: "Reserve a floating IP" },
       {
         name: 'description',
         content: "Reserve, assign, reassign, and release a floating IP.",

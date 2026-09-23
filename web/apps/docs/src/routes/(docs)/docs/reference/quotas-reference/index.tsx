@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/reference/quotas-reference/')
   component: Page,
   head: () => ({
     meta: [
-      { title: "Quotas reference — plexor docs" },
+      { title: "Quotas reference" },
       {
         name: 'description',
         content: "The catalog keys, the default values, the scope-resolution walker, and the two signals (warning at 80%, denial at 100%).",

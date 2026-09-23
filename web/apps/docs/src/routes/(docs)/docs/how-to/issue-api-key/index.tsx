@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/how-to/issue-api-key/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Issue an API key — plexor docs" },
+      { title: "Issue an API key" },
       {
         name: 'description',
         content: "Issue an API key for a NodeAgent or other service account, with the copy-once flow and the kid_&lt;id&gt;.&lt;secret&gt; bearer shape.",

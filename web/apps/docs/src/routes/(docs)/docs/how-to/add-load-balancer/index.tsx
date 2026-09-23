@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/how-to/add-load-balancer/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Add a load balancer — plexor docs" },
+      { title: "Add a load balancer" },
       {
         name: 'description',
         content: "Round-robin vs least-connections — pick an algorithm, add targets, and confirm Active status.",

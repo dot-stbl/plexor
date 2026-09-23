@@ -5,9 +5,10 @@ import { ThemePickerButton } from '@/components/shared/theme-picker-button';
 
 /**
  * Docs header — three discrete slots left-to-right:
- *   1. Brand cluster: PlexorMark + "plexor" wordmark + "docs" eyebrow.
- *      The brand cluster links back to `/` (the landing) so the header
- *      is a constant escape hatch out of the docs section.
+ *   1. Brand cluster: PlexorMark + "plexor" wordmark. No "docs"
+ *      eyebrow — Plexor is the product, docs is the surface the
+ *      reader is on. The brand cluster links back to `/` (the
+ *      landing) so the header is a constant escape hatch.
  *   2. Breadcrumb — the parent chain of the current page, drawn from
  *      `useMatches()` by `DocsBreadcrumb`. Hidden at /docs/getting-started
  *      (no parent inside the docs group).
@@ -29,9 +30,6 @@ export function DocsHeader() {
         >
           <PlexorMark className="h-6 w-6 text-foreground" />
           <span className="text-sm font-semibold tracking-tight">plexor</span>
-          <span className="font-mono text-[10px] font-medium tracking-[0.16em] text-muted-2">
-            docs
-          </span>
         </Link>
 
         <DocsBreadcrumb className="min-w-0 flex-1 truncate text-xs text-muted-2" />

@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/admin/lockout-recovery/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Lockout recovery — plexor docs" },
+      { title: "Lockout recovery" },
       {
         name: 'description',
         content: "The 5/10/15 thresholds and the 15-minute/1-hour/24-hour lockout windows, with the manual DB unlock path for break-glass.",

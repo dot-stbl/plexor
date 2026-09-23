@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/how-to/rotate-ssh-key/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Rotate an SSH key — plexor docs" },
+      { title: "Rotate an SSH key" },
       {
         name: 'description',
         content: "Add a new SSH key, fingerprint-deduped; remove the old one; the LastUsedAt debounce.",

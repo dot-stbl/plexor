@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/reference/api/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "REST API reference — plexor docs" },
+      { title: "REST API reference" },
       {
         name: 'description',
         content: "The /api/v1 surface — endpoint groups by capability, request shapes, response shapes, and stable error codes.",

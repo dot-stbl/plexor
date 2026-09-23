@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/how-to/configure-oidc/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Configure OIDC for an organisation — plexor docs" },
+      { title: "Configure OIDC for an organisation" },
       {
         name: 'description',
         content: "Wire an external OIDC identity provider (Keycloak, Authentik, Azure AD) per organisation, with the discovery-document test endpoint and * admin retention.",

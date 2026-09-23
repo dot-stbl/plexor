@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/concepts/networking/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Networking, floating IPs, and load balancers — plexor docs" },
+      { title: "Networking, floating IPs, and load balancers" },
       {
         name: 'description',
         content: "VPCs, subnets, floating IPs, and load balancers — what the operator can attach and how the pieces fit together.",

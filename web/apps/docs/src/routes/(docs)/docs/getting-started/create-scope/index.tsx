@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/getting-started/create-scope/
   component: Page,
   head: () => ({
     meta: [
-      { title: "Create your first org, team, and folder — plexor docs" },
+      { title: "Create your first org, team, and folder" },
       {
         name: 'description',
         content: "Walk through the three-tier scope hierarchy interactively.",

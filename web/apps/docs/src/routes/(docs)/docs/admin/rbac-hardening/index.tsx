@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/admin/rbac-hardening/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "RBAC hardening — plexor docs" },
+      { title: "RBAC hardening" },
       {
         name: 'description',
         content: "Why wildcards are dangerous, how to write a least-privilege role for a NodeAgent integration, and why permission changes don't take effect on already-issued JWTs.",

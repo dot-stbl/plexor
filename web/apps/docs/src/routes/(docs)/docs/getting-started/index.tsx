@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/getting-started/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Welcome to Plexor — plexor docs" },
+      { title: "Welcome to Plexor" },
       {
         name: 'description',
         content: "What Plexor does for the operator, and which chapter to read first.",

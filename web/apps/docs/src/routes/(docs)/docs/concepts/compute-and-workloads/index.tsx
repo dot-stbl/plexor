@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/concepts/compute-and-workload
   component: Page,
   head: () => ({
     meta: [
-      { title: "Workloads and runtimes — plexor docs" },
+      { title: "Workloads and runtimes" },
       {
         name: 'description',
         content: "What a workload is, which runtimes ship, and what the lifecycle states mean.",

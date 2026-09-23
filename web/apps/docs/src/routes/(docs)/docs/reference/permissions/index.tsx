@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/reference/permissions/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Permissions catalog — plexor docs" },
+      { title: "Permissions catalog" },
       {
         name: 'description',
         content: "Every permission string Plexor ships, with the resource and action each guards, and the role the platform seeds it into.",

@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/how-to/create-bucket/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Create a bucket — plexor docs" },
+      { title: "Create a bucket" },
       {
         name: 'description',
         content: "Provision an S3-compatible bucket, with the access-key copy flow.",

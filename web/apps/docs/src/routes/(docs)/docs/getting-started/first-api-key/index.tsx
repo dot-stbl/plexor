@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/getting-started/first-api-key
   component: Page,
   head: () => ({
     meta: [
-      { title: "Your first API key — plexor docs" },
+      { title: "Your first API key" },
       {
         name: 'description',
         content: "Issue an API key for a service account and call a resource over HTTP.",

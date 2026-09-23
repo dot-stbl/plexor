@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/concepts/orgs-teams-folders/'
   component: Page,
   head: () => ({
     meta: [
-      { title: "Orgs, teams, and folders — plexor docs" },
+      { title: "Orgs, teams, and folders" },
       {
         name: 'description',
         content: "The 3-tier scope hierarchy that decides who can see and write to what.",

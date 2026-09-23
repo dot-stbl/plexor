@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/how-to/manage-workload-lifecy
   component: Page,
   head: () => ({
     meta: [
-      { title: "Workload lifecycle — plexor docs" },
+      { title: "Workload lifecycle" },
       {
         name: 'description',
         content: "The four buttons every workload exposes — start, stop, restart, delete — and what each one does to the state machine.",

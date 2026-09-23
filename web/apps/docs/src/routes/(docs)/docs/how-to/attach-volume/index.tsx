@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/how-to/attach-volume/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Attach a volume — plexor docs" },
+      { title: "Attach a volume" },
       {
         name: 'description',
         content: "Provision a block volume, attach it to a workload, and expand it without downtime.",

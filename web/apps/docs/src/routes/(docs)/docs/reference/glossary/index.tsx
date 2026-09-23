@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/reference/glossary/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Glossary — plexor docs" },
+      { title: "Glossary" },
       {
         name: 'description',
         content: "Operator-facing definitions for every term Plexor uses in the UI and the documentation.",

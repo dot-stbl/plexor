@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/concepts/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Concepts — plexor docs" },
+      { title: "Concepts" },
       {
         name: 'description',
         content: "Mental models for working with Plexor — the resource scope hierarchy, identity and RBAC, workloads and runtimes, networking, storage, quotas, and the audit log.",

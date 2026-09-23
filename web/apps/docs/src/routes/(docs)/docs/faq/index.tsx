@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/faq/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Frequently asked questions — plexor docs" },
+      { title: "Frequently asked questions" },
       {
         name: 'description',
         content: "Short answers that fit one screen each.",

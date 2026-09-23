@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/concepts/storage/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Storage: volumes and buckets — plexor docs" },
+      { title: "Storage: volumes and buckets" },
       {
         name: 'description',
         content: "Block volumes vs S3 buckets — sizing, attachment, and when to use which.",

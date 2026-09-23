@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/faq/troubleshooting/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Troubleshooting recipes — plexor docs" },
+      { title: "Troubleshooting recipes" },
       {
         name: 'description',
         content: "Symptom → cause → fix for the things operators hit most often.",

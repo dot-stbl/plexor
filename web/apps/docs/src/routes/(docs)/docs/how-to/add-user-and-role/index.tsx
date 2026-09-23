@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/how-to/add-user-and-role/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Add a user and assign a role — plexor docs" },
+      { title: "Add a user and assign a role" },
       {
         name: 'description',
         content: "Invite a user, choose a built-in or custom role, and bind the role to the right scope.",

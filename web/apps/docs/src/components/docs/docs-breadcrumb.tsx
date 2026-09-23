@@ -10,7 +10,7 @@ import type { ReactNode } from 'react';
  * The chapter slug → label map mirrors the sidebar's CHAPTERS list. If
  * the page is the chapter's index, the chapter segment IS the current
  * crumb and there's no "current page" tail (the operator reads
- * `plexor · docs › Concepts`, not `plexor · docs › Concepts › Concepts`).
+ * `Docs › Concepts`, not `Docs › Concepts › Concepts`).
  *
  * Visual: monospaced text nav with `›` chevrons between crumbs. The
  * final crumb is the current page, rendered without a trailing chevron

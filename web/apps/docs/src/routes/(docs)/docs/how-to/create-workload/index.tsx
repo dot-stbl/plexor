@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/how-to/create-workload/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Create a workload — plexor docs" },
+      { title: "Create a workload" },
       {
         name: 'description',
         content: "Provision a VM, container, or pod through the console, with the equivalent API call.",

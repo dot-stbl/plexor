@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/admin/quotas/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Managing quotas — plexor docs" },
+      { title: "Managing quotas" },
       {
         name: 'description',
         content: "Where to set a folder override, what the 80% warning looks like in the UI, and why there is no admin bypass.",

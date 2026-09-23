@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/concepts/quotas/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: "Quotas — plexor docs" },
+      { title: "Quotas" },
       {
         name: 'description',
         content: "Why quotas exist, how folder → team → org resolution walks the hierarchy, the 80% warning signal, and the catalog keys that ship in the current release.",

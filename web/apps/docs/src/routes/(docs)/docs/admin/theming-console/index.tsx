@@ -10,7 +10,7 @@ export const Route = createFileRoute('/(docs)/docs/admin/theming-console/')({
   component: Page,
   head: () => ({
     meta: [
-      { title: 'Theming the console — plexor docs' },
+      { title: 'Theming the console' },
       {
         name: 'description',
         content:
