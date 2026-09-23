@@ -1,0 +1,73 @@
+name: docs-build
+
+# Build the @plexor/docs site on every push to main, every PR that
+# touches docs code, and on manual dispatch. Mirror of web.yml's style
+# (bun 1.3.10, oven-sh/setup-bun@v2, actions/checkout@v4) but scoped
+# to the docs app + the @plexor/ui package (shared design tokens).
+# No dev server, no deploy step — operator's responsibility.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/apps/docs/**'
+      - 'web/packages/**'
+      - 'web/package.json'
+      - 'web/bun.lock'
+      - 'web/bunfig.toml'
+      - '.github/workflows/docs-build.yml'
+  pull_request:
+    paths:
+      - 'web/apps/docs/**'
+      - 'web/packages/**'
+      - 'web/package.json'
+      - 'web/bun.lock'
+      - 'web/bunfig.toml'
+      - '.github/workflows/docs-build.yml'
+  workflow_dispatch:
+
+# Cancel an in-flight run for the same ref when a new push lands.
+# Saves CI minutes on rapid doc edits.
+concurrency:
+  group: docs-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    name: Build docs site
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # Matches the locally verified bun version (workspaces + vitest).
+      # Same pin as web.yml — keep both bumped together.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+
+      # Frozen lockfile — fails fast if bun.lock drifts from package.json
+      # (catches lockfile-only-PRs the developer forgot to regenerate).
+      - name: Install workspace
+        run: bun install --frozen-lockfile
+        working-directory: web
+
+      - name: Typecheck
+        run: bun run typecheck:docs
+
+      - name: Lint
+        run: bun run lint:docs
+
+      - name: Build
+        run: bun run build:docs
+
+      # Upload dist/ so reviewers can grab the build without re-running
+      # locally. retention-days 7 — long enough for review, short enough
+      # not to bloat storage. Same pattern as web.yml visual-tests.
+      - name: Upload dist artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plexor-docs-dist
+          path: web/apps/docs/dist
+          retention-days: 7
