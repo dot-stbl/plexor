@@ -3,6 +3,7 @@ import { DocsHeader } from '@/components/docs/docs-header';
 import { DocsSidebar } from '@/components/docs/docs-sidebar';
 import { DocsToc } from '@/components/docs/docs-toc';
 import { DocsFooter } from '@/components/docs/docs-footer';
+import { DocsNotFound } from '@/components/docs/docs-not-found';
 
 /**
  * Docs layout — the three-column chrome (sidebar + article + TOC)
@@ -16,9 +17,16 @@ import { DocsFooter } from '@/components/docs/docs-footer';
  * route id keeps the parenthesised directory name verbatim —
  * `/(docs)`. Real URLs come from the inner `docs/` folder:
  * `/docs/getting-started`, `/docs/concepts`, etc.
+ *
+ * `notFoundComponent` here handles any unmatched path under
+ * `/docs/...` — fuzzy-matched to the docs layout so the operator
+ * keeps the sidebar/header chrome instead of seeing TanStack
+ * Router's bare `<p>Not Found</p>`. The root route owns the
+ * non-docs fallback.
  */
 export const Route = createFileRoute('/(docs)')({
   component: DocsLayout,
+  notFoundComponent: DocsNotFound,
 });
 
 function DocsLayout() {
