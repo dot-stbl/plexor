@@ -312,7 +312,7 @@ function VmDetailPage() {
               </CardContent>
             </Card>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
               <Card className="gap-0 p-0">
                 <CardHeader className="gap-0.5 border-b border-border p-4">
                   <CardTitle className="text-sm">{t('vms.detail.section.placement')}</CardTitle>
@@ -373,47 +373,6 @@ function VmDetailPage() {
               </Card>
 
               <VmConsoleCard vmId={vm.id} />
-
-              <Card className="gap-0 p-0">
-                <CardHeader className="gap-0.5 border-b border-border p-4">
-                  <CardTitle className="text-sm">{t('vms.detail.section.lifecycle')}</CardTitle>
-                  <CardDescription>
-                    {isProvisioning
-                      ? t('vms.detail.lifecycle.provisioningHint')
-                      : isErrorState
-                        ? t('vms.detail.lifecycle.errorHint')
-                        : null}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-wrap items-center gap-2">
-                  <Button
-                    size="sm"
-                    onClick={onStart}
-                    disabled={!canStart || startMut.isPending}
-                  >
-                    <PlayArrow />
-                    {t('vms.detail.lifecycle.start')}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onStop}
-                    disabled={!canStop || stopMut.isPending}
-                  >
-                    <Stop />
-                    {t('vms.detail.lifecycle.stop')}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setDeleteOpen(true)}
-                    disabled={deleteMut.isPending}
-                  >
-                    <Delete />
-                    {t('vms.detail.lifecycle.delete')}
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
           </div>
         </PageTemplate>

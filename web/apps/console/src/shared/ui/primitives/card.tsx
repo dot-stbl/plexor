@@ -10,9 +10,10 @@ import { cn } from "@/lib/utils"
  * The card and its children drive their internal padding from a single CSS
  * variable, `--card-spacing`. `Card` sets the variable on the root
  * (`py-(--card-spacing)`); `CardHeader`, `CardContent`, and `CardFooter`
- * reference it for their horizontal / vertical padding. As a result, every
- * `CardContent` already gets sensible padding without a utility class on
- * `className`.
+ * reference it for their horizontal / vertical padding. Vertical rhythm
+ * between sections is padding-driven (CardContent's `pt`), NOT gap-driven —
+ * cards that zero the root (`className="gap-0 p-0"`) for edge-to-edge
+ * headers still get correct header→content separation.
  *
  * | `size` prop  | `--card-spacing` | Resolved padding |
  * |--------------|------------------|------------------|
@@ -49,7 +50,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-lg bg-card py-(--card-spacing) text-xs/relaxed text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg",
+        "group/card flex flex-col overflow-hidden rounded-lg bg-card py-(--card-spacing) text-xs/relaxed text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg",
         className
       )}
       {...props}
@@ -107,16 +108,19 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
  * CardContent — the body slot of a Card.
  *
  * Padding is provided by the `--card-spacing` CSS variable set on the
- * enclosing `Card` (see the Card JSDoc for the convention). Do not add
- * `p-*` classes here unless you are intentionally stacking on top of the
- * variable — for edge-to-edge children, prefer `p-0` on `CardContent` with
- * padding on the inner element instead.
+ * enclosing `Card` (see the Card JSDoc for the convention). `pt` comes from
+ * the variable so the body never sits flush against a bordered CardHeader
+ * above it; horizontal padding via `px`. Do not add `p-*` classes here
+ * unless you are intentionally stacking on top of the variable — for
+ * edge-to-edge children, prefer `p-0` on `CardContent` (tailwind-merge
+ * resolves `pt-(--card-spacing)` vs `p-0` correctly) with padding on the
+ * inner element instead.
  */
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-content"
-      className={cn("px-(--card-spacing)", className)}
+      className={cn("px-(--card-spacing) pt-(--card-spacing)", className)}
       {...props}
     />
   )
