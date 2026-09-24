@@ -46,7 +46,7 @@ function Tabs({ className, orientation = "horizontal", value, defaultValue, onVa
       onSelectionChange={(key) => onValueChange?.(String(key))}
       orientation={orientation}
       className={cn(
-        "group/tabs flex gap-2 data-horizontal:flex-col",
+        "group/tabs flex flex-col gap-2 data-vertical:flex-row",
         className
       )}
     >
