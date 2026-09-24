@@ -862,6 +862,10 @@
     "node": {
       "joined": "joined",
       "vms": "VMs",
+      "lastSeen": "Last seen",
+      "providers": "Providers",
+      "details": "Node details",
+      "iso": "ISO",
       "status": {
         "ready": "ready",
         "pending": "pending",

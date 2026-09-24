@@ -88,6 +88,35 @@ index before creating any new primitive.**
 | A technology / OS / runtime icon | `tech-icon` → `TechIcon` | inline `<img>` | Data in `tech-icon-data.ts`. |
 | A user avatar | `avatar` → `Avatar` family | `img` rounded | |
 
+## Enumerable data → rendering by importance
+
+When a page shows a list/collection of facts (not a sortable table), pick the
+rendering from the fact's **operational importance**, not its data shape.
+Worked example: `/clusters/$id` (node roster + join tokens).
+
+| Importance | Definition | Rendering | Cluster-page example |
+|---|---|---|---|
+| **Core / actionable** — the operator monitors and acts on it | Carries identity + status + key metrics; deserves a whole interactive surface | **Child mini-card** — grid of small cards inside the parent card, composed in-domain from `Card size="sm"` + `StatusPill` + `Badge` + `MonoNum`/`Size`. NOT a new primitive | `NodeCard` — hostname + status pill + role badge + vCPU/RAM/disk/VMs per node |
+| **Categorical status** — filterable/scanable state or label | Glanceable, color-coded, one token wide | **`StatusPill`** (semantic state) / **`Badge`** (neutral label) | node status pill, token status pill, node/token role `Badge variant="outline"`, install-provider `Badge variant="secondary"` |
+| **Reference trivia** — needed occasionally, noise otherwise | Audit facts; would crowd the scan path if inline | **Icon + tooltip** (compact trigger, details on hover), or a subtle meta line when one short token is genuinely scannable | node info tooltip: joined / last-seen / providers / id; ISO version inline (drift is an upgrade signal); token issued/expires/redeemed-by meta line |
+
+Rules:
+
+- Mini-cards are **composed in-domain** (`domains/<ctx>/ui/<noun>-card.tsx`),
+  never added as a shared primitive — the shared parts are already in this
+  index. The page's grid owns the layout gap; the mini-card's internal rhythm
+  belongs to `Card` (SPACING.md).
+- Tooltip choice: `HelpTooltip` for a one-line hint next to a label; the
+  `Tooltip` family around an icon/existing element when the payload is
+  multi-line (`TooltipContent` wraps at `max-w-xs`; `HelpTooltip`'s popup is
+  single-line `whitespace-nowrap`).
+- Inside a tooltip, collections render as text (`kvm · ceph-rbd · ovs`), not
+  `Badge` chips — chips invert badly on the inverted tooltip surface. This is
+  the one documented exception to "collections render as chips" (rule: chips
+  are for page surfaces).
+- Demote ruthlessly: if a fact never drives a decision on this page, it is
+  reference trivia — tooltip or meta line, not a badge, not a card field.
+
 ## Navigation
 
 | You need | Use | Never | Notes |

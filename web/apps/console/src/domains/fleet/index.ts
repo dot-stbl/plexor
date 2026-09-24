@@ -47,6 +47,6 @@ export {
 } from './ui/cluster-status-strip';
 export type { FleetTotals } from './ui/cluster-status-strip';
 export { ClusterDetailBody } from './ui/cluster-detail-body';
-export { NodeRow } from './ui/node-row';
+export { NodeCard } from './ui/node-card';
 export { TokenRow } from './ui/token-row';
 export { AddNodeDialog } from './ui/add-node-dialog';

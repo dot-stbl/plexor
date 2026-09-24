@@ -862,6 +862,10 @@
     "node": {
       "joined": "подключён",
       "vms": "ВМ",
+      "lastSeen": "Последний контакт",
+      "providers": "Провайдеры",
+      "details": "Детали узла",
+      "iso": "ISO",
       "status": {
         "ready": "ready",
         "pending": "pending",
