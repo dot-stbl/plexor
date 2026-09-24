@@ -1063,6 +1063,7 @@
     "bindings": "Bindings",
     "filter": {
       "searchName": "Search name…",
+      "search": "Search",
       "status": "Status",
       "arch": "Arch",
       "visibility": "Visibility"

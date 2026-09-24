@@ -56,9 +56,18 @@ interface PlexorSelectRootProps {
   disabled?: boolean
   placeholder?: string
   children?: React.ReactNode
+  /**
+   * Accessible name for the whole control. react-aria's `useLabel` warns
+   * ("If you do not provide a visible label…") when the root gets none of
+   * label/aria-label/aria-labelledby — forwarded here so callers can pass
+   * them on `<Select>` like on any other field primitive.
+   */
+  "aria-label"?: string
+  "aria-labelledby"?: string
+  id?: string
 }
 
-function PlexorSelectRoot({ children, items, value, defaultValue, onValueChange, isDisabled, disabled, placeholder }: PlexorSelectRootProps) {
+function PlexorSelectRoot({ children, items, value, defaultValue, onValueChange, isDisabled, disabled, placeholder, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledby, id }: PlexorSelectRootProps) {
   const [registeredItems, setRegisteredItems] = React.useState<PlexorSelectItemDescriptor[]>([])
   const register = React.useCallback((desc: PlexorSelectItemDescriptor) => {
     setRegisteredItems((prev) => {
@@ -87,6 +96,9 @@ function PlexorSelectRoot({ children, items, value, defaultValue, onValueChange,
         onSelectionChange={(key) => onValueChange?.(String(key))}
         isDisabled={isDisabled ?? disabled}
         placeholder={placeholder}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledby}
+        id={id}
       >
         {children}
       </RACSelect>

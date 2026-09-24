@@ -1063,6 +1063,7 @@
     "bindings": "Bindings",
     "filter": {
       "searchName": "Поиск по имени…",
+      "search": "Поиск",
       "status": "Статус",
       "arch": "Arch",
       "visibility": "Видимость"
