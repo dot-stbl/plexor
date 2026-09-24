@@ -31,7 +31,13 @@ import { cn } from '@/lib/utils';
 import type { ProblemDetails } from '@/shared/api';
 import { useListClusters } from '@/domains/fleet';
 import type { NodeStatus } from '@/domains/fleet';
-import { listImages } from '@/domains/compute';
+import {
+  listImages,
+  useCreateVm,
+  mapVmWizardToCreateVmRequest,
+  mapCreateVmErrorToFieldErrors,
+  type VmCreateFieldErrors,
+} from '@/domains/compute';
 
 export const Route = createFileRoute('/vms/new')({
   staticData: { crumb: 'New VM' },
