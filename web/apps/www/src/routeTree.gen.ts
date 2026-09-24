@@ -21,6 +21,12 @@ import { Route as docsDocsFaqIndexRouteImport } from './routes/(docs)/docs/faq/i
 import { Route as docsDocsGettingStartedIndexRouteImport } from './routes/(docs)/docs/getting-started/index'
 import { Route as docsDocsHowToIndexRouteImport } from './routes/(docs)/docs/how-to/index'
 import { Route as docsDocsReferenceIndexRouteImport } from './routes/(docs)/docs/reference/index'
+import { Route as marketingServicesAppCatalogIndexRouteImport } from './routes/(marketing)/services/app-catalog/index'
+import { Route as marketingServicesComputeIndexRouteImport } from './routes/(marketing)/services/compute/index'
+import { Route as marketingServicesIdentityIndexRouteImport } from './routes/(marketing)/services/identity/index'
+import { Route as marketingServicesNetworkingIndexRouteImport } from './routes/(marketing)/services/networking/index'
+import { Route as marketingServicesQuotasAuditIndexRouteImport } from './routes/(marketing)/services/quotas-audit/index'
+import { Route as marketingServicesStorageIndexRouteImport } from './routes/(marketing)/services/storage/index'
 import { Route as docsDocsAdminAuditLogIndexRouteImport } from './routes/(docs)/docs/admin/audit-log/index'
 import { Route as docsDocsAdminBackupAndDisasterIndexRouteImport } from './routes/(docs)/docs/admin/backup-and-disaster/index'
 import { Route as docsDocsAdminCapacityPlanningIndexRouteImport } from './routes/(docs)/docs/admin/capacity-planning/index'
@@ -117,6 +123,42 @@ const docsDocsReferenceIndexRoute = docsDocsReferenceIndexRouteImport.update({
   path: '/reference/',
   getParentRoute: () => docsDocsRouteRoute,
 } as any)
+const marketingServicesAppCatalogIndexRoute =
+  marketingServicesAppCatalogIndexRouteImport.update({
+    id: '/services/app-catalog/',
+    path: '/services/app-catalog/',
+    getParentRoute: () => marketingRouteRoute,
+  } as any)
+const marketingServicesComputeIndexRoute =
+  marketingServicesComputeIndexRouteImport.update({
+    id: '/services/compute/',
+    path: '/services/compute/',
+    getParentRoute: () => marketingRouteRoute,
+  } as any)
+const marketingServicesIdentityIndexRoute =
+  marketingServicesIdentityIndexRouteImport.update({
+    id: '/services/identity/',
+    path: '/services/identity/',
+    getParentRoute: () => marketingRouteRoute,
+  } as any)
+const marketingServicesNetworkingIndexRoute =
+  marketingServicesNetworkingIndexRouteImport.update({
+    id: '/services/networking/',
+    path: '/services/networking/',
+    getParentRoute: () => marketingRouteRoute,
+  } as any)
+const marketingServicesQuotasAuditIndexRoute =
+  marketingServicesQuotasAuditIndexRouteImport.update({
+    id: '/services/quotas-audit/',
+    path: '/services/quotas-audit/',
+    getParentRoute: () => marketingRouteRoute,
+  } as any)
+const marketingServicesStorageIndexRoute =
+  marketingServicesStorageIndexRouteImport.update({
+    id: '/services/storage/',
+    path: '/services/storage/',
+    getParentRoute: () => marketingRouteRoute,
+  } as any)
 const docsDocsAdminAuditLogIndexRoute =
   docsDocsAdminAuditLogIndexRouteImport.update({
     id: '/admin/audit-log/',
@@ -345,6 +387,12 @@ export interface FileRoutesByFullPath {
   '/docs/getting-started/': typeof docsDocsGettingStartedIndexRoute
   '/docs/how-to/': typeof docsDocsHowToIndexRoute
   '/docs/reference/': typeof docsDocsReferenceIndexRoute
+  '/services/app-catalog/': typeof marketingServicesAppCatalogIndexRoute
+  '/services/compute/': typeof marketingServicesComputeIndexRoute
+  '/services/identity/': typeof marketingServicesIdentityIndexRoute
+  '/services/networking/': typeof marketingServicesNetworkingIndexRoute
+  '/services/quotas-audit/': typeof marketingServicesQuotasAuditIndexRoute
+  '/services/storage/': typeof marketingServicesStorageIndexRoute
   '/docs/admin/audit-log/': typeof docsDocsAdminAuditLogIndexRoute
   '/docs/admin/backup-and-disaster/': typeof docsDocsAdminBackupAndDisasterIndexRoute
   '/docs/admin/capacity-planning/': typeof docsDocsAdminCapacityPlanningIndexRoute
@@ -392,6 +440,12 @@ export interface FileRoutesByTo {
   '/docs/getting-started': typeof docsDocsGettingStartedIndexRoute
   '/docs/how-to': typeof docsDocsHowToIndexRoute
   '/docs/reference': typeof docsDocsReferenceIndexRoute
+  '/services/app-catalog': typeof marketingServicesAppCatalogIndexRoute
+  '/services/compute': typeof marketingServicesComputeIndexRoute
+  '/services/identity': typeof marketingServicesIdentityIndexRoute
+  '/services/networking': typeof marketingServicesNetworkingIndexRoute
+  '/services/quotas-audit': typeof marketingServicesQuotasAuditIndexRoute
+  '/services/storage': typeof marketingServicesStorageIndexRoute
   '/docs/admin/audit-log': typeof docsDocsAdminAuditLogIndexRoute
   '/docs/admin/backup-and-disaster': typeof docsDocsAdminBackupAndDisasterIndexRoute
   '/docs/admin/capacity-planning': typeof docsDocsAdminCapacityPlanningIndexRoute
@@ -443,6 +497,12 @@ export interface FileRoutesById {
   '/(docs)/docs/getting-started/': typeof docsDocsGettingStartedIndexRoute
   '/(docs)/docs/how-to/': typeof docsDocsHowToIndexRoute
   '/(docs)/docs/reference/': typeof docsDocsReferenceIndexRoute
+  '/(marketing)/services/app-catalog/': typeof marketingServicesAppCatalogIndexRoute
+  '/(marketing)/services/compute/': typeof marketingServicesComputeIndexRoute
+  '/(marketing)/services/identity/': typeof marketingServicesIdentityIndexRoute
+  '/(marketing)/services/networking/': typeof marketingServicesNetworkingIndexRoute
+  '/(marketing)/services/quotas-audit/': typeof marketingServicesQuotasAuditIndexRoute
+  '/(marketing)/services/storage/': typeof marketingServicesStorageIndexRoute
   '/(docs)/docs/admin/audit-log/': typeof docsDocsAdminAuditLogIndexRoute
   '/(docs)/docs/admin/backup-and-disaster/': typeof docsDocsAdminBackupAndDisasterIndexRoute
   '/(docs)/docs/admin/capacity-planning/': typeof docsDocsAdminCapacityPlanningIndexRoute
@@ -493,6 +553,12 @@ export interface FileRouteTypes {
     | '/docs/getting-started/'
     | '/docs/how-to/'
     | '/docs/reference/'
+    | '/services/app-catalog/'
+    | '/services/compute/'
+    | '/services/identity/'
+    | '/services/networking/'
+    | '/services/quotas-audit/'
+    | '/services/storage/'
     | '/docs/admin/audit-log/'
     | '/docs/admin/backup-and-disaster/'
     | '/docs/admin/capacity-planning/'
@@ -540,6 +606,12 @@ export interface FileRouteTypes {
     | '/docs/getting-started'
     | '/docs/how-to'
     | '/docs/reference'
+    | '/services/app-catalog'
+    | '/services/compute'
+    | '/services/identity'
+    | '/services/networking'
+    | '/services/quotas-audit'
+    | '/services/storage'
     | '/docs/admin/audit-log'
     | '/docs/admin/backup-and-disaster'
     | '/docs/admin/capacity-planning'
@@ -590,6 +662,12 @@ export interface FileRouteTypes {
     | '/(docs)/docs/getting-started/'
     | '/(docs)/docs/how-to/'
     | '/(docs)/docs/reference/'
+    | '/(marketing)/services/app-catalog/'
+    | '/(marketing)/services/compute/'
+    | '/(marketing)/services/identity/'
+    | '/(marketing)/services/networking/'
+    | '/(marketing)/services/quotas-audit/'
+    | '/(marketing)/services/storage/'
     | '/(docs)/docs/admin/audit-log/'
     | '/(docs)/docs/admin/backup-and-disaster/'
     | '/(docs)/docs/admin/capacity-planning/'
@@ -718,6 +796,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/docs/reference/'
       preLoaderRoute: typeof docsDocsReferenceIndexRouteImport
       parentRoute: typeof docsDocsRouteRoute
+    }
+    '/(marketing)/services/app-catalog/': {
+      id: '/(marketing)/services/app-catalog/'
+      path: '/services/app-catalog'
+      fullPath: '/services/app-catalog/'
+      preLoaderRoute: typeof marketingServicesAppCatalogIndexRouteImport
+      parentRoute: typeof marketingRouteRoute
+    }
+    '/(marketing)/services/compute/': {
+      id: '/(marketing)/services/compute/'
+      path: '/services/compute'
+      fullPath: '/services/compute/'
+      preLoaderRoute: typeof marketingServicesComputeIndexRouteImport
+      parentRoute: typeof marketingRouteRoute
+    }
+    '/(marketing)/services/identity/': {
+      id: '/(marketing)/services/identity/'
+      path: '/services/identity'
+      fullPath: '/services/identity/'
+      preLoaderRoute: typeof marketingServicesIdentityIndexRouteImport
+      parentRoute: typeof marketingRouteRoute
+    }
+    '/(marketing)/services/networking/': {
+      id: '/(marketing)/services/networking/'
+      path: '/services/networking'
+      fullPath: '/services/networking/'
+      preLoaderRoute: typeof marketingServicesNetworkingIndexRouteImport
+      parentRoute: typeof marketingRouteRoute
+    }
+    '/(marketing)/services/quotas-audit/': {
+      id: '/(marketing)/services/quotas-audit/'
+      path: '/services/quotas-audit'
+      fullPath: '/services/quotas-audit/'
+      preLoaderRoute: typeof marketingServicesQuotasAuditIndexRouteImport
+      parentRoute: typeof marketingRouteRoute
+    }
+    '/(marketing)/services/storage/': {
+      id: '/(marketing)/services/storage/'
+      path: '/services/storage'
+      fullPath: '/services/storage/'
+      preLoaderRoute: typeof marketingServicesStorageIndexRouteImport
+      parentRoute: typeof marketingRouteRoute
     }
     '/(docs)/docs/admin/audit-log/': {
       id: '/(docs)/docs/admin/audit-log/'
@@ -1102,11 +1222,24 @@ const docsRouteRouteWithChildren = docsRouteRoute._addFileChildren(
 interface marketingRouteRouteChildren {
   marketingIndexRoute: typeof marketingIndexRoute
   marketingChangelogIndexRoute: typeof marketingChangelogIndexRoute
+  marketingServicesAppCatalogIndexRoute: typeof marketingServicesAppCatalogIndexRoute
+  marketingServicesComputeIndexRoute: typeof marketingServicesComputeIndexRoute
+  marketingServicesIdentityIndexRoute: typeof marketingServicesIdentityIndexRoute
+  marketingServicesNetworkingIndexRoute: typeof marketingServicesNetworkingIndexRoute
+  marketingServicesQuotasAuditIndexRoute: typeof marketingServicesQuotasAuditIndexRoute
+  marketingServicesStorageIndexRoute: typeof marketingServicesStorageIndexRoute
 }
 
 const marketingRouteRouteChildren: marketingRouteRouteChildren = {
   marketingIndexRoute: marketingIndexRoute,
   marketingChangelogIndexRoute: marketingChangelogIndexRoute,
+  marketingServicesAppCatalogIndexRoute: marketingServicesAppCatalogIndexRoute,
+  marketingServicesComputeIndexRoute: marketingServicesComputeIndexRoute,
+  marketingServicesIdentityIndexRoute: marketingServicesIdentityIndexRoute,
+  marketingServicesNetworkingIndexRoute: marketingServicesNetworkingIndexRoute,
+  marketingServicesQuotasAuditIndexRoute:
+    marketingServicesQuotasAuditIndexRoute,
+  marketingServicesStorageIndexRoute: marketingServicesStorageIndexRoute,
 }
 
 const marketingRouteRouteWithChildren = marketingRouteRoute._addFileChildren(

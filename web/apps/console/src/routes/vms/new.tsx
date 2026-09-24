@@ -26,6 +26,9 @@ import { TechIcon } from '@/shared/ui/primitives/tech-icon';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
+import { Spinner } from '@/shared/ui/primitives/spinner';
+import { cn } from '@/lib/utils';
+import type { ProblemDetails } from '@/shared/api';
 import { useListClusters } from '@/domains/fleet';
 import type { NodeStatus } from '@/domains/fleet';
 import { listImages } from '@/domains/compute';
@@ -155,6 +158,10 @@ function CreateVmPage() {
   const [guestAgent, setGuestAgent] = useState(true);
   const [protection, setProtection] = useState(false);
   const [labels, setLabels] = useState<{ key: string; value: string }[]>([]);
+
+  // Create-VM submission
+  const [fieldErrors, setFieldErrors] = useState<VmCreateFieldErrors>({});
+  const createVm = useCreateVm();
 
   const selectedNode = allNodes.find((n) => n.id === nodeId);
   const selectedCluster = clusters.find((c) => c.nodes.some((n) => n.id === nodeId));
