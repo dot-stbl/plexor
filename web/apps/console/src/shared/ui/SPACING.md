@@ -28,11 +28,15 @@ rhythm).
 All values derive from one CSS variable set on the `Card` root:
 `--card-spacing` (`--spacing(4)` = 16px default, `--spacing(3)` = 12px with
 `size="sm"`). Vertical rhythm is **padding-driven** — every section carries
-its own `pt`; the root has no `gap`.
+its own `pt`; the root has no `gap`. The root carries **`pb` only**: the
+first section's own `pt` is the card's top inset, so top and bottom insets
+are symmetric (a root `py` would double-pad the top — the regression this
+model exists to prevent).
 
 | Slot          | Base padding                                       |
 |---------------|----------------------------------------------------|
-| `Card`        | `py-(--card-spacing)` — frame top + bottom inset   |
+| `Card`        | `pb-(--card-spacing)` — frame bottom inset; top    |
+|               | inset comes from the first section's `pt`          |
 | `CardHeader`  | `px` + `pt` (auto `pb` only when it has `border-b`)|
 | `CardContent` | `px` + `pt`                                        |
 | `CardFooter`  | `px` (auto `pt` only when it has `border-t`)       |
