@@ -60,17 +60,19 @@ export function VmEmptyState({ onCreate }: VmEmptyStateProps) {
 }
 
 interface VmNoResultsStateProps {
+  /** Overrides the generic title when a specific filter is the culprit (e.g. "No stopped VMs"). */
+  title?: string;
   onReset: () => void;
 }
 
 /** Empty state — filters returned nothing (VMs exist but none match). */
-export function VmNoResultsState({ onReset }: VmNoResultsStateProps) {
+export function VmNoResultsState({ title, onReset }: VmNoResultsStateProps) {
   const { t } = useTranslation();
   return (
     <EmptyState
       data-od-id="vms-no-results"
       icon={Search}
-      title={t('vms.list.empty.noResults')}
+      title={title ?? t('vms.list.empty.noResults')}
       description={t('vms.list.empty.noResultsDescription')}
       action={<Button variant="outline" size="sm" onClick={onReset}>{t('vms.list.empty.reset')}</Button>}
     />
