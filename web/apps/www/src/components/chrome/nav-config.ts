@@ -28,6 +28,15 @@ export const VERSION = 'v0.2';
 
 export const VERSION_LABEL = `${VERSION} · pre-stable`;
 
+/**
+ * Canonical production origin — used for `<link rel="canonical">`, Open Graph
+ * `og:url`, and sitemap.xml/robots.txt generation (see `scripts/prerender/`).
+ * Provisional: no production host is set up yet (AGENTS.md §9). This is the
+ * only domain mentioned anywhere in the repo (vite.config.ts's base-path
+ * comment) — revisit when the real domain is decided.
+ */
+export const SITE_URL = 'https://plexor.stbl.space';
+
 export interface NavItem {
   readonly label: string;
   readonly to: string;

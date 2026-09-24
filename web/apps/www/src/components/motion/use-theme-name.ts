@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { presets } from '@plexor/ui/themes';
 
 export type ThemeName = 'light' | 'dark';
@@ -27,11 +27,18 @@ function resolveThemeName(): ThemeName {
  * Reactive theme name, updated via `MutationObserver` whenever
  * `data-theme` or `class` changes on `<html>` (the theme picker writes
  * both synchronously in `applyPreset`).
+ *
+ * SSR-deterministic initial state: both server and first client render
+ * start at `'light'`. The real persisted theme is applied synchronously
+ * in `useLayoutEffect` after commit, before the browser paints, so
+ * dark-theme users see the right `<img src>` with zero visible flash
+ * and React reports no hydration mismatch (hydration only compares the
+ * FIRST render).
  */
 export function useThemeName(): ThemeName {
-  const [themeName, setThemeName] = useState<ThemeName>(resolveThemeName);
+  const [themeName, setThemeName] = useState<ThemeName>('light');
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
     setThemeName(resolveThemeName());

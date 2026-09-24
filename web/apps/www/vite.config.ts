@@ -21,6 +21,7 @@ export default defineConfig({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.ts',
       routeFileIgnorePattern: '\\.test\\.(tsx|ts|mdx)$',
+      autoCodeSplitting: true,
     }),
     react(),
     mdx({
