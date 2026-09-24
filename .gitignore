@@ -258,11 +258,13 @@ PublishScripts/
 *.snupkg
 **/[Pp]ackages/*
 !**/[Pp]ackages/build/
-# Re-include the frontend pnpm workspace packages: the NuGet rule above
+# Re-include the frontend workspace packages: the NuGet rule above
 # (**/[Pp]ackages/*) otherwise silently ignores everything under
 # frontend/packages/ (eslint-config, eslint-plugin-hybrid, tsconfig,
-# ui-prototype). They are a real workspace, not NuGet output.
+# ui-prototype) and web/packages/ (@plexor/ui). They are a real
+# workspace, not NuGet output.
 !frontend/packages/**
+!web/packages/**
 *.nuget.props
 *.nuget.targets
 csx/
@@ -360,3 +362,5 @@ lex_word_list.txt
 dev-certs/*
 !dev-certs/.gitkeep
 !dev-certs/README.md
+
+.agents/worktree/
