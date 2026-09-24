@@ -1,0 +1,123 @@
+name: visual-baselines
+
+# Regenerates the Storybook visual-regression PNG baselines on the exact
+# Linux/Chromium/font stack CI verifies against (see the `visual-tests` job
+# in .github/workflows/web.yml and web/apps/console/scripts/visual-tests.md).
+#
+# Baselines are produced ONLY here. Never regenerate or commit
+# `.storybook/__screenshots__/*.png` from a local machine — different OS,
+# fonts, and Chromium builds render different pixels even for an identical
+# DOM, which is exactly the drift this workflow exists to remove.
+#
+# Run it manually:
+#   gh workflow run visual-baselines.yml --ref <branch>
+#
+# Behavior:
+#   - No baseline PNGs changed -> nothing happens (no commit, no PR).
+#   - Run against the default branch -> commits to a new branch and opens
+#     a PR against it.
+#   - Run against any other branch (typically an open PR's branch) ->
+#     commits and pushes directly onto that branch; no new PR, since the
+#     branch is expected to already have one.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: visual-baselines-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Pinned to the Playwright version resolved by `web/package.json`
+    # (`@playwright/test`) — keep this in lockstep with that dependency,
+    # same as the `visual-tests` job in web.yml.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-jammy
+    defaults:
+      run:
+        # Containers default `run:` steps to `sh` (no `pipefail`), unlike
+        # runner-hosted jobs which default to bash — force bash since a
+        # couple of steps below rely on `set -o pipefail`/`[ ... ]` bashisms.
+        shell: bash
+        working-directory: web/apps/console
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trust the checked-out worktree
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # The Playwright Docker image doesn't ship `unzip`, which
+      # setup-bun needs to unpack the Bun release archive.
+      - name: Install unzip (required by setup-bun)
+        run: apt-get update && apt-get install -y --no-install-recommends unzip
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+
+      - name: Install workspace
+        run: bun install
+        working-directory: web
+
+      # The Playwright image above already ships Chromium at the matching
+      # version, so this is normally a no-op — kept as a safety net, same
+      # rationale as the equivalent step in web.yml's visual-tests job.
+      - name: Install Playwright Chromium
+        run: bunx playwright install --with-deps chromium
+
+      - name: Regenerate baselines
+        run: bun run test:visual:update
+
+      - name: Check for baseline changes
+        id: diff
+        run: |
+          if git status --porcelain -- .storybook/__screenshots__ | grep -q .; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "[visual-baselines] no baseline changes — nothing to commit."
+          fi
+
+      - name: Install GitHub CLI
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          GH_CLI_VERSION=2.101.0
+          curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" -o /tmp/gh.tar.gz
+          tar -xzf /tmp/gh.tar.gz -C /tmp
+          install -m 755 "/tmp/gh_${GH_CLI_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
+
+      - name: Commit and publish regenerated baselines
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/apps/console/.storybook/__screenshots__
+          git commit -m "[.stbl](feat/fe/visual): regenerate baselines on linux ci"
+
+          DEFAULT_BRANCH="${{ github.event.repository.default_branch }}"
+          CURRENT_BRANCH="${GITHUB_REF_NAME}"
+
+          if [ "$CURRENT_BRANCH" = "$DEFAULT_BRANCH" ]; then
+            NEW_BRANCH="chore/visual-baselines-$(date -u +%Y%m%d%H%M%S)"
+            git checkout -b "$NEW_BRANCH"
+            git push origin "$NEW_BRANCH"
+            gh pr create \
+              --base "$DEFAULT_BRANCH" \
+              --head "$NEW_BRANCH" \
+              --title "[.stbl](feat/fe/visual): regenerate baselines on linux ci" \
+              --body "Automated: Linux-CI-rendered visual-regression baselines, produced by \`.github/workflows/visual-baselines.yml\` (triggered manually against \`${DEFAULT_BRANCH}\`)."
+          else
+            git push origin "HEAD:${CURRENT_BRANCH}"
+          fi

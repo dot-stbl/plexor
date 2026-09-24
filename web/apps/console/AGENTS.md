@@ -138,8 +138,19 @@ Never skip step 4. A page that "looks right" in your head is not verified.
 ## Never do
 
 - Never regenerate or commit visual-regression baselines
-  (`.storybook/__screenshots__/`) — those are CI-generated. `bun run shot`
-  is a different, disposable tool; see `scripts/visual-tests.md`.
+  (`.storybook/__screenshots__/`) — those are generated **only** by the
+  `.github/workflows/visual-baselines.yml` GitHub Actions workflow, which
+  runs the suite in update mode inside the same pinned Playwright Docker
+  container the `visual-tests` CI job uses, then commits the result.
+  `bun run test:visual`/`test:visual:update` run locally too, but a local
+  run is for **diffing** only (does this change look right against the
+  committed baseline?) — its output is never what gets committed, because
+  local OS/font/Chromium rendering doesn't match CI's. To get baselines
+  regenerated: land your change in a PR, then run
+  `gh workflow run visual-baselines.yml --ref <your-branch>` (or, once
+  merged to main, without `--ref` for a fresh main-branch regeneration —
+  that path opens its own PR). `bun run shot` is a different, disposable
+  tool unrelated to this pipeline; see `scripts/visual-tests.md`.
 - Never run `taskkill`, `pkill node`, `pkill bun`, or any blanket process
   kill — it can kill your own runtime.
 - Never start a dev/watch server yourself (`bun run dev`, `vite`,

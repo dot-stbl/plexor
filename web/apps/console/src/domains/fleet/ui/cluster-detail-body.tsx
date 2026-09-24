@@ -30,7 +30,7 @@ import {
   mapClusterHealthToVariant,
 } from '../model/cluster-health';
 import { AddNodeDialog } from './add-node-dialog';
-import { NodeRow } from './node-row';
+import { NodeCard } from './node-card';
 import { TokenRow } from './token-row';
 
 interface ClusterDetailBodyProps {
@@ -253,9 +253,9 @@ export function ClusterDetailBody({ clusterId, cluster, onBack, isPending = fals
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className={cluster.nodes.length === 0 ? 'p-0' : 'grid gap-2 sm:grid-cols-2 xl:grid-cols-3'}>
               {cluster.nodes.length === 0 ? (
-                <div className="p-6">
+                <div className="p-6 sm:col-span-2 xl:col-span-3">
                   <EmptyState
                     data-od-id="cluster-detail-no-nodes"
                     icon={Stacks}
@@ -271,11 +271,7 @@ export function ClusterDetailBody({ clusterId, cluster, onBack, isPending = fals
                   />
                 </div>
               ) : (
-                <div className="divide-y divide-border">
-                  {cluster.nodes.map((node) => (
-                    <NodeRow key={node.id} node={node} />
-                  ))}
-                </div>
+                cluster.nodes.map((node) => <NodeCard key={node.id} node={node} />)
               )}
             </CardContent>
           </Card>
