@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { routeHead } from '@/shared/lib/route-head';
 import { K8sListBody, listK8s } from '@/domains/catalog';
 

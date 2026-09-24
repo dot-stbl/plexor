@@ -12,8 +12,8 @@ import {
   countByStatusFacet,
   getK8sColumns,
   sumResourceTotals,
-} from '@/features/k8s';
-import type { K8sCluster, K8sStatus } from '@/features/k8s';
+} from '@/domains/catalog';
+import type { K8sCluster, K8sStatus } from '@/domains/catalog';
 
 /**
  * /k8s list page stories.

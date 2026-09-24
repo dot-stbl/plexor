@@ -22,10 +22,10 @@ import { LxcNoResultsState, LxcSkeleton } from './lxc-states';
 import {
   LxcStatusStrip,
   LxcStatusStripSkeleton,
-  countByStatusFacet,
+  countLxcByStatusFacet,
   isLxcStatus,
   lxcStatusLabelKey,
-  sumResourceTotals,
+  sumLxcResourceTotals,
 } from './lxc-status-strip';
 import type { LxcContainer } from '../model/lxc-types';
 
@@ -71,8 +71,8 @@ export function LxcListBody({ items, isPending = false, onCreate }: LxcListBodyP
   }, [filters]);
   const facetItems = useMemo(() => applyFilters(allItems, searchFilters, columns), [allItems, searchFilters, columns]);
 
-  const counts = useMemo(() => countByStatusFacet(facetItems), [facetItems]);
-  const totals = useMemo(() => sumResourceTotals(filteredItems), [filteredItems]);
+  const counts = useMemo(() => countLxcByStatusFacet(facetItems), [facetItems]);
+  const totals = useMemo(() => sumLxcResourceTotals(filteredItems), [filteredItems]);
   const running = counts.running;
 
   const statusFilter = filters.status ?? '';

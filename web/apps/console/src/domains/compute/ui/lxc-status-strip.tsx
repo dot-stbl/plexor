@@ -34,7 +34,7 @@ export function lxcStatusLabelKey(status: LxcStatus): string {
 }
 
 /** Facet counts over a container set — every status key present, zeros included. */
-export function countByStatusFacet(items: ReadonlyArray<LxcContainer>): Record<LxcStatus, number> {
+export function countLxcByStatusFacet(items: ReadonlyArray<LxcContainer>): Record<LxcStatus, number> {
   const counts: Record<LxcStatus, number> = {
     running: 0,
     stopped: 0,
@@ -54,7 +54,7 @@ export interface LxcResourceTotals {
   rootfsBytes: number;
 }
 
-export function sumResourceTotals(items: ReadonlyArray<LxcContainer>): LxcResourceTotals {
+export function sumLxcResourceTotals(items: ReadonlyArray<LxcContainer>): LxcResourceTotals {
   let cores = 0;
   let ramBytes = 0;
   let rootfsBytes = 0;

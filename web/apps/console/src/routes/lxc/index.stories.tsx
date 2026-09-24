@@ -9,11 +9,11 @@ import {
   LxcListBody,
   LxcNoResultsState,
   LxcStatusStrip,
-  countByStatusFacet,
+  countLxcByStatusFacet,
   getLxcColumns,
-  sumResourceTotals,
-} from '@/features/lxc';
-import type { LxcContainer, LxcStatus } from '@/features/lxc';
+  sumLxcResourceTotals,
+} from '@/domains/compute';
+import type { LxcContainer, LxcStatus } from '@/domains/compute';
 
 /**
  * /lxc list page stories.
@@ -111,7 +111,7 @@ const noop = () => {};
 function StripStoryFrame({ activeStatus, children }: { activeStatus: LxcStatus | null; children?: React.ReactNode }) {
   const { t } = useTranslation();
   const columns = getLxcColumns(t);
-  const counts = countByStatusFacet(INVENTORY);
+  const counts = countLxcByStatusFacet(INVENTORY);
   const visible = activeStatus ? INVENTORY.filter((container) => container.status === activeStatus) : INVENTORY;
   const filters: FilterValues = activeStatus ? { name: '', status: activeStatus } : { name: '', status: '' };
   const running = counts.running;
@@ -139,7 +139,7 @@ function StripStoryFrame({ activeStatus, children }: { activeStatus: LxcStatus |
           counts={counts}
           activeStatus={activeStatus}
           onToggleStatus={noop}
-          totals={sumResourceTotals(visible)}
+          totals={sumLxcResourceTotals(visible)}
         />
         <DataTableToolbar columns={columns} filters={filters} onFiltersChange={noop} />
         <DataTable columns={columns} data={visible} density="compact" onRowClick={noop} />

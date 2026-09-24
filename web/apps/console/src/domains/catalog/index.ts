@@ -8,6 +8,18 @@ export type { K8sStatus, K8sCluster } from './model/k8s-types';
 export { mapK8sStatusToVariant } from './model/k8s-types';
 export { listK8s } from '@/shared/api/mocks/handmade/k8s';
 export { getK8sColumns } from './ui/k8s-columns';
+export { K8sListBody } from './ui/k8s-list-body';
+export { K8sNoResultsState, K8sSkeleton } from './ui/k8s-states';
+export {
+  K8sStatusStrip,
+  K8sStatusStripSkeleton,
+  countByStatusFacet,
+  sumResourceTotals,
+  k8sStatusLabelKey,
+  stripStatuses as k8sStripStatuses,
+  isK8sStatus,
+} from './ui/k8s-status-strip';
+export type { K8sResourceTotals } from './ui/k8s-status-strip';
 
 export type { Runtime, RuntimeClass, RuntimeOption, RuntimeHost, DbKind, DbStatus, DbEngine, DbCluster } from './model/database-types';
 export { RUNTIME_ORDER, RUNTIME_META, DB_KIND_LABEL, mapDbStatusToVariant, availableRuntimes, runtimeOptions, defaultRuntime } from './model/database-types';
@@ -19,4 +31,3 @@ export { RuntimePicker } from './ui/runtime-picker';
 export { getDbColumns } from './ui/database-columns';
 export { ManagedServiceEmpty } from './ui/managed-service-empty';
 export { ManagedServicePage } from './ui/managed-service-page';
-export { K8sListBody } from './ui/k8s-list-body';

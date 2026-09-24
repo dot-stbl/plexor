@@ -28,9 +28,20 @@ export { VmConsoleCard } from './ui/vm-console-card';
 export * from './model/lxc-types';
 export { listLxc } from '@/shared/api/mocks/handmade/lxc';
 export { getLxcColumns } from './ui/lxc-columns';
+export { LxcListBody } from './ui/lxc-list-body';
+export { LxcNoResultsState, LxcSkeleton } from './ui/lxc-states';
+export {
+  LxcStatusStrip,
+  LxcStatusStripSkeleton,
+  countLxcByStatusFacet,
+  sumLxcResourceTotals,
+  lxcStatusLabelKey,
+  stripStatuses as lxcStripStatuses,
+  isLxcStatus,
+} from './ui/lxc-status-strip';
+export type { LxcResourceTotals } from './ui/lxc-status-strip';
 
 // Images
 export * from './model/image-types';
 export { listImages } from './model/image-data';
 export { getImageColumns } from './ui/image-columns';
-export { LxcListBody } from './ui/lxc-list-body';
