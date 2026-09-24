@@ -174,7 +174,7 @@ export function AddNodeDialog({ open, onOpenChange, clusterId }: AddNodeDialogPr
                   </Button>
                 </div>
                 <FieldDescription>
-                  {t('clusters.addNode.tokenValidUntil', { date: new Date(issued.expiresAt).toLocaleString('ru-RU') })}
+                  {t('clusters.addNode.tokenValidUntil', { date: new Date(issued.expiresAt).toLocaleString() })}
                 </FieldDescription>
               </Field>
               <Field>

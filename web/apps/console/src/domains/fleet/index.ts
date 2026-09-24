@@ -22,6 +22,12 @@ export {
   clusterHealthLabelKey,
   mapClusterHealthToVariant,
 } from './model/cluster-health';
+export {
+  mapNodeStatusToVariant,
+  nodeRoleLabelKey,
+  nodeStatusLabelKey,
+  tokenStatusLabelKey,
+} from './model/node-status';
 export { useListClusters, useGetCluster, useListNodes, useListTokens, issueJoinToken, revokeJoinToken } from './api/use-clusters';
 export { listClusters, getCluster } from '@/shared/api/mocks/handmade/clusters';
 export { ClusterCard } from './ui/cluster-card';
@@ -40,6 +46,7 @@ export {
   sumFleetTotals,
 } from './ui/cluster-status-strip';
 export type { FleetTotals } from './ui/cluster-status-strip';
+export { ClusterDetailBody } from './ui/cluster-detail-body';
 export { NodeRow } from './ui/node-row';
 export { TokenRow } from './ui/token-row';
 export { AddNodeDialog } from './ui/add-node-dialog';

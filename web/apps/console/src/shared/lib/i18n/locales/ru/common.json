@@ -744,8 +744,7 @@
         "noResultsDescription": "Ни один кластер не подходит под текущий поиск или фильтр состояния.",
         "noResultsHealthTitle": "Нет кластеров в состоянии «{{status}}»",
         "reset": "Сбросить фильтры"
-      },
-      "summary": "{{clusters}} кластеров, {{ready}}/{{total}} нод готово"
+      }
     },
     "health": {
       "healthy": "работает",
@@ -756,12 +755,8 @@
       "title": "Кластер",
       "notFound": "Кластер не найден",
       "notFoundDescription": "Кластер с id {{id}} не существует или удалён.",
-      "backToClusters": "Назад к кластерам",
       "addNode": "Добавить нод",
-      "installProviders": "Install providers",
-      "nodes": "Ноды",
       "joinTokens": "Join-токены",
-      "docs": "Документация",
       "selfHelp": "Самостоятельная установка",
       "selfHelpDescription": "Plexor self-hosted — вы ставите control-plane и ноды на своём железе.",
       "docLinks": {
@@ -773,12 +768,10 @@
       "nodesReady": "нод готово",
       "activeTokens": "активных токенов",
       "uptime": "uptime",
-      "providersChosenAt": "Выбраны при",
       "nodeAgentInstances": "Plexor.NodeAgent инстансы",
       "tokensDescription": "Генерируются здесь, копируются на нод, используются один раз.",
       "createToken": "Создать токен",
       "tokensExpireNote": "Токены истекают — после подключения нод остаётся в списке Nodes.",
-      "nodesDescription": "Инстансы Plexor.NodeAgent, присоединённые к этому кластеру.",
       "noNodes": "Нод пока нет",
       "noNodesDescription": "Сгенерируйте join-токен и выполните plx node join на машине, загруженной с Plexor ISO.",
       "noTokensTitle": "Join-токенов пока нет",

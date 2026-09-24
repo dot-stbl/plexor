@@ -744,8 +744,7 @@
         "noResultsDescription": "No clusters match the current search or health filter.",
         "noResultsHealthTitle": "No {{status}} clusters",
         "reset": "Reset filters"
-      },
-      "summary": "{{clusters}} clusters, {{ready}}/{{total}} nodes ready"
+      }
     },
     "health": {
       "healthy": "healthy",
@@ -756,12 +755,8 @@
       "title": "Cluster",
       "notFound": "Cluster not found",
       "notFoundDescription": "Cluster with id {{id}} does not exist or was deleted.",
-      "backToClusters": "Back to clusters",
       "addNode": "Add node",
-      "installProviders": "Install providers",
-      "nodes": "Nodes",
       "joinTokens": "Join tokens",
-      "docs": "Documentation",
       "selfHelp": "Self-service installation",
       "selfHelpDescription": "Plexor self-hosted — you install control-plane and nodes on your own hardware.",
       "docLinks": {
@@ -773,12 +768,10 @@
       "nodesReady": "nodes ready",
       "activeTokens": "active tokens",
       "uptime": "uptime",
-      "providersChosenAt": "Chosen at",
       "nodeAgentInstances": "Plexor.NodeAgent instances",
       "tokensDescription": "Generated here, copied to the node, used once.",
       "createToken": "Create token",
       "tokensExpireNote": "Tokens expire — after joining, the node stays in the Nodes list.",
-      "nodesDescription": "Plexor.NodeAgent instances that joined this cluster.",
       "noNodes": "No nodes yet",
       "noNodesDescription": "Issue a join token and run plx node join on the machine booted from the Plexor ISO.",
       "noTokensTitle": "No join tokens yet",

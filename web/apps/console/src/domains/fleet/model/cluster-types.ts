@@ -113,3 +113,9 @@ export function formatUptime(seconds: number): string {
   const remH = hours % 24;
   return remH === 0 ? `${days}d` : `${days}d ${remH}h`;
 }
+
+/** Disk sum switches to TB past 1 TiB so totals stay two tokens wide
+ *  (same convention as the compute-domain strips). */
+export function formatDiskGb(gb: number): string {
+  return gb >= 1024 ? `${(gb / 1024).toFixed(1)} TB` : `${gb} GB`;
+}
