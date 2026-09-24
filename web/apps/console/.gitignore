@@ -5,3 +5,7 @@ dist-storybook/
 repro/
 repro-screenshots/
 
+# jest-image-snapshot actuals from failing visual runs (diff output is
+# auto-cleaned by the runner; received output is not)
+.storybook/__screenshots__/__received_output__/
+
