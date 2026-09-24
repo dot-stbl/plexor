@@ -17,7 +17,7 @@ export function ManagedServicePage({ engineId }: { engineId: string }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const engine = useEngine(engineId);
-  const { clusters } = useListDbClusters();
+  const { clusters, isPending } = useListDbClusters();
   const rows = useMemo(() => clusters.filter((cluster) => cluster.engineId === engineId), [clusters, engineId]);
 
   if (!engine) {
@@ -32,6 +32,7 @@ export function ManagedServicePage({ engineId }: { engineId: string }) {
     <ManagedServiceListBody
       engine={engine}
       clusters={rows}
+      isPending={isPending}
       onCreate={() => void navigate({ to: '/managed/new', search: { engine: engine.id } })}
     />
   );

@@ -6,12 +6,14 @@ import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
+import { Skeleton } from '@/shared/ui/primitives/skeleton';
 import { DataTable, DataTableColumns, type DataTableColumnsState } from '@/shared/ui/data-table';
 import type { DbCluster, DbEngine } from '../model/database-types';
 import { getDbColumns } from './database-columns';
 import { ManagedServiceEmpty } from './managed-service-empty';
 import {
   DbStatusStrip,
+  DbStatusStripSkeleton,
   countDbByStatusFacet,
   dbStatusLabelKey,
   isDbStatus,
@@ -23,6 +25,8 @@ interface ManagedServiceListBodyProps {
   engine: DbEngine;
   /** Clusters of THIS engine only — the status chips filter client-side. */
   clusters: ReadonlyArray<DbCluster>;
+  /** Loading state — renders the strip + table skeletons while true. */
+  isPending?: boolean;
   /** Create-cluster CTA — navigates to /managed/new with the engine preset. */
   onCreate: () => void;
 }
@@ -35,7 +39,7 @@ interface ManagedServiceListBodyProps {
  * Filtering is client-side over `clusters` — this page has no toolbar, so
  * the chips are the only filter and facet counts span the full set.
  */
-export function ManagedServiceListBody({ engine, clusters, onCreate }: ManagedServiceListBodyProps) {
+export function ManagedServiceListBody({ engine, clusters, isPending = false, onCreate }: ManagedServiceListBodyProps) {
   const { t } = useTranslation();
   const columns = useMemo(() => getDbColumns(t), [t]);
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -56,6 +60,8 @@ export function ManagedServiceListBody({ engine, clusters, onCreate }: ManagedSe
   const totals = useMemo(() => sumDbTotals(filteredClusters), [filteredClusters]);
   const running = counts.running;
 
+  const isEmptyFleet = !isPending && allClusters.length === 0;
+
   const toggleStatus = useCallback((status: string) => {
     setStatusFilter((prev) => (prev === status ? '' : status));
   }, []);
@@ -75,15 +81,18 @@ export function ManagedServiceListBody({ engine, clusters, onCreate }: ManagedSe
       width="wide"
       title={engine.name}
       description={
-        allClusters.length > 0 ? (
-          <span>
-            <MonoNum>{running}</MonoNum> <span className="text-muted-foreground">{t('managed.list.runningOf')}</span>{' '}
-            <MonoNum>{allClusters.length}</MonoNum>{' '}
-            <span className="text-muted-foreground">{t('managed.list.total')}</span>
-          </span>
-        ) : (
-          engine.blurb
-        )
+        isPending
+          ? t('common.loading')
+          : allClusters.length > 0
+            ? (
+                <span>
+                  <MonoNum>{running}</MonoNum>{' '}
+                  <span className="text-muted-foreground">{t('managed.list.runningOf')}</span>{' '}
+                  <MonoNum>{allClusters.length}</MonoNum>{' '}
+                  <span className="text-muted-foreground">{t('managed.list.total')}</span>
+                </span>
+              )
+            : engine.blurb
       }
       actions={
         allClusters.length > 0 ? (
@@ -94,7 +103,14 @@ export function ManagedServiceListBody({ engine, clusters, onCreate }: ManagedSe
         ) : null
       }
     >
-      {allClusters.length > 0 ? (
+      {isPending ? (
+        <div className="space-y-2">
+          <DbStatusStripSkeleton />
+          <DbSkeleton />
+        </div>
+      ) : isEmptyFleet ? (
+        <ManagedServiceEmpty engine={engine} />
+      ) : (
         <div className="space-y-2">
           <DbStatusStrip
             counts={counts}
@@ -114,10 +130,19 @@ export function ManagedServiceListBody({ engine, clusters, onCreate }: ManagedSe
           />
           {noResultsTitle !== null && <DbNoResults title={noResultsTitle} onReset={resetFilters} />}
         </div>
-      ) : (
-        <ManagedServiceEmpty engine={engine} />
       )}
     </PageTemplate>
+  );
+}
+
+/** Loading skeleton — 5 placeholder rows shaped like the cluster table. */
+function DbSkeleton() {
+  return (
+    <div data-od-id="managed-skeleton" className="flex flex-col gap-2">
+      {Array.from({ length: 5 }).map((_, row) => (
+        <Skeleton key={row} className="h-10 w-full" />
+      ))}
+    </div>
   );
 }
 
