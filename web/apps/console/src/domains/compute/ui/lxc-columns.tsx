@@ -9,6 +9,7 @@ import { TechIcon } from '@/shared/ui/primitives/tech-icon';
 import { DeployedCode } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import type { LxcContainer } from '../model/lxc-types';
 import { mapLxcStatusToVariant } from '../model/lxc-types';
+import { lxcStatusLabelKey, stripStatuses } from './lxc-status-strip';
 
 /**
  * Columns for the LXC container list. Brand logo derived from the template
@@ -38,7 +39,7 @@ export function getLxcColumns(t: TFunction): ColumnDef<LxcContainer>[] {
       accessorKey: 'status',
       cell: ({ row }) => (
         <StatusPill variant={mapLxcStatusToVariant(row.original.status)} size="sm">
-          {row.original.status}
+          {t(lxcStatusLabelKey(row.original.status))}
         </StatusPill>
       ),
       meta: {
@@ -47,12 +48,7 @@ export function getLxcColumns(t: TFunction): ColumnDef<LxcContainer>[] {
           type: 'select',
           param: 'status',
           placeholder: t('table.filter.status'),
-          options: [
-            { value: 'running', label: 'running' },
-            { value: 'stopped', label: 'stopped' },
-            { value: 'paused', label: 'paused' },
-            { value: 'error', label: 'error' },
-          ],
+          options: stripStatuses().map((value) => ({ value, label: t(lxcStatusLabelKey(value)) })),
         },
       },
     },

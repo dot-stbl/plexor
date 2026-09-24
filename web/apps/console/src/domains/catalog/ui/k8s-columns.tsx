@@ -8,6 +8,7 @@ import { TechIcon } from '@/shared/ui/primitives/tech-icon';
 import { CopyableText } from '@/shared/ui/primitives/copyable-text';
 import type { K8sCluster } from '../model/k8s-types';
 import { mapK8sStatusToVariant } from '../model/k8s-types';
+import { k8sStatusLabelKey, stripStatuses } from './k8s-status-strip';
 
 /**
  * Columns for the managed K3s cluster list. Fleet totals (vCPU / RAM) summed
@@ -33,7 +34,7 @@ export function getK8sColumns(t: TFunction): ColumnDef<K8sCluster>[] {
       accessorKey: 'status',
       cell: ({ row }) => (
         <StatusPill variant={mapK8sStatusToVariant(row.original.status)} size="sm">
-          {row.original.status}
+          {t(k8sStatusLabelKey(row.original.status))}
         </StatusPill>
       ),
       meta: {
@@ -42,12 +43,7 @@ export function getK8sColumns(t: TFunction): ColumnDef<K8sCluster>[] {
           type: 'select',
           param: 'status',
           placeholder: t('table.filter.status'),
-          options: [
-            { value: 'running', label: 'running' },
-            { value: 'provisioning', label: 'provisioning' },
-            { value: 'degraded', label: 'degraded' },
-            { value: 'error', label: 'error' },
-          ],
+          options: stripStatuses().map((value) => ({ value, label: t(k8sStatusLabelKey(value)) })),
         },
       },
     },

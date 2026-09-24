@@ -434,15 +434,29 @@
     }
   },
   "k8s": {
+    "status": {
+      "running": "Работает",
+      "provisioning": "Создаётся",
+      "degraded": "Деградация",
+      "error": "Ошибка"
+    },
     "list": {
       "title": "K8s-кластеры",
       "create": "Create cluster",
+      "runningOf": "running of",
+      "total": "total",
       "empty": {
         "title": "K8s-кластеров пока нет",
         "description": "Развёртывание managed K3s на вашем Plexor fleet — control plane, node pools, сеть.",
         "noResults": "Ничего не найдено",
         "noResultsDescription": "Попробуйте изменить фильтры или сбросить их.",
+        "noResultsStatusTitle": "Нет кластеров со статусом «{{status}}»",
         "reset": "Сбросить фильтры"
+      },
+      "strip": {
+        "filterByStatus": "Фильтр по статусу",
+        "allocated": "Выделено",
+        "nodes": "нод"
       },
       "docs": {
         "label": "Подробнее:",
@@ -542,15 +556,29 @@
     }
   },
   "lxc": {
+    "status": {
+      "running": "Запущен",
+      "stopped": "Остановлен",
+      "paused": "Приостановлен",
+      "error": "Ошибка"
+    },
     "list": {
       "title": "Контейнеры",
       "create": "Create container",
+      "runningOf": "running of",
+      "total": "total",
       "empty": {
         "title": "Контейнеров пока нет",
         "description": "Развёртывание LXC-контейнеров на ready-нодах с LXD/LXC runtime.",
         "noResults": "Ничего не найдено",
         "noResultsDescription": "Попробуйте изменить фильтры или сбросить их.",
+        "noResultsStatusTitle": "Нет контейнеров со статусом «{{status}}»",
         "reset": "Сбросить фильтры"
+      },
+      "strip": {
+        "filterByStatus": "Фильтр по статусу",
+        "allocated": "Выделено",
+        "rootfs": "rootfs"
       },
       "docs": {
         "label": "Подробнее:",
