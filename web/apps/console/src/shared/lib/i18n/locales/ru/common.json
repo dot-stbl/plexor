@@ -442,7 +442,7 @@
     },
     "list": {
       "title": "K8s-кластеры",
-      "create": "Create cluster",
+      "create": "Создать кластер",
       "runningOf": "running of",
       "total": "total",
       "empty": {
@@ -564,7 +564,7 @@
     },
     "list": {
       "title": "Контейнеры",
-      "create": "Create container",
+      "create": "Создать контейнер",
       "runningOf": "running of",
       "total": "total",
       "empty": {
