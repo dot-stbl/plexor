@@ -225,6 +225,11 @@ export const Empty: Story = {
   render: () => <ImageListBody items={[]} onCreate={noop} />,
 };
 
+/** Loading: strip + table skeletons while the catalog resolves. */
+export const Loading: Story = {
+  render: () => <ImageListBody items={[]} isPending onCreate={noop} />,
+};
+
 /** One chip active: building chip emphasized, table filtered to building images. */
 export const StatusChipActive: Story = {
   render: () => <StatusChipActiveBody />,

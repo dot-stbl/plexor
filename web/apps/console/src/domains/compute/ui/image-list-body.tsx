@@ -9,10 +9,12 @@ import { Button } from '@/shared/ui/primitives/button';
 import { BulkActionToolbar } from '@/shared/ui/primitives/bulk-action-toolbar';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
+import { Skeleton } from '@/shared/ui/primitives/skeleton';
 import {
   DataTable,
   DataTableToolbar,
   applyFilters,
+  emptyFilters,
   useRowSelection,
   type DataTableColumnsState,
   type FilterValues,
@@ -20,6 +22,7 @@ import {
 import { getImageColumns } from './image-columns';
 import {
   ImageStatusStrip,
+  ImageStatusStripSkeleton,
   countImageByStatusFacet,
   imageStatusLabelKey,
   isImageStatus,
@@ -29,6 +32,8 @@ import {
 interface ImageListBodyProps {
   /** Full image catalog for the page — filtering happens client-side. */
   items: ReadonlyArray<OsImage>;
+  /** Loading state — renders the strip + table skeletons while true. */
+  isPending?: boolean;
   /** Create-image CTA (the wizard is future work — the route toasts for now). */
   onCreate: () => void;
 }
@@ -41,10 +46,11 @@ interface ImageListBodyProps {
  * Filtering is client-side (`applyFilters`): the status chips, the toolbar
  * search and the arch/visibility selects all compose over the same `items`.
  */
-export function ImageListBody({ items, onCreate }: ImageListBodyProps) {
+export function ImageListBody({ items, isPending = false, onCreate }: ImageListBodyProps) {
   const { t } = useTranslation();
   const columns = useMemo(() => getImageColumns(t), [t]);
-  const [filters, setFilters] = useState<FilterValues>({});
+  const filterDefault = useMemo(() => emptyFilters(columns), [columns]);
+  const [filters, setFilters] = useState<FilterValues>(filterDefault);
   const [colState, setColState] = useLocalStorage<DataTableColumnsState>('plexor-cols-images', {
     hidden: [],
     order: [],
@@ -71,10 +77,10 @@ export function ImageListBody({ items, onCreate }: ImageListBodyProps) {
 
   const sel = useRowSelection(filteredItems);
 
-  const isEmptyCatalog = allItems.length === 0;
-  const isNoResults = allItems.length > 0 && filteredItems.length === 0;
+  const isEmptyCatalog = !isPending && allItems.length === 0;
+  const isNoResults = !isPending && allItems.length > 0 && filteredItems.length === 0;
 
-  const resetFilters = useCallback(() => setFilters({}), []);
+  const resetFilters = useCallback(() => setFilters(filterDefault), [filterDefault]);
 
   const toggleStatus = useCallback((status: string) => {
     setFilters((prev) => ({ ...prev, status: prev.status === status ? '' : status }));
@@ -101,14 +107,24 @@ export function ImageListBody({ items, onCreate }: ImageListBodyProps) {
         width="wide"
         title={t('images.title')}
         description={
-          <span>
-            <MonoNum>{ready}</MonoNum> <span className="text-muted-foreground">{t('images.list.readyOf')}</span>{' '}
-            <MonoNum>{allItems.length}</MonoNum> <span className="text-muted-foreground">{t('images.list.total')}</span>
-          </span>
+          isPending ? (
+            t('common.loading')
+          ) : (
+            <span>
+              <MonoNum>{ready}</MonoNum> <span className="text-muted-foreground">{t('images.list.readyOf')}</span>{' '}
+              <MonoNum>{allItems.length}</MonoNum>{' '}
+              <span className="text-muted-foreground">{t('images.list.total')}</span>
+            </span>
+          )
         }
         actions={allItems.length > 0 ? createCta : undefined}
       >
-        {isEmptyCatalog ? (
+        {isPending ? (
+          <div className="space-y-2">
+            <ImageStatusStripSkeleton />
+            <ImageSkeleton />
+          </div>
+        ) : isEmptyCatalog ? (
           <EmptyState
             icon={Image}
             title={t('images.empty.title')}
@@ -164,6 +180,17 @@ export function ImageListBody({ items, onCreate }: ImageListBodyProps) {
         ]}
       />
     </>
+  );
+}
+
+/** Loading skeleton — 5 placeholder rows shaped like the images table. */
+function ImageSkeleton() {
+  return (
+    <div data-od-id="images-skeleton" className="flex flex-col gap-2">
+      {Array.from({ length: 5 }).map((_, row) => (
+        <Skeleton key={row} className="h-10 w-full" />
+      ))}
+    </div>
   );
 }
 

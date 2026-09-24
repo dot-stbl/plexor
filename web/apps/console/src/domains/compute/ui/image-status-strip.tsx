@@ -4,6 +4,7 @@ import { mapImageStatusToVariant } from '../model/image-types';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Size } from '@/shared/ui/primitives/size';
+import { Skeleton } from '@/shared/ui/primitives/skeleton';
 import { cn } from '@/shared/lib/utils';
 
 /** Lifecycle order used everywhere the statuses line up (strip, select). */
@@ -124,6 +125,19 @@ export function ImageStatusStrip({ counts, activeStatus, onToggleStatus, totals 
           <span>{t('images.list.strip.totalSize')}</span>
         </span>
       </div>
+    </div>
+  );
+}
+
+/** Skeleton matching the strip layout — chips block left, totals block right. */
+export function ImageStatusStripSkeleton() {
+  return (
+    <div
+      data-od-id="images-status-strip-skeleton"
+      className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border border-border bg-card px-3 py-2"
+    >
+      <Skeleton className="h-6 w-56" />
+      <Skeleton className="h-6 w-44" />
     </div>
   );
 }
