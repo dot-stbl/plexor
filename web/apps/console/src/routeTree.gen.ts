@@ -26,8 +26,10 @@ import { Route as AdminThemeMarketplaceRouteImport } from './routes/admin/theme-
 import { Route as ClustersIndexRouteImport } from './routes/clusters/index'
 import { Route as ClustersIdRouteImport } from './routes/clusters/$id'
 import { Route as K8sIndexRouteImport } from './routes/k8s/index'
+import { Route as K8sIdRouteImport } from './routes/k8s/$id'
 import { Route as K8sNewRouteImport } from './routes/k8s/new'
 import { Route as LxcIndexRouteImport } from './routes/lxc/index'
+import { Route as LxcIdRouteImport } from './routes/lxc/$id'
 import { Route as LxcNewRouteImport } from './routes/lxc/new'
 import { Route as ManagedIndexRouteImport } from './routes/managed/index'
 import { Route as ManagedClickhouseRouteImport } from './routes/managed/clickhouse'
@@ -126,6 +128,11 @@ const K8sIndexRoute = K8sIndexRouteImport.update({
   path: '/',
   getParentRoute: () => K8sRouteRoute,
 } as any)
+const K8sIdRoute = K8sIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => K8sRouteRoute,
+} as any)
 const K8sNewRoute = K8sNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -134,6 +141,11 @@ const K8sNewRoute = K8sNewRouteImport.update({
 const LxcIndexRoute = LxcIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => LxcRouteRoute,
+} as any)
+const LxcIdRoute = LxcIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
   getParentRoute: () => LxcRouteRoute,
 } as any)
 const LxcNewRoute = LxcNewRouteImport.update({
@@ -213,7 +225,9 @@ export interface FileRoutesByFullPath {
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/theme-marketplace': typeof AdminThemeMarketplaceRoute
   '/clusters/$id': typeof ClustersIdRoute
+  '/k8s/$id': typeof K8sIdRoute
   '/k8s/new': typeof K8sNewRoute
+  '/lxc/$id': typeof LxcIdRoute
   '/lxc/new': typeof LxcNewRoute
   '/managed/clickhouse': typeof ManagedClickhouseRoute
   '/managed/garnet': typeof ManagedGarnetRoute
@@ -241,7 +255,9 @@ export interface FileRoutesByTo {
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/theme-marketplace': typeof AdminThemeMarketplaceRoute
   '/clusters/$id': typeof ClustersIdRoute
+  '/k8s/$id': typeof K8sIdRoute
   '/k8s/new': typeof K8sNewRoute
+  '/lxc/$id': typeof LxcIdRoute
   '/lxc/new': typeof LxcNewRoute
   '/managed/clickhouse': typeof ManagedClickhouseRoute
   '/managed/garnet': typeof ManagedGarnetRoute
@@ -275,7 +291,9 @@ export interface FileRoutesById {
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/theme-marketplace': typeof AdminThemeMarketplaceRoute
   '/clusters/$id': typeof ClustersIdRoute
+  '/k8s/$id': typeof K8sIdRoute
   '/k8s/new': typeof K8sNewRoute
+  '/lxc/$id': typeof LxcIdRoute
   '/lxc/new': typeof LxcNewRoute
   '/managed/clickhouse': typeof ManagedClickhouseRoute
   '/managed/garnet': typeof ManagedGarnetRoute
@@ -310,7 +328,9 @@ export interface FileRouteTypes {
     | '/admin/branding'
     | '/admin/theme-marketplace'
     | '/clusters/$id'
+    | '/k8s/$id'
     | '/k8s/new'
+    | '/lxc/$id'
     | '/lxc/new'
     | '/managed/clickhouse'
     | '/managed/garnet'
@@ -338,7 +358,9 @@ export interface FileRouteTypes {
     | '/admin/branding'
     | '/admin/theme-marketplace'
     | '/clusters/$id'
+    | '/k8s/$id'
     | '/k8s/new'
+    | '/lxc/$id'
     | '/lxc/new'
     | '/managed/clickhouse'
     | '/managed/garnet'
@@ -371,7 +393,9 @@ export interface FileRouteTypes {
     | '/admin/branding'
     | '/admin/theme-marketplace'
     | '/clusters/$id'
+    | '/k8s/$id'
     | '/k8s/new'
+    | '/lxc/$id'
     | '/lxc/new'
     | '/managed/clickhouse'
     | '/managed/garnet'
@@ -528,6 +552,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof K8sIndexRouteImport
       parentRoute: typeof K8sRouteRoute
     }
+    '/k8s/$id': {
+      id: '/k8s/$id'
+      path: '/$id'
+      fullPath: '/k8s/$id'
+      preLoaderRoute: typeof K8sIdRouteImport
+      parentRoute: typeof K8sRouteRoute
+    }
     '/k8s/new': {
       id: '/k8s/new'
       path: '/new'
@@ -540,6 +571,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/lxc/'
       preLoaderRoute: typeof LxcIndexRouteImport
+      parentRoute: typeof LxcRouteRoute
+    }
+    '/lxc/$id': {
+      id: '/lxc/$id'
+      path: '/$id'
+      fullPath: '/lxc/$id'
+      preLoaderRoute: typeof LxcIdRouteImport
       parentRoute: typeof LxcRouteRoute
     }
     '/lxc/new': {
@@ -644,11 +682,13 @@ const ClustersRouteRouteWithChildren = ClustersRouteRoute._addFileChildren(
 )
 
 interface K8sRouteRouteChildren {
+  K8sIdRoute: typeof K8sIdRoute
   K8sNewRoute: typeof K8sNewRoute
   K8sIndexRoute: typeof K8sIndexRoute
 }
 
 const K8sRouteRouteChildren: K8sRouteRouteChildren = {
+  K8sIdRoute: K8sIdRoute,
   K8sNewRoute: K8sNewRoute,
   K8sIndexRoute: K8sIndexRoute,
 }
@@ -658,11 +698,13 @@ const K8sRouteRouteWithChildren = K8sRouteRoute._addFileChildren(
 )
 
 interface LxcRouteRouteChildren {
+  LxcIdRoute: typeof LxcIdRoute
   LxcNewRoute: typeof LxcNewRoute
   LxcIndexRoute: typeof LxcIndexRoute
 }
 
 const LxcRouteRouteChildren: LxcRouteRouteChildren = {
+  LxcIdRoute: LxcIdRoute,
   LxcNewRoute: LxcNewRoute,
   LxcIndexRoute: LxcIndexRoute,
 }

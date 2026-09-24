@@ -464,6 +464,32 @@
         "nodePools": "Node pools и размещение"
       }
     },
+    "detail": {
+      "title": "Кластер Kubernetes",
+      "subtitle": "Идентичность, ёмкость и endpoint API.",
+      "back": "Назад к кластерам",
+      "notFound": "Кластер не найден",
+      "notFoundDescription": "В этой организации нет кластера Kubernetes с id {{id}}.",
+      "section": {
+        "identity": "Идентичность",
+        "capacity": "Ёмкость"
+      },
+      "field": {
+        "name": "Имя",
+        "id": "ID",
+        "status": "Статус",
+        "version": "Версия",
+        "cni": "CNI",
+        "fleet": "Fleet",
+        "endpoint": "Endpoint API",
+        "createdAt": "Создан",
+        "cpNodes": "Ноды control plane",
+        "workerNodes": "Рабочие ноды",
+        "totalNodes": "Всего нод",
+        "vcpu": "vCPU",
+        "ram": "RAM"
+      }
+    },
     "new": {
       "title": "Создать кластер Kubernetes",
       "description": "Managed K3s на вашем Plexor fleet — control plane, node pools, сеть и storage настраиваете вы.",
@@ -584,6 +610,32 @@
         "label": "Подробнее:",
         "howItWorks": "Как работает LXC",
         "runtimes": "Рантаймы и размещение"
+      }
+    },
+    "detail": {
+      "title": "Контейнер",
+      "subtitle": "Идентичность, ресурсы и размещение.",
+      "back": "Назад к контейнерам",
+      "notFound": "Контейнер не найден",
+      "notFoundDescription": "В этой организации нет LXC-контейнера с id {{id}}.",
+      "section": {
+        "identity": "Идентичность",
+        "resources": "Ресурсы",
+        "placement": "Размещение и сеть"
+      },
+      "field": {
+        "name": "Имя",
+        "id": "ID",
+        "status": "Статус",
+        "os": "ОС",
+        "template": "Шаблон",
+        "type": "Тип",
+        "cores": "Ядра",
+        "memory": "Память",
+        "rootfs": "Rootfs",
+        "node": "Узел",
+        "ip": "IP-адрес",
+        "createdAt": "Создан"
       }
     },
     "new": {
@@ -1075,7 +1127,9 @@
       "zone": "Копировать зону",
       "name": "Копировать имя",
       "image": "Копировать образ",
-      "machineType": "Копировать тип машины"
+      "machineType": "Копировать тип машины",
+      "endpoint": "Копировать endpoint",
+      "template": "Копировать шаблон"
     },
     "openRow": "Открыть {{name}}"
   },
