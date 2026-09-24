@@ -200,6 +200,11 @@ export const Default: Story = {
   render: () => <ManagedServiceListBody engine={postgres} clusters={FLEET} onCreate={noop} />,
 };
 
+/** Loading: strip + table skeletons while the fleet resolves. */
+export const Loading: Story = {
+  render: () => <ManagedServiceListBody engine={postgres} clusters={[]} isPending onCreate={noop} />,
+};
+
 /** One chip active: degraded chip emphasized, table filtered to degraded clusters. */
 export const StatusChipActive: Story = {
   render: () => <StatusChipActiveBody />,
