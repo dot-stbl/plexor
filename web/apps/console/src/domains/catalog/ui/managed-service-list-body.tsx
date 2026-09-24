@@ -2,15 +2,20 @@ import { useCallback, useMemo, useState } from 'react';
 import { useLocalStorage } from '@uidotdev/usehooks';
 import { useTranslation } from 'react-i18next';
 import { Add, Search } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { Badge } from '@/shared/ui/primitives/badge';
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Skeleton } from '@/shared/ui/primitives/skeleton';
+import { TechIcon } from '@/shared/ui/primitives/tech-icon';
 import { DataTable, DataTableColumns, type DataTableColumnsState } from '@/shared/ui/data-table';
 import type { DbCluster, DbEngine } from '../model/database-types';
+import { DB_KIND_LABEL } from '../model/database-types';
 import { getDbColumns } from './database-columns';
+import { DB_KIND_ICON } from './managed-service-empty';
 import { ManagedServiceEmpty } from './managed-service-empty';
+import { RuntimeBadge } from './runtime-badge';
 import {
   DbStatusStrip,
   DbStatusStripSkeleton,
@@ -29,6 +34,8 @@ interface ManagedServiceListBodyProps {
   isPending?: boolean;
   /** Create-cluster CTA — navigates to /managed/new with the engine preset. */
   onCreate: () => void;
+  /** Open a cluster detail (/managed/<engine>/c/<clusterId>) — row click. */
+  onOpenCluster: (cluster: DbCluster) => void;
 }
 
 /**
@@ -39,7 +46,13 @@ interface ManagedServiceListBodyProps {
  * Filtering is client-side over `clusters` — this page has no toolbar, so
  * the chips are the only filter and facet counts span the full set.
  */
-export function ManagedServiceListBody({ engine, clusters, isPending = false, onCreate }: ManagedServiceListBodyProps) {
+export function ManagedServiceListBody({
+  engine,
+  clusters,
+  isPending = false,
+  onCreate,
+  onOpenCluster,
+}: ManagedServiceListBodyProps) {
   const { t } = useTranslation();
   const columns = useMemo(() => getDbColumns(t), [t]);
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -85,11 +98,20 @@ export function ManagedServiceListBody({ engine, clusters, isPending = false, on
           ? t('common.loading')
           : allClusters.length > 0
             ? (
-                <span>
-                  <MonoNum>{running}</MonoNum>{' '}
-                  <span className="text-muted-foreground">{t('managed.list.runningOf')}</span>{' '}
-                  <MonoNum>{allClusters.length}</MonoNum>{' '}
-                  <span className="text-muted-foreground">{t('managed.list.total')}</span>
+                <span className="flex flex-wrap items-center gap-2">
+                  <TechIcon slug={engine.id} fallback={DB_KIND_ICON[engine.kind]} className="size-4" />
+                  <Badge variant="outline">v{engine.version}</Badge>
+                  <Badge variant="secondary">{DB_KIND_LABEL[engine.kind]}</Badge>
+                  {engine.validRuntimes.map((runtime) => (
+                    <RuntimeBadge key={runtime} runtime={runtime} />
+                  ))}
+                  <span aria-hidden className="mx-1 inline-block h-3 w-px bg-border" />
+                  <span>
+                    <MonoNum>{running}</MonoNum>{' '}
+                    <span className="text-muted-foreground">{t('managed.list.runningOf')}</span>{' '}
+                    <MonoNum>{allClusters.length}</MonoNum>{' '}
+                    <span className="text-muted-foreground">{t('managed.list.total')}</span>
+                  </span>
                 </span>
               )
             : engine.blurb
@@ -127,6 +149,7 @@ export function ManagedServiceListBody({ engine, clusters, isPending = false, on
             density="compact"
             hiddenColumns={new Set(colState.hidden)}
             columnOrder={colState.order}
+            onRowClick={onOpenCluster}
           />
           {noResultsTitle !== null && <DbNoResults title={noResultsTitle} onReset={resetFilters} />}
         </div>

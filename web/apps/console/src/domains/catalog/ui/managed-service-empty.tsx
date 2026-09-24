@@ -7,7 +7,9 @@ import { TechIcon } from '@/shared/ui/primitives/tech-icon';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import type { DbEngine, DbKind } from '../model/database-types';
 
-const KIND_ICON: Record<DbKind, Icon> = {
+/** Generic Material icon per engine kind — TechIcon fallback where the
+ *  engine has no colored brand logo (garnet, clickhouse, …). */
+export const DB_KIND_ICON: Record<DbKind, Icon> = {
   relational: Database,
   cache: Bolt,
   queue: Bolt,
@@ -25,7 +27,7 @@ export function ManagedServiceEmpty({ engine }: { engine: DbEngine }) {
   return (
     <EmptyState
       data-od-id={`managed-empty-${engine.id}`}
-      media={<TechIcon slug={engine.id} fallback={KIND_ICON[engine.kind]} className="size-20" />}
+      media={<TechIcon slug={engine.id} fallback={DB_KIND_ICON[engine.kind]} className="size-20" />}
       title={t('managed.empty.title', { engine: engine.name })}
       description={
         <>

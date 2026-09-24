@@ -40,6 +40,7 @@ import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as VmsIndexRouteImport } from './routes/vms/index'
 import { Route as VmsIdRouteImport } from './routes/vms/$id'
 import { Route as VmsNewRouteImport } from './routes/vms/new'
+import { Route as ManagedCClusterIdRouteImport } from './routes/managed/c/$clusterId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -196,6 +197,11 @@ const VmsNewRoute = VmsNewRouteImport.update({
   path: '/new',
   getParentRoute: () => VmsRouteRoute,
 } as any)
+const ManagedCClusterIdRoute = ManagedCClusterIdRouteImport.update({
+  id: '/c/$clusterId',
+  path: '/c/$clusterId',
+  getParentRoute: () => ManagedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -229,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/lxc/': typeof LxcIndexRoute
   '/managed/': typeof ManagedIndexRoute
   '/vms/': typeof VmsIndexRoute
+  '/managed/c/$clusterId': typeof ManagedCClusterIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -257,6 +264,7 @@ export interface FileRoutesByTo {
   '/lxc': typeof LxcIndexRoute
   '/managed': typeof ManagedIndexRoute
   '/vms': typeof VmsIndexRoute
+  '/managed/c/$clusterId': typeof ManagedCClusterIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/lxc/': typeof LxcIndexRoute
   '/managed/': typeof ManagedIndexRoute
   '/vms/': typeof VmsIndexRoute
+  '/managed/c/$clusterId': typeof ManagedCClusterIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -326,6 +335,7 @@ export interface FileRouteTypes {
     | '/lxc/'
     | '/managed/'
     | '/vms/'
+    | '/managed/c/$clusterId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/lxc'
     | '/managed'
     | '/vms'
+    | '/managed/c/$clusterId'
   id:
     | '__root__'
     | '/'
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/lxc/'
     | '/managed/'
     | '/vms/'
+    | '/managed/c/$clusterId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -626,6 +638,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VmsNewRouteImport
       parentRoute: typeof VmsRouteRoute
     }
+    '/managed/c/$clusterId': {
+      id: '/managed/c/$clusterId'
+      path: '/c/$clusterId'
+      fullPath: '/managed/c/$clusterId'
+      preLoaderRoute: typeof ManagedCClusterIdRouteImport
+      parentRoute: typeof ManagedRouteRoute
+    }
   }
 }
 
@@ -679,6 +698,7 @@ interface ManagedRouteRouteChildren {
   ManagedPostgresRoute: typeof ManagedPostgresRoute
   ManagedRedisRoute: typeof ManagedRedisRoute
   ManagedIndexRoute: typeof ManagedIndexRoute
+  ManagedCClusterIdRoute: typeof ManagedCClusterIdRoute
 }
 
 const ManagedRouteRouteChildren: ManagedRouteRouteChildren = {
@@ -689,6 +709,7 @@ const ManagedRouteRouteChildren: ManagedRouteRouteChildren = {
   ManagedPostgresRoute: ManagedPostgresRoute,
   ManagedRedisRoute: ManagedRedisRoute,
   ManagedIndexRoute: ManagedIndexRoute,
+  ManagedCClusterIdRoute: ManagedCClusterIdRoute,
 }
 
 const ManagedRouteRouteWithChildren = ManagedRouteRoute._addFileChildren(

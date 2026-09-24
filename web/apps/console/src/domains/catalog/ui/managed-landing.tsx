@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ArrowForward, BarChart, Bolt, Database } from '@nine-thirty-five/material-symbols-react/rounded/700';
-import type { Icon } from '@nine-thirty-five/material-symbols-react';
+import { ArrowForward, Database } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Badge } from '@/shared/ui/primitives/badge';
 import { Button } from '@/shared/ui/primitives/button';
@@ -15,15 +14,9 @@ import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Skeleton } from '@/shared/ui/primitives/skeleton';
 import { TechIcon } from '@/shared/ui/primitives/tech-icon';
-import type { DbEngine, DbKind } from '../model/database-types';
+import type { DbEngine } from '../model/database-types';
 import { DB_KIND_LABEL } from '../model/database-types';
-
-const KIND_ICON: Record<DbKind, Icon> = {
-  relational: Database,
-  cache: Bolt,
-  queue: Bolt,
-  analytics: BarChart,
-};
+import { DB_KIND_ICON } from './managed-service-empty';
 
 interface ManagedLandingProps {
   /** Full engine catalog — one card per engine. */
@@ -92,7 +85,7 @@ function ManagedEngineCard({ engine, clusterCount, onOpen }: ManagedEngineCardPr
     <Card data-od-id={`managed-card-${engine.id}`} className="flex flex-col">
       <CardHeader className="border-b border-border">
         <CardTitle className="flex items-center gap-2 text-sm">
-          <TechIcon slug={engine.id} fallback={KIND_ICON[engine.kind]} className="size-5" />
+          <TechIcon slug={engine.id} fallback={DB_KIND_ICON[engine.kind]} className="size-5" />
           {engine.name}
         </CardTitle>
         <CardDescription className="flex flex-wrap items-center gap-1.5">

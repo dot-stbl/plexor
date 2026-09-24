@@ -29,10 +29,15 @@ export { useListDbClusters, useEngines, useEngine, useRuntimeHosts } from './api
 export { RuntimeBadge, RUNTIME_ICON } from './ui/runtime-badge';
 export { RuntimePicker } from './ui/runtime-picker';
 export { getDbColumns } from './ui/database-columns';
-export { ManagedServiceEmpty } from './ui/managed-service-empty';
+export { ManagedServiceEmpty, DB_KIND_ICON } from './ui/managed-service-empty';
 export { ManagedServicePage } from './ui/managed-service-page';
 export { ManagedServiceListBody } from './ui/managed-service-list-body';
 export { ManagedLanding } from './ui/managed-landing';
+export {
+  ManagedClusterDetail,
+  ManagedClusterNotFound,
+  ManagedClusterSkeleton,
+} from './ui/managed-cluster-detail';
 export {
   DbStatusStrip,
   DbStatusStripSkeleton,
