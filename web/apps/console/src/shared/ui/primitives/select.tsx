@@ -116,7 +116,7 @@ function PlexorSelectValue({ className, placeholder: _placeholder, ...props }: P
   return (
     <RACSelectValue
       data-slot="select-value"
-      className={cn("line-clamp-1 text-left", className)}
+      className={cn("min-w-0 flex-1 truncate text-left", className)}
       {...props}
     />
   )
