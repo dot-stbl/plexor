@@ -33,3 +33,14 @@ export { getLxcColumns } from './ui/lxc-columns';
 export * from './model/image-types';
 export { listImages } from './model/image-data';
 export { getImageColumns } from './ui/image-columns';
+export { ImageListBody } from './ui/image-list-body';
+export {
+  ImageStatusStrip,
+  ImageStatusStripSkeleton,
+  countImageByStatusFacet,
+  sumImageTotals,
+  imageStatusLabelKey,
+  stripStatuses as imageStripStatuses,
+  isImageStatus,
+} from './ui/image-status-strip';
+export type { ImageTotals } from './ui/image-status-strip';

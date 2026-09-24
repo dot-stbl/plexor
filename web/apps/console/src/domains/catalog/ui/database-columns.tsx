@@ -5,6 +5,7 @@ import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { CopyableText } from '@/shared/ui/primitives/copyable-text';
 import type { DbCluster } from '../model/database-types';
 import { mapDbStatusToVariant } from '../model/database-types';
+import { dbStatusLabelKey } from './db-status-strip';
 import { RuntimeBadge } from './runtime-badge';
 
 /**
@@ -31,7 +32,7 @@ export function getDbColumns(t: TFunction): ColumnDef<DbCluster>[] {
       accessorKey: 'status',
       cell: ({ row }) => (
         <StatusPill variant={mapDbStatusToVariant(row.original.status)} size="sm">
-          {row.original.status}
+          {t(dbStatusLabelKey(row.original.status))}
         </StatusPill>
       ),
       meta: { size: 'w-[110px]' },
