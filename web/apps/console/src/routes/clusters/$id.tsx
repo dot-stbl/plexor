@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/primitives/tabs';
-import { AddNodeDialog, NodeRow, TokenRow, useGetCluster, useListNodes, useListTokens, countNodes, formatUptime } from '@/features/clusters';
+import { AddNodeDialog, NodeRow, TokenRow, useGetCluster, useListNodes, useListTokens, countNodes, formatUptime } from '@/domains/fleet';
 import { useDocumentTitle } from '@/shared/lib/use-document-title';
 
 export const Route = createFileRoute('/clusters/$id')({

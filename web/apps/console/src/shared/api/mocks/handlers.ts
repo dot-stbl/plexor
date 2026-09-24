@@ -80,12 +80,24 @@ import {
   createBrandingBootConfig,
   createOrgBrandingConfigResponse,
   createGetBrandingTheme200,
-  createAuditQueryResponse,
   createOrgAuthProviderConfigResponse,
   createOrgAuthProviderTestResult,
   createPostAuthLogin200,
 } from '@/shared/api';
-import { FLEET, FLEET_BY_ID, resetMockRng } from '@/mocks';
+import { DEV_SESSION, resetMockRng } from '@/mocks';
+import { getMockScenario } from '@/mocks/db/scenario';
+import { mockDelay } from '@/mocks/db/latency';
+import {
+  listVms,
+  getVm as getStoreVm,
+  getVmDetailExtras,
+  createVm,
+  startVm,
+  stopVm,
+  deleteVm,
+} from '@/mocks/db/store';
+import { queryAuditEntries } from '@/mocks/audit/audit';
+import type { CreateVmRequest, ProblemDetails } from '@/shared/api';
 
 // Deterministic mocks — same data every reload (stable UI + screenshots).
 // Seeded by the shared mocks/ utility so the fleet + audit counts stay in
@@ -94,25 +106,96 @@ resetMockRng();
 
 export const handlers: RequestHandler[] = [
   // ───────────────────────── VMs (6) ─────────────────────────
-  listVmsHandler(createVmList({ items: FLEET.slice(), total: FLEET.length, page: 1, pageSize: 20 })),
-  getVmHandler((info) => {
+  listVmsHandler(async () => {
+    await mockDelay(200);
+    const scenario = getMockScenario();
+    if (scenario === 'error') {
+      return new Response(
+        JSON.stringify({ status: 500, title: 'Internal Server Error', detail: 'Mock scenario: error' } satisfies ProblemDetails),
+        { status: 500, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    const items = scenario === 'empty' ? [] : listVms();
+    return new Response(
+      JSON.stringify(createVmList({ items, total: items.length, page: 1, pageSize: 20 })),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    );
+  }),
+  getVmHandler(async (info) => {
+    await mockDelay(150);
     const id = String((info.params as { vmId: unknown }).vmId);
-    const vm = FLEET_BY_ID.get(id);
+    const vm = getStoreVm(id);
     if (!vm) {
-      return new Response(JSON.stringify({ status: 404, title: 'Not Found' }), {
+      return new Response(JSON.stringify({ status: 404, title: 'Not Found' } satisfies ProblemDetails), {
         status: 404,
         headers: { 'Content-Type': 'application/problem+json' },
       });
     }
-    return new Response(JSON.stringify(createVmDetail({ ...vm })), {
+    const extras = getVmDetailExtras(id);
+    return new Response(JSON.stringify(createVmDetail({ ...vm, ...extras })), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   }),
-  provisionVmHandler(createVmDetail()),
-  startVmHandler(createVmDetail()),
-  stopVmHandler(createVmDetail()),
-  deleteVmHandler(),
+  provisionVmHandler(async (info) => {
+    await mockDelay(300);
+    const body = (await info.request.json().catch(() => ({}))) as Partial<CreateVmRequest>;
+    if (!body.name || !body.name.trim()) {
+      return new Response(
+        JSON.stringify({
+          type: 'https://plexor.dev/problems/validation',
+          title: 'Validation failed',
+          status: 422,
+          detail: 'name is required.',
+        } satisfies ProblemDetails),
+        { status: 422, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    const vm = createVm(body, DEV_SESSION.user.id);
+    const extras = getVmDetailExtras(vm.id);
+    return new Response(JSON.stringify(createVmDetail({ ...vm, ...extras })), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+  startVmHandler(async (info) => {
+    await mockDelay(200);
+    const id = String((info.params as { vmId: unknown }).vmId);
+    const vm = startVm(id, DEV_SESSION.user.id);
+    if (!vm) {
+      return new Response(JSON.stringify({ status: 404, title: 'Not Found' } satisfies ProblemDetails), {
+        status: 404,
+        headers: { 'Content-Type': 'application/problem+json' },
+      });
+    }
+    const extras = getVmDetailExtras(id);
+    return new Response(JSON.stringify(createVmDetail({ ...vm, ...extras })), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+  stopVmHandler(async (info) => {
+    await mockDelay(200);
+    const id = String((info.params as { vmId: unknown }).vmId);
+    const vm = stopVm(id, DEV_SESSION.user.id);
+    if (!vm) {
+      return new Response(JSON.stringify({ status: 404, title: 'Not Found' } satisfies ProblemDetails), {
+        status: 404,
+        headers: { 'Content-Type': 'application/problem+json' },
+      });
+    }
+    const extras = getVmDetailExtras(id);
+    return new Response(JSON.stringify(createVmDetail({ ...vm, ...extras })), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+  deleteVmHandler(async (info) => {
+    await mockDelay(150);
+    const id = String((info.params as { vmId: unknown }).vmId);
+    deleteVm(id, DEV_SESSION.user.id);
+    return new Response(null, { status: 204 });
+  }),
 
   // ───────────────────────── Nodes (4) ─────────────────────────
   nodeJoinHandler(createNodeJoinResponse()),
@@ -148,9 +231,29 @@ export const handlers: RequestHandler[] = [
   deleteBrandingThemeHandler(),
 
   // ───────────────────────── Audit (1) ─────────────────────────
-  getAuditHandler(
-    faker.helpers.multiple(() => createAuditQueryResponse(), { count: 12 }),
-  ),
+  getAuditHandler(async (info) => {
+    await mockDelay(150);
+    const scenario = getMockScenario();
+    if (scenario === 'error') {
+      return new Response(
+        JSON.stringify({ status: 500, title: 'Internal Server Error' } satisfies ProblemDetails),
+        { status: 500, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    if (scenario === 'empty') {
+      return new Response(JSON.stringify([]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    const url = new URL(info.request.url);
+    const limitParam = url.searchParams.get('limit');
+    const rows = queryAuditEntries({
+      action: url.searchParams.get('action') ?? undefined,
+      actorUserId: url.searchParams.get('actorUserId') ?? undefined,
+      since: url.searchParams.get('since') ?? undefined,
+      before: url.searchParams.get('before') ?? undefined,
+      limit: limitParam ? Number(limitParam) : undefined,
+    });
+    return new Response(JSON.stringify(rows), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }),
 
   // ───────────────────────── Auth providers (3) ─────────────────────────
   getOrgAuthProviderHandler(createOrgAuthProviderConfigResponse()),

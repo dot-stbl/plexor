@@ -1,63 +1,66 @@
 import { Link } from '@tanstack/react-router';
-import { PlexorMark } from '@plexor/ui/brand';
+import { Button } from '@/components/ui/button';
+import { CopyButton } from '@/components/ui/copy-button';
+import { GitHubIcon } from '@/components/chrome/github-icon';
+import { EYEBROW_CLASS } from '@/components/chrome/panel';
+import { CLONE_COMMAND, GITHUB_URL } from '@/components/chrome/nav-config';
+import { MarketingHeroIllustration } from './marketing-hero-illustration';
 
 /**
- * Marketing hero — PlexorMark, a kicker, the operator-facing headline,
- * a short lead paragraph, and two CTAs (primary → docs, secondary →
- * "how it's organized"). The CTAs use TR `Link` so the SPA router
- * stays intact.
+ * Hero — copy on the left, decorative flat SVG illustration on the right
+ * (the 2026-09-24 landing restyle). Two-column grid at `lg:`; single stacked
+ * column below. Headline bumped to `font-extrabold` (Onest Variable
+ * supports the full 100–900 weight range, no font config change). The old
+ * mono/uppercase eyebrow is replaced with `EYEBROW_CLASS` from
+ * `components/chrome/panel` — plain sentence-case per the restyle spec.
  *
- * Voice: second-person, operator vocabulary. The lead paragraph leads
- * with the eight product surfaces (compute, networking, storage,
- * identity, marketplace, quotas, audit, console theming) — themes is
- * one feature among them, not the headline. The technical surface
- * ("one binary, one process") stays because operators install it;
- * what is removed is the engineering positioning ("no microservices
- * sprawl", "modular monolith"), which belongs in the rationale docs,
- * not on the landing page.
+ * The console screenshot that used to live here (`MarketingHeroPreview`)
+ * is no longer this file's concern — it lives in the "how it runs" panel
+ * rendered by `routes/(marketing)/index.tsx`. The version line lives in
+ * the header's version badge (`SiteHeader`), so it isn't said twice on
+ * the same viewport. No background canvas / particle field any more
+ * (product owner feedback: "the background — particles or whatever it is
+ * — is crap, remove it") — the section is plain, no absolutely positioned
+ * decorative layer, so no z-index/stacking contract to document here.
+ *
+ * Column split is `11fr_9fr` (~55/45), not an even `3fr_2fr` — the
+ * illustration needs to read at YC-hero confidence (~45% of the panel
+ * width), which a narrower column undersells. Headline still wraps
+ * cleanly down to the `lg:` minimum (1024px) — checked via `bun run
+ * shot page / --width 1280`.
  */
 export function MarketingHero() {
   return (
-    <section className="border-b border-border">
-      <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
-        <div className="flex items-center gap-3">
-          <PlexorMark className="h-10 w-10 text-foreground" />
-          <span className="font-mono text-xs uppercase tracking-[0.16em] text-muted-2">
-            plexor · self-hosted cloud
-          </span>
-        </div>
+    <div className="lg:grid lg:grid-cols-[11fr_9fr] lg:items-center lg:gap-12">
+      <div>
+        <p className={EYEBROW_CLASS}>Plexor · self-hosted cloud</p>
 
-        <h1 className="mt-8 max-w-3xl text-4xl font-semibold tracking-tight text-foreground md:text-5xl md:leading-[1.05]">
-          Self-hosted cloud for your hardware.
+        <h1 className="mt-4 max-w-3xl text-5xl leading-[1.02] font-extrabold tracking-tight text-foreground md:text-6xl lg:text-7xl">
+          The cloud you run on your own hardware.
         </h1>
 
-        <p className="mt-6 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg md:leading-8">
-          Plexor is a self-hosted cloud platform. Run virtual machines,
-          private networks, block and object storage on the servers
-          already in your rack — and add Postgres, Redis, Keycloak or
-          your own apps from a built-in catalog. One binary, one port,
-          one process to keep an eye on.
+        <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground md:text-lg md:leading-8">
+          Virtual machines, private networks, block and object storage,
+          identity and audit — one binary, on the servers you already own.
+          No hosted control plane, no vendor lock-in.
         </p>
 
-        <div className="mt-10 flex flex-wrap items-center gap-3">
-          <Link
-            to="/docs/getting-started"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors duration-fast ease-out hover:bg-primary/90"
-          >
-            Open the docs →
-          </Link>
-          <Link
-            to="/docs/concepts"
-            className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-transparent px-5 text-sm font-medium text-foreground transition-colors duration-fast ease-out hover:border-foreground/30"
-          >
-            How it&apos;s organized
-          </Link>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Button size="lg" render={<Link to="/docs/getting-started">Get started</Link>} />
+          <Button variant="outline" size="lg" render={<a href={GITHUB_URL} target="_blank" rel="noreferrer" />}>
+            <GitHubIcon className="size-4" />
+            GitHub
+          </Button>
+          <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2">
+            <span className="font-mono text-xs text-muted-foreground">{CLONE_COMMAND}</span>
+            <CopyButton value={CLONE_COMMAND} copyLabel="Copy the clone command" />
+          </div>
         </div>
-
-        <p className="mt-8 font-mono text-xs text-muted-2">
-          v0.2 · pre-stable · MVP — single-tenant deploys
-        </p>
       </div>
-    </section>
+
+      <div className="mx-auto mt-12 max-w-md lg:mt-0 lg:max-w-none lg:mx-0">
+        <MarketingHeroIllustration />
+      </div>
+    </div>
   );
 }

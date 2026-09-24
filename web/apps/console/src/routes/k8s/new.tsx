@@ -25,7 +25,7 @@ import { SummaryPanel, SummaryRow } from '@/shared/ui/primitives/summary-panel';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
-import { useListClusters } from '@/features/clusters';
+import { useListClusters } from '@/domains/fleet';
 import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/k8s/new')({

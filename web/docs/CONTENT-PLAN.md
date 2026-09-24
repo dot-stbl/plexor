@@ -56,18 +56,18 @@ implied by the sidebar).
 
 ### What lives where
 
-- `web/apps/docs/src/routes/(docs)/docs/<chapter>/<slug>.mdx` —
+- `web/apps/www/src/routes/(docs)/docs/<chapter>/<slug>.mdx` —
   the canonical page. URL is `/docs/<chapter>/<slug>` when the
   chapter folder is non-trivial, or `/docs/<slug>` when it isn't
   (e.g. `/docs/getting-started` already exists as a TSX).
-- `web/apps/docs/src/routes/(docs)/docs/<slug>.tsx` — short prose
+- `web/apps/www/src/routes/(docs)/docs/<slug>.tsx` — short prose
   pages with no MDX components (TSX with prose classes). Existing
   example: `getting-started.tsx`.
 - Chapter index pages live at
-  `web/apps/docs/src/routes/(docs)/docs/<chapter>/index.tsx` —
+  `web/apps/www/src/routes/(docs)/docs/<chapter>/index.tsx` —
   short landing for each chapter with a card grid of pages.
 - Screenshots live at
-  `web/apps/docs/public/screenshots/<chapter>/<page>/<n>.png` —
+  `web/apps/www/public/screenshots/<chapter>/<page>/<n>.png` —
   served at `/screenshots/<chapter>/<page>/<n>.png`.
 
 ---
@@ -222,7 +222,7 @@ land on top of already-mounted routes.
 ## 4. Screenshot inventory
 
 **State today.** The repo has an empty
-`repro-screenshots/` directory and no `web/apps/docs/public/` yet.
+`repro-screenshots/` directory and no `web/apps/www/public/` yet.
 Every page that names a screenshot in §3 needs **"needs capture"**
 work — no fabricated PNG.
 
@@ -235,7 +235,7 @@ agent):
    start the dev server).
 2. Navigate to each page in the table below.
 3. Use OS screenshot (`Win+Shift+S` / macOS `Cmd+Shift+4`) and
-   save to `web/apps/docs/public/screenshots/<chapter>/<page>/<n>.png`
+   save to `web/apps/www/public/screenshots/<chapter>/<page>/<n>.png`
    at a fixed viewport (1440×900) so the docs layout doesn't shift
    between captures.
 4. Commit the screenshots alongside the page that uses them.
@@ -285,7 +285,7 @@ PNG screenshots):
 | D4 | `network-topology.svg` | 2.5 |
 | D5 | `lockout-thresholds.svg` | 4.4 |
 
-Diagrams sit under `web/apps/docs/public/diagrams/<n>.svg`.
+Diagrams sit under `web/apps/www/public/diagrams/<n>.svg`.
 
 ---
 
@@ -307,7 +307,7 @@ site is a separate deliverable and would otherwise couple to every
 console refactor. Reuse is via **shared utility primitives** only
 (Tailwind tokens via `@/lib/utils`).
 
-### What exists in `web/apps/docs/src/components/docs/` already
+### What exists in `web/apps/www/src/components/docs/` already
 
 5 chrome components (`docs-sidebar.tsx`, `docs-header.tsx`,
 `docs-toc.tsx`, `docs-footer.tsx`, `docs-breadcrumb.tsx`).
@@ -316,7 +316,7 @@ Reuse as-is; no edits needed for the new content.
 ### Gaps — new MDX-local components needed
 
 The DOCS app needs 6 small, theme-aware MDX components. Each is a
-single file in `web/apps/docs/src/components/mdx/`:
+single file in `web/apps/www/src/components/mdx/`:
 
 | Component | Source of truth for shape | Notes |
 |-----------|----------------------------|-------|
@@ -351,7 +351,7 @@ runtime component. A `<Screenshot>` call referencing `.svg` works.
    v0.1 features enabled.
 5. The human navigates to the page(s) listed in §4 and saves a
    screenshot per `src` to
-   `web/apps/docs/public/screenshots/<chapter>/<page>/<n>.png`.
+   `web/apps/www/public/screenshots/<chapter>/<page>/<n>.png`.
 6. The agent verifies the file lands, then continues.
 
 The agent **does not run `bun run dev`**, `vite`, `playwright`, or
@@ -446,25 +446,25 @@ These are non-starters that the plan **explicitly rules out**:
 The plan author (this task) does **not** modify those, but the
 follow-up task should:
 
-- `web/apps/docs/src/components/docs/docs-sidebar.tsx` — the five
+- `web/apps/www/src/components/docs/docs-sidebar.tsx` — the five
   hard-coded chapter slots become the six real chapters in §2 (add
   `Reference` and `FAQ / Troubleshooting` slots, repurpose
   `Marketplace` and `Operations` into `Concepts`, `How-to`,
   `Admin guide`). Add the `soon` flag for the `Marketplace` slot
   if it stays.
 - A new chapter-folder routing convention for
-  `web/apps/docs/src/routes/(docs)/docs/<chapter>/index.tsx` —
+  `web/apps/www/src/routes/(docs)/docs/<chapter>/index.tsx` —
   the existing single-file pattern at
   `src/routes/(docs)/docs/getting-started.tsx` keeps working; we
   add nested folders per chapter.
 - An MDX-tailwind prose style sheet at
-  `web/apps/docs/src/styles/prose.css` for `.docs-prose` (the class
+  `web/apps/www/src/styles/prose.css` for `.docs-prose` (the class
   the existing TSX uses). MDX pages inherit the same class.
 - The screenshot-and-diagram assets in
-  `web/apps/docs/public/{screenshots,diagrams}/` (created empty
+  `web/apps/www/public/{screenshots,diagrams}/` (created empty
   by this plan, populated by the capture workflow in §6).
 - The 6 MDX components in
-  `web/apps/docs/src/components/mdx/` per §5.
+  `web/apps/www/src/components/mdx/` per §5.
 
 ---
 

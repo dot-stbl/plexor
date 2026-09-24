@@ -7,7 +7,7 @@ import { PageTemplate } from '@/shared/ui/app-shell';
 import { Button } from '@/shared/ui/primitives/button';
 import { DataTable } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
-import { getNetworkColumns } from '@/features/networks';
+import { getNetworkColumns } from '@/domains/network';
 import { listNetworks, type Network } from '@/shared/api/mocks/handmade/networks';
 
 /**

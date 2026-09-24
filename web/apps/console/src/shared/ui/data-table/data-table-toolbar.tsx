@@ -120,7 +120,7 @@ function FilterControl({ filter, value, onChange }: FilterControlProps) {
   if (filter.type === 'select') {
     const allLabel = filter.placeholder ?? t('common.all');
     return (
-      <div className="min-w-[140px]">
+      <div className="min-w-[160px]">
         <Select
           items={[{ value: '', label: allLabel }, ...filter.options]}
           value={value}

@@ -26,9 +26,9 @@ import { TechIcon } from '@/shared/ui/primitives/tech-icon';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
-import { useListClusters } from '@/features/clusters';
-import type { NodeStatus } from '@/features/clusters';
-import { listImages } from '@/features/images';
+import { useListClusters } from '@/domains/fleet';
+import type { NodeStatus } from '@/domains/fleet';
+import { listImages } from '@/domains/compute';
 
 export const Route = createFileRoute('/vms/new')({
   staticData: { crumb: 'New VM' },

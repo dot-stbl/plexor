@@ -21,7 +21,7 @@ import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Size, SizeUtils } from '@/shared/ui/primitives/size';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { PageTemplate } from '@/shared/ui/app-shell';
-import type { Runtime } from '@/features/databases';
+import type { Runtime } from '@/domains/catalog';
 import {
   DB_KIND_LABEL,
   RUNTIME_META,
@@ -31,7 +31,7 @@ import {
   RuntimePicker,
   useEngines,
   useRuntimeHosts,
-} from '@/features/databases';
+} from '@/domains/catalog';
 import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/managed/new')({

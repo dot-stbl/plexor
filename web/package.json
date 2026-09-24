@@ -10,11 +10,11 @@
     "test": "bun --filter '@plexor/console' test",
     "lint": "bun --filter '@plexor/console' lint",
     "typecheck": "bun --filter '@plexor/console' typecheck",
-    "dev:docs": "bun --filter '@plexor/docs' dev",
-    "build:docs": "bun --filter '@plexor/docs' build",
-    "test:docs": "bun --filter '@plexor/docs' test",
-    "lint:docs": "bun --filter '@plexor/docs' lint",
-    "typecheck:docs": "bun --filter '@plexor/docs' typecheck"
+    "dev:www": "bun --filter '@plexor/www' dev",
+    "build:www": "bun --filter '@plexor/www' build",
+    "test:www": "bun --filter '@plexor/www' test",
+    "lint:www": "bun --filter '@plexor/www' lint",
+    "typecheck:www": "bun --filter '@plexor/www' typecheck"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",

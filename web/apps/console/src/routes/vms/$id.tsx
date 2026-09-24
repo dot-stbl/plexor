@@ -40,8 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/shared/ui/primitives/alert-dialog';
-import { mapVmStatusToVariant } from '@/features/vms';
-import { VmConsoleCard } from '@/features/vms/vm-console-card';
+import { mapVmStatusToVariant, VmConsoleCard } from '@/domains/compute';
 import { useDocumentTitle } from '@/shared/lib/use-document-title';
 import { routeHead } from '@/shared/lib/route-head';
 

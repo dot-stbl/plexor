@@ -17,7 +17,7 @@ import {
   useUpdateGlobalBranding,
   useUpdateOrgBranding,
   useDeleteOrgBranding,
-} from '@/features/branding/use-branding';
+} from '@/domains/branding';
 import type { GlobalThemeConfigResponse } from '@/shared/api';
 
 /**

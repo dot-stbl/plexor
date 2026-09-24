@@ -128,14 +128,14 @@ export function DataTable<TData>({
                 data.length > 0 && data.every((row) => selection!.selectedIds.has(idAccessor(row)))
               }
               onCheckedChange={(value) => selection!.onToggleAll(value === true)}
-              aria-label="Выбрать все"
+              aria-label="Select all"
             />
           ),
           cell: ({ row }) => (
             <Checkbox
               checked={selection!.selectedIds.has(idAccessor(row.original))}
               onCheckedChange={() => selection!.onToggle(idAccessor(row.original))}
-              aria-label="Выбрать строку"
+              aria-label="Select row"
               onClick={(e) => e.stopPropagation()}
             />
           ),

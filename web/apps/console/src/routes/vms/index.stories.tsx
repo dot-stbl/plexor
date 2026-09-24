@@ -13,7 +13,7 @@ import {
   countByStatusFacet,
   getVmColumns,
   sumResourceTotals,
-} from '@/features/vms';
+} from '@/domains/compute';
 
 /**
  * /vms list page stories.

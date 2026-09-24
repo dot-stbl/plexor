@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useListVms } from '@/shared/api';
 import { routeHead } from '@/shared/lib/route-head';
-import { VmListBody } from '@/features/vms';
+import { useListVms, VmListBody } from '@/domains/compute';
 
 export const Route = createFileRoute('/vms/')({
   component: VmsPage,

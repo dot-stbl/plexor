@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Button } from '@/shared/ui/primitives/button';
 import { DataTable } from '@/shared/ui/data-table';
-import { getNetworkColumns, useNetworks, NetworksEmpty } from '@/features/networks';
+import { getNetworkColumns, useNetworks, NetworksEmpty } from '@/domains/network';
 import { routeHead } from '@/shared/lib/route-head';
 
 /**

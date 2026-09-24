@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { DataTable } from '@/shared/ui/data-table';
-import { AuditEmpty, getAuditColumns, useAudit } from '@/features/audit';
+import { AuditEmpty, getAuditColumns, useAudit } from '@/domains/audit';
 import { routeHead } from '@/shared/lib/route-head';
 
 /**

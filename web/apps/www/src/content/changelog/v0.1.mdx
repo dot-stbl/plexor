@@ -1,0 +1,16 @@
+---
+version: "v0.1"
+title: "First running cluster"
+status: "shipped"
+bullets:
+  - "One Plexor binary, one process to run"
+  - "Log in, create an organization, set up your first users"
+  - "Console shell up — you can see what the binary has provisioned"
+  - "Three built-in palettes; pick one per organization"
+---
+
+<ul>
+  {frontmatter.bullets.map((bullet) => (
+    <li key={bullet}>{bullet}</li>
+  ))}
+</ul>

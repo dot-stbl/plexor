@@ -17,16 +17,57 @@ backend to build or verify a page.
 | Thing | Path |
 |---|---|
 | Routes (pages), file-based | `src/routes/` |
-| Feature logic (columns, hooks, empty states) | `src/features/<name>/` |
+| Domain logic (types, hooks, columns, empty states), one folder per bounded context | `src/domains/<context>/{model,api,ui}/` — see "Domains" below |
 | UI primitives (Button, Dialog, DataTable, …) | `src/shared/ui/primitives/<name>.tsx` (flat files, not folders) |
 | Component decision table — check this FIRST | `src/shared/ui/INDEX.md` |
 | App shell (PageTemplate, AppShell, ScopeSwitcher) | `src/shared/ui/app-shell/` |
 | Data table family (DataTable, toolbar, selection) | `src/shared/ui/data-table/` |
+| Mock fixtures (hand-curated data, by bounded context) | `src/mocks/<context>/` — see `src/mocks/README.md` |
 | Mock API data (contract endpoints) | `src/shared/api/mocks/handlers.ts` |
 | Mock data for endpoints not in the contract yet | `src/shared/api/mocks/handmade/` |
 | i18n keys (EN primary, RU secondary, both required) | `src/shared/lib/i18n/locales/{en,ru}/common.json` |
 | Page title helpers | `src/shared/lib/route-head.ts`, `src/shared/lib/use-document-title.ts` |
 | Step-by-step recipes for this loop | `docs/agent/` |
+
+## Domains
+
+Domain logic lives in `src/domains/<context>/`, one folder per bounded
+context (`compute`, `network`, `identity`, `catalog`, `audit`, `billing`,
+`branding`, `fleet`, `dashboard`; `storage`/`scope` reserved, no FE
+surface yet). Each domain has up to three subfolders:
+
+```
+src/domains/<context>/
+  model/   # types narrowed from @/shared/api + pure domain logic
+           #   (status→variant mappers, formatters). No JSX, no fetch.
+  api/     # TanStack Query hooks wrapping kubb, or a same-shaped
+           #   handmade-mock hook where the contract doesn't exist yet.
+  ui/      # Context-specific components: columns, row actions, empty
+           #   states, list/detail page bodies. Not routes.
+  index.ts # Public barrel — the ONLY import path anything outside the
+           #   domain may use (never '@/domains/<ctx>/model/*' etc.).
+```
+
+**Dependency rule, ESLint-enforced (`eslint.config.js`) + a belt-and-
+suspenders script (`bun run check:domains`):**
+
+- A route imports any number of domains' barrels (routes compose).
+- A domain imports another domain ONLY via that domain's barrel, never a
+  deep `model/api/ui` path.
+- `src/shared/**` may **never** import a domain — not even the barrel,
+  no exceptions. A shared component that needs domain data takes it as a
+  **prop**; the route/composition-root fetches it (see
+  `routes/__root.tsx`'s `launcherSummary` prop into `AppShell` →
+  `AppSidebar` → `AppLauncher` for a worked example).
+- `src/mocks/<context>/` fixtures are NOT inside `domains/` — they're a
+  sibling tree so `shared/api/mocks/handlers.ts` (which needs fixture
+  data to answer contract-endpoint requests) never has to import a
+  domain either. A domain's `api/` hooks and `src/mocks/` fixtures may
+  freely import each other's barrels/types; see
+  `.agents/docs/architecture/frontend-ddd.md` §3/§7 for the full
+  rationale and the migration's execution log.
+
+Full design doc: `.agents/docs/architecture/frontend-ddd.md`.
 
 ## THE LOOP
 
@@ -84,8 +125,10 @@ Never skip step 4. A page that "looks right" in your head is not verified.
     `SimpleSelect`, `Checkbox`, `RadioGroup` from primitives.
 13. **Collections render as `Badge`/`StatusPill` chips**, never
     `items.join(', ')` or a count sentence.
-14. **New feature logic lives in `src/features/<name>/` with an `index.ts`
-    barrel.** The route imports only from the barrel.
+14. **New domain logic lives in `src/domains/<context>/{model,api,ui}/`
+    with an `index.ts` barrel** (see "Domains" above — pick the existing
+    context it belongs to; only add a new context folder for a genuinely
+    new bounded context). The route imports only from the barrel.
 15. **Column defs are functions: `getXColumns(t)`**, not a module-level
     `const` (it needs `t` at call time, and `t` isn't available at module
     load).

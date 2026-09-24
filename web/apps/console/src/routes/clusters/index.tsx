@@ -4,7 +4,7 @@ import { Add, Stacks } from '@nine-thirty-five/material-symbols-react/rounded/70
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
-import { ClusterCard, useListClusters, countNodes } from '@/features/clusters';
+import { ClusterCard, useListClusters, countNodes } from '@/domains/fleet';
 import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/clusters/')({

@@ -22,8 +22,7 @@ import { CopyButton } from '@/shared/ui/primitives/copy-button';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { Skeleton } from '@/shared/ui/primitives/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/primitives/alert';
-import { mapVmStatusToVariant } from '@/features/vms';
-import { VmConsoleCard } from '@/features/vms/vm-console-card';
+import { mapVmStatusToVariant, VmConsoleCard } from '@/domains/compute';
 
 /**
  * /vms/$id page stories.

@@ -1,0 +1,15 @@
+---
+version: "v0.4"
+title: "Community palettes"
+status: "next"
+bullets:
+  - "Browse, install and activate palettes contributed by the community"
+  - "Each install verifies its manifest against a signing key held by the host"
+  - "Live preview before activating — see what your console will look like"
+---
+
+<ul>
+  {frontmatter.bullets.map((bullet) => (
+    <li key={bullet}>{bullet}</li>
+  ))}
+</ul>

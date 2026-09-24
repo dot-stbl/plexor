@@ -127,7 +127,7 @@ export function PreferencesDialog({ open, onOpenChange }: PreferencesDialogProps
                 );
               })}
             </div>
-            <FieldDescription>Применяется ко всем ссылкам, кнопкам, выделениям и focus-рингам.</FieldDescription>
+            <FieldDescription>{t('preferences.accentDescription')}</FieldDescription>
           </Field>
 
           <Field>

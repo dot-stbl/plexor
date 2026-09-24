@@ -38,7 +38,7 @@ import {
   clearSession,
   writeSession,
   type StoredSession,
-} from '@/features/auth/session-storage';
+} from '@/shared/lib/session';
 
 function makeSession(userId: string): StoredSession {
   return {

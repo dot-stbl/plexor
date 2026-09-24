@@ -31,7 +31,8 @@ import { toast } from 'sonner';
 import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import { getBootConfig } from '@/shared/lib/config';
 import { useFeatureFlag } from '@/shared/lib/feature-flags/feature-flag-context';
-import { readSession } from '@/features/auth/session-storage';
+import { readSession } from '@/shared/lib/session';
+import type { LauncherSummaryCard } from '@/mocks/launcher-summary';
 import {
   SECTIONS,
   isActiveRoute,
@@ -65,8 +66,15 @@ const railPill =
  *
  * `billing` doesn't have a shipping section in nav-config yet — the
  * flag is the contract, ready for when the section lands.
+ *
+ * `launcherSummary` is a pass-through prop for the launcher's SUMMARY
+ * row — see `AppShell`'s doc comment for why this isn't fetched here.
  */
-export function AppSidebar() {
+export function AppSidebar({
+  launcherSummary = [],
+}: {
+  launcherSummary?: readonly LauncherSummaryCard[];
+} = {}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -199,7 +207,7 @@ export function AppSidebar() {
                           hideDot
                           className="ml-auto px-1.5 py-0 text-[9.5px] font-normal group-data-[collapsible=icon]:hidden"
                         >
-                          скоро
+                          {t('common.soon')}
                         </StatusPill>
                       </SidebarMenuButton>
                       <span aria-hidden="true" className={railPill}>
@@ -290,7 +298,7 @@ export function AppSidebar() {
         <SidebarRail />
       </Sidebar>
 
-      <AppLauncher open={launcherOpen} onOpenChange={setLauncherOpen} />
+      <AppLauncher open={launcherOpen} onOpenChange={setLauncherOpen} summary={launcherSummary} />
     </>
   );
 }

@@ -1,16 +1,23 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router';
-import { DocsHeader } from '@/components/docs/docs-header';
+import { SiteHeader } from '@/components/chrome/site-header';
+import { SiteFooter } from '@/components/chrome/site-footer';
+import { FRAME_CLASS } from '@/components/chrome/site-frame';
 import { DocsSidebar } from '@/components/docs/docs-sidebar';
 import { DocsToc } from '@/components/docs/docs-toc';
 import { DocsFooter } from '@/components/docs/docs-footer';
 import { DocsNotFound } from '@/components/docs/docs-not-found';
 
 /**
- * Docs layout — the three-column chrome (sidebar + article + TOC)
- * with a sticky header and a thin footer underneath. The header owns
- * the breadcrumb + theme picker; the sidebar owns the chapter list;
- * the TOC scrapes h2/h3 from the rendered article; the footer owns
- * the "Edit on GitHub" + "Last updated" links.
+ * Docs layout — the three-column chrome (sidebar + article + TOC),
+ * wrapped in the shared `SiteHeader variant="docs"` / `SiteFooter`. The
+ * grid shares `FRAME_CLASS` with every other full-width frame in the
+ * app (header, footer, marketing `SiteFrame`) — sidebar hugs the left
+ * gutter, TOC hugs the right one, and the article column between them
+ * grows with the viewport; the article's own `.docs-prose` class (see
+ * `src/styles.css`) caps prose at a 44rem readable width so widening
+ * the grid doesn't stretch paragraph line length. The page-scoped
+ * "Edit on GitHub" + version bar (`DocsFooter`) stays directly under the
+ * article, above the full-width `SiteFooter`.
  *
  * The `(docs)` group is pathless in TanStack Router terms (the
  * parenthesis-prefixed directory is collapsed from the URL), so the
@@ -32,8 +39,8 @@ export const Route = createFileRoute('/(docs)')({
 function DocsLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <DocsHeader />
-      <div className="mx-auto flex w-full max-w-7xl flex-1 gap-8 px-6 py-8">
+      <SiteHeader variant="docs" />
+      <div className={`flex flex-1 gap-8 py-8 xl:gap-12 ${FRAME_CLASS}`}>
         <DocsSidebar />
         <main className="min-w-0 flex-1">
           <Outlet />
@@ -41,6 +48,7 @@ function DocsLayout() {
         <DocsToc />
       </div>
       <DocsFooter />
+      <SiteFooter />
     </div>
   );
 }

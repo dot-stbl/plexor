@@ -20,9 +20,9 @@ control-plane API at 48001/48002 — FE apps at 17xxx, control plane at
 | Port | Surface |
 |---|---|
 | 17100 | `@plexor/console` — Vite dev server |
-| 17101 | `@plexor/docs` — Vite dev server |
+| 17101 | `@plexor/www` — Vite dev server |
 | 17110 | `@plexor/console` — Vite preview (built `dist/`) |
-| 17111 | `@plexor/docs` — Vite preview |
+| 17111 | `@plexor/www` — Vite preview |
 | 17120 | Storybook UI gallery |
 | 17130 | Storybook test-runner HTTP |
 | 17140 | Dev metrics scratch (Grafana / Prometheus / Tempo) |

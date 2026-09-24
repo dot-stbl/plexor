@@ -149,6 +149,10 @@
           "value": "0",
           "context": "last 24h"
         }
+      },
+      "overview": {
+        "title": "Project overview",
+        "description": "Resource summary, metrics, and quick actions — project prod-cluster"
       }
     },
     "userMenu": {
@@ -230,6 +234,18 @@
         "allocated": "Allocated",
         "disk": "disk"
       }
+    },
+    "rowActions": {
+      "ariaLabel": "Actions for {{name}}",
+      "start": "Start",
+      "startToast": "Start: {{name}}",
+      "stop": "Stop",
+      "stopToast": "Stop: {{name}}",
+      "restart": "Restart",
+      "restartToast": "Restart: {{name}}",
+      "openConsole": "Open console",
+      "delete": "Delete",
+      "deleteToast": "Delete: {{name}}"
     },
     "new": {
       "title": "Create virtual machine",
@@ -916,6 +932,7 @@
     "themeDark": "Dark",
     "themeSystem": "System",
     "accent": "Accent color",
+    "accentDescription": "Applies to all links, buttons, selections, and focus rings.",
     "fontSize": "Text size",
     "fontSizeSmall": "Small",
     "fontSizeMedium": "Medium",

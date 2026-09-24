@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { faker } from '@faker-js/faker';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { DataTable } from '@/shared/ui/data-table';
-import { AuditEmpty, getAuditColumns } from '@/features/audit';
+import { AuditEmpty, getAuditColumns } from '@/domains/audit';
 import type { AuditQueryResponse } from '@/shared/api';
 
 /**

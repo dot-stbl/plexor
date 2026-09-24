@@ -5,6 +5,7 @@ import mdx from '@mdx-js/rollup';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 import remarkGfm from 'remark-gfm';
 import remarkFrontmatter from 'remark-frontmatter';
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import path from 'node:path';
@@ -23,7 +24,14 @@ export default defineConfig({
     }),
     react(),
     mdx({
-      remarkPlugins: [remarkGfm, remarkFrontmatter],
+      // remarkMdxFrontmatter must run after remarkFrontmatter: the first
+      // parses the YAML block into an AST node, the second turns that
+      // node into `export const frontmatter = {...}` (and binds
+      // `frontmatter` in scope for the rest of the MDX body). Added for
+      // the changelog (`src/content/changelog/*.mdx`) — every MDX file's
+      // frontmatter is now readable via `import.meta.glob(...).frontmatter`,
+      // not just parsed-and-discarded.
+      remarkPlugins: [remarkGfm, remarkFrontmatter, remarkMdxFrontmatter],
       rehypePlugins: [
         rehypeSlug,
         [rehypeAutolinkHeadings, { behavior: 'wrap' }],

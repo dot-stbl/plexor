@@ -149,6 +149,10 @@
           "value": "0",
           "context": "за последние 24 ч"
         }
+      },
+      "overview": {
+        "title": "Обзор проекта",
+        "description": "Сводка ресурсов, метрики и быстрые действия — проект prod-cluster"
       }
     },
     "userMenu": {
@@ -230,6 +234,18 @@
         "allocated": "Выделено",
         "disk": "диск"
       }
+    },
+    "rowActions": {
+      "ariaLabel": "Действия с {{name}}",
+      "start": "Запустить",
+      "startToast": "Запустить: {{name}}",
+      "stop": "Остановить",
+      "stopToast": "Остановить: {{name}}",
+      "restart": "Перезагрузить",
+      "restartToast": "Перезагрузить: {{name}}",
+      "openConsole": "Открыть консоль",
+      "delete": "Удалить",
+      "deleteToast": "Удалить: {{name}}"
     },
     "new": {
       "title": "Создать виртуальную машину",
@@ -916,6 +932,7 @@
     "themeDark": "Тёмная",
     "themeSystem": "Системная",
     "accent": "Акцентный цвет",
+    "accentDescription": "Применяется ко всем ссылкам, кнопкам, выделениям и focus-рингам.",
     "fontSize": "Размер текста",
     "fontSizeSmall": "Маленький",
     "fontSizeMedium": "Обычный",

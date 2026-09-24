@@ -79,14 +79,14 @@ function Harness() {
 
 /**
  * Find the row checkbox by its row index. The data-table renders two kinds
- * of checkbox with `aria-label="Выбрать строку"` (row) and
- * `aria-label="Выбрать все"` (header). We use the row-only label to skip
+ * of checkbox with `aria-label="Select row"` (row) and
+ * `aria-label="Select all"` (header). We use the row-only label to skip
  * the header, then index into the list.
  */
 function getRowCheckboxInput(rowIndex: number): HTMLInputElement {
   const inputs = Array.from(
     document.querySelectorAll<HTMLInputElement>(
-      'label[data-slot="checkbox"] input[type="checkbox"][aria-label="Выбрать строку"]',
+      'label[data-slot="checkbox"] input[type="checkbox"][aria-label="Select row"]',
     ),
   );
   const target = inputs[rowIndex];

@@ -1,5 +1,6 @@
 @import '@plexor/ui/tokens.css';
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
 @import '@fontsource-variable/onest';
 
@@ -163,6 +164,16 @@
 
 html.dark {
   color-scheme: dark;
+}
+
+/* Outside @layer base on purpose — Tailwind's utility layer orders AFTER
+   base, so a `.flex` on the panel would otherwise win over this rule
+   (layer precedence beats specificity within CSS @layer). Hide collapsed
+   Disclosure panels here so border-t + padding don't leak through.
+   Ported from console's index.css — required by the ported
+   `components/ui/collapsible.tsx` (react-aria-components Disclosure). */
+[data-slot='collapsible']:not([data-expanded]) > [data-slot='collapsible-content'] {
+  display: none;
 }
 
 /* =========================================================================

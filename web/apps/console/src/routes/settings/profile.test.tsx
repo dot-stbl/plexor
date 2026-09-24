@@ -17,7 +17,7 @@
 import type { ComponentType } from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { renderWithProviders } from '@/test-utils';
-import { writeSession, type StoredSession } from '@/features/auth/session-storage';
+import { writeSession, type StoredSession } from '@/shared/lib/session';
 import { Route } from './profile';
 import en from '@/shared/lib/i18n/locales/en/common.json';
 

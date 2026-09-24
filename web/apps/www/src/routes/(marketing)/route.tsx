@@ -1,12 +1,12 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router';
-import { MarketingHeader } from '@/components/marketing/marketing-header';
-import { MarketingFooter } from '@/components/marketing/marketing-footer';
+import { SiteHeader } from '@/components/chrome/site-header';
+import { SiteFooter } from '@/components/chrome/site-footer';
 
 /**
- * Marketing layout — wraps the `/` route in the landing chrome
- * (sticky header + free-flowing main + footer). Owns no chrome of its
- * own beyond the flex container — both chrome siblings are pure
- * presentation components that take no route state.
+ * Marketing layout — wraps the `/` route (and `/changelog`) in the
+ * shared landing chrome: `SiteHeader variant="marketing"` + free-flowing
+ * main + `SiteFooter` (spec §2.4 — one header/footer per route-group
+ * layout, not duplicated per page).
  *
  * The `(marketing)` group is pathless (TanStack Router collapses
  * parentheses-prefixed directory segments from the URL), so the
@@ -19,11 +19,11 @@ export const Route = createFileRoute('/(marketing)')({
 function MarketingLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <MarketingHeader />
+      <SiteHeader variant="marketing" />
       <main className="flex-1">
         <Outlet />
       </main>
-      <MarketingFooter />
+      <SiteFooter />
     </div>
   );
 }

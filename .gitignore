@@ -362,3 +362,5 @@ lex_word_list.txt
 dev-certs/*
 !dev-certs/.gitkeep
 !dev-certs/README.md
+
+.agents/worktree/

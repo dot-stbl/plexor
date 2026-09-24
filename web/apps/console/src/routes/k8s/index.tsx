@@ -18,7 +18,7 @@ import {
 } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
-import { getK8sColumns, listK8s } from '@/features/k8s';
+import { getK8sColumns, listK8s } from '@/domains/catalog';
 
 export const Route = createFileRoute('/k8s/')({
   component: K8sPage,

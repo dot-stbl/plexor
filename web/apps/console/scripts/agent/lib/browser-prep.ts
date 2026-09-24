@@ -16,7 +16,7 @@ export function viewportFor(mobile: boolean): { width: number; height: number } 
 }
 
 /**
- * Форма `StoredSession` из `src/features/auth/session-storage.ts` —
+ * Форма `StoredSession` из `src/shared/lib/session.ts` —
  * продублирована здесь (не импортируется), т.к. scripts/ живёт вне
  * tsconfig `include` приложения и не должен тянуть runtime-код src/ в
  * агентский CLI.

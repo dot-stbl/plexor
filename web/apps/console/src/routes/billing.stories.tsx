@@ -10,7 +10,7 @@ import { Stat } from '@/shared/ui/primitives/stat';
 import { Progress } from '@/shared/ui/primitives/progress';
 import { DataTable } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
-import { getInvoiceColumns } from '@/features/billing';
+import { getInvoiceColumns } from '@/domains/billing';
 import {
   getBillingSnapshot,
   type BillingSnapshot,

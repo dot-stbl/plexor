@@ -23,6 +23,7 @@
     "gen:tech-icons": "node scripts/gen-tech-icons.cjs",
     "shot": "bun run scripts/agent/shot.ts",
     "agent:rules": "bun run scripts/agent/lint-rules.ts",
+    "check:domains": "bun run scripts/agent/check-domain-boundaries.ts",
     "agent:check": "bun run scripts/agent/check.ts"
   },
   "dependencies": {

@@ -1,19 +1,27 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+import { DocsLanding } from '@/components/docs/docs-landing';
 
 /**
- /docs route — `/(docs)` pathless group's only direct index. Redirects
- to `/docs/getting-started` so anyone hitting the docs section
- (typing `/docs` directly, or following a stale link) lands on the
- first chapter instead of a 404 or a blank page.
-
- `beforeLoad` throws the redirect before the route component mounts,
- so there is no flash of 'DocsNotFound' between the bare URL and the
- redirect target. `<Navigate>` would fire in `useEffect` after paint.
+ * `/docs` — `/(docs)` pathless group's direct index. A real entry page
+ * (YC-informed restyle, 2026-09-24): a hero panel + chapter-cards grid
+ * (`DocsLanding`), replacing the old immediate `beforeLoad` redirect to
+ * `/docs/getting-started`. Every other docs route
+ * (`/docs/getting-started`, `/docs/concepts`, …) is unaffected — this
+ * file only changes what renders at the bare `/docs`/`/docs/` path.
  */
 export const Route = createFileRoute('/(docs)/docs/')({
-  beforeLoad: ({ location }) => {
-    if (location.pathname === '/docs' || location.pathname === '/docs/') {
-      throw redirect({ to: '/docs/getting-started' });
-    }
-  },
+  component: DocsIndexPage,
+  head: () => ({
+    meta: [
+      { title: 'plexor — documentation' },
+      {
+        name: 'description',
+        content: 'Install, run and operate Plexor — from first boot to hardening a production cluster.',
+      },
+    ],
+  }),
 });
+
+function DocsIndexPage() {
+  return <DocsLanding />;
+}

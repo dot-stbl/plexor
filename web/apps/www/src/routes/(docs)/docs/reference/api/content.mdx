@@ -19,14 +19,14 @@ a Plexor module; the URL path's first segment is the group name.
 
 | Group | Base path | Capability |
 |---|---|---|
-| Organisations | `/api/v1/orgs` | Realm |
-| Teams | `/api/v1/teams` | Realm |
-| Folders | `/api/v1/folders` | Realm |
-| Users | `/api/v1/users` | Sigil (identity) |
-| API keys | `/api/v1/users/{userId}/api-keys` | Sigil |
-| SSH keys | `/api/v1/users/{userId}/ssh-keys` | Sigil |
-| Roles | `/api/v1/roles` | Sigil |
-| Role bindings | `/api/v1/role-bindings` | Sigil |
+| Organisations | `/api/v1/orgs` | Organizations |
+| Teams | `/api/v1/teams` | Organizations |
+| Folders | `/api/v1/folders` | Organizations |
+| Users | `/api/v1/users` | Identity |
+| API keys | `/api/v1/users/{userId}/api-keys` | Identity |
+| SSH keys | `/api/v1/users/{userId}/ssh-keys` | Identity |
+| Roles | `/api/v1/roles` | Identity |
+| Role bindings | `/api/v1/role-bindings` | Identity |
 | Auth providers | `/api/v1/iam/orgs/{orgId}/auth-provider` | Auth providers |
 | Workloads | `/api/v1/workloads` | Compute |
 | Volumes | `/api/v1/volumes` | Storage |

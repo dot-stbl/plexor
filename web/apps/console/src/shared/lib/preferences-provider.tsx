@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import i18n from '@/shared/lib/i18n';
 import { applyPreset } from '@plexor/ui/themes';
 import { getPreset, DEFAULT_PRESET_ID as REGISTRY_DEFAULT_PRESET_ID } from '@/shared/lib/themes';
-import { readSession } from '@/features/auth/session-storage';
+import { readSession } from '@/shared/lib/session';
 
 /**
  * User visual preferences. The single source of truth for theme, accent

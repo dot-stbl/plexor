@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as docsRouteRouteImport } from './routes/(docs)/route'
 import { Route as marketingRouteRouteImport } from './routes/(marketing)/route'
+import { Route as docsDocsRouteRouteImport } from './routes/(docs)/docs/route'
 import { Route as marketingIndexRouteImport } from './routes/(marketing)/index'
 import { Route as docsDocsIndexRouteImport } from './routes/(docs)/docs/index'
+import { Route as marketingChangelogIndexRouteImport } from './routes/(marketing)/changelog/index'
 import { Route as docsDocsAdminIndexRouteImport } from './routes/(docs)/docs/admin/index'
 import { Route as docsDocsConceptsIndexRouteImport } from './routes/(docs)/docs/concepts/index'
 import { Route as docsDocsFaqIndexRouteImport } from './routes/(docs)/docs/faq/index'
@@ -64,267 +66,279 @@ const marketingRouteRoute = marketingRouteRouteImport.update({
   id: '/(marketing)',
   getParentRoute: () => rootRouteImport,
 } as any)
+const docsDocsRouteRoute = docsDocsRouteRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => docsRouteRoute,
+} as any)
 const marketingIndexRoute = marketingIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => marketingRouteRoute,
 } as any)
 const docsDocsIndexRoute = docsDocsIndexRouteImport.update({
-  id: '/docs/',
-  path: '/docs/',
-  getParentRoute: () => docsRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => docsDocsRouteRoute,
+} as any)
+const marketingChangelogIndexRoute = marketingChangelogIndexRouteImport.update({
+  id: '/changelog/',
+  path: '/changelog/',
+  getParentRoute: () => marketingRouteRoute,
 } as any)
 const docsDocsAdminIndexRoute = docsDocsAdminIndexRouteImport.update({
-  id: '/docs/admin/',
-  path: '/docs/admin/',
-  getParentRoute: () => docsRouteRoute,
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => docsDocsRouteRoute,
 } as any)
 const docsDocsConceptsIndexRoute = docsDocsConceptsIndexRouteImport.update({
-  id: '/docs/concepts/',
-  path: '/docs/concepts/',
-  getParentRoute: () => docsRouteRoute,
+  id: '/concepts/',
+  path: '/concepts/',
+  getParentRoute: () => docsDocsRouteRoute,
 } as any)
 const docsDocsFaqIndexRoute = docsDocsFaqIndexRouteImport.update({
-  id: '/docs/faq/',
-  path: '/docs/faq/',
-  getParentRoute: () => docsRouteRoute,
+  id: '/faq/',
+  path: '/faq/',
+  getParentRoute: () => docsDocsRouteRoute,
 } as any)
 const docsDocsGettingStartedIndexRoute =
   docsDocsGettingStartedIndexRouteImport.update({
-    id: '/docs/getting-started/',
-    path: '/docs/getting-started/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/getting-started/',
+    path: '/getting-started/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToIndexRoute = docsDocsHowToIndexRouteImport.update({
-  id: '/docs/how-to/',
-  path: '/docs/how-to/',
-  getParentRoute: () => docsRouteRoute,
+  id: '/how-to/',
+  path: '/how-to/',
+  getParentRoute: () => docsDocsRouteRoute,
 } as any)
 const docsDocsReferenceIndexRoute = docsDocsReferenceIndexRouteImport.update({
-  id: '/docs/reference/',
-  path: '/docs/reference/',
-  getParentRoute: () => docsRouteRoute,
+  id: '/reference/',
+  path: '/reference/',
+  getParentRoute: () => docsDocsRouteRoute,
 } as any)
 const docsDocsAdminAuditLogIndexRoute =
   docsDocsAdminAuditLogIndexRouteImport.update({
-    id: '/docs/admin/audit-log/',
-    path: '/docs/admin/audit-log/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/admin/audit-log/',
+    path: '/admin/audit-log/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsAdminBackupAndDisasterIndexRoute =
   docsDocsAdminBackupAndDisasterIndexRouteImport.update({
-    id: '/docs/admin/backup-and-disaster/',
-    path: '/docs/admin/backup-and-disaster/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/admin/backup-and-disaster/',
+    path: '/admin/backup-and-disaster/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsAdminCapacityPlanningIndexRoute =
   docsDocsAdminCapacityPlanningIndexRouteImport.update({
-    id: '/docs/admin/capacity-planning/',
-    path: '/docs/admin/capacity-planning/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/admin/capacity-planning/',
+    path: '/admin/capacity-planning/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsAdminLockoutRecoveryIndexRoute =
   docsDocsAdminLockoutRecoveryIndexRouteImport.update({
-    id: '/docs/admin/lockout-recovery/',
-    path: '/docs/admin/lockout-recovery/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/admin/lockout-recovery/',
+    path: '/admin/lockout-recovery/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsAdminQuotasIndexRoute =
   docsDocsAdminQuotasIndexRouteImport.update({
-    id: '/docs/admin/quotas/',
-    path: '/docs/admin/quotas/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/admin/quotas/',
+    path: '/admin/quotas/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsAdminRbacHardeningIndexRoute =
   docsDocsAdminRbacHardeningIndexRouteImport.update({
-    id: '/docs/admin/rbac-hardening/',
-    path: '/docs/admin/rbac-hardening/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/admin/rbac-hardening/',
+    path: '/admin/rbac-hardening/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsAdminThemingConsoleIndexRoute =
   docsDocsAdminThemingConsoleIndexRouteImport.update({
-    id: '/docs/admin/theming-console/',
-    path: '/docs/admin/theming-console/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/admin/theming-console/',
+    path: '/admin/theming-console/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsConceptsAuditIndexRoute =
   docsDocsConceptsAuditIndexRouteImport.update({
-    id: '/docs/concepts/audit/',
-    path: '/docs/concepts/audit/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/concepts/audit/',
+    path: '/concepts/audit/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsConceptsAuthAndRbacIndexRoute =
   docsDocsConceptsAuthAndRbacIndexRouteImport.update({
-    id: '/docs/concepts/auth-and-rbac/',
-    path: '/docs/concepts/auth-and-rbac/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/concepts/auth-and-rbac/',
+    path: '/concepts/auth-and-rbac/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsConceptsComputeAndWorkloadsIndexRoute =
   docsDocsConceptsComputeAndWorkloadsIndexRouteImport.update({
-    id: '/docs/concepts/compute-and-workloads/',
-    path: '/docs/concepts/compute-and-workloads/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/concepts/compute-and-workloads/',
+    path: '/concepts/compute-and-workloads/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsConceptsNetworkingIndexRoute =
   docsDocsConceptsNetworkingIndexRouteImport.update({
-    id: '/docs/concepts/networking/',
-    path: '/docs/concepts/networking/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/concepts/networking/',
+    path: '/concepts/networking/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsConceptsOrgsTeamsFoldersIndexRoute =
   docsDocsConceptsOrgsTeamsFoldersIndexRouteImport.update({
-    id: '/docs/concepts/orgs-teams-folders/',
-    path: '/docs/concepts/orgs-teams-folders/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/concepts/orgs-teams-folders/',
+    path: '/concepts/orgs-teams-folders/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsConceptsQuotasIndexRoute =
   docsDocsConceptsQuotasIndexRouteImport.update({
-    id: '/docs/concepts/quotas/',
-    path: '/docs/concepts/quotas/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/concepts/quotas/',
+    path: '/concepts/quotas/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsConceptsStorageIndexRoute =
   docsDocsConceptsStorageIndexRouteImport.update({
-    id: '/docs/concepts/storage/',
-    path: '/docs/concepts/storage/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/concepts/storage/',
+    path: '/concepts/storage/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsFaqTroubleshootingIndexRoute =
   docsDocsFaqTroubleshootingIndexRouteImport.update({
-    id: '/docs/faq/troubleshooting/',
-    path: '/docs/faq/troubleshooting/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/faq/troubleshooting/',
+    path: '/faq/troubleshooting/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsGettingStartedCreateScopeIndexRoute =
   docsDocsGettingStartedCreateScopeIndexRouteImport.update({
-    id: '/docs/getting-started/create-scope/',
-    path: '/docs/getting-started/create-scope/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/getting-started/create-scope/',
+    path: '/getting-started/create-scope/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsGettingStartedFirstApiKeyIndexRoute =
   docsDocsGettingStartedFirstApiKeyIndexRouteImport.update({
-    id: '/docs/getting-started/first-api-key/',
-    path: '/docs/getting-started/first-api-key/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/getting-started/first-api-key/',
+    path: '/getting-started/first-api-key/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsGettingStartedFirstLoginIndexRoute =
   docsDocsGettingStartedFirstLoginIndexRouteImport.update({
-    id: '/docs/getting-started/first-login/',
-    path: '/docs/getting-started/first-login/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/getting-started/first-login/',
+    path: '/getting-started/first-login/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsGettingStartedInstallIndexRoute =
   docsDocsGettingStartedInstallIndexRouteImport.update({
-    id: '/docs/getting-started/install/',
-    path: '/docs/getting-started/install/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/getting-started/install/',
+    path: '/getting-started/install/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToAddLoadBalancerIndexRoute =
   docsDocsHowToAddLoadBalancerIndexRouteImport.update({
-    id: '/docs/how-to/add-load-balancer/',
-    path: '/docs/how-to/add-load-balancer/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/how-to/add-load-balancer/',
+    path: '/how-to/add-load-balancer/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToAddUserAndRoleIndexRoute =
   docsDocsHowToAddUserAndRoleIndexRouteImport.update({
-    id: '/docs/how-to/add-user-and-role/',
-    path: '/docs/how-to/add-user-and-role/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/how-to/add-user-and-role/',
+    path: '/how-to/add-user-and-role/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToAttachVolumeIndexRoute =
   docsDocsHowToAttachVolumeIndexRouteImport.update({
-    id: '/docs/how-to/attach-volume/',
-    path: '/docs/how-to/attach-volume/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/how-to/attach-volume/',
+    path: '/how-to/attach-volume/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToConfigureOidcIndexRoute =
   docsDocsHowToConfigureOidcIndexRouteImport.update({
-    id: '/docs/how-to/configure-oidc/',
-    path: '/docs/how-to/configure-oidc/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/how-to/configure-oidc/',
+    path: '/how-to/configure-oidc/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToCreateBucketIndexRoute =
   docsDocsHowToCreateBucketIndexRouteImport.update({
-    id: '/docs/how-to/create-bucket/',
-    path: '/docs/how-to/create-bucket/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/how-to/create-bucket/',
+    path: '/how-to/create-bucket/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToCreateWorkloadIndexRoute =
   docsDocsHowToCreateWorkloadIndexRouteImport.update({
-    id: '/docs/how-to/create-workload/',
-    path: '/docs/how-to/create-workload/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/how-to/create-workload/',
+    path: '/how-to/create-workload/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToIssueApiKeyIndexRoute =
   docsDocsHowToIssueApiKeyIndexRouteImport.update({
-    id: '/docs/how-to/issue-api-key/',
-    path: '/docs/how-to/issue-api-key/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/how-to/issue-api-key/',
+    path: '/how-to/issue-api-key/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToManageWorkloadLifecycleIndexRoute =
   docsDocsHowToManageWorkloadLifecycleIndexRouteImport.update({
-    id: '/docs/how-to/manage-workload-lifecycle/',
-    path: '/docs/how-to/manage-workload-lifecycle/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/how-to/manage-workload-lifecycle/',
+    path: '/how-to/manage-workload-lifecycle/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToReserveFloatingIpIndexRoute =
   docsDocsHowToReserveFloatingIpIndexRouteImport.update({
-    id: '/docs/how-to/reserve-floating-ip/',
-    path: '/docs/how-to/reserve-floating-ip/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/how-to/reserve-floating-ip/',
+    path: '/how-to/reserve-floating-ip/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsHowToRotateSshKeyIndexRoute =
   docsDocsHowToRotateSshKeyIndexRouteImport.update({
-    id: '/docs/how-to/rotate-ssh-key/',
-    path: '/docs/how-to/rotate-ssh-key/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/how-to/rotate-ssh-key/',
+    path: '/how-to/rotate-ssh-key/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsReferenceApiIndexRoute =
   docsDocsReferenceApiIndexRouteImport.update({
-    id: '/docs/reference/api/',
-    path: '/docs/reference/api/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/reference/api/',
+    path: '/reference/api/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsReferenceGlossaryIndexRoute =
   docsDocsReferenceGlossaryIndexRouteImport.update({
-    id: '/docs/reference/glossary/',
-    path: '/docs/reference/glossary/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/reference/glossary/',
+    path: '/reference/glossary/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsReferencePermissionsIndexRoute =
   docsDocsReferencePermissionsIndexRouteImport.update({
-    id: '/docs/reference/permissions/',
-    path: '/docs/reference/permissions/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/reference/permissions/',
+    path: '/reference/permissions/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsReferenceQuotasReferenceIndexRoute =
   docsDocsReferenceQuotasReferenceIndexRouteImport.update({
-    id: '/docs/reference/quotas-reference/',
-    path: '/docs/reference/quotas-reference/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/reference/quotas-reference/',
+    path: '/reference/quotas-reference/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsGettingStartedInstallAirgapIndexRoute =
   docsDocsGettingStartedInstallAirgapIndexRouteImport.update({
-    id: '/docs/getting-started/install/airgap/',
-    path: '/docs/getting-started/install/airgap/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/getting-started/install/airgap/',
+    path: '/getting-started/install/airgap/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsGettingStartedInstallCliIndexRoute =
   docsDocsGettingStartedInstallCliIndexRouteImport.update({
-    id: '/docs/getting-started/install/cli/',
-    path: '/docs/getting-started/install/cli/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/getting-started/install/cli/',
+    path: '/getting-started/install/cli/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsGettingStartedInstallIsoIndexRoute =
   docsDocsGettingStartedInstallIsoIndexRouteImport.update({
-    id: '/docs/getting-started/install/iso/',
-    path: '/docs/getting-started/install/iso/',
-    getParentRoute: () => docsRouteRoute,
+    id: '/getting-started/install/iso/',
+    path: '/getting-started/install/iso/',
+    getParentRoute: () => docsDocsRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/docs': typeof docsDocsRouteRouteWithChildren
   '/': typeof marketingIndexRoute
   '/docs/': typeof docsDocsIndexRoute
+  '/changelog/': typeof marketingChangelogIndexRoute
   '/docs/admin/': typeof docsDocsAdminIndexRoute
   '/docs/concepts/': typeof docsDocsConceptsIndexRoute
   '/docs/faq/': typeof docsDocsFaqIndexRoute
@@ -371,6 +385,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof marketingIndexRoute
   '/docs': typeof docsDocsIndexRoute
+  '/changelog': typeof marketingChangelogIndexRoute
   '/docs/admin': typeof docsDocsAdminIndexRoute
   '/docs/concepts': typeof docsDocsConceptsIndexRoute
   '/docs/faq': typeof docsDocsFaqIndexRoute
@@ -418,8 +433,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(docs)': typeof docsRouteRouteWithChildren
   '/(marketing)': typeof marketingRouteRouteWithChildren
+  '/(docs)/docs': typeof docsDocsRouteRouteWithChildren
   '/(marketing)/': typeof marketingIndexRoute
   '/(docs)/docs/': typeof docsDocsIndexRoute
+  '/(marketing)/changelog/': typeof marketingChangelogIndexRoute
   '/(docs)/docs/admin/': typeof docsDocsAdminIndexRoute
   '/(docs)/docs/concepts/': typeof docsDocsConceptsIndexRoute
   '/(docs)/docs/faq/': typeof docsDocsFaqIndexRoute
@@ -466,8 +483,10 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/docs'
     | '/'
     | '/docs/'
+    | '/changelog/'
     | '/docs/admin/'
     | '/docs/concepts/'
     | '/docs/faq/'
@@ -514,6 +533,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/docs'
+    | '/changelog'
     | '/docs/admin'
     | '/docs/concepts'
     | '/docs/faq'
@@ -560,8 +580,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/(docs)'
     | '/(marketing)'
+    | '/(docs)/docs'
     | '/(marketing)/'
     | '/(docs)/docs/'
+    | '/(marketing)/changelog/'
     | '/(docs)/docs/admin/'
     | '/(docs)/docs/concepts/'
     | '/(docs)/docs/faq/'
@@ -627,6 +649,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof marketingRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(docs)/docs': {
+      id: '/(docs)/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof docsDocsRouteRouteImport
+      parentRoute: typeof docsRouteRoute
+    }
     '/(marketing)/': {
       id: '/(marketing)/'
       path: '/'
@@ -636,309 +665,316 @@ declare module '@tanstack/react-router' {
     }
     '/(docs)/docs/': {
       id: '/(docs)/docs/'
-      path: '/docs'
+      path: '/'
       fullPath: '/docs/'
       preLoaderRoute: typeof docsDocsIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
+    }
+    '/(marketing)/changelog/': {
+      id: '/(marketing)/changelog/'
+      path: '/changelog'
+      fullPath: '/changelog/'
+      preLoaderRoute: typeof marketingChangelogIndexRouteImport
+      parentRoute: typeof marketingRouteRoute
     }
     '/(docs)/docs/admin/': {
       id: '/(docs)/docs/admin/'
-      path: '/docs/admin'
+      path: '/admin'
       fullPath: '/docs/admin/'
       preLoaderRoute: typeof docsDocsAdminIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/concepts/': {
       id: '/(docs)/docs/concepts/'
-      path: '/docs/concepts'
+      path: '/concepts'
       fullPath: '/docs/concepts/'
       preLoaderRoute: typeof docsDocsConceptsIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/faq/': {
       id: '/(docs)/docs/faq/'
-      path: '/docs/faq'
+      path: '/faq'
       fullPath: '/docs/faq/'
       preLoaderRoute: typeof docsDocsFaqIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/getting-started/': {
       id: '/(docs)/docs/getting-started/'
-      path: '/docs/getting-started'
+      path: '/getting-started'
       fullPath: '/docs/getting-started/'
       preLoaderRoute: typeof docsDocsGettingStartedIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/': {
       id: '/(docs)/docs/how-to/'
-      path: '/docs/how-to'
+      path: '/how-to'
       fullPath: '/docs/how-to/'
       preLoaderRoute: typeof docsDocsHowToIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/reference/': {
       id: '/(docs)/docs/reference/'
-      path: '/docs/reference'
+      path: '/reference'
       fullPath: '/docs/reference/'
       preLoaderRoute: typeof docsDocsReferenceIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/admin/audit-log/': {
       id: '/(docs)/docs/admin/audit-log/'
-      path: '/docs/admin/audit-log'
+      path: '/admin/audit-log'
       fullPath: '/docs/admin/audit-log/'
       preLoaderRoute: typeof docsDocsAdminAuditLogIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/admin/backup-and-disaster/': {
       id: '/(docs)/docs/admin/backup-and-disaster/'
-      path: '/docs/admin/backup-and-disaster'
+      path: '/admin/backup-and-disaster'
       fullPath: '/docs/admin/backup-and-disaster/'
       preLoaderRoute: typeof docsDocsAdminBackupAndDisasterIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/admin/capacity-planning/': {
       id: '/(docs)/docs/admin/capacity-planning/'
-      path: '/docs/admin/capacity-planning'
+      path: '/admin/capacity-planning'
       fullPath: '/docs/admin/capacity-planning/'
       preLoaderRoute: typeof docsDocsAdminCapacityPlanningIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/admin/lockout-recovery/': {
       id: '/(docs)/docs/admin/lockout-recovery/'
-      path: '/docs/admin/lockout-recovery'
+      path: '/admin/lockout-recovery'
       fullPath: '/docs/admin/lockout-recovery/'
       preLoaderRoute: typeof docsDocsAdminLockoutRecoveryIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/admin/quotas/': {
       id: '/(docs)/docs/admin/quotas/'
-      path: '/docs/admin/quotas'
+      path: '/admin/quotas'
       fullPath: '/docs/admin/quotas/'
       preLoaderRoute: typeof docsDocsAdminQuotasIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/admin/rbac-hardening/': {
       id: '/(docs)/docs/admin/rbac-hardening/'
-      path: '/docs/admin/rbac-hardening'
+      path: '/admin/rbac-hardening'
       fullPath: '/docs/admin/rbac-hardening/'
       preLoaderRoute: typeof docsDocsAdminRbacHardeningIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/admin/theming-console/': {
       id: '/(docs)/docs/admin/theming-console/'
-      path: '/docs/admin/theming-console'
+      path: '/admin/theming-console'
       fullPath: '/docs/admin/theming-console/'
       preLoaderRoute: typeof docsDocsAdminThemingConsoleIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/concepts/audit/': {
       id: '/(docs)/docs/concepts/audit/'
-      path: '/docs/concepts/audit'
+      path: '/concepts/audit'
       fullPath: '/docs/concepts/audit/'
       preLoaderRoute: typeof docsDocsConceptsAuditIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/concepts/auth-and-rbac/': {
       id: '/(docs)/docs/concepts/auth-and-rbac/'
-      path: '/docs/concepts/auth-and-rbac'
+      path: '/concepts/auth-and-rbac'
       fullPath: '/docs/concepts/auth-and-rbac/'
       preLoaderRoute: typeof docsDocsConceptsAuthAndRbacIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/concepts/compute-and-workloads/': {
       id: '/(docs)/docs/concepts/compute-and-workloads/'
-      path: '/docs/concepts/compute-and-workloads'
+      path: '/concepts/compute-and-workloads'
       fullPath: '/docs/concepts/compute-and-workloads/'
       preLoaderRoute: typeof docsDocsConceptsComputeAndWorkloadsIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/concepts/networking/': {
       id: '/(docs)/docs/concepts/networking/'
-      path: '/docs/concepts/networking'
+      path: '/concepts/networking'
       fullPath: '/docs/concepts/networking/'
       preLoaderRoute: typeof docsDocsConceptsNetworkingIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/concepts/orgs-teams-folders/': {
       id: '/(docs)/docs/concepts/orgs-teams-folders/'
-      path: '/docs/concepts/orgs-teams-folders'
+      path: '/concepts/orgs-teams-folders'
       fullPath: '/docs/concepts/orgs-teams-folders/'
       preLoaderRoute: typeof docsDocsConceptsOrgsTeamsFoldersIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/concepts/quotas/': {
       id: '/(docs)/docs/concepts/quotas/'
-      path: '/docs/concepts/quotas'
+      path: '/concepts/quotas'
       fullPath: '/docs/concepts/quotas/'
       preLoaderRoute: typeof docsDocsConceptsQuotasIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/concepts/storage/': {
       id: '/(docs)/docs/concepts/storage/'
-      path: '/docs/concepts/storage'
+      path: '/concepts/storage'
       fullPath: '/docs/concepts/storage/'
       preLoaderRoute: typeof docsDocsConceptsStorageIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/faq/troubleshooting/': {
       id: '/(docs)/docs/faq/troubleshooting/'
-      path: '/docs/faq/troubleshooting'
+      path: '/faq/troubleshooting'
       fullPath: '/docs/faq/troubleshooting/'
       preLoaderRoute: typeof docsDocsFaqTroubleshootingIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/getting-started/create-scope/': {
       id: '/(docs)/docs/getting-started/create-scope/'
-      path: '/docs/getting-started/create-scope'
+      path: '/getting-started/create-scope'
       fullPath: '/docs/getting-started/create-scope/'
       preLoaderRoute: typeof docsDocsGettingStartedCreateScopeIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/getting-started/first-api-key/': {
       id: '/(docs)/docs/getting-started/first-api-key/'
-      path: '/docs/getting-started/first-api-key'
+      path: '/getting-started/first-api-key'
       fullPath: '/docs/getting-started/first-api-key/'
       preLoaderRoute: typeof docsDocsGettingStartedFirstApiKeyIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/getting-started/first-login/': {
       id: '/(docs)/docs/getting-started/first-login/'
-      path: '/docs/getting-started/first-login'
+      path: '/getting-started/first-login'
       fullPath: '/docs/getting-started/first-login/'
       preLoaderRoute: typeof docsDocsGettingStartedFirstLoginIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/getting-started/install/': {
       id: '/(docs)/docs/getting-started/install/'
-      path: '/docs/getting-started/install'
+      path: '/getting-started/install'
       fullPath: '/docs/getting-started/install/'
       preLoaderRoute: typeof docsDocsGettingStartedInstallIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/add-load-balancer/': {
       id: '/(docs)/docs/how-to/add-load-balancer/'
-      path: '/docs/how-to/add-load-balancer'
+      path: '/how-to/add-load-balancer'
       fullPath: '/docs/how-to/add-load-balancer/'
       preLoaderRoute: typeof docsDocsHowToAddLoadBalancerIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/add-user-and-role/': {
       id: '/(docs)/docs/how-to/add-user-and-role/'
-      path: '/docs/how-to/add-user-and-role'
+      path: '/how-to/add-user-and-role'
       fullPath: '/docs/how-to/add-user-and-role/'
       preLoaderRoute: typeof docsDocsHowToAddUserAndRoleIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/attach-volume/': {
       id: '/(docs)/docs/how-to/attach-volume/'
-      path: '/docs/how-to/attach-volume'
+      path: '/how-to/attach-volume'
       fullPath: '/docs/how-to/attach-volume/'
       preLoaderRoute: typeof docsDocsHowToAttachVolumeIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/configure-oidc/': {
       id: '/(docs)/docs/how-to/configure-oidc/'
-      path: '/docs/how-to/configure-oidc'
+      path: '/how-to/configure-oidc'
       fullPath: '/docs/how-to/configure-oidc/'
       preLoaderRoute: typeof docsDocsHowToConfigureOidcIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/create-bucket/': {
       id: '/(docs)/docs/how-to/create-bucket/'
-      path: '/docs/how-to/create-bucket'
+      path: '/how-to/create-bucket'
       fullPath: '/docs/how-to/create-bucket/'
       preLoaderRoute: typeof docsDocsHowToCreateBucketIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/create-workload/': {
       id: '/(docs)/docs/how-to/create-workload/'
-      path: '/docs/how-to/create-workload'
+      path: '/how-to/create-workload'
       fullPath: '/docs/how-to/create-workload/'
       preLoaderRoute: typeof docsDocsHowToCreateWorkloadIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/issue-api-key/': {
       id: '/(docs)/docs/how-to/issue-api-key/'
-      path: '/docs/how-to/issue-api-key'
+      path: '/how-to/issue-api-key'
       fullPath: '/docs/how-to/issue-api-key/'
       preLoaderRoute: typeof docsDocsHowToIssueApiKeyIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/manage-workload-lifecycle/': {
       id: '/(docs)/docs/how-to/manage-workload-lifecycle/'
-      path: '/docs/how-to/manage-workload-lifecycle'
+      path: '/how-to/manage-workload-lifecycle'
       fullPath: '/docs/how-to/manage-workload-lifecycle/'
       preLoaderRoute: typeof docsDocsHowToManageWorkloadLifecycleIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/reserve-floating-ip/': {
       id: '/(docs)/docs/how-to/reserve-floating-ip/'
-      path: '/docs/how-to/reserve-floating-ip'
+      path: '/how-to/reserve-floating-ip'
       fullPath: '/docs/how-to/reserve-floating-ip/'
       preLoaderRoute: typeof docsDocsHowToReserveFloatingIpIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/how-to/rotate-ssh-key/': {
       id: '/(docs)/docs/how-to/rotate-ssh-key/'
-      path: '/docs/how-to/rotate-ssh-key'
+      path: '/how-to/rotate-ssh-key'
       fullPath: '/docs/how-to/rotate-ssh-key/'
       preLoaderRoute: typeof docsDocsHowToRotateSshKeyIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/reference/api/': {
       id: '/(docs)/docs/reference/api/'
-      path: '/docs/reference/api'
+      path: '/reference/api'
       fullPath: '/docs/reference/api/'
       preLoaderRoute: typeof docsDocsReferenceApiIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/reference/glossary/': {
       id: '/(docs)/docs/reference/glossary/'
-      path: '/docs/reference/glossary'
+      path: '/reference/glossary'
       fullPath: '/docs/reference/glossary/'
       preLoaderRoute: typeof docsDocsReferenceGlossaryIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/reference/permissions/': {
       id: '/(docs)/docs/reference/permissions/'
-      path: '/docs/reference/permissions'
+      path: '/reference/permissions'
       fullPath: '/docs/reference/permissions/'
       preLoaderRoute: typeof docsDocsReferencePermissionsIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/reference/quotas-reference/': {
       id: '/(docs)/docs/reference/quotas-reference/'
-      path: '/docs/reference/quotas-reference'
+      path: '/reference/quotas-reference'
       fullPath: '/docs/reference/quotas-reference/'
       preLoaderRoute: typeof docsDocsReferenceQuotasReferenceIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/getting-started/install/airgap/': {
       id: '/(docs)/docs/getting-started/install/airgap/'
-      path: '/docs/getting-started/install/airgap'
+      path: '/getting-started/install/airgap'
       fullPath: '/docs/getting-started/install/airgap/'
       preLoaderRoute: typeof docsDocsGettingStartedInstallAirgapIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/getting-started/install/cli/': {
       id: '/(docs)/docs/getting-started/install/cli/'
-      path: '/docs/getting-started/install/cli'
+      path: '/getting-started/install/cli'
       fullPath: '/docs/getting-started/install/cli/'
       preLoaderRoute: typeof docsDocsGettingStartedInstallCliIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/getting-started/install/iso/': {
       id: '/(docs)/docs/getting-started/install/iso/'
-      path: '/docs/getting-started/install/iso'
+      path: '/getting-started/install/iso'
       fullPath: '/docs/getting-started/install/iso/'
       preLoaderRoute: typeof docsDocsGettingStartedInstallIsoIndexRouteImport
-      parentRoute: typeof docsRouteRoute
+      parentRoute: typeof docsDocsRouteRoute
     }
   }
 }
 
-interface docsRouteRouteChildren {
+interface docsDocsRouteRouteChildren {
   docsDocsIndexRoute: typeof docsDocsIndexRoute
   docsDocsAdminIndexRoute: typeof docsDocsAdminIndexRoute
   docsDocsConceptsIndexRoute: typeof docsDocsConceptsIndexRoute
@@ -984,7 +1020,7 @@ interface docsRouteRouteChildren {
   docsDocsGettingStartedInstallIsoIndexRoute: typeof docsDocsGettingStartedInstallIsoIndexRoute
 }
 
-const docsRouteRouteChildren: docsRouteRouteChildren = {
+const docsDocsRouteRouteChildren: docsDocsRouteRouteChildren = {
   docsDocsIndexRoute: docsDocsIndexRoute,
   docsDocsAdminIndexRoute: docsDocsAdminIndexRoute,
   docsDocsConceptsIndexRoute: docsDocsConceptsIndexRoute,
@@ -1047,16 +1083,30 @@ const docsRouteRouteChildren: docsRouteRouteChildren = {
     docsDocsGettingStartedInstallIsoIndexRoute,
 }
 
+const docsDocsRouteRouteWithChildren = docsDocsRouteRoute._addFileChildren(
+  docsDocsRouteRouteChildren,
+)
+
+interface docsRouteRouteChildren {
+  docsDocsRouteRoute: typeof docsDocsRouteRouteWithChildren
+}
+
+const docsRouteRouteChildren: docsRouteRouteChildren = {
+  docsDocsRouteRoute: docsDocsRouteRouteWithChildren,
+}
+
 const docsRouteRouteWithChildren = docsRouteRoute._addFileChildren(
   docsRouteRouteChildren,
 )
 
 interface marketingRouteRouteChildren {
   marketingIndexRoute: typeof marketingIndexRoute
+  marketingChangelogIndexRoute: typeof marketingChangelogIndexRoute
 }
 
 const marketingRouteRouteChildren: marketingRouteRouteChildren = {
   marketingIndexRoute: marketingIndexRoute,
+  marketingChangelogIndexRoute: marketingChangelogIndexRoute,
 }
 
 const marketingRouteRouteWithChildren = marketingRouteRoute._addFileChildren(

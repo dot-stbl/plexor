@@ -10,7 +10,7 @@ import { Progress } from '@/shared/ui/primitives/progress';
 import { DataTable } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { Receipt } from '@nine-thirty-five/material-symbols-react/rounded/700';
-import { getInvoiceColumns, useBilling } from '@/features/billing';
+import { getInvoiceColumns, useBilling } from '@/domains/billing';
 import { routeHead } from '@/shared/lib/route-head';
 
 /**

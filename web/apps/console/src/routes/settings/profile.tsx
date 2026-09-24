@@ -16,7 +16,7 @@ import {
 import {
   clearSession,
   readSession,
-} from '@/features/auth/session-storage';
+} from '@/shared/lib/session';
 
 /**
  * Settings → Profile route (`/settings/profile`).

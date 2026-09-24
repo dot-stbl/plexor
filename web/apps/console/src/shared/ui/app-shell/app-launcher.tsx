@@ -22,7 +22,7 @@ import { ScrollArea } from '@/shared/ui/primitives/scroll-area';
 import { Stat } from '@/shared/ui/primitives/stat';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { cn } from '@/lib/utils';
-import { makeLauncherSummary } from '@/mocks/launcher-summary';
+import type { LauncherSummaryCard } from '@/mocks/launcher-summary';
 import { SECTIONS, type AppRoute, type NavPage, type Section } from './nav-config';
 
 type MetaHub = { nameKey: string; captionKey: string; icon: Icon; to?: AppRoute; soon?: boolean };
@@ -35,26 +35,20 @@ const META: MetaHub[] = [
   { nameKey: 'shell.settings', captionKey: 'shell.settingsCaption', icon: Tune, soon: true },
 ];
 
-/** Row 2 — at-a-glance summary (3). Reads from the shared mock fixtures
- *  for the headline number + context line, and resolves the card label
- *  through `t()` so it tracks the active locale. See `mocks/README.md`. */
 type SummaryCard = { labelKey: string; to: AppRoute; value: string; context: string };
-const SUMMARY: SummaryCard[] = makeLauncherSummary().map((card) => ({
-  labelKey: card.labelKey,
-  to: card.to as AppRoute,
-  value: card.value,
-  context: card.context,
-}));
 
 const linkRing = 'block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/40';
 // Inset tile: bg-muted so it reads against the top region's big bg-card.
 const tile = 'rounded-lg bg-muted/60 transition-colors duration-150 ease-out';
 
-const SoonTag = () => (
-  <StatusPill variant="idle" hideDot className="shrink-0 px-1.5 py-0 text-[9.5px] font-normal">
-    скоро
-  </StatusPill>
-);
+const SoonTag = () => {
+  const { t } = useTranslation();
+  return (
+    <StatusPill variant="idle" hideDot className="shrink-0 px-1.5 py-0 text-[9.5px] font-normal">
+      {t('common.soon')}
+    </StatusPill>
+  );
+};
 
 function MetaCard({ hub, onNavigate }: { hub: MetaHub; onNavigate: () => void }) {
   const { t } = useTranslation();
@@ -151,14 +145,27 @@ function BlockCard({ section, onNavigate }: { section: Section; onNavigate: () =
 export function AppLauncher({
   open,
   onOpenChange,
+  summary,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Row 2's at-a-glance summary (3 cards). The composition root
+   *  (`routes/__root.tsx`) fetches this via `useLauncherSummary()` and
+   *  passes it down — this component never reaches into a mock/domain
+   *  module itself. */
+  summary: readonly LauncherSummaryCard[];
 }) {
   const close = () => onOpenChange(false);
   const { t } = useTranslation();
   // Dock flush against the sidebar's right edge, following its collapsed state.
   const { state } = useSidebar();
+  // Resolves the card label through `t()` so it tracks the active locale.
+  const SUMMARY: SummaryCard[] = summary.map((card) => ({
+    labelKey: card.labelKey,
+    to: card.to as AppRoute,
+    value: card.value,
+    context: card.context,
+  }));
 
   // Defer mounting so the enter animation can play; keep mounted briefly on
   // close so the exit animation can play. Mirrors base-ui's
@@ -277,15 +284,15 @@ export function AppLauncher({
                   ))}
                 </div>
 
-                <Link to="/" onClick={close} className={linkRing}>
+                <Link to="/" onClick={close} className={linkRing} data-od-id="launcher-overview-row">
                   <div className={cn('group/overview flex items-center gap-4 px-4 py-3.5', tile, 'hover:bg-muted')}>
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-background text-foreground">
                       <GridView className="size-5 transition-transform duration-200 ease-out group-hover/overview:scale-110" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium">Обзор проекта</div>
+                      <div className="text-sm font-medium">{t('shell.launcher.overview.title')}</div>
                       <p className="text-xs text-muted-foreground">
-                        Сводка ресурсов, метрики и быстрые действия — проект prod-cluster
+                        {t('shell.launcher.overview.description')}
                       </p>
                     </div>
                     <KeyboardArrowRight className="size-4 shrink-0 text-muted-foreground transition-all duration-200 ease-out group-hover/overview:translate-x-0.5 group-hover/overview:text-foreground" />
@@ -318,7 +325,7 @@ export function AppLauncher({
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label="Закрыть"
+              aria-label={t('common.close')}
               onClick={close}
               className="size-7 rounded-md text-muted-foreground hover:text-foreground"
             >

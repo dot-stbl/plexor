@@ -77,14 +77,14 @@ npx shadcn add foo       bunx --bun shadcn@latest add foo
 <Size bytes={vm.ramBytes} />
 ```
 
-## Feature folders & forms
+## Domain folders & forms
 
 ```
-src/features/networks/
-  index.ts              ← barrel, the ONLY thing routes import from
-  network-columns.tsx   ← getNetworkColumns(t)
-  networks-empty.tsx    ← NetworksEmpty
-  use-networks.ts       ← useNetworks()
+src/domains/network/
+  index.ts                 ← barrel, the ONLY thing routes import from
+  ui/network-columns.tsx   ← getNetworkColumns(t)
+  ui/networks-empty.tsx    ← NetworksEmpty
+  api/use-networks.ts      ← useNetworks()
 ```
 
 ```tsx

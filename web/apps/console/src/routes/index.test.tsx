@@ -22,7 +22,7 @@ import { renderWithProviders } from '@/test-utils';
 import en from '@/shared/lib/i18n/locales/en/common.json';
 import { HomePage } from './index';
 import { SECTIONS } from '@/shared/ui/app-shell/nav-config';
-import { writeSession, type StoredSession } from '@/features/auth/session-storage';
+import { writeSession, type StoredSession } from '@/shared/lib/session';
 
 function tSync(key: string): string {
   const locale = en as Record<string, unknown>;

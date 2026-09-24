@@ -16,7 +16,7 @@ import {
   useActivateTheme,
   useDeactivateTheme,
   useActiveThemeId,
-} from '@/features/themes/use-community-themes';
+} from '@/domains/branding';
 
 /**
  * AdminThemeMarketplacePage — operator-only console surface for

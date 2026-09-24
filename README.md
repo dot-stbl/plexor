@@ -24,12 +24,12 @@ public, the runtime is not stable yet. Don't deploy this in prod.
 | Architecture | modular monolith — `*Modules.*` per capability |
 
 The frontend monorepo at `web/` ships **two independent apps** under
-`web/apps/`: `@plexor/console` (the operator UI) and `@plexor/docs`
-(landing + documentation site). The apps are siblings — neither
-depends on the other to run, and they share only `@plexor/ui`
-(Plexor Design System: tokens, brand mark, theme picker) via a
-bun workspace, not via a published package. Run them individually
-with `bun run dev` (console) or `bun run dev:docs` (docs). Deploy
+`web/apps/`: `@plexor/console` (the operator UI) and `@plexor/www`
+(the project website — landing + documentation site). The apps are
+siblings — neither depends on the other to run, and they share only
+`@plexor/ui` (Plexor Design System: tokens, brand mark, theme picker)
+via a bun workspace, not via a published package. Run them individually
+with `bun run dev` (console) or `bun run dev:www` (www). Deploy
 targets are independent — one nginx vhost per app when each gets
 its own origin (future).
 

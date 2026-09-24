@@ -79,6 +79,10 @@ function describeFailure(name: string, out: string): string {
     const m = /RULES: (\d+) violations/.exec(out);
     return m ? `${m[1]} violations` : 'failed';
   }
+  if (name === 'check:domains') {
+    const m = /DOMAIN-BOUNDARIES: (\d+) violations/.exec(out);
+    return m ? `${m[1]} violations` : 'failed';
+  }
   return 'failed';
 }
 
@@ -228,6 +232,7 @@ async function main(): Promise<number> {
   steps.push(runCommand('lint', ['bun', 'run', 'lint']));
   steps.push(runCommand('test', ['bun', 'run', 'test']));
   steps.push(runCommand('agent:rules', ['bun', 'run', 'agent:rules']));
+  steps.push(runCommand('check:domains', ['bun', 'run', 'check:domains']));
   steps.push(await runShotStep(pages, stories));
 
   const failed = steps.filter((s) => !s.ok);

@@ -31,20 +31,24 @@ page shape.
 - Resources at the same level are parallel routes, not nested
   (`/vms/new`, not `/clusters/$id/vms/new`).
 
-## 3. Feature folder
+## 3. Domain folder
 
-Create `src/features/<name>/` with:
+Pick the bounded context this resource belongs to (see
+`.agents/docs/architecture/frontend-ddd.md` §1 for the list — usually one
+already exists). Add to `src/domains/<context>/{model,api,ui}/`:
 
-- `<name>-columns.tsx` — `export function getXColumns(t: TFunction):
+- `ui/<name>-columns.tsx` — `export function getXColumns(t: TFunction):
   ColumnDef<X>[]` (a function, not a `const` — it needs `t`).
-- `use-<name>.ts` — a hook returning `{ items, ...derivedCounts, isPending,
-  error }`. Copy the shape of `src/features/networks/use-networks.ts`.
-- `<name>-empty.tsx` — the `EmptyState` for this resource, with a CTA
+- `api/use-<name>.ts` — a hook returning `{ items, ...derivedCounts,
+  isPending, error }`. Copy the shape of
+  `src/domains/network/api/use-networks.ts`.
+- `ui/<name>-empty.tsx` — the `EmptyState` for this resource, with a CTA
   `<Button render={<Link to="/<name>/new" />}>`.
 - `index.ts` — barrel: re-export every public name. The route imports only
-  from this barrel, never from the internal files.
+  from this barrel, never from `model/api/ui/*` directly (ESLint enforces
+  this — see `bun run check:domains`).
 
-Reference: `src/features/networks/` (4 files, all four pieces above).
+Reference: `src/domains/network/` (model-less; api + ui, all pieces above).
 
 ## 4. Data — is there an API endpoint yet?
 

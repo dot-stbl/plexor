@@ -58,7 +58,7 @@ import {
   clearSession,
   readSession,
   type StoredSession,
-} from '@/features/auth/session-storage';
+} from '@/shared/lib/session';
 import { AppSidebar } from './app-sidebar';
 
 function makeSession(overrides: Partial<StoredSession['user']> = {}): StoredSession {

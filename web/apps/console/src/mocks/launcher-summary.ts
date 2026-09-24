@@ -9,9 +9,9 @@
  * launcher never drifts from the test fixtures used elsewhere.
  */
 
-import { countByStatus, FLEET } from './vms';
-import { clusterSummary } from './clusters';
-import { makeAuditEntries } from './audit';
+import { countByStatus, FLEET } from './compute/vms';
+import { clusterSummary } from './fleet/clusters';
+import { makeAuditEntries } from './audit/audit';
 
 export interface LauncherSummaryCard {
   /** Stable id — used by tests as `data-od-id` and by the route. */

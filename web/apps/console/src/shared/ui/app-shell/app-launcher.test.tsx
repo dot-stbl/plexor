@@ -30,16 +30,22 @@ import { screen, within } from '@testing-library/react';
 import { renderWithProviders } from '@/test-utils';
 import { SidebarProvider } from '@/shared/ui/primitives/sidebar';
 import en from '@/shared/lib/i18n/locales/en/common.json';
+import { makeLauncherSummary } from '@/mocks/launcher-summary';
 import { AppLauncher } from './app-launcher';
 import { SECTIONS } from './nav-config';
 
 // AppLauncher reads the sidebar state (expanded/collapsed) from context to
 // dock flush against the sidebar's right edge. SidebarProvider lives INSIDE
 // the renderWithProviders wrapper so it's a child of the test router.
+//
+// `summary` is now a prop (the composition root fetches it via
+// `useLauncherSummary()` in real usage — see routes/__root.tsx); this test
+// calls the same mock fixture function directly so its assertions about
+// fixture-derived values (below) still hold.
 function renderLauncher() {
   return renderWithProviders(
     <SidebarProvider defaultOpen>
-      <AppLauncher open onOpenChange={() => {}} />
+      <AppLauncher open onOpenChange={() => {}} summary={makeLauncherSummary()} />
     </SidebarProvider>,
   );
 }
@@ -110,9 +116,9 @@ describe('AppLauncher — empty cards regression', () => {
   it('renders the "soon" badge on the soon block (data section)', () => {
     renderLauncher();
     const databases = getByOdId('launcher-block-data');
-    // The soon block has `section.soon === true`, so its header carries the pill.
-    // Pill text is the Russian word for "soon" (hardcoded in the launcher).
-    expect(databases.textContent).toContain('скоро');
+    // The soon block has `section.soon === true`, so its header carries the pill,
+    // resolved through t('common.soon') — English under the test's 'en' locale.
+    expect(databases.textContent).toContain('soon');
   });
 });
 
@@ -180,7 +186,7 @@ describe('AppLauncher — themed scrollbar', () => {
 describe('AppLauncher — icon micro-interactions', () => {
   it('close button rotates 90deg on hover so the X feels reactive', () => {
     renderLauncher();
-    const close = screen.getByRole('button', { name: 'Закрыть' });
+    const close = screen.getByRole('button', { name: 'Close' });
     const icon = close.querySelector('svg');
     expect(icon).not.toBeNull();
     // jsdom: SVGSVGElement.className is an SVGAnimatedString; live string
@@ -210,7 +216,12 @@ describe('AppLauncher — icon micro-interactions', () => {
 
   it('overview row arrow nudges right + darkens on hover', () => {
     renderLauncher();
-    const overview = screen.getByRole('link', { name: /Обзор проекта/i });
+    // The launcher also has a "shell.overview" META hub (row 1) whose
+    // translated label collides with this row's title text ("Project
+    // overview" in en, "Обзор проекта" in ru — same key content by
+    // design), so a role+name query would match two links. This row
+    // carries a stable data-od-id instead.
+    const overview = getByOdId('launcher-overview-row');
     const svgs = overview.querySelectorAll('svg');
     const arrow = svgs[svgs.length - 1];
     expect(arrow).not.toBeNull();
@@ -223,7 +234,7 @@ describe('AppLauncher — icon micro-interactions', () => {
 
   it('overview row carries the group/overview hook', () => {
     renderLauncher();
-    const overview = screen.getByRole('link', { name: /Обзор проекта/i });
+    const overview = getByOdId('launcher-overview-row');
     expect(overview.querySelector('div')?.className ?? '').toContain('group/overview');
   });
 });

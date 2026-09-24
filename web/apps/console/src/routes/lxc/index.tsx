@@ -17,7 +17,7 @@ import {
 } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
-import { getLxcColumns, listLxc } from '@/features/lxc';
+import { getLxcColumns, listLxc } from '@/domains/compute';
 import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/lxc/')({

@@ -18,7 +18,7 @@ import {
 } from '@/shared/ui/data-table';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
-import { getImageColumns, listImages } from '@/features/images';
+import { getImageColumns, listImages } from '@/domains/compute';
 
 export const Route = createFileRoute('/images')({
   staticData: { crumb: 'Images' },
