@@ -11,5 +11,11 @@ function LxcPage() {
   const navigate = useNavigate();
   // Handmade local inventory (endpoint not in the contract yet) — the strip,
   // search and status chips filter client-side.
-  return <LxcListBody items={listLxc()} onCreate={() => void navigate({ to: '/lxc/new' })} />;
+  return (
+    <LxcListBody
+      items={listLxc()}
+      onCreate={() => void navigate({ to: '/lxc/new' })}
+      onOpenContainer={(container) => void navigate({ to: '/lxc/$id', params: { id: container.id } })}
+    />
+  );
 }

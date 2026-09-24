@@ -464,6 +464,32 @@
         "nodePools": "Node pools and placement"
       }
     },
+    "detail": {
+      "title": "Kubernetes cluster",
+      "subtitle": "Identity, capacity and API endpoint.",
+      "back": "Back to clusters",
+      "notFound": "Cluster not found",
+      "notFoundDescription": "No Kubernetes cluster with id {{id}} in this organization.",
+      "section": {
+        "identity": "Identity",
+        "capacity": "Capacity"
+      },
+      "field": {
+        "name": "Name",
+        "id": "ID",
+        "status": "Status",
+        "version": "Version",
+        "cni": "CNI",
+        "fleet": "Fleet",
+        "endpoint": "API endpoint",
+        "createdAt": "Created",
+        "cpNodes": "Control-plane nodes",
+        "workerNodes": "Worker nodes",
+        "totalNodes": "Nodes total",
+        "vcpu": "vCPU",
+        "ram": "RAM"
+      }
+    },
     "new": {
       "title": "Create Kubernetes cluster",
       "description": "Managed K3s on the Plexor fleet — control plane, node pools, networking and storage are all yours to set.",
@@ -584,6 +610,32 @@
         "label": "Learn more:",
         "howItWorks": "How LXC works",
         "runtimes": "Runtimes and placement"
+      }
+    },
+    "detail": {
+      "title": "Container",
+      "subtitle": "Identity, resources and placement.",
+      "back": "Back to containers",
+      "notFound": "Container not found",
+      "notFoundDescription": "No LXC container with id {{id}} in this organization.",
+      "section": {
+        "identity": "Identity",
+        "resources": "Resources",
+        "placement": "Placement & network"
+      },
+      "field": {
+        "name": "Name",
+        "id": "ID",
+        "status": "Status",
+        "os": "OS",
+        "template": "Template",
+        "type": "Type",
+        "cores": "Cores",
+        "memory": "Memory",
+        "rootfs": "Rootfs",
+        "node": "Node",
+        "ip": "IP address",
+        "createdAt": "Created"
       }
     },
     "new": {
@@ -1083,7 +1135,9 @@
       "zone": "Copy zone",
       "name": "Copy name",
       "image": "Copy image",
-      "machineType": "Copy machine type"
+      "machineType": "Copy machine type",
+      "endpoint": "Copy endpoint",
+      "template": "Copy template"
     },
     "openRow": "Open {{name}}"
   },

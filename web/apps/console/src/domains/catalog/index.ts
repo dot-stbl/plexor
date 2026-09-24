@@ -20,6 +20,8 @@ export {
   isK8sStatus,
 } from './ui/k8s-status-strip';
 export type { K8sResourceTotals } from './ui/k8s-status-strip';
+export { K8sDetailBody } from './ui/k8s-detail-body';
+export { K8sDetailSkeleton, K8sDetailNotFound } from './ui/k8s-detail-states';
 
 export type { Runtime, RuntimeClass, RuntimeOption, RuntimeHost, DbKind, DbStatus, DbEngine, DbCluster } from './model/database-types';
 export { RUNTIME_ORDER, RUNTIME_META, DB_KIND_LABEL, mapDbStatusToVariant, availableRuntimes, runtimeOptions, defaultRuntime } from './model/database-types';

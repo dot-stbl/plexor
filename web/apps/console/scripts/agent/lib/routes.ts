@@ -32,6 +32,8 @@ export interface RouteEntry {
 export const SAMPLES: Readonly<Record<string, string>> = {
   '/vms/$id': '/vms/vm-a8c91f2e',
   '/clusters/$id': '/clusters/cluster-prod-eu-1',
+  '/k8s/$id': '/k8s/k8s-prod',
+  '/lxc/$id': '/lxc/lxc-web-01',
 };
 
 function walk(dir: string, acc: string[]): string[] {

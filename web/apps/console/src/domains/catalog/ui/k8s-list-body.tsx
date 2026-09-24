@@ -39,6 +39,8 @@ interface K8sListBodyProps {
   isPending?: boolean;
   /** Navigate to the create wizard (/k8s/new). */
   onCreate: () => void;
+  /** Navigate to a cluster detail (/k8s/$id). */
+  onOpenCluster: (cluster: K8sCluster) => void;
 }
 
 /**
@@ -49,7 +51,7 @@ interface K8sListBodyProps {
  * Filtering is client-side (`applyFilters`): the status chips and the
  * toolbar name search compose over the same `items` array.
  */
-export function K8sListBody({ items, isPending = false, onCreate }: K8sListBodyProps) {
+export function K8sListBody({ items, isPending = false, onCreate, onOpenCluster }: K8sListBodyProps) {
   const { t } = useTranslation();
   const columns = useMemo(() => getK8sColumns(t), [t]);
   const filterDefault = useMemo(() => emptyFilters(columns), [columns]);
@@ -79,6 +81,13 @@ export function K8sListBody({ items, isPending = false, onCreate }: K8sListBodyP
   const activeStatus = isK8sStatus(statusFilter) ? statusFilter : null;
 
   const sel = useRowSelection(filteredItems);
+
+  const handleRowClick = useCallback(
+    (cluster: K8sCluster) => {
+      onOpenCluster(cluster);
+    },
+    [onOpenCluster],
+  );
 
   const resetFilters = useCallback(() => setFilters(filterDefault), [filterDefault]);
 
@@ -162,6 +171,7 @@ export function K8sListBody({ items, isPending = false, onCreate }: K8sListBodyP
               selection={sel.selection}
               hiddenColumns={new Set(colState.hidden)}
               columnOrder={colState.order}
+              onRowClick={handleRowClick}
             />
             {filteredItems.length === 0 && <K8sNoResultsState title={noResultsTitle} onReset={resetFilters} />}
           </div>

@@ -40,6 +40,8 @@ export {
   isLxcStatus,
 } from './ui/lxc-status-strip';
 export type { LxcResourceTotals } from './ui/lxc-status-strip';
+export { LxcDetailBody } from './ui/lxc-detail-body';
+export { LxcDetailSkeleton, LxcDetailNotFound } from './ui/lxc-detail-states';
 
 // Images
 export * from './model/image-types';
