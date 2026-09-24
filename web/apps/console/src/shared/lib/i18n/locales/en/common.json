@@ -766,22 +766,49 @@
     "list": {
       "title": "Plexor clusters",
       "docs": "Documentation",
+      "nodesReady": "nodes ready",
+      "totalClusters": "clusters",
+      "totalClusters_one": "cluster",
+      "totalClusters_few": "clusters",
+      "totalClusters_many": "clusters",
+      "totalClusters_other": "clusters",
+      "searchPlaceholder": "Search by name",
+      "errorTitle": "Failed to load clusters",
+      "strip": {
+        "filterByHealth": "Filter clusters by health",
+        "clusters": "clusters",
+        "clusters_one": "cluster",
+        "clusters_few": "clusters",
+        "clusters_many": "clusters",
+        "clusters_other": "clusters",
+        "nodes": "nodes",
+        "nodes_one": "node",
+        "nodes_few": "nodes",
+        "nodes_many": "nodes",
+        "nodes_other": "nodes",
+        "ready": "ready"
+      },
       "empty": {
         "title": "No registered clusters",
         "description": "Install Plexor on your server via {{code}} or an ISO image, then register the control plane here.",
-        "docsLabel": "Installation docs"
-      },
-      "summary": "{{clusters}} clusters, {{ready}}/{{total}} nodes ready"
+        "docsLabel": "Installation docs",
+        "noResults": "No matching clusters",
+        "noResultsDescription": "No clusters match the current search or health filter.",
+        "noResultsHealthTitle": "No {{status}} clusters",
+        "reset": "Reset filters"
+      }
+    },
+    "health": {
+      "healthy": "healthy",
+      "degraded": "degraded",
+      "down": "down"
     },
     "detail": {
+      "title": "Cluster",
       "notFound": "Cluster not found",
       "notFoundDescription": "Cluster with id {{id}} does not exist or was deleted.",
-      "backToClusters": "Back to clusters",
       "addNode": "Add node",
-      "installProviders": "Install providers",
-      "nodes": "Nodes",
       "joinTokens": "Join tokens",
-      "docs": "Documentation",
       "selfHelp": "Self-service installation",
       "selfHelpDescription": "Plexor self-hosted — you install control-plane and nodes on your own hardware.",
       "docLinks": {
@@ -792,14 +819,63 @@
       },
       "nodesReady": "nodes ready",
       "activeTokens": "active tokens",
-      "providersChosenAt": "Chosen at",
+      "uptime": "uptime",
       "nodeAgentInstances": "Plexor.NodeAgent instances",
       "tokensDescription": "Generated here, copied to the node, used once.",
       "createToken": "Create token",
       "tokensExpireNote": "Tokens expire — after joining, the node stays in the Nodes list.",
-      "nodesDescription": "Plexor.NodeAgent instances that joined this cluster.",
-      "noNodes": "No nodes yet. Add one with a join token.",
-      "noTokens": "No join tokens yet. Create one to add a node."
+      "noNodes": "No nodes yet",
+      "noNodesDescription": "Issue a join token and run plx node join on the machine booted from the Plexor ISO.",
+      "noTokensTitle": "No join tokens yet",
+      "noTokens": "No join tokens yet. Create one to add a node.",
+      "section": {
+        "identity": "Identity"
+      },
+      "identityDescription": "Control plane installed via plx init on your own hardware.",
+      "field": {
+        "name": "Name",
+        "id": "ID",
+        "health": "Health",
+        "version": "Version",
+        "endpoint": "Endpoint",
+        "uptime": "Uptime",
+        "createdAt": "Created",
+        "installProviders": "Install providers",
+        "disk": "disk",
+        "vms": "VMs"
+      },
+      "copy": {
+        "name": "Copy name",
+        "id": "Copy id",
+        "endpoint": "Copy endpoint"
+      }
+    },
+    "node": {
+      "joined": "joined",
+      "vms": "VMs",
+      "status": {
+        "ready": "ready",
+        "pending": "pending",
+        "draining": "draining",
+        "offline": "offline"
+      },
+      "role": {
+        "control": "control-plane",
+        "compute": "compute"
+      }
+    },
+    "token": {
+      "issued": "issued",
+      "expires": "expires",
+      "redeemedBy": "redeemed by",
+      "revoke": "Revoke",
+      "revokeTitle": "Revoke join token?",
+      "revokeDescription": "Token \"{{label}}\" becomes invalid immediately. Nodes already joined are not affected.",
+      "status": {
+        "active": "active",
+        "expired": "expired",
+        "revoked": "revoked"
+      }
     },
     "addNode": {
       "title": "Add a node to the cluster",
@@ -836,7 +912,9 @@
     "card": {
       "nodesReady": "nodes ready",
       "manage": "Manage",
-      "nodes": "Nodes"
+      "nodes": "Nodes",
+      "uptime": "uptime",
+      "pending": "Pending"
     }
   },
   "images": {

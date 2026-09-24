@@ -766,22 +766,49 @@
     "list": {
       "title": "Кластеры Plexor",
       "docs": "Документация",
+      "nodesReady": "нод готово",
+      "totalClusters": "кластеров",
+      "totalClusters_one": "кластер",
+      "totalClusters_few": "кластера",
+      "totalClusters_many": "кластеров",
+      "totalClusters_other": "кластеров",
+      "searchPlaceholder": "Поиск по названию",
+      "errorTitle": "Не удалось загрузить кластеры",
+      "strip": {
+        "filterByHealth": "Фильтровать кластеры по состоянию",
+        "clusters": "кластеров",
+        "clusters_one": "кластер",
+        "clusters_few": "кластера",
+        "clusters_many": "кластеров",
+        "clusters_other": "кластеров",
+        "nodes": "нод",
+        "nodes_one": "нода",
+        "nodes_few": "ноды",
+        "nodes_many": "нод",
+        "nodes_other": "нод",
+        "ready": "готово"
+      },
       "empty": {
         "title": "Нет зарегистрированных кластеров",
         "description": "Установите Plexor на своём сервере через {{code}} или ISO-образ, затем зарегистрируйте control-plane здесь.",
-        "docsLabel": "Документация по установке"
-      },
-      "summary": "{{clusters}} кластеров, {{ready}}/{{total}} нод готово"
+        "docsLabel": "Документация по установке",
+        "noResults": "Нет подходящих кластеров",
+        "noResultsDescription": "Ни один кластер не подходит под текущий поиск или фильтр состояния.",
+        "noResultsHealthTitle": "Нет кластеров в состоянии «{{status}}»",
+        "reset": "Сбросить фильтры"
+      }
+    },
+    "health": {
+      "healthy": "работает",
+      "degraded": "деградация",
+      "down": "недоступен"
     },
     "detail": {
+      "title": "Кластер",
       "notFound": "Кластер не найден",
       "notFoundDescription": "Кластер с id {{id}} не существует или удалён.",
-      "backToClusters": "Назад к кластерам",
       "addNode": "Добавить нод",
-      "installProviders": "Install providers",
-      "nodes": "Ноды",
       "joinTokens": "Join-токены",
-      "docs": "Документация",
       "selfHelp": "Самостоятельная установка",
       "selfHelpDescription": "Plexor self-hosted — вы ставите control-plane и ноды на своём железе.",
       "docLinks": {
@@ -790,16 +817,65 @@
         "upgrade": "Обновление",
         "troubleshooting": "Troubleshooting"
       },
-      "nodesReady": "нод(ов) ready",
+      "nodesReady": "нод готово",
       "activeTokens": "активных токенов",
-      "providersChosenAt": "Выбраны при",
+      "uptime": "uptime",
       "nodeAgentInstances": "Plexor.NodeAgent инстансы",
       "tokensDescription": "Генерируются здесь, копируются на нод, используются один раз.",
       "createToken": "Создать токен",
       "tokensExpireNote": "Токены истекают — после подключения нод остаётся в списке Nodes.",
-      "nodesDescription": "Инстансы Plexor.NodeAgent, присоединённые к этому кластеру.",
-      "noNodes": "Нод пока нет. Добавьте узел через join-токен.",
-      "noTokens": "Join-токенов пока нет. Создайте, чтобы добавить узел."
+      "noNodes": "Нод пока нет",
+      "noNodesDescription": "Сгенерируйте join-токен и выполните plx node join на машине, загруженной с Plexor ISO.",
+      "noTokensTitle": "Join-токенов пока нет",
+      "noTokens": "Join-токенов пока нет. Создайте, чтобы добавить узел.",
+      "section": {
+        "identity": "Идентификация"
+      },
+      "identityDescription": "Control plane, установленный через plx init на вашем железе.",
+      "field": {
+        "name": "Название",
+        "id": "ID",
+        "health": "Состояние",
+        "version": "Версия",
+        "endpoint": "Endpoint",
+        "uptime": "Uptime",
+        "createdAt": "Создан",
+        "installProviders": "Install providers",
+        "disk": "диск",
+        "vms": "ВМ"
+      },
+      "copy": {
+        "name": "Копировать название",
+        "id": "Копировать id",
+        "endpoint": "Копировать endpoint"
+      }
+    },
+    "node": {
+      "joined": "подключён",
+      "vms": "ВМ",
+      "status": {
+        "ready": "ready",
+        "pending": "pending",
+        "draining": "draining",
+        "offline": "offline"
+      },
+      "role": {
+        "control": "control-plane",
+        "compute": "compute"
+      }
+    },
+    "token": {
+      "issued": "выдан",
+      "expires": "истекает",
+      "redeemedBy": "использован нодой",
+      "revoke": "Отозвать",
+      "revokeTitle": "Отозвать join-токен?",
+      "revokeDescription": "Токен «{{label}}» немедленно станет недействительным. Уже подключённые ноды не пострадают.",
+      "status": {
+        "active": "активен",
+        "expired": "истёк",
+        "revoked": "отозван"
+      }
     },
     "addNode": {
       "title": "Подключить нод к кластеру",
@@ -834,9 +910,11 @@
       }
     },
     "card": {
-      "nodesReady": "нод(ов) ready",
+      "nodesReady": "нод готово",
       "manage": "Управлять",
-      "nodes": "Ноды"
+      "nodes": "Ноды",
+      "uptime": "uptime",
+      "pending": "Pending"
     }
   },
   "images": {

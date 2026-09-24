@@ -32,7 +32,10 @@ import { spawn, type Subprocess } from 'bun';
 import { existsSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-const PORT = 6006;
+// Port override: the default 6006 may be held by another process (dev
+// storybook, a sibling agent's run). VISUAL_PORT lets a run pick a free
+// port without editing the script.
+const PORT = Number.parseInt(process.env.VISUAL_PORT ?? '6006', 10);
 const URL = `http://127.0.0.1:${PORT}`;
 const ROOT = resolve(import.meta.dir, '..');
 const BUILD_DIR = join(ROOT, 'dist-storybook');

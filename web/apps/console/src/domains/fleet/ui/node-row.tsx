@@ -1,34 +1,17 @@
+import { useTranslation } from 'react-i18next';
 import {
   Cancel,
   DeployedCode,
   DeveloperBoard,
   HardDisk,
   Memory,
-  ProgressActivity
+  ProgressActivity,
 } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { Size, SizeUtils } from '@/shared/ui/primitives/size';
 import type { PlexorNode } from '../model/cluster-types';
-
-const STATUS_VARIANT: Record<PlexorNode['status'], 'running' | 'pending' | 'idle' | 'err'> = {
-  ready: 'running',
-  pending: 'pending',
-  draining: 'idle',
-  offline: 'err',
-};
-
-const STATUS_LABEL: Record<PlexorNode['status'], string> = {
-  ready: 'ready',
-  pending: 'pending (waiting for first heartbeat)',
-  draining: 'draining',
-  offline: 'offline',
-};
-
-const ROLE_LABEL: Record<PlexorNode['role'], string> = {
-  control: 'control-plane',
-  compute: 'compute',
-};
+import { mapNodeStatusToVariant, nodeRoleLabelKey, nodeStatusLabelKey } from '../model/node-status';
 
 const STATUS_ICON: Record<PlexorNode['status'], React.ReactNode> = {
   ready: null,
@@ -41,7 +24,10 @@ interface NodeRowProps {
   node: PlexorNode;
 }
 
+/** One joined Plexor.NodeAgent: identity + role, capacity, live status. */
 export function NodeRow({ node }: NodeRowProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center justify-between gap-3 p-3">
       <div className="flex min-w-0 items-center gap-3">
@@ -49,11 +35,13 @@ export function NodeRow({ node }: NodeRowProps) {
         <div className="min-w-0 space-y-0.5">
           <MonoNum className="text-sm">{node.hostname}</MonoNum>
           <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-[0.06em]">
-            <span>{ROLE_LABEL[node.role]}</span>
+            <span>{t(nodeRoleLabelKey(node.role))}</span>
             <span className="inline-block h-2.5 w-px bg-border" aria-hidden />
-            <span>v{node.isoVersion}</span>
+            <span>{node.isoVersion}</span>
             <span className="inline-block h-2.5 w-px bg-border" aria-hidden />
-            <span>joined {new Date(node.joinedAt).toLocaleDateString('ru-RU')}</span>
+            <span>
+              {t('clusters.node.joined')} {new Date(node.joinedAt).toLocaleDateString()}
+            </span>
           </p>
         </div>
       </div>
@@ -73,13 +61,13 @@ export function NodeRow({ node }: NodeRowProps) {
             <Size bytes={SizeUtils.gibToBytes(node.spec.diskGb)} />
           </span>
           <span className="inline-flex items-center gap-0.5">
-            <MonoNum>{node.vmCount}</MonoNum> VM
+            <MonoNum>{node.vmCount}</MonoNum> {t('clusters.node.vms')}
           </span>
         </span>
-        <StatusPill variant={STATUS_VARIANT[node.status]} size="sm">
+        <StatusPill variant={mapNodeStatusToVariant(node.status)} size="sm">
           <span className="inline-flex items-center gap-1">
             {STATUS_ICON[node.status]}
-            {STATUS_LABEL[node.status]}
+            {t(nodeStatusLabelKey(node.status))}
           </span>
         </StatusPill>
       </div>
