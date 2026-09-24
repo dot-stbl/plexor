@@ -56,6 +56,10 @@ jobs:
       image: mcr.microsoft.com/playwright:v1.63.0-jammy
     defaults:
       run:
+        # Containers default `run:` steps to `sh` (no `pipefail`), unlike
+        # runner-hosted jobs which default to bash — force bash since a
+        # couple of steps below rely on `set -o pipefail`/`[ ... ]` bashisms.
+        shell: bash
         working-directory: web/apps/console
     steps:
       - uses: actions/checkout@v4
