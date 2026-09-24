@@ -15,8 +15,10 @@ primitive. Lives at `web/apps/www/`; runs as a Vite SPA on dev port
 
 ## 2. Architecture (short)
 
-- **Framework**: Vite 6 + React 19 + TanStack Router 1.91 (file-based
-  routing, route tree auto-generated under `src/routeTree.gen.ts`).
+- **Framework**: Vite 6 + React 19 + TanStack Router 1.170 (file-based
+  routing, route tree auto-generated under `src/routeTree.gen.ts`; see
+  §2b — this app pins a newer router than `web/apps/console`, which
+  stays on 1.91).
 - **MDX**: `@mdx-js/rollup` with `remark-gfm`, `remark-frontmatter`,
   `rehype-slug`, `rehype-autolink-headings` (see `vite.config.ts`).
 - **Theme system**: imports `@plexor/ui/tokens.css` + applies
@@ -70,18 +72,19 @@ Rejected alternatives and why:
   r.fullPath)`, deduped, is exactly the 45 real leaf pages (marketing,
   changelog, every `/docs/**` page), automatically staying in sync as
   pages are added.
-- **Per-route head**: this router version (1.91.0) has no
-  `HeadContent`/`Meta` component and never invokes a route's `head()`
-  option internally — it's declared-but-dead config at this pin. We
-  read it ourselves: `src/lib/collect-route-head.ts` walks matched
-  routes calling `route.options.head?.()`; `src/lib/head-meta.ts`
+- **Per-route head**: the router ships a `HeadContent`/`Scripts` pair
+  (post-1.170 SSR API, see §2b), but we still don't use `HeadContent`
+  for `<title>`/meta — it never invoked a route's `head()` option
+  internally at the 1.91.0 pin this was originally built against, so
+  we read it ourselves instead: `src/lib/collect-route-head.ts` walks
+  matched routes calling `route.options.head?.()`; `src/lib/head-meta.ts`
   (`resolveHead`, unit-tested) merges leaf-wins title/description and
   derives canonical + Open Graph + Twitter Card tags from them — so
   **none of the 45 existing per-route `head()` calls needed to
-  change**. `src/lib/use-sync-document-head.ts` applies the same
-  resolved head client-side on every in-app navigation (previously,
-  `head()` had no effect at all on the client either — the tab title
-  never changed between docs pages).
+  change**, on the 1.91.0 pin or the current one. `src/lib/use-sync-document-head.ts`
+  applies the same resolved head client-side on every in-app navigation.
+  Adopting `HeadContent` to replace this hand-rolled path is a possible
+  follow-up, not done here (out of scope for the hydration-fix pass).
 - **`SITE_URL`**: `src/components/chrome/nav-config.ts`, currently
   `https://plexor.stbl.space` (the only domain mentioned anywhere in
   the repo, `vite.config.ts`'s base-path comment) — provisional, no
@@ -115,38 +118,88 @@ Rejected alternatives and why:
   API were all already installed; only `package.json`'s `"build"`
   script changed (now chains the prerender step).
 
-### Known open limitation — one console hydration warning per page
+## 2b. Router upgrade + hydration-mismatch fix — 2026-09-24
 
-Every prerendered page logs a single React hydration-mismatch warning
-on first client paint (`main.tsx` documents it in full — search
-`KNOWN LIMITATION`). Root cause, fully diagnosed: TanStack Router's
-root `<Outlet/>` *unconditionally* wraps its child match in
-`<Suspense fallback={null}>` (`Match.js`,
-`if (matchId === rootRouteId)`) — independent of this app's
-`autoCodeSplitting` setting. On the pinned router version (1.91.0)
-that root-level boundary does not hydrate cleanly against
-`renderToReadableStream` output. This is a confirmed, closed upstream
-bug — [TanStack/router#3305](https://github.com/TanStack/router/issues/3305),
-"Hydration error with react SSR" — fixed via
-[TanStack/router#4495](https://github.com/TanStack/router/pull/4495),
-but only through the newer `@tanstack/react-router/ssr/server` +
-`/ssr/client` API (`^1.170`+), which requires `__root.tsx` to own the
-*entire* `<html>` document (`hydrateRoot(document, <RouterClient/>)`)
-— a TanStack-Start-shaped restructure of `index.html`/`__root.tsx`
-explicitly out of scope for this pass. A direct version bump alone
-(keeping this app's current architecture) was tried and reverted: the
-1.91→1.170 jump broke `entry-server.tsx`'s render silently (empty
-output) and would need its own dedicated migration + full regression
-pass, not a drive-by bump.
+`@tanstack/react-router` is now `1.170.39` **in `web/apps/www` only**
+(`web/apps/console` stays pinned at `1.91.0` — bun resolves each
+workspace app's version independently since neither `package.json`
+pins the other; confirmed via `bun.lock`, two separate resolved
+entries). `@tanstack/router-plugin`'s existing `^1.168.19` range
+already resolves to a build whose own peer wants `@tanstack/react-router
+^1.170.38`, so no plugin version change was needed — only the app's
+own dependency bumped.
 
-**Effect in practice**: React logs the warning, discards the
-mismatched subtree, and regenerates it client-side — confirmed via
-Playwright: correct title, correct full content, no broken
-functionality, on every tested route (`/`, `/changelog/`,
-`/docs/getting-started/`). This is a client-side-only symptom; the
-prerendered HTML crawlers/`curl` see is complete and correct (SEO
-unaffected). **Follow-up**: revisit when the router gets a dedicated,
-tested bump to `^1.170`+ and adopts the official SSR API.
+**What this fixes**: every prerendered page used to log one React
+hydration-mismatch warning on first client paint. Root cause: TanStack
+Router's root `<Outlet/>` unconditionally wrapped its child match in
+`<Suspense fallback={null}>` (`Match.js`, `matchId === rootRouteId`)
+server-side but NOT client-side — a confirmed upstream bug,
+[TanStack/router#3305](https://github.com/TanStack/router/issues/3305),
+fixed via [TanStack/router#4495](https://github.com/TanStack/router/pull/4495).
+The fix lives in `Match.js`'s `canWrapInSuspense`: the root match skips
+Suspense-wrapping only when `router.ssr` is truthy on **both** sides —
+that flag is exactly what the official (non-Start) SSR primitives set.
+
+**A prior drive-by version bump to `1.170` alone was tried and
+reverted** ("silently broke SSR rendering") — root cause, now
+diagnosed: the router's `trailingSlash` default (`'never'`) started
+enforcing canonical-path matching, not just href generation. Every
+leaf page this site prerenders is an index route whose `fullPath` ends
+in `/` (`getAllRoutePaths()`); feeding that trailing-slash path
+straight into `createMemoryHistory` under the new default produced
+**zero route matches** (confirmed: `router.state.matches` was `[]`),
+so every non-`/` route rendered a genuinely empty `appHtml` with no
+thrown error. Both routers (`entry-server.tsx` and `main.tsx`) now set
+`trailingSlash: 'preserve'` to match hrefs exactly as given — the
+implicit behavior the whole prerender pipeline was already built
+against.
+
+**Chosen fix — official SSR primitives, not the full TanStack-Start-shaped
+document-ownership rewrite.** `@tanstack/react-router/ssr/server` /
+`/ssr/client` also export `RouterServer`/`RouterClient` +
+`createRequestHandler`/`renderRouterToStream`, which require
+`__root.tsx` to own the entire `<html>` document
+(`hydrateRoot(document, <RouterClient/>)`) — that's TanStack Start's
+own shape, and stays out of scope here (this app's `index.html` static
+shell, `404.html` CSR fallback, and `main.tsx`'s dev-mode branch all
+still work exactly as before). Instead:
+- `entry-server.tsx`'s `renderRoute()` calls `attachRouterServerSsrUtils({
+  router, manifest: undefined })` (from `@tanstack/react-router/ssr/server`)
+  right after creating the router — this is what sets `router.ssr`
+  server-side, matching what the client sets during hydration. After
+  `router.load()`, it calls `await router.serverSsr.dehydrate({signal})`
+  (this site has no route `loader`s, so the dehydrated payload is just
+  route-match bookkeeping, no async data) and, in a `finally`, calls
+  `router.serverSsr.cleanup()`. Rendering itself is unchanged —
+  still our own `renderToStringWithSuspenseMarkers` via
+  `renderToReadableStream` (per-route code-split Suspense boundaries
+  were never the problem; only the root one was).
+- `__root.tsx` renders `<Scripts/>` (from the main `@tanstack/react-router`
+  export) as a plain descendant of `<Outlet/>`'s siblings inside
+  `RootLayout` — it needs router context (`useRouter()`), which it gets
+  by being inside the routed tree, but doesn't care that it's landing
+  inside `#root` rather than at the end of a framework-owned `<body>`.
+  Server-side it embeds the dehydrated `window.$_TSR = {...}` payload +
+  hydration bootstrap script; client-side (no manifest, no per-route
+  `scripts`) it renders nothing.
+- `main.tsx`'s prerendered-page branch (`rootElement.hasChildNodes()`)
+  now does `hydrateRoot(rootElement, <RouterClient router={router}/>)`
+  instead of the old manual `router.load().then(...)` +
+  `loadRouteChunk` preloading dance — `RouterClient`'s internal
+  `hydrate()` (from `@tanstack/react-router/ssr/client`) already does
+  that chunk-preloading itself, and only mounts `<RouterProvider>`
+  once `router.ssr` is populated from the dehydrated payload, which is
+  what keeps the two sides' Suspense-wrapping decision in sync. The
+  `else` branch (dev mode, `404.html`) is untouched: plain `createRoot`
+  + `<RouterProvider>`, no dehydration payload expected or required.
+
+**Verified**: all 45 routes prerender clean (`bun run build:www`);
+`bun --filter '@plexor/www' gate` green; a throwaway Playwright check
+against `vite preview` (`/`, `/changelog/`, `/docs/`,
+`/docs/getting-started/`, `/docs/concepts/networking/`) shows **zero**
+console errors/warnings on any of them (the mismatch warning is gone),
+real content in every page, client-side navigation confirmed
+soft (no full reload), and `⌘K`/`Ctrl K` search opens correctly.
 
 ## 3. Project structure (relevant subtrees)
 
@@ -157,7 +210,7 @@ web/apps/www/
 ├── index.html                 boot HTML with inline theme script
 ├── scripts/agent/              shot.ts + lib/* — the visual-check tool (see §4)
 ├── src/
-│   ├── main.tsx               RouterProvider + applyBootPreset() + 404
+│   ├── main.tsx               RouterClient/RouterProvider + applyBootPreset() + 404
 │   ├── styles.css             imports @plexor/ui/tokens.css + .docs-prose
 │   ├── routeTree.gen.ts       AUTO-GENERATED by @tanstack/router-cli
 │   ├── lib/

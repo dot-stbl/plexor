@@ -1,4 +1,4 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router';
+import { Outlet, Scripts, createRootRoute } from '@tanstack/react-router';
 import { CommandMenuProvider } from '@/components/chrome/command-menu-store';
 import { CommandMenu } from '@/components/chrome/command-menu';
 import { useSyncDocumentHead } from '@/lib/use-sync-document-head';
@@ -14,10 +14,19 @@ import { useSyncDocumentHead } from '@/lib/use-sync-document-head';
  * Also hosts `useSyncDocumentHead()` — the client-side counterpart to
  * the prerender script's server-side `head()` collection: keeps
  * `<title>`, description, OG/Twitter, and `<link rel="canonical">`
- * in sync after every client-side `<Link>` navigation. TanStack
- * Router 1.91 doesn't ship `HeadContent`, so the hook is the only
- * thing keeping post-hydration navigations from getting stuck on
- * the first prerendered page's head tags.
+ * in sync after every client-side `<Link>` navigation. This router
+ * version has no route-level `<HeadContent/>` auto-wiring into our
+ * hand-rolled `index.html` shell (we don't own `<head>` via JSX — see
+ * `entry-server.tsx`), so the hook still does this job.
+ *
+ * `<Scripts/>` (official `@tanstack/react-router` SSR API, not
+ * TanStack Start) renders the dehydrated-router payload + hydration
+ * bootstrap script server-side, and is a harmless no-op client-side
+ * (we register no route-level `scripts` and pass no asset manifest).
+ * It must live INSIDE the routed tree (a descendant of `RouterProvider`,
+ * which is what `useRouter()` needs) — see `main.tsx`/`entry-server.tsx`
+ * for why this is the fix for the root-`<Outlet/>` hydration mismatch
+ * (upstream TanStack/router#3305 / #4495).
  */
 export const Route = createRootRoute({
   component: RootLayout,
@@ -29,6 +38,7 @@ function RootLayout() {
     <CommandMenuProvider>
       <Outlet />
       <CommandMenu />
+      <Scripts />
     </CommandMenuProvider>
   );
 }

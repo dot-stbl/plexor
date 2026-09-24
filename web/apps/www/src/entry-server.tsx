@@ -5,6 +5,7 @@ import {
   createMemoryHistory,
   createRouter,
 } from '@tanstack/react-router';
+import { attachRouterServerSsrUtils } from '@tanstack/react-router/ssr/server';
 
 import { routeTree } from './routeTree.gen';
 import { DocsNotFound } from '@/components/docs/docs-not-found';
@@ -64,6 +65,7 @@ export interface RenderResult {
 export function getAllRoutePaths(): string[] {
   const router = createRouter({
     routeTree,
+    trailingSlash: 'preserve',
     defaultNotFoundComponent: NOT_FOUND_COMPONENT,
   });
 
@@ -89,19 +91,76 @@ export async function renderRoute(requestedPath: string): Promise<RenderResult> 
   const router = createRouter({
     routeTree,
     history,
+    /**
+     * Every leaf path we prerender is an index route's `fullPath`, which
+     * TanStack Router always ends in `/` (see `getAllRoutePaths()` below).
+     * The router's own default (`trailingSlash: 'never'`) now enforces
+     * that canonical form during MATCHING itself (not just href
+     * generation) — feeding `createMemoryHistory` a path that still has
+     * the trailing slash the route tree registered under `router.load()`
+     * with the default option produced ZERO matches (confirmed: this is
+     * the actual cause of the earlier reverted 1.91->1.170 bump "silently
+     * break[ing] SSR rendering" — every non-`/` route rendered empty).
+     * `'preserve'` matches hrefs exactly as given, restoring the old
+     * (1.91) behavior this whole pipeline was built against.
+     */
+    trailingSlash: 'preserve',
     defaultNotFoundComponent: NOT_FOUND_COMPONENT,
   });
+
+  /**
+   * Official `@tanstack/react-router` SSR API (not TanStack Start —
+   * that's a separate, framework-shaped package we're not adopting).
+   * `attachRouterServerSsrUtils` wires `router.ssr`/`router.serverSsr`
+   * onto this router instance BEFORE anything renders. That flag is
+   * what `Match.js`'s `canWrapInSuspense` reads for the ROOT match:
+   * `!route.isRoot || ... || !((isServer ?? router.isServer) ||
+   * router.ssr)` — for the root route, every clause but the last is
+   * false, so root-level Suspense wrapping is skipped only when
+   * `router.ssr` is truthy. Without this call (the pre-upgrade code),
+   * the root `<Outlet/>` was unconditionally wrapped in
+   * `<Suspense fallback={null}>` server-side but NOT client-side,
+   * which is the exact hydration mismatch this upgrade fixes
+   * (upstream TanStack/router#3305, fixed via #4495). Non-root routes
+   * are unaffected either way — `!route.isRoot` alone already made
+   * `canWrapInSuspense` true for them, so their own code-split
+   * Suspense boundaries already hydrated cleanly against
+   * `renderToReadableStream`'s `<!--$-->` markers before this change.
+   */
+  attachRouterServerSsrUtils({ router, manifest: undefined });
 
   // `router.load()` resolves the route tree — including any
   // internal `beforeLoad` redirects — so after `await`, the location
   // is the final, post-redirect pathname.
   await router.load();
 
-  const appHtml = await renderToStringWithSuspenseMarkers(
-    <StrictMode>
-      <RouterProvider router={router} />
-    </StrictMode>,
-  );
+  /**
+   * Dehydrates the (loader-free — this site has none) resolved route
+   * matches onto the router's internal SSR-script owner. `<Scripts/>`
+   * (rendered inside `__root.tsx`, a descendant of `RouterProvider` so
+   * it has router context) pulls this via
+   * `router.serverSsr.takeInitialHydrationScriptTags()` during the
+   * render below and embeds it as a `window.$_TSR = {...}` payload +
+   * bootstrap script INSIDE `#root`'s own subtree — we deliberately did
+   * NOT move to the full document-owning `RouterServer`/`RouterClient`
+   * request-handler pattern (that requires `__root.tsx` to render the
+   * entire `<html>`, a TanStack-Start-shaped restructure of
+   * `index.html` this pass doesn't need); `<Scripts/>` doesn't care
+   * where in the DOM it lands, only that it renders before the
+   * client's module script reads `window.$_TSR` (main.tsx).
+   */
+  await router.serverSsr?.dehydrate({ signal: new AbortController().signal });
+
+  let appHtml: string;
+  try {
+    appHtml = await renderToStringWithSuspenseMarkers(
+      <StrictMode>
+        <RouterProvider router={router} />
+      </StrictMode>,
+    );
+  } finally {
+    router.serverSsr?.cleanup();
+  }
 
   const finalPathname = router.state.location.pathname;
   const head = resolveHead(

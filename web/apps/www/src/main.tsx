@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { RouterClient } from '@tanstack/react-router/ssr/client';
 
 import { routeTree } from './routeTree.gen';
 
@@ -28,6 +29,13 @@ applyBootPreset();
 const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
+  // Matches `entry-server.tsx`'s router exactly — every prerendered page's
+  // dehydrated matches were computed against `trailingSlash: 'preserve'`,
+  // so the client must resolve the same canonical form when it re-matches
+  // candidates during hydration (see `entry-server.tsx`'s comment for why
+  // the router's `'never'` default breaks matching for our trailing-slash
+  // leaf paths).
+  trailingSlash: 'preserve',
   defaultNotFoundComponent: DocsNotFound,
 });
 
@@ -40,58 +48,43 @@ declare module '@tanstack/react-router' {
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Root element #root not found');
 
-const tree = (
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>
-);
-
 /**
  * Prerendered pages (every real route after the build pipeline's
  * `scripts/prerender/run.ts` runs) leave real React-rendered HTML
- * inside `#root` — `hydrateRoot` reattaches event handlers and
- * keeps the DOM. `dist/404.html` is built with an empty `#root`
- * on purpose so it falls through to the original `createRoot`
- * path: a pure-CSR fallback for any URL nginx/Caddy hasn't mapped
- * to a real page (see AGENTS.md §9 — the operator-side routing
- * config lands when production hosting does).
+ * inside `#root`, plus the `<Scripts/>`-rendered `window.$_TSR`
+ * dehydration payload (`__root.tsx`, `entry-server.tsx`) — `RouterClient`
+ * + `hydrateRoot` reattach event handlers and keep the DOM. `dist/404.html`
+ * is built with an empty `#root` (no dehydration payload either) on
+ * purpose so it falls through to the plain `createRoot` path: a pure-CSR
+ * fallback for any URL nginx/Caddy hasn't mapped to a real page (see
+ * AGENTS.md §9 — the operator-side routing config lands when production
+ * hosting does). Dev mode (`bun run dev`) also has an empty `#root` (no
+ * prerender pass runs), so it takes the same plain-CSR branch.
+ *
+ * `RouterClient` (official `@tanstack/react-router` SSR API — see
+ * `entry-server.tsx`'s `attachRouterServerSsrUtils` comment) reads that
+ * dehydrated payload via its internal `hydrate()`, which — unlike the
+ * router-only `<RouterProvider>` path below — sets `router.ssr` on the
+ * client BEFORE the routed tree mounts, matching what the server set via
+ * `attachRouterServerSsrUtils`. That symmetry is what fixes the root
+ * `<Outlet/>` hydration mismatch (upstream TanStack/router#3305 / #4495):
+ * `Match.js` now skips wrapping the root match in `<Suspense>` on BOTH
+ * sides instead of only server-side. `hydrate()` also preloads every
+ * matched route's code-split `component` chunk itself (`autoCodeSplitting`,
+ * vite.config.ts) before resolving, so the manual `loadRouteChunk`
+ * preloading this file used to do by hand is no longer needed.
  */
 if (rootElement.hasChildNodes()) {
-  /**
-   * Preload each matched route's code-split `component` chunk
-   * (`autoCodeSplitting`, vite.config.ts) before hydrating, so a slow
-   * chunk fetch can't make a NESTED lazy route suspend on the client's
-   * first hydration pass where the server already rendered real content.
-   * `router.loadRouteChunk` is the same public method `router.load()`
-   * calls internally (idempotent — returns the already-cached promise).
-   *
-   * KNOWN LIMITATION (not fixed by the preload above): TanStack Router's
-   * root `<Outlet/>` unconditionally wraps its child match in
-   * `<Suspense fallback={null}>` (`Match.js`, `matchId === rootRouteId`)
-   * regardless of code-splitting. On this pinned version (1.91.0) that
-   * root-level boundary itself fails to hydrate against
-   * `renderToReadableStream` output — a confirmed upstream bug
-   * (github.com/TanStack/router issue #3305 / PR #8484 area), fixed only
-   * in the newer `@tanstack/react-router/ssr/*` API (`^1.170`+), which
-   * requires `__root.tsx` to own the whole `<html>` document — a
-   * TanStack-Start-shaped restructure explicitly out of scope here. The
-   * effect is a single console hydration-mismatch warning per page load;
-   * React recovers by regenerating that subtree client-side (confirmed:
-   * no user-visible breakage, correct content, all interactivity works).
-   * SSR/SEO output (what crawlers see) is entirely unaffected — this is
-   * a client-side-only symptom. Revisit if/when the router version bump
-   * gets its own dedicated, tested migration.
-   */
-  void router.load().then(async () => {
-    const routes = Object.values(router.routesById);
-    await Promise.all(
-      router.state.matches.map((match) => {
-        const route = routes.find((candidate) => candidate.id === match.routeId);
-        return route ? router.loadRouteChunk(route) : Promise.resolve();
-      }),
-    );
-    hydrateRoot(rootElement, tree);
-  });
+  hydrateRoot(
+    rootElement,
+    <StrictMode>
+      <RouterClient router={router} />
+    </StrictMode>,
+  );
 } else {
-  createRoot(rootElement).render(tree);
+  createRoot(rootElement).render(
+    <StrictMode>
+      <RouterProvider router={router} />
+    </StrictMode>,
+  );
 }
