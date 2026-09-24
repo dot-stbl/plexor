@@ -37,13 +37,17 @@ priority: high
 12. **Custom primitives same location + same pattern** — `StatusPill`, `MonoNum`, `ThemeToggle`. Use `forwardRef` when wrapping native elements that need ref. Use `cva` for variants. Use `cn()` (from `@/lib/utils`) for className merging.
 13. **UI-иконки: Google Material Symbols _Rounded_ (weight 700) через `@nine-thirty-five/material-symbols-react/rounded/700`.** Tree-shakeable: каждый импорт шипит только нужную иконку (path). Импортируй компоненты напрямую из subpath (`Add`, `KeyboardArrowDown`, `Delete`, `Search`, …), НЕ из вендорного корня и НЕ из локального `@/shared/ui/icon` (такого файла больше нет). Rounded 700 = chunky default под Plexor DS soft-radius. Размер — `className="size-*"` (default size `1em` в либе, но мы почти всегда передаём явный `size-*`). **Weight prop не передавай** — стиль зашит в import path (700 = default; для rare thin-вариантов импортируй из другого subpath: `…/rounded/400`, `…/rounded/filled`). Акцент активного состояния — фоном контрола, не сменой weight в месте использования. **Filled** — опциональный для selected-состояний (`@nine-thirty-five/material-symbols-react/rounded/filled`), не для emphasis. **Manifest для агентов** (если ищешь иконку по natural language): `node_modules/@nine-thirty-five/material-symbols-react/dist/manifest.json` — у каждой иконки `tags` (синонимы).
 14. **Один источник UI-иконок — `@nine-thirty-five/material-symbols-react` (subpath per style/weight).** Нет локального `@/shared/ui/icon`, нет `@phosphor-icons/react`, нет `@iconify/react` для UI-иконок, нет `unplugin-icons`, `lucide-react`, `react-icons`. Новая иконка: найди Material-имя в `manifest.json` (или [fonts.google.com/icons](https://fonts.google.com/icons?icon.set=Material+Symbols)), импортируй из `@nine-thirty-five/material-symbols-react/rounded/700`. **Без алиасов** (никакого Phosphor-нейминга): компонент в коде = Material-имя (`Add`, `Close`, `KeyboardArrowDown`, `DockToLeft`). Локальный `as`-ренейм разрешён только для разрешения коллизии имён (например `import { DockToLeft as SidebarIcon }` когда рядом локальная `Sidebar` UI-shell компонента). Цветные бренд/тех-логотипы — отдельно через `<TechIcon>` (Iconify `logos:` инлайн в `src/shared/ui/tech-icon-data.ts`, регенерируется `bun run gen:tech-icons`), см. rule 63.
-15. **Button variants** (custom-adapted for Plexor DS):
-    - `default` → Plexor DS primary (bg=accent monochrome dark)
+15. **Button variants** (source of truth is the `cva` in
+    `src/shared/ui/primitives/button.tsx` — read it before quoting this
+    list, it has drifted before):
+    - `default` → Plexor DS primary (bg=primary)
     - `outline` → surface bg + border
     - `secondary`, `ghost`, `destructive`, `link` → shadcn defaults mapped to Plexor tokens
-    - `danger` (Plexor DS only) → text-only, err-ink, transparent border
-    - `danger-solid` (Plexor DS only) → filled red, white text
-    - Sizes: `xs` (24), `sm` (28), `md` (32, default), `lg` (40), `xl` (48), `icon`/`icon-xs`/`icon-sm`/`icon-md`/`icon-lg` (square)
+    - There is no `danger` or `danger-solid` variant — use `destructive`.
+    - Sizes: `xs` (20px), `sm` (24px), `default` (28px, the default), `lg`
+      (32px), plus square icon sizes `icon`/`icon-xs`/`icon-sm`/`icon-lg`
+      matching those same heights. There is no `md`, `xl`, or `icon-md`
+      size.
 16. **Don't re-invent component variants with flat classes.** If a Button variant is missing, add it to the `cva` in `src/shared/ui/primitives/button.tsx`. Don't write a parallel `.btn-danger` flat class.
 
 ## Chrome spacing / visual balance
@@ -138,6 +142,11 @@ Flex containers with text + icon + button often drift vertically. Common causes 
 4. Never use emoji as UI icons — always SVG icons from `@nine-thirty-five/material-symbols-react/rounded/700`
 
 ## Select / Combobox / Popover — overlay pitfalls
+
+> **NOTE 2026-09:** primitives are now react-aria-components (see
+> `src/shared/ui/INDEX.md`); the Base-UI-specific internals below
+> (`Select.Popup`, `Positioner`, `alignItemWithTrigger`, `Select.Content`)
+> are historical — don't copy them into new code.
 
 Base UI's overlay components (`Select.Popup`, `Combobox.Popup`, `Popover.Popup`) come with default styles that create **phantom padding** you won't notice until devtools:
 
