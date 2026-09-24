@@ -940,6 +940,17 @@
       "title": "Engine not found",
       "description": "Unknown engine: {{engine}}."
     },
+    "landing": {
+      "title": "Data platform",
+      "description": "Managed data services: preinstalled engines with backups, DNS, and bindings. One section per engine.",
+      "clusters": "clusters",
+      "open": "Open",
+      "empty": {
+        "title": "No engines in the catalog",
+        "description": "The engine catalog is empty. Engines are shipped with the platform — check the installation docs.",
+        "docs": "Managed data services"
+      }
+    },
     "empty": {
       "title": "No {{engine}} instances",
       "create": "Create {{engine}} cluster"

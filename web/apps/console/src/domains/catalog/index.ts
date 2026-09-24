@@ -32,6 +32,7 @@ export { getDbColumns } from './ui/database-columns';
 export { ManagedServiceEmpty } from './ui/managed-service-empty';
 export { ManagedServicePage } from './ui/managed-service-page';
 export { ManagedServiceListBody } from './ui/managed-service-list-body';
+export { ManagedLanding } from './ui/managed-landing';
 export {
   DbStatusStrip,
   DbStatusStripSkeleton,
