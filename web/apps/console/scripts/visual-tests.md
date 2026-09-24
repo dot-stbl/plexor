@@ -33,6 +33,24 @@ Baselines live at:
 web/apps/console/.storybook/__screenshots__/<story-id>.png
 ```
 
+### `shot` vs `test:visual` — not the same tool
+
+`bun run shot page|story ...` (see `AGENTS.md`, `docs/agent/`) is a
+**separate, disposable** tool for an ad-hoc "let me look at this" —
+one-off renders + a text report (issues, aria outline, visible text) in
+`.shots/`, which is gitignored and never committed. It is **not** a
+regression check: it has no baseline, no pass/fail-on-diff, and no CI
+step.
+
+`bun run test:visual` (this document) is the **regression** check: it
+compares against the committed baselines in
+`.storybook/__screenshots__/` and is what CI runs on every PR.
+
+Use `shot` while building/debugging a page. Use `test:visual` only when
+adding or intentionally changing a story's committed baseline (see
+"Adding a new visual test" below) — an agent does not regenerate or
+commit baselines as part of routine UI work.
+
 Story IDs look like `primitives-button--variants` — `<kind>--<name>`,
 the same ID Storybook shows in the URL bar of any story page.
 
@@ -205,9 +223,14 @@ is now allowed with discipline. The visual pipeline satisfies that:
    it kills the agent's own Node runtime (see the 2026-07-07 incident
    documented in agent-runtime-safety.md).
 4. **Structured pipeline, not ad-hoc browser launches.** The agent
-   does NOT improvise `chromium.launch()` to look at one story. If a
-   story's baseline isn't enough to debug, write a story with the
-   specific state you need, regenerate that one baseline, commit.
+   does NOT improvise `chromium.launch()` / raw Playwright to look at
+   one story. **Superseded (2026-09):** the sanctioned way to look at
+   ad-hoc rendered output is now `bun run shot page|story ...` (see
+   `AGENTS.md`, `docs/agent/`) — a wrapped, single-run, self-cleaning
+   script, not a hand-rolled browser session. It does not touch this
+   pipeline's committed baselines; see "`shot` vs `test:visual`" above.
+   If a *regression* baseline genuinely needs updating, write/adjust the
+   story, regenerate that one baseline, commit — same as before.
 
 ---
 

@@ -137,26 +137,29 @@ Plexor DS only adds variants when the design system needs them. Don't add varian
 Compose with shadcn-ui primitives:
 
 ```tsx
-import { Button } from '@/shared/ui/primitives/button';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/shared/ui/primitives/input-group';
+import { Input } from '@/shared/ui/primitives/input';
+import { Search } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 export function MySearchInput() {
   return (
-    <InputGroup>
-      <InputGroupAddon>
-        <SearchIcon />
-      </InputGroupAddon>
-      <InputGroupInput placeholder="Search..." />
-    </InputGroup>
+    <div className="relative">
+      <Search className="absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+      <Input className="pl-7" placeholder="Search..." aria-label="Search" />
+    </div>
   );
 }
 ```
 
 When composing:
 - Use shadcn `Field` for forms (not raw `div` with `space-y-*`).
-- Use shadcn `ButtonGroup` for segmented controls.
-- Use shadcn `InputGroup` for input with addons.
-- Use shadcn `Empty` for empty states.
+- Use `SegmentedControl` for a 2-4 mode switch (`ButtonGroup` was deleted —
+  0 consumers, see `src/shared/ui/INDEX.md`); for a plain row of
+  independent action buttons, just lay out `Button`s in a flex container.
+- Compose `Input` directly for a field with an icon/addon, as above
+  (`InputGroup` was deleted — 0 consumers, see INDEX.md); for a number +
+  unit field use `SizeField` instead.
+- Use `EmptyState` for empty states (`Empty` was deleted — duplicate of
+  `EmptyState`, see INDEX.md).
 - Use shadcn `Skeleton` for loading.
 
 ## Component Showcase Conventions

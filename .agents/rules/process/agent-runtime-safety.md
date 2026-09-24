@@ -7,6 +7,13 @@ interactive: true
 
 # Agent runtime safety — never run dev / watch / serve processes
 
+> **Sanctioned exception (2026-09):** in repos that ship a self-terminating
+> screenshot wrapper (Plexor: `cd web/apps/console; bun run shot ...` /
+> `bun run agent:check`), **use it** — it satisfies this rule (PID-tracked
+> servers, one browser, cleanup in `finally`). Still forbidden: hand-rolled
+> `chromium.launch()`, `bun run dev &` left running, killing processes by
+> name.
+
 ## The trap
 
 Long-lived dev / watch / serve processes (Vite dev server, Vitest watch, dotnet watch, tsc --watch, file watchers, port-binding servers) **must not be started by the agent**.
@@ -43,9 +50,12 @@ tsc --watch --noEmit
 vitest --watch
 bun --hot
 
-# ❌ Forbidden — agent must NOT run browser automation, even headless
-# Risk: downloads 100MB Chromium, leaves processes running, can kill the
-# agent runtime. User cannot have a clean browser profile.
+# ❌ Forbidden (SUPERSEDED 2026-09 — see callout at top of file) — agent
+# must NOT run browser automation, even headless, UNLESS it's the
+# project's own self-terminating wrapper (e.g. Plexor's `bun run shot`).
+# Risk (for anything else): downloads 100MB Chromium, leaves processes
+# running, can kill the agent runtime. User cannot have a clean browser
+# profile.
 playwright ...
 chromium ...
 google-chrome ...
@@ -63,7 +73,7 @@ const page = await browser.newPage();
 await browser.close();
 ```
 
-## **Browser automation tools: hard ban**
+## **Browser automation tools: hard ban** (SUPERSEDED 2026-09 — see callout at top of file)
 
 The agent **must NEVER** install, import, launch, or interact with browser automation tools:
 

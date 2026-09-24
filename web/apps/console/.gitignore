@@ -5,3 +5,6 @@ dist-storybook/
 repro/
 repro-screenshots/
 
+# bun run shot output — disposable PNG + .md reports, PID/log files.
+.shots/
+

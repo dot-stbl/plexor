@@ -20,7 +20,10 @@
     "test:visual": "bun run scripts/visual-test-runner.ts",
     "test:visual:update": "bun run scripts/visual-test-runner.ts --update",
     "test:visual:cleanup": "bun run scripts/visual-test-runner.ts --cleanup-only",
-    "gen:tech-icons": "node scripts/gen-tech-icons.cjs"
+    "gen:tech-icons": "node scripts/gen-tech-icons.cjs",
+    "shot": "bun run scripts/agent/shot.ts",
+    "agent:rules": "bun run scripts/agent/lint-rules.ts",
+    "agent:check": "bun run scripts/agent/check.ts"
   },
   "dependencies": {
     "@fontsource-variable/onest": "^5.2.11",

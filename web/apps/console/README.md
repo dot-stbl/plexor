@@ -84,6 +84,24 @@ the assertion is the canary that the dev:mock worker covers the page.
 | `bun run lint` | `eslint . --max-warnings 0` |
 | `bun run typecheck` | `tsc --noEmit` |
 
+## Agent tooling
+
+An AI agent building or fixing a page/component here should start at
+`AGENTS.md` (this directory), not this README. Quick reference:
+
+| Script | What it does |
+|--------|--------------|
+| `bun run shot page <path...>` | Render a real route in mock mode → PNG + text report in `.shots/` |
+| `bun run shot story <story-id...>` | Render a Storybook story → PNG + text report in `.shots/` |
+| `bun run shot stories [filter]` | List available story ids |
+| `bun run shot routes` | List route paths (+ sample ids for `$param` routes) |
+| `bun run agent:rules [--all]` | Grep-lint the house rules on changed files |
+| `bun run agent:check` | DoD gate — typecheck + lint + vitest + rules + shots of changed routes/stories |
+
+`.shots/` is disposable and gitignored — see `scripts/visual-tests.md` for
+how it differs from the committed `test:visual` baselines. Full loop and
+recipes: `AGENTS.md` and `docs/agent/`.
+
 ## Adding a new endpoint
 
 1. Add the path + operation to `contracts/plexor.openapi.yaml`.

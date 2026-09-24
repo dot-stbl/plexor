@@ -5,6 +5,14 @@
 > Skipping this is how you end up writing `realm.tenants` next to a class
 > called `Organization`.
 
+## Frontend work (web/)
+
+Building or fixing a page/component in `web/apps/console`? Stop reading
+here — go to `web/apps/console/AGENTS.md` instead. It's the entry point
+for frontend work (routes, components, i18n, the `bun run shot`
+visual-check loop). Everything below this section is C#/backend and
+does not override it — the two guides cover disjoint parts of the repo.
+
 ## TL;DR
 
 - **Plexor** is a self-hosted cloud platform. v0.1 = in-memory node registry +
