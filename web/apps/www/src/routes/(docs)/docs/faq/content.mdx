@@ -1,0 +1,127 @@
+---
+title: "Frequently asked questions"
+description: "Short answers that fit one screen each."
+chapter: "faq"
+---
+
+Common questions, short answers. For the deeper story, follow the
+"See" link at the end of each answer.
+
+<Accordions allowsMultiple={false}>
+  <Accordion title="Can two organisations share a workload?">
+    No — scope is exclusive. A workload lives at exactly one
+    `(org, team, folder)` triple. If a workload is useful to two
+    organisations, the right shape is to fork the workload into each
+    organisation and run it as two separate workloads. The data and
+    config can stay in sync via a shared bucket.
+
+    See: **Concepts → Orgs, teams, and folders**.
+  </Accordion>
+  <Accordion title="Why is my quota warning not going away?">
+    Because raising the assignment does not reset the current usage
+    counter. If you have 9 of 10 VMs, raise to 20, and the
+    `X-Quota-Warning: true` stays on the next request — you now have
+    9 of 20, but the counter still reads 9, and 9 is still over 80%
+    of 20 is 16. Either reduce the workload count or raise the quota
+    high enough that usage drops under the new 80% threshold.
+
+    See: **Concepts → Quotas**, **Admin → Managing quotas**.
+  </Accordion>
+  <Accordion title="I removed a permission from a role. Why does the user still have it?">
+    The 15-minute JWT snapshot window. JWTs are issued at login with
+    a 15-minute lifetime; the `permissions[]` claim is a snapshot of
+    the user's effective permissions at sign time. The change does
+    not take effect on an already-issued token until it expires or
+    the user refreshes. Force-logout by suspending the user or
+    revoking their refresh token.
+
+    See: **Admin → RBAC hardening**.
+  </Accordion>
+  <Accordion title="Can I delete a built-in role?">
+    No. Built-in roles are immutable: they cannot be edited, and a
+    delete returns 409. The reason is that built-in roles carry
+    implied semantics the platform depends on (every platform code path
+    that checks for `admin` expects the role to be present and
+    unmodified). To customize, create a new role with your
+    permission set and bind it instead.
+
+    See: **Reference → Permissions catalog**.
+  </Accordion>
+  <Accordion title="Can I have multiple Plexor hosts?">
+    Each host is a self-contained cluster in the current release.
+    Multi-cluster coordination — one Host orchestrating many clusters
+    across hosts — is on the roadmap (Phase 7+). Today, two hosts =
+    two independent Plexors.
+
+    See: **Welcome to Plexor** for the current scope.
+  </Accordion>
+</Accordions>
+
+## Where is the data stored?
+
+In the storage backend installed at Plexor setup. The defaults
+are Ceph for block (RBD) and object (RGW) storage. Single-host
+installs can use `local-lvm` for block and MinIO for object. The
+backends are interchangeable from the operator's point of view —
+workloads see a `volume` and a `bucket` regardless of which
+backend is plumbed in.
+
+See: **Concepts → Storage**.
+
+## Do I need to back up the database myself?
+
+Yes. Plexor does not auto-snapshot the control plane database
+for you. The recommended cadence is a daily `pg_dump` to an
+off-host location with 30-day retention.
+
+See: **Admin → Backup and disaster avoidance**.
+
+## How do I rotate the data-protection key?
+
+You don't, in the current release. The key is created once at
+install time and lives at `/var/lib/plexor/data-protection.key`.
+Rotating the key requires re-issuing every encrypted secret (API
+keys, OIDC client secrets). The upgrade path for rotation is on
+the roadmap; today, you back up the key once and store the
+backup separately from the database backup.
+
+See: **Admin → Backup and disaster avoidance**.
+
+## Why are some console routes "Soon"?
+
+The console navigation lists every Plexor feature, including
+features that have not yet shipped. Each "Soon" entry corresponds
+to a spec in the project roadmap whose implementation has not yet
+landed. When the implementation ships, the route gains a real
+destination.
+
+See: **Welcome to Plexor** for the "Soon" table.
+
+## What languages does the documentation ship in?
+
+English, in the current release. The operator-facing UI follows:
+when Plexor's UI gains RU/EN side-by-side, the docs follow. Until
+then, English is the source of truth and RU/EN parity is not in
+scope.
+
+## How do I file a bug or request a feature?
+
+Open an issue on the project repository. Include the Plexor
+version, the cluster id, and the audit-log snippet from the
+moment the issue happened — Plexor's audit log is the most
+informative artifact a bug report can carry.
+
+## What do I do if I'm locked out?
+
+Wait it out, or have an admin reset your password. Lockouts are
+15 minutes, 1 hour, or 24 hours, depending on how many failed
+attempts preceded them. Admins can reset passwords from the
+**Access → Users** page; that path clears the lockout state
+immediately.
+
+See: **Admin → Lockout recovery**.
+
+## What to do next
+
+- **Troubleshooting recipes** for the symptom-driven flow.
+- **Concepts** to find the mental model behind the question.

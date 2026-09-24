@@ -1,0 +1,87 @@
+---
+title: "Orgs, teams, and folders"
+description: "The 3-tier scope hierarchy that decides who can see and write to what."
+chapter: "concepts"
+---
+
+Plexor groups everything you run inside a single hierarchy: three
+levels, each with its own job. The split is deliberate — it is the
+simplest structure that lets a team of five to fifteen share a
+deployment with other teams without bolting on a custom access layer.
+
+## Organisation
+
+The **organisation** is the top of the hierarchy. Every Plexor
+deployment has exactly one. Users, teams, and resources all live
+inside it. The organisation is what your identity provider talks to,
+what an invoice covers, and what the audit log scopes to.
+
+On a self-hosted single-tenant deploy there is exactly one
+organisation row; on a SaaS deploy there are many. Both shapes work
+with the same data model — multi-org is not a re-architecture, it is
+a configuration switch.
+
+## Team
+
+A **team** is a group of people who share access to a slice of the
+deployment — typically five to fifteen users. Roles (admin,
+operator, viewer) can be scoped to a team, so a "platform team" can
+hold the keys to destructive actions while every other team runs
+their own workloads without that reach.
+
+In the current release the **Team** entity exists and team-scoped
+role bindings are writable, but team-scoped REST endpoints are not
+yet exposed — that lands in the next phase. Until then, teams are an
+authoring tool you set up in the console, not a filter you query
+against via the API.
+
+## Folder
+
+A **folder** is where resources actually live: virtual machines,
+container workloads, volumes, buckets, floating IPs. Most resources
+in Plexor are folder-scoped by default. Folders let one team
+separate concerns — one folder per environment (`dev`, `staging`,
+`prod`) or per project (`project-alpha`, `project-beta`) — without
+spinning up a new organisation each time.
+
+A team should contain multiple folders for separation of concerns. A
+single folder for the whole team is the same as no folders at all;
+the boundary does nothing if you do not cross it.
+
+## The resource scope hierarchy
+
+A resource sits at one of three levels. Which level it lives at
+decides who can see it.
+
+| Resource lives at… | Who can see it |
+|---|---|
+| Organisation | Everyone in the organisation. Shared infrastructure — a shared cluster, a shared CI database. Writes are admin-only and audit-logged. |
+| Organisation + Team | Everyone in the team. Team-shared services and databases. |
+| Organisation + Team + Folder | Everyone in the folder. The default for most workloads. |
+
+The levels cascade downward: a folder-scoped resource is implicitly
+team- and organisation-scoped too, and a team-scoped resource is
+implicitly organisation-scoped. A user who can see the organisation
+can see everything; a user who can see only the folder `prod` cannot
+see the folder `dev`.
+
+Resources default to **folder-scoped**. Organisation- and
+team-scoped resources are opt-in for things that genuinely need to be
+shared — the creation path for those is admin-only and writes leave an
+audit-trail entry.
+
+## Why three levels and not one big namespace
+
+Without the hierarchy, multi-team deployments either land everything
+in one shared namespace (everyone sees everyone else's resources,
+role bindings balloon) or layer a custom access system on top of a
+flat namespace. The three-level hierarchy is the smallest structure
+that lets an operator express "I want this visible to the team but
+not to the rest of the organisation" without writing any
+authorisation code themselves.
+
+In practice, "I want this visible to the team but not to the rest of
+the organisation" is the most common access shape in self-hosted
+deploys. Anything simpler forces you to put everyone on the same
+team; anything more elaborate tends to grow into home-grown
+authorisation that does not match the rest of the platform.

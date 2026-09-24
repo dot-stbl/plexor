@@ -1,0 +1,65 @@
+---
+title: "First login"
+description: "Get the operator into the console for the first time and set the admin password."
+chapter: "getting-started"
+---
+
+The first time your Plexor host is reachable, the console asks for the
+bootstrap admin password. This page walks you through the first login
+and the few things you should look at before inviting anyone else.
+
+<Callout type="info">
+
+If you just installed Plexor from the ISO or via `plx init`, the
+bootstrap admin user is created automatically with the slug you
+supplied during install. You set the password on the **First login**
+screen — Plexor never emails it.
+
+</Callout>
+
+## What the first login screen shows
+
+The first login screen is the only Plexor surface that does not have a
+scope switcher in the header. That's deliberate: before any user can
+pick an organisation, an organisation must exist, and on a fresh
+install there is exactly one.
+
+The form has three fields:
+
+- **Email** — the local administrator's email address. Plexor stores
+  email addresses lowercased; case does not matter.
+- **Password** — at least 12 characters, no composition rules
+  (NIST SP 800-63B). A password manager is recommended.
+- **Display name** — the human label that shows up in the audit log
+  and in the top-right avatar.
+
+After a successful login you land on the **Overview** page. The
+sidebar is collapsed by default; the first thing you'll want to open
+is the **Scope switcher** in the top-right header.
+
+## What the scope switcher does
+
+The scope switcher is the single most important control in the
+console. It selects the organisation, team, and folder every page you
+open operates on — and the operations that the current user can
+perform.
+
+Three rules to remember:
+
+1. **Every page assumes a scope.** The workloads list shows the
+   workloads inside the currently-selected folder. The audit log shows
+   events inside the currently-selected organisation. Switching scope
+   re-points every page at once.
+2. **Permissions are scope-bound.** A role binding scoped to a
+   folder only grants that folder's permissions. The same user can
+   hold an admin role in one folder and a viewer role in another.
+3. **Resources live in folders by default.** Switching to the
+   organisation scope shows shared resources (a shared cluster, a
+   shared bucket). Switching to a folder shows the resources inside
+   it. Most day-to-day work lives at folder scope.
+
+## Where to go next
+
+The next page walks through creating your first organisation, team,
+and folder. If you already have a folder you want to work in, skip
+ahead to **Your first API key**.

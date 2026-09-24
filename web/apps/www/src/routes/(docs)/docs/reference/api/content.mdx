@@ -1,0 +1,127 @@
+---
+title: "REST API reference"
+description: "The /api/v1 surface — endpoint groups by capability, request shapes, response shapes, and stable error codes."
+chapter: "reference"
+---
+
+This page is the operator-facing index to Plexor's REST API. It is
+hand-curated in the current release; auto-generation from the
+source code's route attributes ships in a later release.
+
+The API lives at `https://<your-plexor-host>/api/v1/...`. Every
+request requires an `Authorization: Bearer kid_<id>.<secret>`
+header (or a session cookie if you signed in through the console).
+
+## Endpoint groups
+
+The endpoints are grouped by capability. Each group corresponds to
+a Plexor module; the URL path's first segment is the group name.
+
+| Group | Base path | Capability |
+|---|---|---|
+| Organisations | `/api/v1/orgs` | Realm |
+| Teams | `/api/v1/teams` | Realm |
+| Folders | `/api/v1/folders` | Realm |
+| Users | `/api/v1/users` | Sigil (identity) |
+| API keys | `/api/v1/users/{userId}/api-keys` | Sigil |
+| SSH keys | `/api/v1/users/{userId}/ssh-keys` | Sigil |
+| Roles | `/api/v1/roles` | Sigil |
+| Role bindings | `/api/v1/role-bindings` | Sigil |
+| Auth providers | `/api/v1/iam/orgs/{orgId}/auth-provider` | Auth providers |
+| Workloads | `/api/v1/workloads` | Compute |
+| Volumes | `/api/v1/volumes` | Storage |
+| Buckets | `/api/v1/buckets` | Storage |
+| Floating IPs | `/api/v1/floating-ips` | Network |
+| Load balancers | `/api/v1/load-balancers` | Network |
+| Quota definitions | `/api/v1/quotas/definitions` | Quotas |
+| Quota assignments | `/api/v1/quotas/assignments` | Quotas |
+| Quota usage | `/api/v1/quotas/usage` | Quotas |
+| Audit log | `/api/v1/audit` | Audit |
+| Branding | `/api/v1/branding` | Branding |
+| Themes | `/api/v1/themes` | Branding |
+
+## Common shapes
+
+A few shapes appear across many endpoints:
+
+### Scope selector
+
+Most endpoints accept a folder scope as query parameters:
+
+```
+?scope=org|team|folder&id=<uuid>
+```
+
+The `scope` value names the kind; the `id` is the matching entity
+id. The platform filters the response to the matching scope.
+
+### Pagination
+
+List endpoints return a cursor-paginated payload:
+
+```json
+{
+  "items": [...],
+  "nextCursor": "<opaque-string>"
+}
+```
+
+Pass the `cursor` query parameter to fetch the next page. The
+default page size is 50; the maximum is 200.
+
+### Timestamps
+
+Every timestamp is **UTC unix milliseconds** (`long`). The wire
+format is the long integer, never an ISO string. The platform
+converts to `DateTimeOffset` on the server side.
+
+### ID format
+
+Every entity id is a UUID v7. UUID v7 is time-sortable, so range
+queries on `Id` give insertion order without a separate
+`created_at` index.
+
+## Stable error codes
+
+Every error response is RFC 9457 problem-details JSON. The `code`
+field carries a stable dot.case identifier; clients branch on
+`code`, never on `message`.
+
+<TypeTable>
+  <TypeRow name="identity.credentials.invalid" type="string" required>
+    Wrong email or password.
+  </TypeRow>
+  <TypeRow name="identity.credentials.locked" type="string" required>
+    Account is locked.
+  </TypeRow>
+  <TypeRow name="identity.credentials.provider_mismatch" type="string" required>
+    Wrong auth flow for the tenant's provider.
+  </TypeRow>
+  <TypeRow name="identity.token.expired" type="string" required>
+    JWT `exp` is in the past.
+  </TypeRow>
+  <TypeRow name="identity.token.replay_detected" type="string" required>
+    Refresh-token reuse; family revoked.
+  </TypeRow>
+  <TypeRow name="identity.permission.denied" type="string" required>
+    Permission check failed (HTTP 403).
+  </TypeRow>
+  <TypeRow name="quotas.exceeded" type="string" required>
+    Quota walker returned Denied (HTTP 429).
+  </TypeRow>
+  <TypeRow name="compute.workload.invalid_transition" type="string" required>
+    State-machine rejected a transition.
+  </TypeRow>
+  <TypeRow name="validation.failed" type="string" required>
+    Request body failed validation (HTTP 400).
+  </TypeRow>
+</TypeTable>
+
+The full catalog is in the source code's `ProviderException`
+subclasses; this list is the operator-facing subset.
+
+## What to do next
+
+- **Issue an API key** to authenticate against the API.
+- **Inspect the audit log** for the audit-action wire names you'll
+  see in responses and event payloads.

@@ -1,0 +1,111 @@
+---
+title: "Reading the audit log"
+description: "The four query parameters, the X-Quota-Warning rationale, and the 90-day retention window."
+chapter: "admin"
+---
+
+The audit log is your first stop when something looks wrong and
+your only stop when an external compliance regime asks for a
+record. This page covers the four query parameters, the warning
+header on quota-bound responses, and the retention window's
+operational implications.
+
+## The two places the audit log appears
+
+In the console you read the audit log from two surfaces:
+
+- **The organisation's audit feed** — the chronological firehose
+  of every state-changing event in the org. Default sort is
+  newest first; default page size is 50.
+- **The Activity tab on a resource detail view** — every entry
+  that touched that specific resource, in chronological order.
+  Use this when investigating one workload, one volume, one
+  bucket.
+
+The two views are different query shapes over the same table;
+the URL of the org feed encodes the same parameters the activity
+view sets internally.
+
+## The four query parameters
+
+The audit query endpoint accepts four parameters. All four are
+optional; omitting all four returns the most recent 50 entries.
+
+| Parameter | Effect |
+|---|---|
+| `actionPrefix` | Match entries whose `Action` starts with the given prefix. Example: `workload.state` returns every workload-state-change event. |
+| `targetType` and `targetId` | Match entries for a specific resource. Example: `targetType=Workload&targetId=<uuid>` returns every entry that touched that workload. |
+| `fromUnixMs` and `toUnixMs` | Inclusive time range, UTC unix milliseconds. Useful when the investigation has a known window. |
+| `actorUserId` | Match entries by a specific user. Useful when investigating one operator's actions during an incident. |
+
+The query is additive: combining `actionPrefix=quotas.assignment`
+with `actorUserId=<some-user>` returns exactly the entries where
+both conditions hold.
+
+Results are paginated. The default page size is 50; the maximum
+is 200. The response includes a `nextCursor` value you can pass
+back as `cursor` to fetch the next page.
+
+## Why the X-Quota-Warning header exists
+
+When a request succeeds but crosses the 80% threshold of a quota,
+the response carries an `X-Quota-Warning: true` header in addition
+to the normal 2xx status. The header is the platform's way of
+telling the calling code "the request is OK, but you should be
+careful here".
+
+The console reads the header on every quota-instrumented response
+and surfaces a warning badge in the resource list. The audit log
+records the warning event with action `quotas.limit.approaching`,
+payload `{ limit, used, thresholdPct: 80, scope, actorUserId }`.
+
+When you see a warning, the right response is **not** to keep
+asking "why is this happening" — the warning is honest, you are
+real. Decide whether to reduce the resource count, raise the
+quota, or accept the warning as a fact of the workload's life.
+
+## Retention, the practical view
+
+The default retention window is 90 days. The window is per-org
+and configurable between 30 and 3650 days.
+
+Three practical implications:
+
+1. **Anything that matters for compliance needs to be exported.**
+   Plexor does not retain audit entries indefinitely. The export
+   mechanism is the **Export audit log** recipe in the how-to
+   chapter — it writes the audit log to a bucket at a regular
+   cadence.
+2. **The retention sweep is itself audited.** The daily background
+   service that deletes entries past the window writes a
+   `audit.retention.purge` event with the count of rows deleted.
+   Operators can tell, from the audit log, when retention has
+   actually been enforced.
+3. **The 30-day minimum protects you from accidental data loss.**
+   Operators who try to set retention to "0" or "delete
+   immediately" cannot — the minimum is 30 days. This is a safety
+   guard against an admin who genuinely wants to disable auditing
+   without realising the consequences.
+
+## Things you will want to query but cannot
+
+A few queries are deliberately not supported:
+
+- **Reading entries across orgs** — every query is org-scoped.
+  Cross-org access requires the operator to log in to each org in
+  turn. There is no super-admin "platform-wide audit" view in the
+  current release.
+- **Reading entry payloads as a free-form search** — the audit log
+  is not a search engine. If you need log search, run the entries
+  through your SIEM (see **Export audit log**).
+- **Reading entries older than the retention window** — by design.
+  If you need an older entry, restore from a backup that
+  predates the retention sweep (see **Backup and disaster
+  avoidance**).
+
+## What to do next
+
+- **Export audit log** to a bucket if your organisation has a
+  compliance regime that requires longer retention than 90 days.
+- **Inspect audit log** for the recipe for a typical
+  post-incident review query.

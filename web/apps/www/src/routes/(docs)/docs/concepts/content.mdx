@@ -1,0 +1,27 @@
+---
+title: "Concepts"
+description: "Mental models for working with Plexor — the resource scope hierarchy, identity and RBAC, workloads and runtimes, networking, storage, quotas, and the audit log."
+chapter: "concepts"
+---
+
+Concept pages explain how Plexor works — the mental models that turn
+the console's UI into something predictable. They describe Plexor's
+behaviour, not its internals. Read them when you need a name for
+something; skip them when you already know the term.
+
+The eight pages in this chapter:
+
+- **Orgs, teams, and folders** — the 3-tier scope hierarchy.
+- **Authentication and RBAC** — local users, OIDC, JWT, API keys.
+- **Workloads and runtimes** — what a workload is, which runtimes
+  ship, and what the lifecycle states mean.
+- **Networking, FIPs, and load balancers** — VPCs, subnets, floating
+  IPs, and load balancers.
+- **Storage: volumes and buckets** — block volumes vs S3 buckets.
+- **Quotas** — folder → team → org resolution walker, the 80%
+  warning signal, and the catalog keys.
+- **Audit log** — every state-changing call writes an entry.
+
+If you only have time for one of them, read **Orgs, teams, and
+folders** first. Almost everything in the rest of the documentation
+refers to scope, and scope is what that page explains.

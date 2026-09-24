@@ -1,0 +1,148 @@
+---
+title: "Authentication and RBAC"
+description: "How Plexor authenticates a request — local users, OIDC, JWT claims, API keys, and the permission catalog."
+chapter: "concepts"
+---
+
+Plexor authenticates every request through one of two schemes —
+**local users** (email + password, JWT bearer) or **API keys**
+(service-to-service) — and produces one shape that downstream code
+consumes identically. This page explains the schemes, the JWT
+contents, and how permissions flow from role bindings to the request
+itself.
+
+## Local users — email and password
+
+The local user scheme is the operator's everyday login path. The
+console presents an email field and a password field; Plexor hashes
+the password with bcrypt at cost factor 12 (~250 ms on a modern CPU),
+looks up the user, and on a match issues a JWT access token.
+
+Passwords must be at least 12 characters. Plexor does not impose
+composition rules — no required digits, symbols, or case mixes —
+because NIST SP 800-63B recommends length over composition, and
+composition rules push operators toward predictable passwords.
+
+## JWT access tokens
+
+The JWT is signed with ES256 (ECDSA over P-256). The token has a
+15-minute lifetime. The header carries the key id (`kid`) in the
+form `key_YYYY_Qn` (year and quarter); the payload carries the
+claims that drive every authorisation decision.
+
+| Claim | Meaning |
+|---|---|
+| `sub` | The user id (UUID v7) for a user token, or the API key id for a service token. |
+| `tid` | The organisation id. Every request is org-scoped. |
+| `iss` | Always `"plexor"`. |
+| `aud` | Always `"plexor-api"`. |
+| `jti` | The token id; equals the refresh token id. |
+| `iat`, `nbf`, `exp` | Issued-at, not-before, expiry (15 minutes from issue). |
+| `service` | `true` for an API key, `false` for a user JWT. |
+| `roles[]` | The role names from the user's role bindings, snapshotted at sign time. |
+| `permissions[]` | The flat permission strings from those roles, snapshotted at sign time. |
+
+The `roles[]` and `permissions[]` claims are **snapshots**. If an
+admin changes a role's permissions five minutes after the user
+logged in, the user keeps the old permission set until the JWT
+expires (15 minutes) or the user refreshes. This is intentional —
+it avoids the surprise of "I had a permission, then I didn't, then
+I did" during a session.
+
+## Refresh tokens
+
+The login response carries an opaque refresh token alongside the JWT.
+Refresh tokens are 256-bit base64url strings, stored as SHA-256 hashes
+on the server. They are single-use, with a 7-day lifetime, and
+single-use is enforced with **family revocation**: when a refresh
+token is presented twice, every token in the same family is revoked
+and the user is logged out.
+
+The reason for single-use is replay detection. A refresh token that
+sits in a stolen log file cannot be reused by the thief because the
+original browser has already rotated it; any reuse signals
+compromise.
+
+## API keys
+
+API keys are long-lived service credentials, used for
+service-to-service traffic (the NodeAgent authenticates with an API
+key, not a session cookie). The bearer format is:
+
+```
+Bearer kid_<key_id>.<secret>
+```
+
+where `<key_id>` is the key's UUID v7 (prefixed `kid_`) and
+`<secret>` is a 43-character base64url string. The raw secret is
+shown exactly once in the create dialog; Plexor never stores it.
+
+API key permissions are a **subset of the owner's effective
+permissions at issue time**. Issuing a key with permissions the owner
+does not hold returns HTTP 403. This is the constraint that keeps
+the NodeAgent from escalating — the agent can only do what its owner
+can do.
+
+## Roles and permissions
+
+A permission is a flat string of the form
+`<service>.<resource>.<action>[.<qualifier>]`. Examples:
+
+- `compute.vms.create`
+- `compute.vms.create.bulk`
+- `compute.vms.delete`
+- `compute.vms.read`
+- `network.lb.delete`
+- `audit.read`
+- `audit.write`
+- `quotas.read`
+- `quotas.assign.org`
+
+Plexor does **not** resolve wildcards. `compute.vms.*` does not
+grant `compute.vms.snapshot` — adding a new action is an explicit
+permission grant. The single exception is `*`, which marks the
+super-admin role and short-circuits every permission check.
+
+Role bindings attach a user to a role at a scope:
+
+| Team | Folder | Effect |
+|---|---|---|
+| `null` | `null` | Org-wide — applies to operations across the organisation. |
+| set | `null` | Team-wide — applies to operations scoped to that team. |
+| set | set | Folder-scoped — applies to operations scoped to that folder. |
+
+The user's effective permissions are the **union** of every bound
+role's permissions. A user with `viewer` on org and `compute.editor`
+on folder `prod` can create workloads in `prod` but cannot see
+`staging`.
+
+## OIDC — external identity providers
+
+Per organisation, you can replace the local email-and-password
+scheme with an external OIDC provider (Keycloak, Authentik, Azure
+AD). When OIDC is enabled for an organisation, the local scheme
+stops accepting passwords for that org's users — they sign in via
+the OIDC provider, and Plexor consumes the ID token at login.
+
+The OIDC configuration lives behind the
+`org.auth.update` permission. The seed admin always retains the `*`
+wildcard regardless of which provider is configured, so a misconfigured
+OIDC connection cannot lock the operator out of recovery.
+
+## What the request looks like to your code
+
+Downstream code — handlers, validators, command handlers — receives
+one shape regardless of which scheme authenticated the request:
+
+- `UserId` — the user id (UUID v7).
+- `OrgId` — the organisation id.
+- `TeamId` — nullable.
+- `FolderId` — nullable.
+- `Roles` — the role names from the JWT.
+- `Permissions` — the flat permission strings from the JWT.
+- `IsService` — `true` for an API key, `false` for a user JWT.
+
+There is no `if (IsService)` branch in Plexor's domain code. The
+permission checks are the same regardless of which scheme
+authenticated the request; `IsService` exists so the audit log can
+mark service-initiated calls distinct from user-initiated calls.

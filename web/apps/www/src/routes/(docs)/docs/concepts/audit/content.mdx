@@ -1,0 +1,99 @@
+---
+title: "Audit log"
+description: "Every state-changing call writes an entry — what the columns mean, how to query, and the retention window."
+chapter: "concepts"
+---
+
+The audit log is a chronological record of every state-changing call
+Plexor made. Quota assignment changes, theme installations, workload
+state transitions, organisation auth-provider switches — every one of
+them writes an `AuditEntry` row.
+
+When something unexpected happens, the audit log is the first place
+to look. When an external compliance regime asks "show me everything
+that happened to this user's data last Tuesday", the audit log is
+the answer.
+
+## What an audit entry carries
+
+| Field | Meaning |
+|---|---|
+| `Id` | UUID v7 — primary key, time-sortable. |
+| `OrgId` | The organisation the entry is scoped to, when applicable. Null for system events (the daily retention sweep, for example). |
+| `ActorUserId` | The user who initiated the action. Null for system events. |
+| `Action` | A stable dot.case wire name (`quotas.assignment.changed`, `theme.installed.activated`). |
+| `TargetType` | A short noun for the affected entity (`QuotaAssignment`, `Workload`, `Org`). |
+| `TargetId` | The id of the affected entity. |
+| `PayloadJson` | Event-specific structured data, indexed for queries. |
+| `OccurredAt` | UTC timestamp, indexed for time-range queries. |
+
+Three of the columns are indexed — `(org_id, occurred_at)`,
+`(actor_user_id, occurred_at)`, `(action, occurred_at)` — so the
+two query shapes you run most often ("everything that happened to
+this org last week", "everything this user has done") both hit
+indexes.
+
+## Where the audit log lives
+
+In the console, the audit log appears in two places:
+
+- **Per-resource view** — every detail page has an **Activity** tab
+  listing the entries that touched the resource. A workload's
+  Activity tab shows every state transition, every configuration
+  change, and every authorisation decision.
+- **Org-level audit log** — the org-wide feed at
+  `/admin/audit` (or the equivalent route in your console). This
+  is the chronological firehose — every entry for every resource in
+  the organisation, sorted newest first.
+
+## Query parameters
+
+The audit log query endpoint accepts four parameters:
+
+- `actionPrefix` — match `audit.action LIKE 'prefix.%'`. Useful for
+  "show me all quota-related events".
+- `targetType` and `targetId` — show me events for a specific
+  resource.
+- `fromUnixMs` and `toUnixMs` — time range, inclusive.
+
+Query results are paginated; the default page size is 50, the
+maximum is 200. The audit log does not stream — operators working
+from a real-time feed use the workload's Activity tab instead.
+
+## Retention
+
+The default retention window is **90 days**. The window is
+configurable per organisation in the range 30–3650 days.
+
+Retention is enforced by a daily background service that deletes
+entries past the configured window. The deletion is itself an
+audit event (action `audit.retention.purge`, no actor); the entry
+documents how many rows were deleted.
+
+If your organisation needs longer retention — for compliance
+reasons — raise the limit in the org settings. Setting it past 3650
+days is not supported; the limit is the maximum the storage back-end
+is sized for without operator intervention.
+
+## What the audit log does not contain
+
+Three things to remember about the audit log:
+
+- **Read operations do not write audit entries.** A `GET` on the
+  workloads list does not leave a trace. The audit log is for
+  state-changing operations only.
+- **Failed authorisation does write an entry.** When a request
+  fails with `identity.permission.denied`, an audit entry is
+  written. The audit log is the right place to see who tried to do
+  what they were not allowed to do.
+- **The audit log does not contain secrets.** Request bodies are
+  not recorded; only the wire-format action name and the structured
+  payload. Passwords, API keys, and bearer tokens never reach the
+  audit table.
+
+## Audit log and the rate limits
+
+Every query of the audit log consumes API quota. A chronically
+chatty audit-log reader can hit the per-user hourly rate limit. If
+you need sustained audit-log export, set up a scheduled export via
+the **Export audit log** recipe in the how-to chapter.
