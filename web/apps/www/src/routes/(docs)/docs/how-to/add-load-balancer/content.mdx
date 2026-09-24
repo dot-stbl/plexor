@@ -1,0 +1,104 @@
+---
+title: "Add a load balancer"
+description: "Round-robin vs least-connections — pick an algorithm, add targets, and confirm Active status."
+chapter: "how-to"
+---
+
+A load balancer distributes inbound traffic across multiple
+workloads. This page walks through creating one and adding
+workloads as targets.
+
+<Callout type="info">
+
+A load balancer in Plexor needs at least one floating IP and at
+least one target workload. Without a floating IP, there is no
+inbound address for the load balancer to listen on. Without
+targets, the load balancer has nothing to balance to.
+
+</Callout>
+
+## Step 1 — Create the load balancer
+
+Open **Network → Load Balancers** and click **Create load
+balancer**.
+
+The dialog asks for:
+
+- **Name** — kebab-case, unique per cluster.
+- **Algorithm** — `round-robin` or `least-connections`. Round-robin
+  is the right default for stateless workloads; least-connections
+  fits workloads with sticky connections (long polls, WebSockets).
+- **Floating IP** — the public address the load balancer listens
+  on. Pick one you've reserved (see **Reserve a floating IP**).
+- **Port** — the listener port (typically `443` for HTTPS, `80`
+  for HTTP).
+- **Target port** — the port the workloads listen on inside their
+  VPC (typically the same as the listener port, but not always).
+
+Click **Create**. The load balancer is created in `Inactive` state
+until you add targets.
+
+## Step 2 — Add targets
+
+Open the load balancer's detail view and click **Add target**.
+Pick a workload. Repeat for every workload that should receive
+traffic.
+
+Each target is probe-checked on its target port every 30 seconds.
+A target that responds is `healthy`; one that times out is
+`unhealthy`. The load balancer's overall state is:
+
+- **Active** — every target is healthy.
+- **Degraded** — at least one target is unhealthy, but at least
+  one is healthy.
+- **Inactive** — every target is unhealthy (or there are no
+  targets).
+
+A load balancer in `Degraded` state still routes traffic; it
+routes only to the healthy targets. A load balancer in `Inactive`
+state receives no traffic at all.
+
+<Callout type="warning">
+
+The probe is a TCP connect, not an application health check. A
+workload that has its port open but its application wedged is
+"healthy" as far as the load balancer knows. If you need
+application-aware probing, run your own probe and use it as the
+gate to remove the workload from the load balancer's target list.
+
+</Callout>
+
+## Step 3 — Confirm
+
+Open the load balancer's detail view. After one probe cycle
+(≤ 30 seconds), the state should move from `Inactive` to either
+`Active` (all targets healthy) or `Degraded` (some unhealthy).
+
+If the state is `Inactive` after a minute:
+
+- Confirm every target workload is in `Running`.
+- Confirm every target's port matches the load balancer's target
+  port.
+- Confirm the VPC's security policy allows traffic from the load
+  balancer's probe source to the target port.
+
+## What the operator sees when a target fails
+
+A workload restart (intended or unintended) trips the target's
+probe. Within one cycle, the target is marked unhealthy, and the
+load balancer moves to `Degraded`. Traffic keeps flowing to the
+other healthy targets.
+
+When the workload returns to `Running`, the probe picks it up on
+the next cycle and the load balancer returns to `Active`.
+
+This is the recovery loop operators rely on: a single workload
+restart is invisible to inbound callers, because the load balancer
+absorbs the failure and recovers when the workload is ready again.
+
+## What to do next
+
+- **Reserve a floating IP** if you do not have one yet — without
+  it the load balancer has nothing to listen on.
+- **Set up audit export** if you want the load balancer's state
+  changes in your SIEM — see **Export audit log**.

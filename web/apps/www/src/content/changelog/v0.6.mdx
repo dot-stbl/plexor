@@ -1,0 +1,15 @@
+---
+version: "v0.6"
+title: "Spreading across regions"
+status: "design"
+bullets:
+  - "Run Plexor in two regions with one console in front of both"
+  - "Planned failover between regions when the primary goes down"
+  - "Stream the audit log to whatever SIEM you already operate"
+---
+
+<ul>
+  {frontmatter.bullets.map((bullet) => (
+    <li key={bullet}>{bullet}</li>
+  ))}
+</ul>

@@ -1,0 +1,130 @@
+---
+title: "Permissions catalog"
+description: "Every permission string Plexor ships, with the resource and action each guards, and the role the platform seeds it into."
+chapter: "reference"
+---
+
+Every permission in Plexor is a flat string of the form
+`<service>.<resource>.<action>[.<qualifier>]`. There are no
+wildcards except the `*` super-admin role. This page is the
+operator-facing catalog of every string the platform ships.
+
+The catalog is hand-curated in the current release; auto-generation
+from the source code's `[RequirePermission]` attributes ships in a
+later release.
+
+## Identity
+
+| Permission | Resource | Action |
+|---|---|---|
+| `identity.users.read` | Users | List / get |
+| `identity.users.write` | Users | Create / update |
+| `identity.users.delete` | Users | Suspend / delete |
+| `identity.api_keys.read` | API keys | List |
+| `identity.api_keys.write` | API keys | Issue / rotate |
+| `identity.api_keys.delete` | API keys | Revoke |
+| `identity.ssh_keys.read` | SSH keys | List |
+| `identity.ssh_keys.write` | SSH keys | Add |
+| `identity.ssh_keys.delete` | SSH keys | Revoke |
+| `identity.roles.read` | Roles | List / get |
+| `identity.roles.write` | Roles | Create / update custom roles |
+| `identity.roles.delete` | Roles | Delete custom roles |
+| `identity.role_bindings.write` | Role bindings | Add / remove |
+| `identity.role_bindings.read` | Role bindings | List |
+
+## Auth providers
+
+| Permission | Resource | Action |
+|---|---|---|
+| `org.auth.read` | Org auth provider | Read configuration |
+| `org.auth.update` | Org auth provider | Update configuration |
+| `org.auth.test` | Org auth provider | Test connection |
+
+## Compute
+
+| Permission | Resource | Action |
+|---|---|---|
+| `compute.workloads.read` | Workloads | List / get |
+| `compute.workloads.create` | Workloads | Create |
+| `compute.workloads.start` | Workloads | Start |
+| `compute.workloads.stop` | Workloads | Stop |
+| `compute.workloads.restart` | Workloads | Restart |
+| `compute.workloads.delete` | Workloads | Delete |
+| `compute.workloads.create.bulk` | Workloads | Bulk create (gated separately) |
+| `compute.workloads.snapshot` | Workloads | Snapshot (forthcoming) |
+| `compute.vms.read` | VMs | List / get (alias of `compute.workloads.read`) |
+| `compute.vms.create` | VMs | Create |
+| `compute.vms.delete` | VMs | Delete |
+| `compute.nodes.heartbeat` | Node | Send heartbeat |
+
+## Storage
+
+| Permission | Resource | Action |
+|---|---|---|
+| `storage.volumes.read` | Volumes | List / get |
+| `storage.volumes.create` | Volumes | Create |
+| `storage.volumes.resize` | Volumes | Resize |
+| `storage.volumes.attach` | Volumes | Attach to workload |
+| `storage.volumes.detach` | Volumes | Detach |
+| `storage.volumes.delete` | Volumes | Delete |
+| `storage.buckets.read` | Buckets | List / get |
+| `storage.buckets.create` | Buckets | Create |
+| `storage.buckets.delete` | Buckets | Delete |
+| `storage.buckets.policy.write` | Buckets | Edit policy |
+
+## Network
+
+| Permission | Resource | Action |
+|---|---|---|
+| `network.floating_ips.read` | Floating IPs | List / get |
+| `network.floating_ips.reserve` | Floating IPs | Reserve / release |
+| `network.floating_ips.assign` | Floating IPs | Assign / reassign |
+| `network.load_balancers.read` | Load balancers | List / get |
+| `network.load_balancers.create` | Load balancers | Create |
+| `network.load_balancers.delete` | Load balancers | Delete |
+| `network.load_balancers.write` | Load balancers | Edit (targets, algorithm) |
+
+## Quotas
+
+| Permission | Resource | Action |
+|---|---|---|
+| `quotas.read` | Quotas | List definitions, assignments, usage, effective |
+| `quotas.assign.org` | Quotas | Create / update / delete assignments |
+
+## Audit
+
+| Permission | Resource | Action |
+|---|---|---|
+| `audit.read` | Audit log | Query |
+
+## Branding
+
+| Permission | Resource | Action |
+|---|---|---|
+| `branding.read` | Branding | Read current brand |
+| `branding.write` | Branding | Update brand fields |
+| `themes.read` | Themes | List installed themes |
+| `themes.install` | Themes | Install from marketplace |
+| `themes.activate` | Themes | Activate / deactivate |
+
+## Built-in role assignments
+
+The four built-in roles ship with these permission sets:
+
+| Role | Permissions |
+|---|---|
+| `*` (super-admin) | Every permission, including future ones. |
+| `admin` | Every permission except `*`-wildcard-only paths. |
+| `operator` | All read permissions, write permissions for compute / storage / network resources. No quota assignment, no role binding edits. |
+| `viewer` | All read permissions only. |
+
+The built-in roles are immutable — you cannot add or remove
+permissions from them. To customise, create a new role with the
+desired permissions and bind it instead.
+
+## What to do next
+
+- **RBAC hardening** for the patterns that keep a Plexor
+  deployment secure.
+- **Add a user and assign a role** to put these permissions into
+  action.

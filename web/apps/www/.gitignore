@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-storybook
+coverage
+.tanstack
+.listen
+.vite
+
+# bun run shot output — disposable PNG + .md reports, PID/log files.
+.shots/

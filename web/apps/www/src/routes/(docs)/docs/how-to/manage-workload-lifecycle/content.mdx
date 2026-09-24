@@ -1,0 +1,109 @@
+---
+title: "Workload lifecycle"
+description: "The four buttons every workload exposes — start, stop, restart, delete — and what each one does to the state machine."
+chapter: "how-to"
+---
+
+Every workload exposes four actions from its detail view: **Start**,
+**Stop**, **Restart**, and **Delete**. Each action drives the
+workload state machine through a specific transition. This page
+walks through what each one does and the cases when one is right
+and the others are wrong.
+
+## Start
+
+**Start** moves a workload from `Pending` to `Provisioning`. The
+control plane checks the folder's quota for the workload's resource
+class; if the check passes, the command is queued for the assigned
+node agent.
+
+When you would use Start:
+
+- Right after creating a workload — most workloads start themselves,
+  but if you disabled auto-start, you call Start explicitly.
+- After Stop, when you want the workload running again. (For an
+  already-running workload, the Start button is disabled.)
+
+## Stop
+
+**Stop** moves a workload from `Running` to `Stopped`. The node
+agent sends an ACPI shutdown signal; if the guest does not respond
+within the configured grace period (30 seconds by default,
+adjustable in `Clusters:Compute:Libvirt:StopGracePeriodSeconds`),
+the agent forces a destroy.
+
+The workload's disk and configuration are preserved. Stop does not
+delete anything; you can Restart to bring the workload back to
+`Running`.
+
+When you would use Stop:
+
+- Routine maintenance — patching, host reboots, snapshot jobs.
+- Cost control — a stopped workload does not count against CPU or
+  RAM quotas (the disk space it occupies does).
+- Pause-for-investigation — you suspect the workload is doing
+  something wrong but you want to keep the disk image around for
+  forensics.
+
+## Restart
+
+**Restart** is a Stop followed by a Start, atomically. The workload
+moves `Running` → `Stopped` → `Pending` → `Provisioning` →
+`Running`. The agent gets a fresh boot, but the disk and config
+persist.
+
+When you would use Restart:
+
+- The workload is misbehaving and a clean boot is the cheapest
+  fix.
+- You changed a runtime setting (resource limits, environment
+  variables) that takes effect only on a fresh boot.
+- The workload is stuck in `Provisioning` because the agent lost
+  contact; Restart re-queues the command.
+
+<Callout type="warning">
+
+Restart does **not** reset the workload's network identity. The
+private IP, the public floating IP (if any), and the volume
+attachments all stay the same. If you want a fresh network
+identity, delete and recreate.
+
+</Callout>
+
+## Delete
+
+**Delete** removes the workload row from the control plane and
+asks the node agent to delete the runtime-local resources (libvirt
+domain, container, pod). The workload's disk image is deleted; any
+attached volumes are detached but preserved.
+
+When you would use Delete:
+
+- The workload is no longer needed and you want to free disk space.
+- The workload is misconfigured beyond recovery and a fresh create
+  is faster than fixing the spec.
+
+Delete is **not** undoable. If you delete a workload by accident,
+the audit log carries the deletion event, but the disk image is
+gone. The pattern that prevents this: take a snapshot of the
+workload's volumes before delete. Snapshots are not on by default
+in the current release, but the recipe for one-shot snapshots is
+straightforward (the snapshot is itself a workload of kind
+`snapshot`).
+
+## Lifecycle states and the audit log
+
+Every transition writes an audit entry with `action =
+workload.state.changed`. To see the full timeline of one workload,
+open the workload detail and click the **Activity** tab.
+
+A consumer who wants the state-change history of one workload via
+the API calls:
+
+```bash
+curl -sS \
+  -H "Authorization: Bearer kid_<key-id>.<secret>" \
+  "https://plexor.example.com/api/v1/audit?actionPrefix=workload.state&targetId=<workload-id>"
+```
+
+The results are paginated; the default page size is 50.

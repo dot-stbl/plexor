@@ -1,0 +1,124 @@
+---
+title: "Attach a volume"
+description: "Provision a block volume, attach it to a workload, and expand it without downtime."
+chapter: "how-to"
+---
+
+A volume is a block device you provision from Plexor's storage
+backend and attach to a workload. The workload's guest OS sees the
+volume as a raw disk; formatting and mounting are the guest's
+responsibility.
+
+This page walks through creating a volume, attaching it to a
+running workload, and growing the volume without downtime.
+
+## Step 1 — Create the volume
+
+Open **Storage → Volumes** and click **Create volume**.
+
+The dialog asks for two things:
+
+- **Name** — kebab-case, unique per cluster.
+- **Size** — gibibytes. The minimum is 1 GiB; the maximum depends on
+  the storage backend (16 TiB on Ceph RBD, 1 TiB on local-lvm).
+
+Click **Create**. The volume starts in `Available` state. There is no
+quota block at create time — quotas check at workload-attach, not at
+volume-create — because a detached volume uses only disk space, not
+the workloads-per-folder cap.
+
+## Step 2 — Attach the volume
+
+Open the volume's detail view and click **Attach**. Pick the
+workload you want to attach to.
+
+<Callout type="warning">
+
+A volume can be attached to **one workload at a time**. Plexor
+refuses to attach a volume that is already attached elsewhere.
+Detach the volume from the first workload before re-attaching to a
+second; the **Force detach** option exists for break-glass but
+should not be the default — it leaves the second workload with a
+device that may have stale filesystem metadata.
+
+</Callout>
+
+The attach is recorded as a workload-side event; the volume's
+state moves to `In use`. The workload sees a new raw device —
+typically `/dev/vdb` on VMs and a configured mount source on
+container workloads.
+
+## Step 3 — Format and mount (in the workload)
+
+Inside the workload, the new device is unformatted raw storage.
+The exact steps depend on the workload's guest OS; on a recent
+Linux:
+
+```bash
+# Find the new device
+lsblk
+
+# Create a filesystem (ext4 in this example)
+sudo mkfs.ext4 /dev/vdb
+
+# Mount it
+sudo mkdir -p /mnt/data
+sudo mount /dev/vdb /mnt/data
+
+# Make the mount persistent across reboots
+echo '/dev/vdb /mnt/data ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+```
+
+The `nofail` option is important — without it, a missing volume at
+boot will hang the workload's boot. Plexor does not guarantee that
+an attached volume is present at boot time; the workload should be
+resilient to that.
+
+## Step 4 — Resize the volume (no downtime)
+
+If the workload runs out of disk, you can resize the volume without
+stopping it. Open the volume's detail view and click **Resize**.
+Enter the new size in GiB; the new size must be greater than the
+current size (shrinking is not supported).
+
+Resize expands the volume's backing storage inside Plexor. The
+guest OS does **not** automatically grow the filesystem. After the
+resize completes, in the workload:
+
+```bash
+# Tell the kernel the device is now bigger
+echo 1 | sudo tee /sys/block/vdb/device/rescan
+
+# Grow the filesystem to fill the device
+sudo resize2fs /dev/vdb
+```
+
+Filesystem growth is online — the workload stays up, the mount is
+preserved, and the new space is immediately available.
+
+<Callout type="info">
+
+The grow-the-filesystem step is on the guest, not on Plexor.
+Plexor only knows how to grow the backing volume; the filesystem
+inside is the guest's concern. Skipping the guest step is the
+most common resize mistake — the workload reports the volume as
+the new size but the filesystem as the old size, which causes
+"no space left on device" errors.
+
+</Callout>
+
+## Detach the volume
+
+When the workload no longer needs the volume, unmount it inside
+the workload first (`sudo umount /mnt/data`), then open the
+volume's detail view and click **Detach**. Plexor refuses to
+detach a volume that is still mounted; the guest must release the
+mount first.
+
+## What to do next
+
+- **Take a snapshot** of the volume before destructive operations.
+  Snapshot support is a separate concept (not yet in the current
+  release; tracked in the console as a "Soon" entry).
+- **Set a quota** for volumes in the folder if the team has a habit
+  of out-growing their allocation — see **Set up quotas**.
