@@ -39,6 +39,8 @@ interface LxcListBodyProps {
   isPending?: boolean;
   /** Navigate to the create wizard (/lxc/new). */
   onCreate: () => void;
+  /** Navigate to a container detail (/lxc/$id). */
+  onOpenContainer: (container: LxcContainer) => void;
 }
 
 /**
@@ -49,7 +51,7 @@ interface LxcListBodyProps {
  * Filtering is client-side (`applyFilters`): the status chips and the
  * toolbar name search compose over the same `items` array.
  */
-export function LxcListBody({ items, isPending = false, onCreate }: LxcListBodyProps) {
+export function LxcListBody({ items, isPending = false, onCreate, onOpenContainer }: LxcListBodyProps) {
   const { t } = useTranslation();
   const columns = useMemo(() => getLxcColumns(t), [t]);
   const filterDefault = useMemo(() => emptyFilters(columns), [columns]);
@@ -79,6 +81,13 @@ export function LxcListBody({ items, isPending = false, onCreate }: LxcListBodyP
   const activeStatus = isLxcStatus(statusFilter) ? statusFilter : null;
 
   const sel = useRowSelection(filteredItems);
+
+  const handleRowClick = useCallback(
+    (container: LxcContainer) => {
+      onOpenContainer(container);
+    },
+    [onOpenContainer],
+  );
 
   const resetFilters = useCallback(() => setFilters(filterDefault), [filterDefault]);
 
@@ -167,6 +176,7 @@ export function LxcListBody({ items, isPending = false, onCreate }: LxcListBodyP
               selection={sel.selection}
               hiddenColumns={new Set(colState.hidden)}
               columnOrder={colState.order}
+              onRowClick={handleRowClick}
             />
             {filteredItems.length === 0 && <LxcNoResultsState title={noResultsTitle} onReset={resetFilters} />}
           </div>

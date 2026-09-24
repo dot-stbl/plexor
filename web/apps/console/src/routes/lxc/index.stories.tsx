@@ -177,17 +177,17 @@ type Story = StoryObj<typeof meta>;
 
 /** Default: inventory with mixed statuses, strip chips + toolbar + table. */
 export const Default: Story = {
-  render: () => <LxcListBody items={INVENTORY} onCreate={noop} />,
+  render: () => <LxcListBody items={INVENTORY} onCreate={noop} onOpenContainer={noop} />,
 };
 
 /** Loading: strip skeleton + table row skeletons. */
 export const Loading: Story = {
-  render: () => <LxcListBody items={[]} isPending onCreate={noop} />,
+  render: () => <LxcListBody items={[]} isPending onCreate={noop} onOpenContainer={noop} />,
 };
 
 /** Empty inventory: no strip, empty state with a create CTA and docs links. */
 export const Empty: Story = {
-  render: () => <LxcListBody items={[]} onCreate={noop} />,
+  render: () => <LxcListBody items={[]} onCreate={noop} onOpenContainer={noop} />,
 };
 
 /** One chip active: stopped chip emphasized, table filtered to stopped containers. */
