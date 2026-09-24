@@ -2,6 +2,18 @@ import { useTranslation } from 'react-i18next';
 import { Search } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
+import { Skeleton } from '@/shared/ui/primitives/skeleton';
+
+/** Loading skeleton — 5 placeholder rows shaped like the cluster table. */
+export function K8sSkeleton() {
+  return (
+    <div data-od-id="k8s-skeleton" className="flex flex-col gap-2">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <Skeleton key={index} className="h-10 w-full" />
+      ))}
+    </div>
+  );
+}
 
 interface K8sNoResultsStateProps {
   /** Overrides the generic title when a specific filter is the culprit (e.g. "No degraded clusters"). */

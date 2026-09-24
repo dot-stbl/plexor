@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
+import { Skeleton } from '@/shared/ui/primitives/skeleton';
 import { SizeUtils } from '@/shared/ui/primitives/size';
 import { cn } from '@/shared/lib/utils';
 import type { K8sCluster, K8sStatus } from '../model/k8s-types';
@@ -134,6 +135,19 @@ export function K8sStatusStrip({ counts, activeStatus, onToggleStatus, totals }:
           <span>{t('k8s.list.strip.nodes')}</span>
         </span>
       </div>
+    </div>
+  );
+}
+
+/** Skeleton matching the strip layout — chips block left, totals block right. */
+export function K8sStatusStripSkeleton() {
+  return (
+    <div
+      data-od-id="k8s-status-strip-skeleton"
+      className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border border-border bg-card px-3 py-2"
+    >
+      <Skeleton className="h-6 w-72" />
+      <Skeleton className="h-6 w-44" />
     </div>
   );
 }

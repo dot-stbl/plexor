@@ -18,9 +18,10 @@ import {
   type FilterValues,
 } from '@/shared/ui/data-table';
 import { getLxcColumns } from './lxc-columns';
-import { LxcNoResultsState } from './lxc-states';
+import { LxcNoResultsState, LxcSkeleton } from './lxc-states';
 import {
   LxcStatusStrip,
+  LxcStatusStripSkeleton,
   countByStatusFacet,
   isLxcStatus,
   lxcStatusLabelKey,
@@ -31,6 +32,11 @@ import type { LxcContainer } from '../model/lxc-types';
 interface LxcListBodyProps {
   /** Full container inventory for the page — filtering happens client-side. */
   items: ReadonlyArray<LxcContainer>;
+  /**
+   * Loading seam — false today (the handmade mock is synchronous), true once
+   * the kubb endpoint lands; the strip + table show skeletons while set.
+   */
+  isPending?: boolean;
   /** Navigate to the create wizard (/lxc/new). */
   onCreate: () => void;
 }
@@ -43,7 +49,7 @@ interface LxcListBodyProps {
  * Filtering is client-side (`applyFilters`): the status chips and the
  * toolbar name search compose over the same `items` array.
  */
-export function LxcListBody({ items, onCreate }: LxcListBodyProps) {
+export function LxcListBody({ items, isPending = false, onCreate }: LxcListBodyProps) {
   const { t } = useTranslation();
   const columns = useMemo(() => getLxcColumns(t), [t]);
   const filterDefault = useMemo(() => emptyFilters(columns), [columns]);
@@ -99,13 +105,17 @@ export function LxcListBody({ items, onCreate }: LxcListBodyProps) {
         width="wide"
         title={t('lxc.list.title')}
         description={
-          <span>
-            <MonoNum>{running}</MonoNum> <span className="text-muted-foreground">{t('lxc.list.runningOf')}</span>{' '}
-            <MonoNum>{allItems.length}</MonoNum> <span className="text-muted-foreground">{t('lxc.list.total')}</span>
-          </span>
+          isPending ? (
+            t('common.loading')
+          ) : (
+            <span>
+              <MonoNum>{running}</MonoNum> <span className="text-muted-foreground">{t('lxc.list.runningOf')}</span>{' '}
+              <MonoNum>{allItems.length}</MonoNum> <span className="text-muted-foreground">{t('lxc.list.total')}</span>
+            </span>
+          )
         }
         actions={
-          allItems.length > 0 ? (
+          isPending || allItems.length > 0 ? (
             <Button onClick={onCreate}>
               <Add />
               {t('lxc.list.create')}
@@ -113,7 +123,12 @@ export function LxcListBody({ items, onCreate }: LxcListBodyProps) {
           ) : undefined
         }
       >
-        {allItems.length === 0 ? (
+        {isPending ? (
+          <div className="space-y-2">
+            <LxcStatusStripSkeleton />
+            <LxcSkeleton />
+          </div>
+        ) : allItems.length === 0 ? (
           <EmptyState
             icon={DeployedCode}
             title={t('lxc.list.empty.title')}

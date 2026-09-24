@@ -18,9 +18,10 @@ import {
   type FilterValues,
 } from '@/shared/ui/data-table';
 import { getK8sColumns } from './k8s-columns';
-import { K8sNoResultsState } from './k8s-states';
+import { K8sNoResultsState, K8sSkeleton } from './k8s-states';
 import {
   K8sStatusStrip,
+  K8sStatusStripSkeleton,
   countByStatusFacet,
   isK8sStatus,
   k8sStatusLabelKey,
@@ -31,6 +32,11 @@ import type { K8sCluster } from '../model/k8s-types';
 interface K8sListBodyProps {
   /** Full cluster fleet for the page — filtering happens client-side. */
   items: ReadonlyArray<K8sCluster>;
+  /**
+   * Loading seam — false today (the handmade mock is synchronous), true once
+   * the kubb endpoint lands; the strip + table show skeletons while set.
+   */
+  isPending?: boolean;
   /** Navigate to the create wizard (/k8s/new). */
   onCreate: () => void;
 }
@@ -43,7 +49,7 @@ interface K8sListBodyProps {
  * Filtering is client-side (`applyFilters`): the status chips and the
  * toolbar name search compose over the same `items` array.
  */
-export function K8sListBody({ items, onCreate }: K8sListBodyProps) {
+export function K8sListBody({ items, isPending = false, onCreate }: K8sListBodyProps) {
   const { t } = useTranslation();
   const columns = useMemo(() => getK8sColumns(t), [t]);
   const filterDefault = useMemo(() => emptyFilters(columns), [columns]);
@@ -94,13 +100,17 @@ export function K8sListBody({ items, onCreate }: K8sListBodyProps) {
         width="wide"
         title={t('k8s.list.title')}
         description={
-          <span>
-            <MonoNum>{running}</MonoNum> <span className="text-muted-foreground">{t('k8s.list.runningOf')}</span>{' '}
-            <MonoNum>{allItems.length}</MonoNum> <span className="text-muted-foreground">{t('k8s.list.total')}</span>
-          </span>
+          isPending ? (
+            t('common.loading')
+          ) : (
+            <span>
+              <MonoNum>{running}</MonoNum> <span className="text-muted-foreground">{t('k8s.list.runningOf')}</span>{' '}
+              <MonoNum>{allItems.length}</MonoNum> <span className="text-muted-foreground">{t('k8s.list.total')}</span>
+            </span>
+          )
         }
         actions={
-          allItems.length > 0 ? (
+          isPending || allItems.length > 0 ? (
             <Button onClick={onCreate}>
               <Add />
               {t('k8s.list.create')}
@@ -108,7 +118,12 @@ export function K8sListBody({ items, onCreate }: K8sListBodyProps) {
           ) : undefined
         }
       >
-        {allItems.length === 0 ? (
+        {isPending ? (
+          <div className="space-y-2">
+            <K8sStatusStripSkeleton />
+            <K8sSkeleton />
+          </div>
+        ) : allItems.length === 0 ? (
           <EmptyState
             icon={Hexagon}
             title={t('k8s.list.empty.title')}

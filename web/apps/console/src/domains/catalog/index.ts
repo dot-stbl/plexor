@@ -19,3 +19,4 @@ export { RuntimePicker } from './ui/runtime-picker';
 export { getDbColumns } from './ui/database-columns';
 export { ManagedServiceEmpty } from './ui/managed-service-empty';
 export { ManagedServicePage } from './ui/managed-service-page';
+export { K8sListBody } from './ui/k8s-list-body';

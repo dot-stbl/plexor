@@ -33,3 +33,4 @@ export { getLxcColumns } from './ui/lxc-columns';
 export * from './model/image-types';
 export { listImages } from './model/image-data';
 export { getImageColumns } from './ui/image-columns';
+export { LxcListBody } from './ui/lxc-list-body';
