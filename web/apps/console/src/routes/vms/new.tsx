@@ -193,10 +193,34 @@ function CreateVmPage() {
 
   const handleCreate = () => {
     if (!canCreate) return;
-    toast(`Creating VM ${effectiveName}`, {
-      description: `${selectedImage?.name ?? 'image'}, ${vcpu} vCPU / ${SizeUtils.format(ramBytes)}, ${SizeUtils.format(bootDiskBytes)} on ${STORAGE_LABELS[effBootPool]}, node ${selectedNode?.hostname ?? '—'}`,
+    setFieldErrors({});
+    const payload = mapVmWizardToCreateVmRequest({
+      name: effectiveName,
+      imageId,
+      vpc,
+      sockets,
+      cores,
+      ramBytes,
+      bootDiskBytes,
+      labels,
     });
-    void navigate({ to: '/vms' });
+    createVm.mutate(
+      { data: payload },
+      {
+        onSuccess: (vm) => {
+          toast.success(t('vms.new.createdToast', { name: vm.name }));
+          void navigate({ to: '/vms' });
+        },
+        onError: (error) => {
+          const response = (error as { response?: { status?: number; data?: ProblemDetails } }).response;
+          if (response?.status === 409 || response?.status === 422) {
+            setFieldErrors(mapCreateVmErrorToFieldErrors(response.data ?? {}));
+          } else {
+            toast.error(t('vms.new.createFailedToast'));
+          }
+        },
+      },
+    );
   };
 
   return (
@@ -485,7 +509,22 @@ function CreateVmPage() {
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
                 <FieldRow label={t('vms.new.name')} htmlFor="vm-name" required help={t('vms.new.nameDescription')}>
-                  <Input id="vm-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('vms.new.namePlaceholder')} />
+                  <Input
+                    id="vm-name"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      if (fieldErrors.name !== undefined) {
+                        setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                      }
+                    }}
+                    placeholder={t('vms.new.namePlaceholder')}
+                    aria-invalid={fieldErrors.name !== undefined}
+                    className={cn(fieldErrors.name !== undefined && 'border-destructive ring-2 ring-destructive/20')}
+                  />
+                  {fieldErrors.name !== undefined && (
+                    <p className="text-xs text-destructive">{t(fieldErrors.name)}</p>
+                  )}
                 </FieldRow>
                 <FieldRow label={t('vms.new.form.user')} htmlFor="vm-user" help={t('vms.new.form.userHelp')}>
                   <Input id="vm-user" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="plexor" className="w-56" />
@@ -558,9 +597,13 @@ function CreateVmPage() {
               <Button variant="outline" nativeButton={false} render={<Link to="/vms" />}>
                 {t('common.cancel')}
               </Button>
-              <Button onClick={handleCreate} disabled={!canCreate}>
-                <Add />
-                {t('vms.new.create')}
+              <Button
+                onClick={handleCreate}
+                disabled={!canCreate || createVm.isPending}
+                aria-busy={createVm.isPending}
+              >
+                {createVm.isPending ? <Spinner className="size-3.5" aria-hidden="true" /> : <Add />}
+                {createVm.isPending ? t('vms.new.creating') : t('vms.new.create')}
               </Button>
             </div>
           </div>

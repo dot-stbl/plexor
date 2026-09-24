@@ -18,13 +18,13 @@ import { requireServiceContent } from './service-content';
  * any future caller that forgets the guard.
  */
 export function ServiceConsolePanel({ id }: { id: string }) {
+  const theme = useThemeName();
   const content = requireServiceContent(id);
   const screenshot = content.screenshot;
   if (!screenshot) {
     return null;
   }
 
-  const theme = useThemeName();
   const shot = requireScreenshot(screenshot.id);
   const src = theme === 'dark' ? shot.dark : shot.light;
 

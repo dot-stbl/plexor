@@ -138,12 +138,20 @@ export const handlers: RequestHandler[] = [
     });
   }),
   provisionVmHandler(async (info) => {
+    const scenario = getMockScenario();
+    if (scenario === 'error') {
+      return new Response(
+        JSON.stringify({ status: 500, title: 'Internal Server Error', detail: 'Mock scenario: error' } satisfies ProblemDetails),
+        { status: 500, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
     await mockDelay(300);
     const body = (await info.request.json().catch(() => ({}))) as Partial<CreateVmRequest>;
-    if (!body.name || !body.name.trim()) {
+    const name = body.name?.trim() ?? '';
+    if (!name) {
       return new Response(
         JSON.stringify({
-          type: 'https://plexor.dev/problems/validation',
+          type: 'https://plexor.dev/problems/vms/name-required',
           title: 'Validation failed',
           status: 422,
           detail: 'name is required.',
@@ -151,7 +159,30 @@ export const handlers: RequestHandler[] = [
         { status: 422, headers: { 'Content-Type': 'application/problem+json' } },
       );
     }
-    const vm = createVm(body, DEV_SESSION.user.id);
+    if (!/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/.test(name)) {
+      return new Response(
+        JSON.stringify({
+          type: 'https://plexor.dev/problems/vms/name-invalid',
+          title: 'Validation failed',
+          status: 422,
+          detail: 'Name must be lowercase letters, digits and hyphens.',
+        } satisfies ProblemDetails),
+        { status: 422, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    const duplicate = listVms().some((vm) => vm.name.toLowerCase() === name.toLowerCase());
+    if (duplicate) {
+      return new Response(
+        JSON.stringify({
+          type: 'https://plexor.dev/problems/vms/name-conflict',
+          title: 'Conflict',
+          status: 409,
+          detail: `A VM named '${name}' already exists.`,
+        } satisfies ProblemDetails),
+        { status: 409, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    const vm = createVm({ ...body, name }, DEV_SESSION.user.id);
     const extras = getVmDetailExtras(vm.id);
     return new Response(JSON.stringify(createVmDetail({ ...vm, ...extras })), {
       status: 201,

@@ -275,6 +275,15 @@
       },
       "summary": "What will be deployed",
       "create": "Create VM",
+      "creating": "Creating…",
+      "createdToast": "{{name}} is being created",
+      "createFailedToast": "Failed to create the VM. Try again.",
+      "validation": {
+        "nameRequired": "Name is required.",
+        "nameInvalid": "Use lowercase letters, digits and hyphens only.",
+        "nameConflict": "A VM with this name already exists.",
+        "nameGeneric": "Check the VM name and try again."
+      },
       "form": {
         "pageDescription": "Full KVM configuration — placement, hypervisor, storage and network are all yours to set.",
         "placement": "Placement",

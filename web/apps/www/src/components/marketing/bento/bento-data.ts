@@ -125,3 +125,11 @@ export function bentoStatusLabel(status: BentoStatus): string {
 export function bentoStatusVariant(status: BentoStatus): 'ok' | 'warn' {
   return STATUS_VARIANT[status];
 }
+
+export function requireBentoCell(id: string): BentoCellData {
+  const cell = BENTO_CELLS.find((c) => c.id === id);
+  if (!cell) {
+    throw new Error(`No BENTO_CELLS entry for id "${id}".`);
+  }
+  return cell;
+}

@@ -58,3 +58,10 @@ export {
   isImageStatus,
 } from './ui/image-status-strip';
 export type { ImageTotals } from './ui/image-status-strip';
+
+// VM create wizard (in-flight wiring completion)
+export type { VmWizardValues } from './model/vm-wizard';
+export { mapVmWizardToCreateVmRequest } from './model/vm-wizard';
+export { mapCreateVmErrorToFieldErrors } from './model/vm-create-errors';
+export type { VmCreateFieldErrors } from './model/vm-create-errors';
+export { useCreateVm } from './api/use-create-vm';
