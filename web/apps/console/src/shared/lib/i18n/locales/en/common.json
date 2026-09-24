@@ -434,15 +434,29 @@
     }
   },
   "k8s": {
+    "status": {
+      "running": "Running",
+      "provisioning": "Provisioning",
+      "degraded": "Degraded",
+      "error": "Error"
+    },
     "list": {
       "title": "Kubernetes clusters",
       "create": "Create cluster",
+      "runningOf": "running of",
+      "total": "total",
       "empty": {
         "title": "No Kubernetes clusters yet",
         "description": "Deploy managed K3s on your Plexor fleet — control plane, node pools, networking.",
         "noResults": "Nothing found",
         "noResultsDescription": "Try adjusting the filters or reset them.",
+        "noResultsStatusTitle": "No {{status}} clusters",
         "reset": "Reset filters"
+      },
+      "strip": {
+        "filterByStatus": "Filter by status",
+        "allocated": "Allocated",
+        "nodes": "nodes"
       },
       "docs": {
         "label": "Learn more:",
@@ -542,15 +556,29 @@
     }
   },
   "lxc": {
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "paused": "Paused",
+      "error": "Error"
+    },
     "list": {
       "title": "Containers",
       "create": "Create container",
+      "runningOf": "running of",
+      "total": "total",
       "empty": {
         "title": "No containers yet",
         "description": "Deploy LXC containers on ready nodes with an LXD/LXC runtime provider.",
         "noResults": "Nothing found",
         "noResultsDescription": "Try adjusting the filters or reset them.",
+        "noResultsStatusTitle": "No {{status}} containers",
         "reset": "Reset filters"
+      },
+      "strip": {
+        "filterByStatus": "Filter by status",
+        "allocated": "Allocated",
+        "rootfs": "rootfs"
       },
       "docs": {
         "label": "Learn more:",

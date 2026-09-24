@@ -53,6 +53,20 @@ const CLUSTERS: K8sCluster[] = [
     endpoint: 'https://10.30.1.50:6443',
     createdAt: '2026-07-08T09:15:00Z',
   },
+  {
+    id: 'k8s-obs',
+    name: 'obs-k3s',
+    status: 'degraded',
+    version: 'v1.30.5+k3s1',
+    cpNodes: 1,
+    workerNodes: 4,
+    vcpu: 12,
+    ramBytes: 24 * GIB,
+    cni: 'Cilium',
+    fleet: 'prod-cluster',
+    endpoint: 'https://10.0.0.30:6443',
+    createdAt: '2026-05-22T08:00:00Z',
+  },
 ];
 
 export function listK8s(): K8sCluster[] {
