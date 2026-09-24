@@ -82,6 +82,14 @@
   --idle-soft: oklch(95% 0.006 240);
   --idle-ink: oklch(45% 0.012 240);
 
+  /* ─── Terminal surface (dark in both themes, as terminals are) ───
+     Hex, not oklch: xterm.js's color parser only accepts hex/rgb/named
+     strings. vm-terminal-placeholder reads these via getComputedStyle
+     to build the JS terminal theme — single source for the CSS surface
+     and the xterm canvas. */
+  --terminal-bg: #0b0d10;
+  --terminal-fg: #d4d8de;
+
   /* ─── Radius (shadcn default) ─── */
   --radius: 0.5rem;
 

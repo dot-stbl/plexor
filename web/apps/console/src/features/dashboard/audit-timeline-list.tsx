@@ -20,8 +20,8 @@ export function AuditTimelineList() {
   const recent = useMemo(() => (data ?? []).slice(0, 8), [data]);
 
   return (
-    <Card data-od-id="dashboard-audit-timeline" className="gap-0 p-0">
-      <CardHeader className="gap-0.5 border-b border-border p-4">
+    <Card data-od-id="dashboard-audit-timeline">
+      <CardHeader className="border-b border-border">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-sm">{t('dashboard.audit.title')}</CardTitle>
           <Link to="/audit" className="text-xs text-muted-foreground hover:text-foreground">

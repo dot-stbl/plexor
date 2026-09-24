@@ -78,7 +78,7 @@ function CommunityCard({
         isActive && 'border-foreground/60 ring-1 ring-foreground/40',
       )}
     >
-      <CardHeader className="pb-3">
+      <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
             <CardTitle className="text-sm">{preset.name}</CardTitle>

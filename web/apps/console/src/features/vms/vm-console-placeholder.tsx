@@ -25,7 +25,7 @@ export function ConsolePlaceholder({ vmId }: ConsolePlaceholderProps) {
   return (
     <div
       data-od-id={`vm-console-placeholder-${vmId}`}
-      className="flex h-64 w-full flex-col items-center justify-center gap-3 rounded-md border border-border bg-[#0b0d10] p-6 text-center"
+      className="flex h-64 w-full flex-col items-center justify-center gap-3 rounded-md border border-border bg-(--terminal-bg) p-6 text-center"
     >
       <VideocamOff className="size-8 text-muted-foreground" aria-hidden />
       <p className="font-mono text-xs text-foreground/80">

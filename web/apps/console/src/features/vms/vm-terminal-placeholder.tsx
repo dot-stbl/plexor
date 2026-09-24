@@ -38,6 +38,13 @@ export function TerminalPlaceholder({ vmId }: TerminalPlaceholderProps) {
     const container = containerRef.current;
     if (!container) return;
 
+    // xterm's theme parser only accepts literal color strings (no CSS
+    // vars), so read the --terminal-* tokens from the computed style —
+    // the CSS surface and the canvas stay in sync from one source.
+    const styles = getComputedStyle(container);
+    const background = styles.getPropertyValue('--terminal-bg').trim();
+    const foreground = styles.getPropertyValue('--terminal-fg').trim();
+
     const terminal = new Terminal({
       convertEol: true,
       cursorBlink: true,
@@ -45,9 +52,9 @@ export function TerminalPlaceholder({ vmId }: TerminalPlaceholderProps) {
         'ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace',
       fontSize: 12,
       theme: {
-        background: '#0b0d10',
-        foreground: '#d4d8de',
-        cursor: '#d4d8de',
+        background,
+        foreground,
+        cursor: foreground,
       },
       disableStdin: false,
       cursorStyle: 'block',
@@ -115,7 +122,7 @@ export function TerminalPlaceholder({ vmId }: TerminalPlaceholderProps) {
     <div
       ref={containerRef}
       data-od-id="vm-terminal-placeholder"
-      className="h-64 w-full overflow-hidden rounded-md border border-border bg-[#0b0d10] p-2"
+      className="h-64 w-full overflow-hidden rounded-md border border-border bg-(--terminal-bg) p-2"
     />
   );
 }

@@ -143,8 +143,8 @@ function VmDetailBody({ vm }: { vm: VmDetail }) {
       }
     >
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="gap-0 p-0">
-          <CardHeader className="gap-0.5 border-b border-border p-4">
+        <Card>
+          <CardHeader className="border-b border-border">
             <CardTitle className="text-sm">{t('vms.detail.section.identity')}</CardTitle>
             <CardDescription>{vm.id}</CardDescription>
           </CardHeader>
@@ -224,8 +224,8 @@ function VmDetailBody({ vm }: { vm: VmDetail }) {
         </Card>
 
         <div className="flex flex-col gap-4">
-          <Card className="gap-0 p-0">
-            <CardHeader className="gap-0.5 border-b border-border p-4">
+          <Card>
+            <CardHeader className="border-b border-border">
               <CardTitle className="text-sm">{t('vms.detail.section.placement')}</CardTitle>
               <CardDescription>{vm.project}</CardDescription>
             </CardHeader>
@@ -249,8 +249,8 @@ function VmDetailBody({ vm }: { vm: VmDetail }) {
             </CardContent>
           </Card>
 
-          <Card className="gap-0 p-0">
-            <CardHeader className="gap-0.5 border-b border-border p-4">
+          <Card>
+            <CardHeader className="border-b border-border">
               <CardTitle className="text-sm">{t('vms.detail.section.network')}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
@@ -285,8 +285,8 @@ function VmDetailBody({ vm }: { vm: VmDetail }) {
 
           <VmConsoleCard vmId={vm.id} />
 
-          <Card className="gap-0 p-0">
-            <CardHeader className="gap-0.5 border-b border-border p-4">
+          <Card>
+            <CardHeader className="border-b border-border">
               <CardTitle className="text-sm">{t('vms.detail.section.lifecycle')}</CardTitle>
               <CardDescription>
                 {isProvisioning

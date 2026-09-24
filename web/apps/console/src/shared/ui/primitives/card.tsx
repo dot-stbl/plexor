@@ -9,11 +9,27 @@ import { cn } from "@/lib/utils"
  *
  * The card and its children drive their internal padding from a single CSS
  * variable, `--card-spacing`. `Card` sets the variable on the root
- * (`py-(--card-spacing)`); `CardHeader`, `CardContent`, and `CardFooter`
- * reference it for their horizontal / vertical padding. Vertical rhythm
- * between sections is padding-driven (CardContent's `pt`), NOT gap-driven —
- * cards that zero the root (`className="gap-0 p-0"`) for edge-to-edge
- * headers still get correct header→content separation.
+ * (`pb-(--card-spacing)`); `CardHeader`, `CardContent`, and `CardFooter`
+ * reference it for their own padding. Vertical rhythm between sections is
+ * padding-driven (every section carries `pt`), NOT gap-driven — the root
+ * has no `gap`, so each section separates itself from the one above it.
+ * The first section's own `pt` is the card's top inset; the root carries
+ * `pb` only, so top and bottom insets stay symmetric (no stacked padding).
+ *
+ * ## Rhythm ownership
+ *
+ * | Slot         | Base padding                                              |
+ * |--------------|-----------------------------------------------------------|
+ * | `Card`       | `pb-(--card-spacing)` — frame bottom inset (top comes     |
+ * |              | from the first section's `pt`)                             |
+ * | `CardHeader` | `px` + `pt` (+ `pb` only when it has `border-b`)          |
+ * | `CardContent`| `px` + `pt`                                               |
+ * | `CardFooter` | `px` (+ `pt` only when it has `border-t`)                 |
+ *
+ * Pages NEVER write `p-*` / `pt-*` / `px-*` / `pb-*` on card parts — layout
+ * classes (`flex`, `grid`, `gap-*`) are fine. The one documented exception:
+ * `CardContent className="p-0"` for edge-to-edge children (tables, divided
+ * lists). See `src/shared/ui/SPACING.md` for the full standard.
  *
  * | `size` prop  | `--card-spacing` | Resolved padding |
  * |--------------|------------------|------------------|
@@ -50,7 +66,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col overflow-hidden rounded-lg bg-card py-(--card-spacing) text-xs/relaxed text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg",
+        "group/card flex flex-col overflow-hidden rounded-lg bg-card pb-(--card-spacing) text-xs/relaxed text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg",
         className
       )}
       {...props}
@@ -63,7 +79,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-lg px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
+        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-lg px-(--card-spacing) pt-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
         className
       )}
       {...props}
