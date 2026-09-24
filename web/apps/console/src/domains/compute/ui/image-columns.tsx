@@ -6,14 +6,9 @@ import { Size } from '@/shared/ui/primitives/size';
 import { Badge } from '@/shared/ui/primitives/badge';
 import { TechIcon } from '@/shared/ui/primitives/tech-icon';
 import { Image } from '@nine-thirty-five/material-symbols-react/rounded/700';
-import type { ImageStatus, OsImage } from '../model/image-types';
+import type { OsImage } from '../model/image-types';
 import { mapImageStatusToVariant } from '../model/image-types';
-
-const STATUS_LABEL: Record<ImageStatus, string> = {
-  ready: 'ready',
-  creating: 'building',
-  error: 'error',
-};
+import { imageStatusLabelKey, stripStatuses } from './image-status-strip';
 
 /**
  * Колонки каталога образов (эталон YC «Образы»): бренд-логотип дистрибутива,
@@ -109,10 +104,18 @@ export function getImageColumns(t: TFunction): ColumnDef<OsImage>[] {
       accessorKey: 'status',
       cell: ({ row }) => (
         <StatusPill variant={mapImageStatusToVariant(row.original.status)} size="sm">
-          {STATUS_LABEL[row.original.status]}
+          {t(imageStatusLabelKey(row.original.status))}
         </StatusPill>
       ),
-      meta: { size: 'w-[100px]' },
+      meta: {
+        size: 'w-[100px]',
+        filter: {
+          type: 'select',
+          param: 'status',
+          placeholder: t('table.filter.status'),
+          options: stripStatuses().map((status) => ({ value: status, label: t(imageStatusLabelKey(status)) })),
+        },
+      },
     },
     {
       id: 'created',

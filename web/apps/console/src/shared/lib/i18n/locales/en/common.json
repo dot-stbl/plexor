@@ -791,6 +791,27 @@
     "title": "Images",
     "description": "OS images and custom snapshots for VM provisioning.",
     "create": "Create image",
+    "status": {
+      "ready": "Ready",
+      "creating": "Building",
+      "error": "Error"
+    },
+    "list": {
+      "readyOf": "ready of",
+      "total": "total",
+      "createToast": "Creating an image — coming soon",
+      "strip": {
+        "filterByStatus": "Filter by status",
+        "images": "images",
+        "totalSize": "total size"
+      },
+      "empty": {
+        "noResults": "Nothing found",
+        "noResultsDescription": "Try adjusting the filters or reset them.",
+        "reset": "Reset filters",
+        "noResultsStatusTitle": "No {{status}} images"
+      }
+    },
     "empty": {
       "title": "No images yet",
       "description": "An image is a disk template that a VM is created from. Upload your own (qcow2/raw) or use public distributions."
@@ -891,6 +912,34 @@
     "title": "Data platform",
     "description": "running of, backups, HA, fine-tuning",
     "create": "Create {{engine}} cluster",
+    "status": {
+      "running": "Running",
+      "deploying": "Deploying",
+      "degraded": "Degraded",
+      "stopped": "Stopped",
+      "error": "Error"
+    },
+    "list": {
+      "runningOf": "running of",
+      "total": "total",
+      "create": "Create cluster",
+      "strip": {
+        "filterByStatus": "Filter by status",
+        "clusters": "clusters",
+        "storage": "storage",
+        "bindings": "bindings"
+      },
+      "empty": {
+        "noResults": "Nothing found",
+        "noResultsDescription": "Try adjusting the filters or reset them.",
+        "reset": "Reset filters",
+        "noResultsStatusTitle": "No {{status}} clusters"
+      }
+    },
+    "engineNotFound": {
+      "title": "Engine not found",
+      "description": "Unknown engine: {{engine}}."
+    },
     "empty": {
       "title": "No {{engine}} instances",
       "create": "Create {{engine}} cluster"

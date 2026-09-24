@@ -790,7 +790,28 @@
   "images": {
     "title": "Образы",
     "description": "Образы ОС и свои снапшоты для создания ВМ.",
-    "create": "Create image",
+    "create": "Создать образ",
+    "status": {
+      "ready": "Готов",
+      "creating": "Сборка",
+      "error": "Ошибка"
+    },
+    "list": {
+      "readyOf": "готово из",
+      "total": "всего",
+      "createToast": "Создание образа — скоро",
+      "strip": {
+        "filterByStatus": "Фильтр по статусу",
+        "images": "образов",
+        "totalSize": "общий размер"
+      },
+      "empty": {
+        "noResults": "Ничего не найдено",
+        "noResultsDescription": "Попробуйте изменить фильтры или сбросить их.",
+        "reset": "Сбросить фильтры",
+        "noResultsStatusTitle": "Нет образов со статусом «{{status}}»"
+      }
+    },
     "empty": {
       "title": "Образов пока нет",
       "description": "Образ — это шаблон диска, из которого создаётся ВМ. Загрузите свой (qcow2/raw) или используйте публичные дистрибутивы."
@@ -891,6 +912,34 @@
     "title": "Платформа данных",
     "description": "running of, бэкапы, HA, тонкая настройка",
     "create": "Создать {{engine}}",
+    "status": {
+      "running": "Работает",
+      "deploying": "Развёртывается",
+      "degraded": "Деградация",
+      "stopped": "Остановлен",
+      "error": "Ошибка"
+    },
+    "list": {
+      "runningOf": "работает из",
+      "total": "всего",
+      "create": "Создать кластер",
+      "strip": {
+        "filterByStatus": "Фильтр по статусу",
+        "clusters": "кластеров",
+        "storage": "диск",
+        "bindings": "привязок"
+      },
+      "empty": {
+        "noResults": "Ничего не найдено",
+        "noResultsDescription": "Попробуйте изменить фильтры или сбросить их.",
+        "reset": "Сбросить фильтры",
+        "noResultsStatusTitle": "Нет кластеров со статусом «{{status}}»"
+      }
+    },
+    "engineNotFound": {
+      "title": "Движок не найден",
+      "description": "Неизвестный движок: {{engine}}."
+    },
     "empty": {
       "title": "Нет инстансов {{engine}}",
       "create": "Создать {{engine}}"

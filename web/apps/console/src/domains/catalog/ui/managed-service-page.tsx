@@ -1,71 +1,39 @@
 import { useMemo } from 'react';
-import { Link } from '@tanstack/react-router';
-import { useLocalStorage } from '@uidotdev/usehooks';
+import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { Add } from '@nine-thirty-five/material-symbols-react/rounded/700';
-import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
-import { DataTable, DataTableColumns, type DataTableColumnsState } from '@/shared/ui/data-table';
-import { getDbColumns } from './database-columns';
 import { useEngine, useListDbClusters } from '../api/use-databases';
-import { ManagedServiceEmpty } from './managed-service-empty';
+import { ManagedServiceListBody } from './managed-service-list-body';
 
 /**
  * Страница одного managed-движка (раздел «Managed Service for X»): список
  * его кластеров + богатый онбординг, если их нет. Монтируется из route-файла
- * (/managed/<engine>) внутри layout-роута /managed через `<Outlet/>`. Чром —
- * через `PageTemplate` (крошки — в верхнем баре из staticData).
+ * (/managed/<engine>) внутри layout-роута /managed через `<Outlet/>`.
+ *
+ * Тонкая data-shell: резолвит движок и его кластеры, рендерит общий
+ * `ManagedServiceListBody` (strip + таблица + онбординг).
  */
 export function ManagedServicePage({ engineId }: { engineId: string }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const engine = useEngine(engineId);
-  const { clusters } = useListDbClusters();
-  const rows = clusters.filter((c) => c.engineId === engineId);
-  const columns = useMemo(() => getDbColumns(t), [t]);
-  const [colState, setColState] = useLocalStorage<DataTableColumnsState>(
-    `plexor-cols-managed-${engineId}`,
-    { hidden: [], order: [] },
-  );
+  const { clusters, isPending } = useListDbClusters();
+  const rows = useMemo(() => clusters.filter((cluster) => cluster.engineId === engineId), [clusters, engineId]);
 
   if (!engine) {
     return (
-      <PageTemplate title="Engine not found">
-        <p className="text-sm text-muted-foreground">Unknown engine: {engineId}.</p>
+      <PageTemplate title={t('managed.engineNotFound.title')}>
+        <p className="text-sm text-muted-foreground">{t('managed.engineNotFound.description', { engine: engineId })}</p>
       </PageTemplate>
     );
   }
 
   return (
-    <PageTemplate
-      data-od-id={`managed-${engine.id}`}
-      width="wide"
-      title={engine.name}
-      description={engine.blurb}
-      actions={
-        rows.length > 0 ? (
-          <Button nativeButton={false} render={<Link to="/managed/new" search={{ engine: engine.id }} />}>
-            <Add className="size-3.5" />
-            Create cluster
-          </Button>
-        ) : null
-      }
-    >
-      {rows.length > 0 ? (
-        <div className="space-y-2">
-          <div className="flex justify-end">
-            <DataTableColumns columns={columns} value={colState} onChange={setColState} />
-          </div>
-          <DataTable
-            columns={columns}
-            data={rows}
-            density="compact"
-            hiddenColumns={new Set(colState.hidden)}
-            columnOrder={colState.order}
-          />
-        </div>
-      ) : (
-        <ManagedServiceEmpty engine={engine} />
-      )}
-    </PageTemplate>
+    <ManagedServiceListBody
+      engine={engine}
+      clusters={rows}
+      isPending={isPending}
+      onCreate={() => void navigate({ to: '/managed/new', search: { engine: engine.id } })}
+    />
   );
 }
