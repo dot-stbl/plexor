@@ -202,6 +202,13 @@
     "scaffoldReady": "Scaffold is ready — content will appear in the next pass."
   },
   "vms": {
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "provisioning": "Provisioning",
+      "error": "Error",
+      "idle": "Idle"
+    },
     "list": {
       "title": "Virtual machines",
       "create": "Create VM",
@@ -214,9 +221,15 @@
         "description": "Create your first VM — Plexor brings it up on the chosen runtime.",
         "noResults": "Nothing found",
         "noResultsDescription": "Try adjusting the filters or reset them.",
-        "reset": "Reset filters"
+        "reset": "Reset filters",
+        "noResultsStatusTitle": "No {{status}} VMs"
       },
-      "errorTitle": "Failed to load VM list"
+      "errorTitle": "Failed to load VM list",
+      "strip": {
+        "filterByStatus": "Filter by status",
+        "allocated": "Allocated",
+        "disk": "disk"
+      }
     },
     "new": {
       "title": "Create virtual machine",
