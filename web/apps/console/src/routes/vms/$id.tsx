@@ -186,7 +186,6 @@ function VmDetailPage() {
     );
   }
 
-  const isProvisioning = vm.status === 'provisioning';
   const isErrorState = vm.status === 'error';
   const canStart = vm.status === 'stopped' || vm.status === 'idle' || isErrorState;
   const canStop = vm.status === 'running' || vm.status === 'idle';
