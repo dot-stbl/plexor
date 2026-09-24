@@ -108,7 +108,8 @@ public sealed class OrgAuthProviderController(
     ICurrentUser currentUser,
     OrgAuthProviderSecretProtector secretProtector,
     IAuditEmitter auditEmitter,
-    TimeProvider clock) : ControllerBase
+    TimeProvider clock,
+    ILogger<OrgAuthProviderController> logger) : ControllerBase
 {
     /// <summary>
     ///     <c>GET /api/v1/iam/orgs/{orgId}/auth-provider</c> —
@@ -254,6 +255,11 @@ public sealed class OrgAuthProviderController(
                     },
                     cancellationToken);
         }
+
+        logger.LogInformation(
+            "OrgAuthProviderController: org {OrgId} auth-provider set to {Provider}.",
+            orgId,
+            provider);
 
         var refreshed = await db.OrgAuthProviderConfigs
             .AsNoTracking()
