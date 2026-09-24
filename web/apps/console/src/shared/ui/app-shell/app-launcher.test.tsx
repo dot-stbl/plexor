@@ -329,3 +329,37 @@ describe('AppLauncher — SUMMARY card labels resolve (regression for "shell.lau
     expect(auditCard.textContent).not.toContain('shell.launcher.summary.audit');
   });
 });
+
+/**
+ * META hubs (row 1) must not lie about their targets: Administration and
+ * Settings land on real shipped routes (no "soon" badge), and Documentation
+ * is an EXTERNAL link to the docs site (plexor.dev) — the www app, not a
+ * console route. Guards the "soon-lie cleanup": a hub that carries a
+ * working route must never render dimmed/soon again.
+ */
+describe('AppLauncher — META hub targets (soon-lie cleanup)', () => {
+  it('Administration hub links to the admin section first page without a soon badge', () => {
+    renderLauncher();
+    const hub = screen.getByRole('link', { name: /Administration/ });
+    expect(hub).toBeInstanceOf(HTMLAnchorElement);
+    expect((hub as HTMLAnchorElement).getAttribute('href')).toBe('/admin/branding');
+    expect(within(hub).queryByText('soon')).toBeNull();
+  });
+
+  it('Settings hub links to the profile page without a soon badge', () => {
+    renderLauncher();
+    const hub = screen.getByRole('link', { name: /Settings/ });
+    expect(hub).toBeInstanceOf(HTMLAnchorElement);
+    expect((hub as HTMLAnchorElement).getAttribute('href')).toBe('/settings/profile');
+    expect(within(hub).queryByText('soon')).toBeNull();
+  });
+
+  it('Documentation hub is an external anchor to plexor.dev/docs, not a console route', () => {
+    renderLauncher();
+    const hub = screen.getByRole('link', { name: /Documentation/ });
+    expect(hub).toBeInstanceOf(HTMLAnchorElement);
+    expect((hub as HTMLAnchorElement).getAttribute('href')).toBe('https://plexor.dev/docs');
+    expect((hub as HTMLAnchorElement).getAttribute('target')).toBe('_blank');
+    expect(within(hub).queryByText('soon')).toBeNull();
+  });
+});

@@ -8,6 +8,7 @@ import {
   GridView,
   KeyboardArrowRight,
   MenuBook,
+  OpenInNew,
   Settings,
   Tune,
 } from '@nine-thirty-five/material-symbols-react/rounded/700';
@@ -25,14 +26,28 @@ import { cn } from '@/lib/utils';
 import type { LauncherSummaryCard } from '@/mocks/launcher-summary';
 import { SECTIONS, type AppRoute, type NavPage, type Section } from './nav-config';
 
-type MetaHub = { nameKey: string; captionKey: string; icon: Icon; to?: AppRoute; soon?: boolean };
+type MetaHub = {
+  nameKey: string;
+  captionKey: string;
+  icon: Icon;
+  /** Internal route (typed). Exactly one of `to` / `href` is set per hub. */
+  to?: AppRoute;
+  /** External URL (opens in a new tab) — for surfaces outside the console. */
+  href?: string;
+  /** Not shipped yet — renders dimmed with a "soon" tag. */
+  soon?: boolean;
+};
 
-/** Row 1 — cross-cutting entry hubs (4). */
+/**
+ * Row 1 — cross-cutting entry hubs (4). Documentation links to the external
+ * docs site (web/apps/www → plexor.dev); Administration and Settings land on
+ * their section's first shipped page — no `soon` tags on working targets.
+ */
 const META: MetaHub[] = [
   { nameKey: 'shell.overview', captionKey: 'shell.overviewCaption', icon: GridView, to: '/' },
-  { nameKey: 'shell.documentation', captionKey: 'shell.documentationCaption', icon: MenuBook, soon: true },
-  { nameKey: 'shell.administration', captionKey: 'shell.administrationCaption', icon: Settings, soon: true },
-  { nameKey: 'shell.settings', captionKey: 'shell.settingsCaption', icon: Tune, soon: true },
+  { nameKey: 'shell.documentation', captionKey: 'shell.documentationCaption', icon: MenuBook, href: 'https://plexor.dev/docs' },
+  { nameKey: 'shell.administration', captionKey: 'shell.administrationCaption', icon: Settings, to: '/admin/branding' },
+  { nameKey: 'shell.settings', captionKey: 'shell.settingsCaption', icon: Tune, to: '/settings/profile' },
 ];
 
 type SummaryCard = { labelKey: string; to: AppRoute; value: string; context: string };
@@ -53,20 +68,29 @@ const SoonTag = () => {
 function MetaCard({ hub, onNavigate }: { hub: MetaHub; onNavigate: () => void }) {
   const { t } = useTranslation();
   const HubIcon = hub.icon;
+  const actionable = hub.to != null || hub.href != null;
   const inner = (
-    <div className={cn('flex h-full items-center gap-2.5 px-3 py-2.5', tile, hub.to ? 'hover:bg-muted hover:-translate-y-px' : 'opacity-60')}>
+    <div className={cn('flex h-full items-center gap-2.5 px-3 py-2.5', tile, actionable && 'hover:bg-muted hover:-translate-y-px', !actionable && 'opacity-60')}>
       <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-background text-foreground">
         <HubIcon className="size-4" />
       </span>
       <div className="min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="truncate text-xs font-medium">{t(hub.nameKey)}</span>
+          {hub.href && <OpenInNew aria-hidden className="size-3 shrink-0 text-muted-foreground" />}
           {hub.soon && <SoonTag />}
         </div>
         <div className="truncate text-[10.5px] text-muted-foreground">{t(hub.captionKey)}</div>
       </div>
     </div>
   );
+  if (hub.href) {
+    return (
+      <a href={hub.href} target="_blank" rel="noreferrer" className={linkRing}>
+        {inner}
+      </a>
+    );
+  }
   return hub.to ? (
     <Link to={hub.to} onClick={onNavigate} className={linkRing}>
       {inner}

@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/shared/ui/primitives/table';
 import { Checkbox } from '@/shared/ui/primitives/checkbox';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 /**
@@ -112,6 +113,7 @@ export function DataTable<TData>({
   columnOrder,
   className,
 }: DataTableProps<TData>) {
+  const { t } = useTranslation();
   const idAccessor = getRowId ?? ((row: TData) => String((row as { id: unknown }).id));
   const selectionEnabled = !!selection;
   const visibleColumns = orderAndFilterColumns(columns, columnOrder, hiddenColumns);
@@ -128,14 +130,14 @@ export function DataTable<TData>({
                 data.length > 0 && data.every((row) => selection!.selectedIds.has(idAccessor(row)))
               }
               onCheckedChange={(value) => selection!.onToggleAll(value === true)}
-              aria-label="Select all"
+              aria-label={t('table.selectAll')}
             />
           ),
           cell: ({ row }) => (
             <Checkbox
               checked={selection!.selectedIds.has(idAccessor(row.original))}
               onCheckedChange={() => selection!.onToggle(idAccessor(row.original))}
-              aria-label="Select row"
+              aria-label={t('table.selectRow')}
               onClick={(e) => e.stopPropagation()}
             />
           ),

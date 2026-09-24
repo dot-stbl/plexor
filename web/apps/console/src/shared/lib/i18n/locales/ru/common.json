@@ -1063,9 +1063,17 @@
     "bindings": "Bindings",
     "filter": {
       "searchName": "Поиск по имени…",
+      "search": "Поиск",
       "status": "Статус",
       "arch": "Arch",
       "visibility": "Видимость"
+    },
+    "selectAll": "Выбрать все",
+    "selectRow": "Выбрать строку",
+    "columns": {
+      "configure": "Настроить колонки",
+      "title": "Колонки",
+      "toggle": "Колонка «{{name}}»"
     },
     "copy": {
       "host": "Копировать хост",
