@@ -5,14 +5,15 @@ import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { CopyableText } from '@/shared/ui/primitives/copyable-text';
 import { mapVmStatusToVariant } from './vm-status';
+import { vmStatusLabelKey } from './vm-status-strip';
 import { VmRowActions } from './vm-row-actions';
 
-const STATUS_FILTER_OPTIONS: { value: VmStatus; label: string }[] = [
-  { value: 'running', label: 'Running' },
-  { value: 'stopped', label: 'Stopped' },
-  { value: 'error', label: 'Error' },
-  { value: 'provisioning', label: 'Provisioning' },
-  { value: 'idle', label: 'Idle' },
+const STATUS_KEYS: { value: VmStatus; labelKey: string }[] = [
+  { value: 'running', labelKey: 'vms.status.running' },
+  { value: 'stopped', labelKey: 'vms.status.stopped' },
+  { value: 'error', labelKey: 'vms.status.error' },
+  { value: 'provisioning', labelKey: 'vms.status.provisioning' },
+  { value: 'idle', labelKey: 'vms.status.idle' },
 ];
 
 /**
@@ -51,12 +52,17 @@ export function getVmColumns(t: TFunction): ColumnDef<Vm>[] {
       accessorKey: 'status',
       cell: ({ row }) => (
         <StatusPill variant={mapVmStatusToVariant(row.original.status)} size="sm">
-          {row.original.status}
+          {t(vmStatusLabelKey(row.original.status))}
         </StatusPill>
       ),
       meta: {
         size: 'w-[110px]',
-        filter: { type: 'select', param: 'status', options: STATUS_FILTER_OPTIONS, placeholder: t('table.filter.status') },
+        filter: {
+          type: 'select',
+          param: 'status',
+          options: STATUS_KEYS.map(({ value, labelKey }) => ({ value, label: t(labelKey) })),
+          placeholder: t('table.filter.status'),
+        },
       },
     },
     {
