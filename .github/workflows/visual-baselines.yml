@@ -19,16 +19,8 @@ name: visual-baselines
 #   - Run against any other branch (typically an open PR's branch) ->
 #     commits and pushes directly onto that branch; no new PR, since the
 #     branch is expected to already have one.
-#
-# TEMPORARY: the `push` trigger below exists only so this workflow can run
-# on `fix/visual-baselines-linux` before this file exists on the default
-# branch (workflow_dispatch requires that — see AGENTS.md discussion in
-# that PR). Remove the whole `push:` block once that PR merges; `workflow_
-# dispatch` alone is the permanent trigger.
 on:
   workflow_dispatch: {}
-  push:
-    branches: [fix/visual-baselines-linux]
 
 permissions:
   contents: write
@@ -40,13 +32,6 @@ concurrency:
 
 jobs:
   regenerate:
-    # Skip the run our own baseline commit triggers via the temporary push
-    # trigger above: Linux-rendered baselines are deterministic, so that
-    # second run would just rebuild Storybook and confirm zero diff. This
-    # also prevents the two runs from looping.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      !contains(github.event.head_commit.message, '[.stbl](feat/fe/visual): regenerate baselines on linux ci')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # Pinned to the Playwright version resolved by `web/package.json`
