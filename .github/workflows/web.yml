@@ -65,12 +65,23 @@ jobs:
   # every web change keeps drift tight. If this becomes noisy we can
   # add `dorny/paths-filter` and skip when only docs change.
   #
-  # Baselines are CI-generated (ubuntu-latest) — see scripts/visual-tests.md
-  # for the local/CI pixel-rendering note.
+  # Baselines are Linux-CI-generated ONLY, by `.github/workflows/
+  # visual-baselines.yml` — never regenerated locally. The job runs
+  # inside the official Playwright Docker image, pinned to the exact
+  # version resolved from `web/package.json`'s `@playwright/test` dep,
+  # so the OS, fonts, and Chromium build here are byte-for-byte the same
+  # ones that produced the committed baselines. See
+  # scripts/visual-tests.md for the full rationale.
   visual-tests:
     needs: web
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Pinned to the Playwright version resolved by `web/package.json`
+    # (`@playwright/test`). Bump this in lockstep with that dependency —
+    # a mismatched image version can install a different Chromium build
+    # than the one the baselines were rendered with.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-jammy
     defaults:
       run:
         working-directory: web/apps/console
@@ -85,9 +96,11 @@ jobs:
         run: bun install
         working-directory: web
 
-      # Install Playwright Chromium (the @playwright/test workspace dep
-      # brings the test runner; the browser binary is downloaded here).
-      # We use --with-deps so the Ubuntu libs Chromium needs are present.
+      # The Playwright image above already ships Chromium at the matching
+      # version, so this is normally a no-op — kept as a safety net in
+      # case the resolved @playwright/test version drifts from the pinned
+      # image tag (the "Assert no codegen drift"-style guard doesn't cover
+      # this, so a version skew would otherwise fail silently here).
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
 
