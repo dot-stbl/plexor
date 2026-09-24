@@ -54,12 +54,15 @@ jobs:
 
       - name: Typecheck
         run: bun run typecheck:www
+        working-directory: web
 
       - name: Lint
         run: bun run lint:www
+        working-directory: web
 
       - name: Build
         run: bun run build:www
+        working-directory: web
 
       # Upload dist/ so reviewers can grab the build without re-running
       # locally. retention-days 7 — long enough for review, short enough
