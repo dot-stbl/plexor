@@ -28,6 +28,8 @@ tags:
     description: Per-org identity provider configuration (OIDC, LDAP, ...)
   - name: oidc
     description: OIDC sign-in flow (anonymous, browser-driven)
+  - name: auth
+    description: Local-credentials sign-in (anonymous, email + password). Returns a bearer access token + refresh token triple plus the authenticated user record.
   - name: vsphere
     description: vSphere runtime provider — inventory read/refresh + template clone (issue #77)
 
@@ -744,6 +746,47 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/OrgAuthProviderTestResult' }
         '404':
+          $ref: '#/components/responses/Problem'
+        default:
+          $ref: '#/components/responses/Problem'
+
+  # ───────────────────────── Local credentials (anonymous) ─────────────────────────
+  /auth/login:
+    post:
+      operationId: postAuthLogin
+      tags: [auth]
+      summary: Sign in with email + password
+      description: >
+        Anonymous. Verifies the local-credentials pair (sigill module,
+        `email` + `password`) and, on success, returns the bearer
+        access token (RS256 JWT the console stores as
+        `Authorization: Bearer`) plus the opaque refresh token used to
+        mint a new access token. The `user` block seeds the FE user
+        cache — `id`, `email`, `displayName`, and the org-scoped
+        `roles` array.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PostAuthLoginRequest' }
+      responses:
+        '200':
+          description: >
+            Signed in. The `expiresIn` value is the access-token
+            lifetime in seconds; the FE uses it to compute the
+            absolute `expiresAt` (now + expiresIn * 1000).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthLoginResponse' }
+        '401':
+          description: >
+            Invalid email or password (and `auth.locked` when the
+            account is locked after N failed attempts — both surface
+            as the same status to avoid leaking which users exist).
+          $ref: '#/components/responses/Problem'
+        '422':
+          description: Validation failed (malformed email, missing field).
           $ref: '#/components/responses/Problem'
         default:
           $ref: '#/components/responses/Problem'
@@ -1517,6 +1560,79 @@ components:
           nullable: true
           description: Provider-specific diagnostics (discovery URL, JWKS URL, bind subject, ...). Free-form.
           additionalProperties: true
+
+    PostAuthLoginRequest:
+      type: object
+      description: Local-credentials sign-in payload (sigill module). The FE trims + lowercases the email before sending so the backend can compare against the canonical address.
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Work email. The local-part is case-insensitive; the backend normalises to lowercase on persist.
+          example: demo@plexor.test
+        password:
+          type: string
+          format: password
+          maxLength: 128
+          minLength: 1
+          description: Plaintext password. TLS-only on the wire; never logged.
+          example: mock-password
+
+    AuthLoginResponse:
+      type: object
+      description: >
+        Successful sign-in. Returns the bearer access token (RS256 JWT
+        the console stores as `Authorization: Bearer`), the opaque
+        refresh token, the access-token lifetime in seconds, and the
+        authenticated user record. The FE computes
+        `expiresAt = Date.now() + expiresIn * 1000` and persists the
+        triple to localStorage.
+      required: [accessToken, refreshToken, expiresIn, user]
+      properties:
+        accessToken:
+          type: string
+          description: >
+            RS256 JWT. Sent as `Authorization: Bearer ` followed by
+            this token on subsequent requests.
+          example: 'eyJhbGciOiJSUzI1NiIs...'
+        refreshToken:
+          type: string
+          description: Opaque refresh token. Rotated on every successful refresh.
+          example: 'dG9rZW4ubm9uY2UuMTIzNDU2Nzg5MA=='
+        expiresIn:
+          type: integer
+          minimum: 1
+          description: Access-token lifetime in seconds.
+          example: 3600
+        user:
+          $ref: '#/components/schemas/PostAuthLoginUser'
+
+    PostAuthLoginUser:
+      type: object
+      description: The authenticated user record — used to seed the FE user cache after sign-in.
+      required: [id, email, displayName, roles]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Stable user id (sigill.users.id).
+          example: 00000000-0000-0000-0000-000000000001
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          example: demo@plexor.test
+        displayName:
+          type: string
+          maxLength: 200
+          example: Demo User
+        roles:
+          type: array
+          description: Org-scoped role names (e.g. `admin`, `editor`, `viewer`). Empty in MVP; expanded in Phase 2 with team-scoped roles.
+          items: { type: string }
+          example: [admin]
 
     VSphereInventorySnapshotHeader:
       type: object
