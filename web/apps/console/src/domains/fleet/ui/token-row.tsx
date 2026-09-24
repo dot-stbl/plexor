@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Block, CheckCircle, Close, ProgressActivity } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import { Button } from '@/shared/ui/primitives/button';
+import { Badge } from '@/shared/ui/primitives/badge';
 import { MonoNum } from '@/shared/ui/primitives/mono-num';
 import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import {
@@ -16,7 +17,7 @@ import {
 } from '@/shared/ui/primitives/alert-dialog';
 import { revokeJoinToken } from '../api/use-clusters';
 import type { JoinToken } from '../model/cluster-types';
-import { tokenStatusLabelKey } from '../model/node-status';
+import { nodeRoleLabelKey, tokenStatusLabelKey } from '../model/node-status';
 
 const STATUS_VARIANT: Record<JoinToken['status'], 'running' | 'pending' | 'err'> = {
   active: 'running',
@@ -54,10 +55,11 @@ export function TokenRow({ clusterId, token }: TokenRowProps) {
   return (
     <div className="flex items-center justify-between gap-3 p-3">
       <div className="min-w-0 space-y-0.5">
-        <div className="text-sm font-medium">{token.label}</div>
+        <div className="flex items-center gap-1.5">
+          <span className="truncate text-sm font-medium">{token.label}</span>
+          <Badge variant="outline">{t(nodeRoleLabelKey(token.intendedRole))}</Badge>
+        </div>
         <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-          <span>{t(token.intendedRole === 'control' ? 'clusters.node.role.control' : 'clusters.node.role.compute')}</span>
-          <span className="inline-block h-2.5 w-px bg-border" aria-hidden />
           <span>
             {t('clusters.token.issued')} {new Date(token.issuedAt).toLocaleDateString()}
           </span>
