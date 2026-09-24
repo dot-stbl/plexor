@@ -992,9 +992,43 @@
       "title": "Engine not found",
       "description": "Unknown engine: {{engine}}."
     },
+    "landing": {
+      "title": "Data platform",
+      "description": "Managed data services: preinstalled engines with backups, DNS, and bindings. One section per engine.",
+      "clusters": "clusters",
+      "open": "Open",
+      "empty": {
+        "title": "No engines in the catalog",
+        "description": "The engine catalog is empty. Engines are shipped with the platform — check the installation docs.",
+        "docs": "Managed data services"
+      }
+    },
     "empty": {
       "title": "No {{engine}} instances",
       "create": "Create {{engine}} cluster"
+    },
+    "detail": {
+      "title": "DB cluster",
+      "back": "Back",
+      "section": {
+        "identity": "Identity",
+        "connection": "Connection & placement",
+        "connectionDescription": "What consumers bind to and where the cluster runs",
+        "storage": "Storage & service"
+      },
+      "field": {
+        "name": "Name",
+        "id": "ID",
+        "engine": "Engine",
+        "kind": "Kind",
+        "createdAt": "Created at",
+        "binding": "Binding contract",
+        "nodeId": "Node ID"
+      },
+      "notFound": {
+        "title": "Cluster not found",
+        "description": "No cluster \"{{id}}\" in the data platform. It may have been deleted, or the link is stale."
+      }
     },
     "new": {
       "form": {

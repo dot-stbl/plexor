@@ -34,6 +34,12 @@ export function ManagedServicePage({ engineId }: { engineId: string }) {
       clusters={rows}
       isPending={isPending}
       onCreate={() => void navigate({ to: '/managed/new', search: { engine: engine.id } })}
+      onOpenCluster={(cluster) =>
+        void navigate({
+          to: '/managed/c/$clusterId',
+          params: { clusterId: cluster.id },
+        })
+      }
     />
   );
 }

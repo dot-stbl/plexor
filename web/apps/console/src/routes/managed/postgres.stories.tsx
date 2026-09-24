@@ -197,12 +197,14 @@ type Story = StoryObj<typeof meta>;
 
 /** Default: engine fleet with mixed statuses, strip chips + column manager + table. */
 export const Default: Story = {
-  render: () => <ManagedServiceListBody engine={postgres} clusters={FLEET} onCreate={noop} />,
+  render: () => <ManagedServiceListBody engine={postgres} clusters={FLEET} onCreate={noop} onOpenCluster={noop} />,
 };
 
 /** Loading: strip + table skeletons while the fleet resolves. */
 export const Loading: Story = {
-  render: () => <ManagedServiceListBody engine={postgres} clusters={[]} isPending onCreate={noop} />,
+  render: () => (
+    <ManagedServiceListBody engine={postgres} clusters={[]} isPending onCreate={noop} onOpenCluster={noop} />
+  ),
 };
 
 /** One chip active: degraded chip emphasized, table filtered to degraded clusters. */
