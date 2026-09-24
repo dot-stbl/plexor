@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { APP_NAME } from './app-name';
 
 /**
- * Set `document.title` to `<page> · ${APP_NAME}` (all lowercase) for the
+ * Set `document.title` to `<page> — ${APP_NAME}` (all lowercase) for the
  * lifetime of the component. Restores the previous title on unmount.
  *
  * Use for routes whose page-specific part of the title comes from loaded
@@ -17,7 +17,7 @@ import { APP_NAME } from './app-name';
 export function useDocumentTitle(page: string | null | undefined): void {
   useEffect(() => {
     const previous = document.title;
-    document.title = page ? `${page.toLowerCase()} · ${APP_NAME}` : APP_NAME;
+    document.title = page ? `${page.toLowerCase()} — ${APP_NAME}` : APP_NAME;
     return () => {
       document.title = previous;
     };

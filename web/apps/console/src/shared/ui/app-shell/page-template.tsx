@@ -9,21 +9,26 @@ import { cn } from '@/lib/utils';
  * Хлебные крошки тут НЕ рендерятся — они в верхнем баре (AppHeader) из
  * route-matches (web-frontend.md rule 57). Открывается через `<Outlet/>`
  * layout-роута (rule 58).
+ *
+ * Default `width="default"` (centered, max-w-6xl). Страницы, которым нужно
+ * растянуться до max-w-7xl для data tables / list-detail layouts, передают
+ * `width="wide"` явно.
  */
 export interface PageTemplateProps {
   title: string;
   description?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
-  /** Ширина контента. `3xl` — узкие формы; `6xl` — деталь; `full` — списки/таблицы/create (без боковых пустот). */
-  width?: '3xl' | '6xl' | 'full';
+  /** Ширина контента. `default` — центрированный (default, max-w-6xl);
+   *  `narrow` — узкие формы (max-w-3xl); `wide` — широкие списки/таблицы (max-w-7xl). */
+  width?: 'default' | 'narrow' | 'wide';
   'data-od-id'?: string;
 }
 
 const WIDTH = {
-  '3xl': 'max-w-3xl',
-  '6xl': 'max-w-6xl',
-  full: 'max-w-none',
+  narrow: 'max-w-3xl',
+  default: 'max-w-6xl',
+  wide: 'max-w-7xl',
 } as const;
 
 export function PageTemplate({
@@ -31,7 +36,7 @@ export function PageTemplate({
   description,
   actions,
   children,
-  width = 'full',
+  width = 'default',
   ...props
 }: PageTemplateProps) {
   const max = WIDTH[width];

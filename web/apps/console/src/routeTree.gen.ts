@@ -15,6 +15,7 @@ import { Route as BillingRouteImport } from './routes/billing'
 import { Route as ClustersRouteRouteImport } from './routes/clusters/route'
 import { Route as ImagesRouteImport } from './routes/images'
 import { Route as K8sRouteRouteImport } from './routes/k8s/route'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as LxcRouteRouteImport } from './routes/lxc/route'
 import { Route as ManagedRouteRouteImport } from './routes/managed/route'
 import { Route as NetworksRouteImport } from './routes/networks'
@@ -26,8 +27,10 @@ import { Route as AdminThemeMarketplaceRouteImport } from './routes/admin/theme-
 import { Route as ClustersIndexRouteImport } from './routes/clusters/index'
 import { Route as ClustersIdRouteImport } from './routes/clusters/$id'
 import { Route as K8sIndexRouteImport } from './routes/k8s/index'
+import { Route as K8sIdRouteImport } from './routes/k8s/$id'
 import { Route as K8sNewRouteImport } from './routes/k8s/new'
 import { Route as LxcIndexRouteImport } from './routes/lxc/index'
+import { Route as LxcIdRouteImport } from './routes/lxc/$id'
 import { Route as LxcNewRouteImport } from './routes/lxc/new'
 import { Route as ManagedIndexRouteImport } from './routes/managed/index'
 import { Route as ManagedClickhouseRouteImport } from './routes/managed/clickhouse'
@@ -36,10 +39,13 @@ import { Route as ManagedKafkaRouteImport } from './routes/managed/kafka'
 import { Route as ManagedNewRouteImport } from './routes/managed/new'
 import { Route as ManagedPostgresRouteImport } from './routes/managed/postgres'
 import { Route as ManagedRedisRouteImport } from './routes/managed/redis'
+import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as VmsIndexRouteImport } from './routes/vms/index'
+import { Route as VmsIdRouteImport } from './routes/vms/$id'
 import { Route as VmsNewRouteImport } from './routes/vms/new'
 import { Route as VsphereIndexRouteImport } from './routes/vsphere/index'
 import { Route as VsphereCloneRouteImport } from './routes/vsphere/clone'
+import { Route as ManagedCClusterIdRouteImport } from './routes/managed/c/$clusterId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -69,6 +75,11 @@ const ImagesRoute = ImagesRouteImport.update({
 const K8sRouteRoute = K8sRouteRouteImport.update({
   id: '/k8s',
   path: '/k8s',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LxcRouteRoute = LxcRouteRouteImport.update({
@@ -126,6 +137,11 @@ const K8sIndexRoute = K8sIndexRouteImport.update({
   path: '/',
   getParentRoute: () => K8sRouteRoute,
 } as any)
+const K8sIdRoute = K8sIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => K8sRouteRoute,
+} as any)
 const K8sNewRoute = K8sNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -134,6 +150,11 @@ const K8sNewRoute = K8sNewRouteImport.update({
 const LxcIndexRoute = LxcIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => LxcRouteRoute,
+} as any)
+const LxcIdRoute = LxcIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
   getParentRoute: () => LxcRouteRoute,
 } as any)
 const LxcNewRoute = LxcNewRouteImport.update({
@@ -176,9 +197,19 @@ const ManagedRedisRoute = ManagedRedisRouteImport.update({
   path: '/redis',
   getParentRoute: () => ManagedRouteRoute,
 } as any)
+const SettingsProfileRoute = SettingsProfileRouteImport.update({
+  id: '/settings/profile',
+  path: '/settings/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VmsIndexRoute = VmsIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => VmsRouteRoute,
+} as any)
+const VmsIdRoute = VmsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
   getParentRoute: () => VmsRouteRoute,
 } as any)
 const VmsNewRoute = VmsNewRouteImport.update({
@@ -196,6 +227,11 @@ const VsphereCloneRoute = VsphereCloneRouteImport.update({
   path: '/clone',
   getParentRoute: () => VsphereRouteRoute,
 } as any)
+const ManagedCClusterIdRoute = ManagedCClusterIdRouteImport.update({
+  id: '/c/$clusterId',
+  path: '/c/$clusterId',
+  getParentRoute: () => ManagedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -208,12 +244,15 @@ export interface FileRoutesByFullPath {
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
   '/images': typeof ImagesRoute
+  '/login': typeof LoginRoute
   '/networks': typeof NetworksRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/theme-marketplace': typeof AdminThemeMarketplaceRoute
   '/clusters/$id': typeof ClustersIdRoute
+  '/k8s/$id': typeof K8sIdRoute
   '/k8s/new': typeof K8sNewRoute
+  '/lxc/$id': typeof LxcIdRoute
   '/lxc/new': typeof LxcNewRoute
   '/managed/clickhouse': typeof ManagedClickhouseRoute
   '/managed/garnet': typeof ManagedGarnetRoute
@@ -221,6 +260,8 @@ export interface FileRoutesByFullPath {
   '/managed/new': typeof ManagedNewRoute
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/vms/$id': typeof VmsIdRoute
   '/vms/new': typeof VmsNewRoute
   '/vsphere/clone': typeof VsphereCloneRoute
   '/clusters/': typeof ClustersIndexRoute
@@ -229,18 +270,22 @@ export interface FileRoutesByFullPath {
   '/managed/': typeof ManagedIndexRoute
   '/vms/': typeof VmsIndexRoute
   '/vsphere/': typeof VsphereIndexRoute
+  '/managed/c/$clusterId': typeof ManagedCClusterIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
   '/images': typeof ImagesRoute
+  '/login': typeof LoginRoute
   '/networks': typeof NetworksRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/theme-marketplace': typeof AdminThemeMarketplaceRoute
   '/clusters/$id': typeof ClustersIdRoute
+  '/k8s/$id': typeof K8sIdRoute
   '/k8s/new': typeof K8sNewRoute
+  '/lxc/$id': typeof LxcIdRoute
   '/lxc/new': typeof LxcNewRoute
   '/managed/clickhouse': typeof ManagedClickhouseRoute
   '/managed/garnet': typeof ManagedGarnetRoute
@@ -248,6 +293,8 @@ export interface FileRoutesByTo {
   '/managed/new': typeof ManagedNewRoute
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/vms/$id': typeof VmsIdRoute
   '/vms/new': typeof VmsNewRoute
   '/vsphere/clone': typeof VsphereCloneRoute
   '/clusters': typeof ClustersIndexRoute
@@ -256,6 +303,7 @@ export interface FileRoutesByTo {
   '/managed': typeof ManagedIndexRoute
   '/vms': typeof VmsIndexRoute
   '/vsphere': typeof VsphereIndexRoute
+  '/managed/c/$clusterId': typeof ManagedCClusterIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -269,12 +317,15 @@ export interface FileRoutesById {
   '/audit': typeof AuditRoute
   '/billing': typeof BillingRoute
   '/images': typeof ImagesRoute
+  '/login': typeof LoginRoute
   '/networks': typeof NetworksRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/branding': typeof AdminBrandingRoute
   '/admin/theme-marketplace': typeof AdminThemeMarketplaceRoute
   '/clusters/$id': typeof ClustersIdRoute
+  '/k8s/$id': typeof K8sIdRoute
   '/k8s/new': typeof K8sNewRoute
+  '/lxc/$id': typeof LxcIdRoute
   '/lxc/new': typeof LxcNewRoute
   '/managed/clickhouse': typeof ManagedClickhouseRoute
   '/managed/garnet': typeof ManagedGarnetRoute
@@ -282,6 +333,8 @@ export interface FileRoutesById {
   '/managed/new': typeof ManagedNewRoute
   '/managed/postgres': typeof ManagedPostgresRoute
   '/managed/redis': typeof ManagedRedisRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/vms/$id': typeof VmsIdRoute
   '/vms/new': typeof VmsNewRoute
   '/vsphere/clone': typeof VsphereCloneRoute
   '/clusters/': typeof ClustersIndexRoute
@@ -290,6 +343,7 @@ export interface FileRoutesById {
   '/managed/': typeof ManagedIndexRoute
   '/vms/': typeof VmsIndexRoute
   '/vsphere/': typeof VsphereIndexRoute
+  '/managed/c/$clusterId': typeof ManagedCClusterIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -304,12 +358,15 @@ export interface FileRouteTypes {
     | '/audit'
     | '/billing'
     | '/images'
+    | '/login'
     | '/networks'
     | '/admin/audit'
     | '/admin/branding'
     | '/admin/theme-marketplace'
     | '/clusters/$id'
+    | '/k8s/$id'
     | '/k8s/new'
+    | '/lxc/$id'
     | '/lxc/new'
     | '/managed/clickhouse'
     | '/managed/garnet'
@@ -317,6 +374,8 @@ export interface FileRouteTypes {
     | '/managed/new'
     | '/managed/postgres'
     | '/managed/redis'
+    | '/settings/profile'
+    | '/vms/$id'
     | '/vms/new'
     | '/vsphere/clone'
     | '/clusters/'
@@ -325,18 +384,22 @@ export interface FileRouteTypes {
     | '/managed/'
     | '/vms/'
     | '/vsphere/'
+    | '/managed/c/$clusterId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/audit'
     | '/billing'
     | '/images'
+    | '/login'
     | '/networks'
     | '/admin/audit'
     | '/admin/branding'
     | '/admin/theme-marketplace'
     | '/clusters/$id'
+    | '/k8s/$id'
     | '/k8s/new'
+    | '/lxc/$id'
     | '/lxc/new'
     | '/managed/clickhouse'
     | '/managed/garnet'
@@ -344,6 +407,8 @@ export interface FileRouteTypes {
     | '/managed/new'
     | '/managed/postgres'
     | '/managed/redis'
+    | '/settings/profile'
+    | '/vms/$id'
     | '/vms/new'
     | '/vsphere/clone'
     | '/clusters'
@@ -352,6 +417,7 @@ export interface FileRouteTypes {
     | '/managed'
     | '/vms'
     | '/vsphere'
+    | '/managed/c/$clusterId'
   id:
     | '__root__'
     | '/'
@@ -364,12 +430,15 @@ export interface FileRouteTypes {
     | '/audit'
     | '/billing'
     | '/images'
+    | '/login'
     | '/networks'
     | '/admin/audit'
     | '/admin/branding'
     | '/admin/theme-marketplace'
     | '/clusters/$id'
+    | '/k8s/$id'
     | '/k8s/new'
+    | '/lxc/$id'
     | '/lxc/new'
     | '/managed/clickhouse'
     | '/managed/garnet'
@@ -377,6 +446,8 @@ export interface FileRouteTypes {
     | '/managed/new'
     | '/managed/postgres'
     | '/managed/redis'
+    | '/settings/profile'
+    | '/vms/$id'
     | '/vms/new'
     | '/vsphere/clone'
     | '/clusters/'
@@ -385,6 +456,7 @@ export interface FileRouteTypes {
     | '/managed/'
     | '/vms/'
     | '/vsphere/'
+    | '/managed/c/$clusterId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -398,10 +470,12 @@ export interface RootRouteChildren {
   AuditRoute: typeof AuditRoute
   BillingRoute: typeof BillingRoute
   ImagesRoute: typeof ImagesRoute
+  LoginRoute: typeof LoginRoute
   NetworksRoute: typeof NetworksRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminBrandingRoute: typeof AdminBrandingRoute
   AdminThemeMarketplaceRoute: typeof AdminThemeMarketplaceRoute
+  SettingsProfileRoute: typeof SettingsProfileRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -446,6 +520,13 @@ declare module '@tanstack/react-router' {
       path: '/k8s'
       fullPath: '/k8s'
       preLoaderRoute: typeof K8sRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lxc': {
@@ -525,6 +606,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof K8sIndexRouteImport
       parentRoute: typeof K8sRouteRoute
     }
+    '/k8s/$id': {
+      id: '/k8s/$id'
+      path: '/$id'
+      fullPath: '/k8s/$id'
+      preLoaderRoute: typeof K8sIdRouteImport
+      parentRoute: typeof K8sRouteRoute
+    }
     '/k8s/new': {
       id: '/k8s/new'
       path: '/new'
@@ -537,6 +625,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/lxc/'
       preLoaderRoute: typeof LxcIndexRouteImport
+      parentRoute: typeof LxcRouteRoute
+    }
+    '/lxc/$id': {
+      id: '/lxc/$id'
+      path: '/$id'
+      fullPath: '/lxc/$id'
+      preLoaderRoute: typeof LxcIdRouteImport
       parentRoute: typeof LxcRouteRoute
     }
     '/lxc/new': {
@@ -595,11 +690,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagedRedisRouteImport
       parentRoute: typeof ManagedRouteRoute
     }
+    '/settings/profile': {
+      id: '/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof SettingsProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vms/': {
       id: '/vms/'
       path: '/'
       fullPath: '/vms/'
       preLoaderRoute: typeof VmsIndexRouteImport
+      parentRoute: typeof VmsRouteRoute
+    }
+    '/vms/$id': {
+      id: '/vms/$id'
+      path: '/$id'
+      fullPath: '/vms/$id'
+      preLoaderRoute: typeof VmsIdRouteImport
       parentRoute: typeof VmsRouteRoute
     }
     '/vms/new': {
@@ -623,6 +732,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VsphereCloneRouteImport
       parentRoute: typeof VsphereRouteRoute
     }
+    '/managed/c/$clusterId': {
+      id: '/managed/c/$clusterId'
+      path: '/c/$clusterId'
+      fullPath: '/managed/c/$clusterId'
+      preLoaderRoute: typeof ManagedCClusterIdRouteImport
+      parentRoute: typeof ManagedRouteRoute
+    }
   }
 }
 
@@ -641,11 +757,13 @@ const ClustersRouteRouteWithChildren = ClustersRouteRoute._addFileChildren(
 )
 
 interface K8sRouteRouteChildren {
+  K8sIdRoute: typeof K8sIdRoute
   K8sNewRoute: typeof K8sNewRoute
   K8sIndexRoute: typeof K8sIndexRoute
 }
 
 const K8sRouteRouteChildren: K8sRouteRouteChildren = {
+  K8sIdRoute: K8sIdRoute,
   K8sNewRoute: K8sNewRoute,
   K8sIndexRoute: K8sIndexRoute,
 }
@@ -655,11 +773,13 @@ const K8sRouteRouteWithChildren = K8sRouteRoute._addFileChildren(
 )
 
 interface LxcRouteRouteChildren {
+  LxcIdRoute: typeof LxcIdRoute
   LxcNewRoute: typeof LxcNewRoute
   LxcIndexRoute: typeof LxcIndexRoute
 }
 
 const LxcRouteRouteChildren: LxcRouteRouteChildren = {
+  LxcIdRoute: LxcIdRoute,
   LxcNewRoute: LxcNewRoute,
   LxcIndexRoute: LxcIndexRoute,
 }
@@ -676,6 +796,7 @@ interface ManagedRouteRouteChildren {
   ManagedPostgresRoute: typeof ManagedPostgresRoute
   ManagedRedisRoute: typeof ManagedRedisRoute
   ManagedIndexRoute: typeof ManagedIndexRoute
+  ManagedCClusterIdRoute: typeof ManagedCClusterIdRoute
 }
 
 const ManagedRouteRouteChildren: ManagedRouteRouteChildren = {
@@ -686,6 +807,7 @@ const ManagedRouteRouteChildren: ManagedRouteRouteChildren = {
   ManagedPostgresRoute: ManagedPostgresRoute,
   ManagedRedisRoute: ManagedRedisRoute,
   ManagedIndexRoute: ManagedIndexRoute,
+  ManagedCClusterIdRoute: ManagedCClusterIdRoute,
 }
 
 const ManagedRouteRouteWithChildren = ManagedRouteRoute._addFileChildren(
@@ -693,11 +815,13 @@ const ManagedRouteRouteWithChildren = ManagedRouteRoute._addFileChildren(
 )
 
 interface VmsRouteRouteChildren {
+  VmsIdRoute: typeof VmsIdRoute
   VmsNewRoute: typeof VmsNewRoute
   VmsIndexRoute: typeof VmsIndexRoute
 }
 
 const VmsRouteRouteChildren: VmsRouteRouteChildren = {
+  VmsIdRoute: VmsIdRoute,
   VmsNewRoute: VmsNewRoute,
   VmsIndexRoute: VmsIndexRoute,
 }
@@ -731,10 +855,12 @@ const rootRouteChildren: RootRouteChildren = {
   AuditRoute: AuditRoute,
   BillingRoute: BillingRoute,
   ImagesRoute: ImagesRoute,
+  LoginRoute: LoginRoute,
   NetworksRoute: NetworksRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminBrandingRoute: AdminBrandingRoute,
   AdminThemeMarketplaceRoute: AdminThemeMarketplaceRoute,
+  SettingsProfileRoute: SettingsProfileRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

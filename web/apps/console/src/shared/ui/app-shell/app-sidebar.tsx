@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useRouterState } from '@tanstack/react-router';
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { Logout, Settings } from '@nine-thirty-five/material-symbols-react/rounded/700';
 import {
@@ -30,6 +30,9 @@ import { StatusPill } from '@/shared/ui/primitives/status-pill';
 import { toast } from 'sonner';
 import type { Icon } from '@nine-thirty-five/material-symbols-react';
 import { getBootConfig } from '@/shared/lib/config';
+import { useFeatureFlag } from '@/shared/lib/feature-flags/feature-flag-context';
+import { readSession } from '@/shared/lib/session';
+import type { LauncherSummaryCard } from '@/mocks/launcher-summary';
 import {
   SECTIONS,
   isActiveRoute,
@@ -38,8 +41,7 @@ import {
   type AppRoute,
 } from './nav-config';
 import { AppLauncher } from './app-launcher';
-import { AppSettingsDialog } from './app-settings-dialog';
-import { PlexorMark } from './plexor-mark';
+import { PlexorMark, StblMark } from '@plexor/ui/brand';
 
 type SidebarItem = { title: string; icon: Icon; to?: AppRoute };
 
@@ -49,19 +51,34 @@ type SidebarItem = { title: string; icon: Icon; to?: AppRoute };
  * the hovered item's pill nudges toward its icon.
  */
 const railPill =
-  'pointer-events-none absolute top-1/2 left-full z-50 ml-3.5 hidden -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-md bg-foreground/70 px-2 py-1 text-xs font-medium text-background opacity-0 shadow-sm backdrop-blur-md transition-all duration-150 ease-out group-data-[collapsible=icon]:block group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/menu-item:ml-2.5 group-hover/menu-item:bg-foreground/80';
+  'pointer-events-none absolute top-1/2 left-full z-tooltip ml-3.5 hidden -translate-y-1/2 translate-x-0 whitespace-nowrap rounded-md bg-foreground/70 px-2 py-1 text-xs font-medium text-background opacity-0 shadow-sm backdrop-blur-md transition-all duration-150 ease-out group-data-[collapsible=icon]:block group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/menu-item:ml-2.5 group-hover/menu-item:bg-foreground/80';
 
 /**
  * Contextual sidebar (single_contextual): shows the pages of the CURRENT
  * section. Section switching happens through the app launcher.
  * On the overview (`/`) it lists the sections themselves as entry points.
  * User lives at the bottom; its menu opens the Settings modal.
+ *
+ * Sections are gated by their corresponding `sidebar.show*` feature
+ * flag. Hook order is stable — we call each flag once per render in a
+ * fixed order, so React's rules of hooks stay satisfied even when the
+ * flag map grows in future commits.
+ *
+ * `billing` doesn't have a shipping section in nav-config yet — the
+ * flag is the contract, ready for when the section lands.
+ *
+ * `launcherSummary` is a pass-through prop for the launcher's SUMMARY
+ * row — see `AppShell`'s doc comment for why this isn't fetched here.
  */
-export function AppSidebar() {
+export function AppSidebar({
+  launcherSummary = [],
+}: {
+  launcherSummary?: readonly LauncherSummaryCard[];
+} = {}) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [launcherOpen, setLauncherOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Operator-controlled branding (TOML → window.__PLEXOR_CONFIG__ → here).
   // Falls back to the Plexor defaults when the host hasn't shipped a
@@ -69,12 +86,43 @@ export function AppSidebar() {
   const { brand } = getBootConfig();
   const hasCustomLogo = brand.logoUrl !== null && brand.logoUrl !== '';
 
-  const section = SECTIONS.find((s) => s.id === sectionIdForPathname(pathname));
+  // User identity for the footer chip + dropdown label.
+  // readSession() is a hook-free localStorage read; for the sidebar it's
+  // fine — the chip text only updates on a full reload (the session is
+  // written by /login, and the sidebar re-mounts on route change anyway).
+  const session = readSession();
+  const user = session?.user ?? null;
+  const displayName = user?.displayName ?? t('shell.user.name');
+  const displayEmail = user?.email ?? t('shell.user.email');
+  // Optional avatar URL — present only when the backend's user record
+  // ships one. The Avatar primitive renders the <img> when src is set and
+  // falls back to initials derived from `name` otherwise.
+  const avatarSrc = user?.avatarUrl;
+
+  // Read each section's flag in SECTIONS order — the matching index
+  // is what the visibility filter later consults. The hooks fire
+  // unconditionally every render in the same order, so the rules
+  // of hooks hold even when the flag count changes between renders
+  // (new flags added in future commits just land at the tail).
+  const showNetwork = useFeatureFlag('sidebar.showNetworkSection');
+  const showStorage = useFeatureFlag('sidebar.showStorageSection');
+  const showObservability = useFeatureFlag('sidebar.showObservability');
+  const showAdmin = useFeatureFlag('sidebar.showAdminSection');
+  const sectionFlagById: Readonly<Record<string, boolean>> = {
+    network: showNetwork,
+    storage: showStorage,
+    observability: showObservability,
+    admin: showAdmin,
+  };
+
+  const visibleSections = SECTIONS.filter((s) => sectionFlagById[s.id] !== false);
+
+  const section = visibleSections.find((s) => s.id === sectionIdForPathname(pathname));
 
   const groupLabel = section ? t(section.label) : t('shell.applications');
   const items: SidebarItem[] = section
     ? section.pages.map((p) => ({ title: t(p.title), icon: p.icon, to: p.to }))
-    : SECTIONS.map((s) => ({ title: t(s.label), icon: s.icon, to: sectionPrimaryRoute(s) }));
+    : visibleSections.map((s) => ({ title: t(s.label), icon: s.icon, to: sectionPrimaryRoute(s) }));
 
   return (
     <>
@@ -103,11 +151,7 @@ export function AppSidebar() {
                 </span>
                 <span className="flex items-center gap-1 font-mono text-[10px] leading-tight text-muted-foreground/70">
                   by
-                  <img
-                    src="https://raw.githubusercontent.com/dot-stbl/.github/main/assets/logo.svg"
-                    alt=""
-                    className="inline-block h-2.5 w-auto"
-                  />
+                  <StblMark className="size-2.5" />
                   stbl
                 </span>
               </div>
@@ -120,11 +164,7 @@ export function AppSidebar() {
           <SidebarMenu>
             <SidebarMenuItem className="group/menu-item relative">
               <SidebarMenuButton onClick={() => setLauncherOpen(true)} className="font-medium">
-                <img
-                  src="https://raw.githubusercontent.com/dot-stbl/.github/main/assets/logo.svg"
-                  alt=""
-                  className="size-4 shrink-0"
-                />
+                <StblMark className="size-4" />
                 <span>{t('shell.applications')}</span>
               </SidebarMenuButton>
               <span aria-hidden="true" className={railPill}>
@@ -167,7 +207,7 @@ export function AppSidebar() {
                           hideDot
                           className="ml-auto px-1.5 py-0 text-[9.5px] font-normal group-data-[collapsible=icon]:hidden"
                         >
-                          скоро
+                          {t('common.soon')}
                         </StatusPill>
                       </SidebarMenuButton>
                       <span aria-hidden="true" className={railPill}>
@@ -182,6 +222,21 @@ export function AppSidebar() {
         </SidebarContent>
 
         <SidebarFooter className="p-2">
+          <SidebarMenu>
+            <SidebarMenuItem className="group/menu-item relative">
+              <SidebarMenuButton
+                isActive={isActiveRoute(pathname, '/settings/profile')}
+                render={<Link to="/settings/profile" data-testid="sidebar-settings-link" />}
+              >
+                <Settings />
+                <span>{t('shell.userMenu.settings')}</span>
+              </SidebarMenuButton>
+              <span aria-hidden="true" className={railPill}>
+                {t('shell.userMenu.settings')}
+              </span>
+            </SidebarMenuItem>
+          </SidebarMenu>
+
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -192,31 +247,47 @@ export function AppSidebar() {
                 />
               }
             >
-              <Avatar className="size-7">
-                <AvatarFallback className="text-[10px]">{t('shell.user.initials')}</AvatarFallback>
-              </Avatar>
+              {user ? (
+                <Avatar
+                  className="size-7"
+                  name={displayName}
+                  src={avatarSrc}
+                />
+              ) : (
+                <Avatar className="size-7">
+                  <AvatarFallback className="text-[10px]">{t('shell.user.initials')}</AvatarFallback>
+                </Avatar>
+              )}
               <span className="min-w-0 flex-1 text-left group-data-[collapsible=icon]:hidden">
-                <span className="block truncate text-xs font-medium">{t('shell.user.name')}</span>
+                <span className="block truncate text-xs font-medium">{displayName}</span>
                 <span className="block truncate font-mono text-[10px] text-muted-foreground">
-                  {t('shell.user.email')}
+                  {displayEmail}
                 </span>
               </span>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" className="w-56">
               <DropdownMenuGroup>
                 <DropdownMenuLabel className="flex flex-col gap-0.5">
-                  <span className="text-sm">{t('shell.user.name')}</span>
+                  <span className="text-sm">{displayName}</span>
                   <span className="font-mono text-[11px] font-normal text-muted-foreground">
-                    {t('shell.user.email')}
+                    {displayEmail}
                   </span>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+              <DropdownMenuItem
+                onClick={() => {
+                  void navigate({ to: '/settings/profile' });
+                }}
+              >
                 <Settings className="size-4" />
                 {t('shell.userMenu.settings')}
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => toast(t('shell.userMenu.signedOut'))}>
+              <DropdownMenuItem
+                onClick={() => {
+                  toast(t('shell.userMenu.signedOut'));
+                }}
+              >
                 <Logout className="size-4" />
                 {t('shell.userMenu.signOut')}
               </DropdownMenuItem>
@@ -227,8 +298,7 @@ export function AppSidebar() {
         <SidebarRail />
       </Sidebar>
 
-      <AppLauncher open={launcherOpen} onOpenChange={setLauncherOpen} />
-      <AppSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <AppLauncher open={launcherOpen} onOpenChange={setLauncherOpen} summary={launcherSummary} />
     </>
   );
 }

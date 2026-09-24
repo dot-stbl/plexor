@@ -9,18 +9,14 @@ import { Badge } from '@/shared/ui/primitives/badge';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { cn } from '@/shared/lib/utils';
 import { routeHead } from '@/shared/lib/route-head';
-import { applyPreset } from '@/shared/lib/themes/apply-tokens';
-import {
-  getPreset,
-  listPresets,
-  type ThemePreset,
-} from '@/shared/lib/themes';
+import { applyPreset, type ThemePreset } from '@plexor/ui/themes';
+import { getPreset, listPresets } from '@/shared/lib/themes';
 import {
   useCommunityThemes,
   useActivateTheme,
   useDeactivateTheme,
   useActiveThemeId,
-} from '@/features/themes/use-community-themes';
+} from '@/domains/branding';
 
 /**
  * AdminThemeMarketplacePage — operator-only console surface for
@@ -82,7 +78,7 @@ function CommunityCard({
         isActive && 'border-foreground/60 ring-1 ring-foreground/40',
       )}
     >
-      <CardHeader className="pb-3">
+      <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
             <CardTitle className="text-sm">{preset.name}</CardTitle>
@@ -175,7 +171,8 @@ function AdminThemeMarketplacePage() {
       onError: () => {
         setOptimisticActiveId(activeThemeId);
       },
-      onSuccess: (resolvedId) => {
+      onSuccess: (response) => {
+        const resolvedId = response.themeId;
         setOptimisticActiveId(resolvedId);
         const preset = getPreset(resolvedId);
         activateBuiltIn(preset);
@@ -185,7 +182,7 @@ function AdminThemeMarketplacePage() {
 
   const handleDeactivate = () => {
     setOptimisticActiveId(null);
-    deactivate.mutate(undefined, {
+    deactivate.mutate({
       onError: () => {
         setOptimisticActiveId(activeThemeId);
       },
@@ -200,7 +197,7 @@ function AdminThemeMarketplacePage() {
     <PageTemplate
       title={t('admin.themeMarketplace.title')}
       description={t('admin.themeMarketplace.description')}
-      width="6xl"
+      width="default"
       data-od-id="admin-theme-marketplace"
       actions={
         <Button
@@ -223,9 +220,9 @@ function AdminThemeMarketplacePage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="p-6 text-sm text-muted-foreground">{t('common.loading')}</div>
+            <div className="text-sm text-muted-foreground">{t('common.loading')}</div>
           ) : hasError ? (
-            <div className="p-6 text-sm text-err-ink">
+            <div className="text-sm text-err-ink">
               {t('admin.themeMarketplace.loadError')}
             </div>
           ) : community.length === 0 ? (

@@ -1,6 +1,31 @@
-import { Slider as SliderPrimitive } from "@base-ui/react/slider"
+import {
+  Slider as SliderPrimitive,
+  SliderFill,
+  SliderThumb,
+  SliderTrack,
+} from "react-aria-components"
 
 import { cn } from "@/lib/utils"
+
+/**
+ * Slider — react-aria-components-backed (base-ui compat).
+ *
+ * `min`/`max` map to `minValue`/`maxValue` and `onValueChange` maps to
+ * `onChange` (same `number | number[]` payload). Structure: the base-ui
+ * Control + Track merge into RAC's SliderTrack; Indicator → SliderFill;
+ * one SliderThumb per value.
+ */
+interface SliderCompatProps
+  extends Omit<
+    React.ComponentProps<typeof SliderPrimitive>,
+    "minValue" | "maxValue" | "onChange" | "defaultValue" | "value"
+  > {
+  min?: number
+  max?: number
+  value?: number | number[]
+  defaultValue?: number | number[]
+  onValueChange?: (value: number | number[]) => void
+}
 
 function Slider({
   className,
@@ -8,44 +33,50 @@ function Slider({
   value,
   min = 0,
   max = 100,
+  onValueChange,
   ...props
-}: SliderPrimitive.Root.Props) {
-  const _values = Array.isArray(value)
-    ? value
+}: SliderCompatProps) {
+  // One thumb per value: array values render one thumb per entry; a
+  // single number is a single-thumb slider (RAC requires the thumb count
+  // to match the value count).
+  const thumbCount = Array.isArray(value)
+    ? value.length
     : Array.isArray(defaultValue)
-      ? defaultValue
-      : [min, max]
+      ? defaultValue.length
+      : 1
 
   return (
-    <SliderPrimitive.Root
+    <SliderPrimitive
       className={cn("w-full", className)}
       data-slot="slider"
       defaultValue={defaultValue}
       value={value}
-      min={min}
-      max={max}
-      thumbAlignment="edge"
+      minValue={min}
+      maxValue={max}
+      onChange={onValueChange}
       {...props}
     >
-      <SliderPrimitive.Control className="relative flex w-full touch-none items-center select-none data-disabled:opacity-50">
-        <SliderPrimitive.Track
+      <SliderTrack
+        className="relative flex w-full touch-none items-center select-none data-disabled:opacity-50"
+      >
+        <span
           data-slot="slider-track"
           className="relative block h-2 w-full grow overflow-hidden rounded-full bg-foreground/30"
         >
-          <SliderPrimitive.Indicator
+          <SliderFill
             data-slot="slider-range"
             className="block h-full bg-primary"
           />
-        </SliderPrimitive.Track>
-        {Array.from({ length: _values.length }, (_, index) => (
-          <SliderPrimitive.Thumb
-            data-slot="slider-thumb"
-            key={index}
-            className="relative block size-3 shrink-0 rounded-md border border-ring bg-white ring-ring/30 transition-[color,box-shadow] select-none after:absolute after:-inset-2 hover:ring-2 focus-visible:ring-2 focus-visible:outline-hidden active:ring-2 disabled:pointer-events-none disabled:opacity-50"
-          />
-        ))}
-      </SliderPrimitive.Control>
-    </SliderPrimitive.Root>
+          {Array.from({ length: thumbCount }, (_, index) => (
+            <SliderThumb
+              data-slot="slider-thumb"
+              key={index}
+              className="block size-3 shrink-0 rounded-md border border-ring bg-white ring-ring/30 transition-[color,box-shadow] select-none after:absolute after:-inset-2 hover:ring-2 focus-visible:ring-2 focus-visible:outline-hidden active:ring-2 disabled:pointer-events-none disabled:opacity-50"
+            />
+          ))}
+        </span>
+      </SliderTrack>
+    </SliderPrimitive>
   )
 }
 

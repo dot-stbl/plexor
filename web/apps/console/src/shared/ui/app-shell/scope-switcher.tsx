@@ -112,7 +112,7 @@ function RowActions({ actions }: { actions: RowAction[] }) {
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="Действия"
+            aria-label="Actions"
             className="shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
           />
         }
@@ -227,12 +227,12 @@ function NameDialog({
               id="scope-name-input"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Введите название"
+              placeholder="Enter a name"
               autoFocus
             />
           </div>
           <DialogFooter>
-            <DialogClose render={<Button type="button" variant="outline" />}>Отмена</DialogClose>
+            <DialogClose render={<Button type="button" variant="outline" />}>Cancel</DialogClose>
             <Button type="submit" disabled={!name.trim()}>
               {submitLabel}
             </Button>
@@ -290,7 +290,7 @@ export function ScopeSwitcher() {
   function handleCopy(id: string) {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       void navigator.clipboard.writeText(id);
-      toast('ID скопирован');
+      toast('ID copied');
     }
   }
 
@@ -301,7 +301,7 @@ export function ScopeSwitcher() {
       const id = newId('org');
       setOrgs((prev) => [...prev, { id, name, teams: [] }]);
       setExpanded((prev) => new Set(prev).add(id));
-      toast(`Организация «${name}» создана`);
+      toast(`Organization "${name}" created`);
     } else if (kind === 'team' && parentId) {
       const id = newId('team');
       setOrgs((prev) =>
@@ -310,7 +310,7 @@ export function ScopeSwitcher() {
         ),
       );
       setExpanded((prev) => new Set(prev).add(parentId).add(id));
-      toast(`Команда «${name}» создана`);
+      toast(`Team "${name}" created`);
     } else if (kind === 'folder' && parentId) {
       const id = newId('fld');
       setOrgs((prev) =>
@@ -324,7 +324,7 @@ export function ScopeSwitcher() {
       setExpanded((prev) => new Set(prev).add(parentId));
       setTeamId(parentId);
       setFolderId(id);
-      toast(`Папка «${name}» создана`);
+      toast(`Folder "${name}" created`);
     }
     setCreateTarget(null);
   }
@@ -332,7 +332,7 @@ export function ScopeSwitcher() {
   function handleRename(name: string) {
     if (!renameTarget) return;
     setOrgs((prev) => renameNode(prev, renameTarget.id, name));
-    toast('Переименовано');
+    toast('Renamed');
     setRenameTarget(null);
   }
 
@@ -348,7 +348,7 @@ export function ScopeSwitcher() {
       setTeamId(firstTeam?.id ?? '');
       setFolderId(firstTeam?.folders[0]?.id ?? '');
     }
-    toast(`Удалено: ${deleteTarget.name}`);
+    toast(`Deleted: ${deleteTarget.name}`);
     setDeleteTarget(null);
   }
 
@@ -387,14 +387,14 @@ export function ScopeSwitcher() {
               <Input
                 value={filter}
                 onChange={(event) => setFilter(event.target.value)}
-                placeholder="Фильтр по организациям и папкам"
+                placeholder="Filter organizations and folders"
                 className="h-8 pl-8 text-sm"
               />
             </div>
             <Button
               variant="outline"
               size="icon"
-              aria-label="Создать организацию"
+              aria-label="Create organization"
               className="size-8 shrink-0"
               onClick={() => launchDialog(() => setCreateTarget({ kind: 'org' }))}
             >
@@ -405,7 +405,7 @@ export function ScopeSwitcher() {
           <ScrollArea className="max-h-80">
             <div className="p-1">
               {visibleOrgs.length === 0 && (
-                <div className="px-3 py-8 text-center text-sm text-muted-foreground">Нет совпадений</div>
+                <div className="px-3 py-8 text-center text-sm text-muted-foreground">No matches</div>
               )}
 
               {visibleOrgs.map((org) => (
@@ -419,22 +419,22 @@ export function ScopeSwitcher() {
                     onToggle={() => toggle(org.id)}
                     actions={[
                       {
-                        label: 'Создать команду',
+                        label: 'Create team',
                         icon: Add,
                         onSelect: () => launchDialog(() => setCreateTarget({ kind: 'team', parentId: org.id })),
                       },
                       {
-                        label: 'Переименовать',
+                        label: 'Rename',
                         icon: Edit,
                         onSelect: () => launchDialog(() => setRenameTarget({ id: org.id, name: org.name })),
                       },
                       {
-                        label: 'Удалить',
+                        label: 'Delete',
                         icon: Delete,
                         destructive: true,
                         onSelect: () => launchDialog(() => setDeleteTarget({ id: org.id, name: org.name })),
                       },
-                      { label: 'Копировать ID', icon: ContentCopy, onSelect: () => handleCopy(org.id) },
+                      { label: 'Copy ID', icon: ContentCopy, onSelect: () => handleCopy(org.id) },
                     ]}
                   />
 
@@ -450,25 +450,25 @@ export function ScopeSwitcher() {
                           onToggle={() => toggle(team.id)}
                           actions={[
                             {
-                              label: 'Создать папку',
+                              label: 'Create folder',
                               icon: Add,
                               onSelect: () =>
                                 launchDialog(() => setCreateTarget({ kind: 'folder', parentId: team.id })),
                             },
                             {
-                              label: 'Переименовать',
+                              label: 'Rename',
                               icon: Edit,
                               onSelect: () =>
                                 launchDialog(() => setRenameTarget({ id: team.id, name: team.name })),
                             },
                             {
-                              label: 'Удалить',
+                              label: 'Delete',
                               icon: Delete,
                               destructive: true,
                               onSelect: () =>
                                 launchDialog(() => setDeleteTarget({ id: team.id, name: team.name })),
                             },
-                            { label: 'Копировать ID', icon: ContentCopy, onSelect: () => handleCopy(team.id) },
+                            { label: 'Copy ID', icon: ContentCopy, onSelect: () => handleCopy(team.id) },
                           ]}
                         />
 
@@ -483,24 +483,24 @@ export function ScopeSwitcher() {
                               onSelect={() => selectFolder(team, folder)}
                               actions={[
                                 {
-                                  label: 'Открыть',
+                                  label: 'Open',
                                   icon: OpenInNew,
                                   onSelect: () => selectFolder(team, folder),
                                 },
                                 {
-                                  label: 'Переименовать',
+                                  label: 'Rename',
                                   icon: Edit,
                                   onSelect: () =>
                                     launchDialog(() => setRenameTarget({ id: folder.id, name: folder.name })),
                                 },
                                 {
-                                  label: 'Удалить',
+                                  label: 'Delete',
                                   icon: Delete,
                                   destructive: true,
                                   onSelect: () =>
                                     launchDialog(() => setDeleteTarget({ id: folder.id, name: folder.name })),
                                 },
-                                { label: 'Копировать ID', icon: ContentCopy, onSelect: () => handleCopy(folder.id) },
+                                { label: 'Copy ID', icon: ContentCopy, onSelect: () => handleCopy(folder.id) },
                               ]}
                             />
                           ))}
@@ -517,30 +517,30 @@ export function ScopeSwitcher() {
         open={createTarget !== null}
         title={
           createTarget?.kind === 'org'
-            ? 'Новая организация'
+            ? 'New organization'
             : createTarget?.kind === 'team'
-              ? 'Новая команда'
-              : 'Новая папка'
+              ? 'New team'
+              : 'New folder'
         }
         label={
           createTarget?.kind === 'org'
-            ? 'Название организации'
+            ? 'Organization name'
             : createTarget?.kind === 'team'
-              ? 'Название команды'
-              : 'Название папки'
+              ? 'Team name'
+              : 'Folder name'
         }
         initial=""
-        submitLabel="Создать"
+        submitLabel="Create"
         onOpenChange={(next) => !next && setCreateTarget(null)}
         onSubmit={handleCreate}
       />
 
       <NameDialog
         open={renameTarget !== null}
-        title="Переименовать"
-        label="Новое название"
+        title="Rename"
+        label="New name"
         initial={renameTarget?.name ?? ''}
-        submitLabel="Сохранить"
+        submitLabel="Save"
         onOpenChange={(next) => !next && setRenameTarget(null)}
         onSubmit={handleRename}
       />
@@ -548,14 +548,14 @@ export function ScopeSwitcher() {
       <AlertDialog open={deleteTarget !== null} onOpenChange={(next) => !next && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить «{deleteTarget?.name}»?</AlertDialogTitle>
+            <AlertDialogTitle>Delete "{deleteTarget?.name}"?</AlertDialogTitle>
             <AlertDialogDescription>
-              Действие необратимо. Вложенные ресурсы также будут удалены.
+              This action is irreversible. Nested resources will also be deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Удалить</AlertDialogAction>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

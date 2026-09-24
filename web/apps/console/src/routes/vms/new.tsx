@@ -26,9 +26,18 @@ import { TechIcon } from '@/shared/ui/primitives/tech-icon';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
-import { useListClusters } from '@/features/clusters';
-import type { NodeStatus } from '@/features/clusters';
-import { listImages } from '@/features/images';
+import { Spinner } from '@/shared/ui/primitives/spinner';
+import { cn } from '@/lib/utils';
+import type { ProblemDetails } from '@/shared/api';
+import { useListClusters } from '@/domains/fleet';
+import type { NodeStatus } from '@/domains/fleet';
+import {
+  listImages,
+  useCreateVm,
+  mapVmWizardToCreateVmRequest,
+  mapCreateVmErrorToFieldErrors,
+  type VmCreateFieldErrors,
+} from '@/domains/compute';
 
 export const Route = createFileRoute('/vms/new')({
   staticData: { crumb: 'New VM' },
@@ -156,6 +165,10 @@ function CreateVmPage() {
   const [protection, setProtection] = useState(false);
   const [labels, setLabels] = useState<{ key: string; value: string }[]>([]);
 
+  // Create-VM submission
+  const [fieldErrors, setFieldErrors] = useState<VmCreateFieldErrors>({});
+  const createVm = useCreateVm();
+
   const selectedNode = allNodes.find((n) => n.id === nodeId);
   const selectedCluster = clusters.find((c) => c.nodes.some((n) => n.id === nodeId));
   const selectedImage = images.find((i) => i.id === imageId);
@@ -180,16 +193,40 @@ function CreateVmPage() {
 
   const handleCreate = () => {
     if (!canCreate) return;
-    toast(`Creating VM ${effectiveName}`, {
-      description: `${selectedImage?.name ?? 'image'} · ${vcpu} vCPU / ${SizeUtils.format(ramBytes)} · ${SizeUtils.format(bootDiskBytes)} on ${STORAGE_LABELS[effBootPool]} · ${selectedNode?.hostname ?? '—'}`,
+    setFieldErrors({});
+    const payload = mapVmWizardToCreateVmRequest({
+      name: effectiveName,
+      imageId,
+      vpc,
+      sockets,
+      cores,
+      ramBytes,
+      bootDiskBytes,
+      labels,
     });
-    void navigate({ to: '/vms' });
+    createVm.mutate(
+      { data: payload },
+      {
+        onSuccess: (vm) => {
+          toast.success(t('vms.new.createdToast', { name: vm.name }));
+          void navigate({ to: '/vms' });
+        },
+        onError: (error) => {
+          const response = (error as { response?: { status?: number; data?: ProblemDetails } }).response;
+          if (response?.status === 409 || response?.status === 422) {
+            setFieldErrors(mapCreateVmErrorToFieldErrors(response.data ?? {}));
+          } else {
+            toast.error(t('vms.new.createFailedToast'));
+          }
+        },
+      },
+    );
   };
 
   return (
     <PageTemplate
       data-od-id="vms-new"
-      width="full"
+      width="wide"
       title={t('vms.new.title')}
       description={t('vms.new.form.pageDescription')}
       actions={
@@ -248,7 +285,7 @@ function CreateVmPage() {
                     options={readyNodes.map((n) => n.id)}
                     render={(id) => {
                       const n = readyNodes.find((x) => x.id === id);
-                      return n ? `${n.hostname} · ${n.role === 'control' ? 'control-plane' : 'compute'}` : id;
+                      return n ? `${n.hostname} — ${n.role === 'control' ? 'control-plane' : 'compute'}` : id;
                     }}
                     placeholder={t('vms.new.nodePlaceholder')}
                   />
@@ -302,7 +339,7 @@ function CreateVmPage() {
                 <CardDescription>{t('vms.new.form.imageDescription')}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
-                <FieldRow label={t('vms.new.image')} htmlFor="vm-image" required>
+                <FieldRow label={t('vms.new.image')} htmlFor="vm-image" required help={t('vms.new.form.imageHelp')}>
                   <SimpleSelect
                     id="vm-image"
                     value={imageId}
@@ -316,8 +353,10 @@ function CreateVmPage() {
                       <TechIcon slug={selectedImage.techSlug ?? ''} className="size-4" />
                       <Badge variant="outline">{`${selectedImage.os} ${selectedImage.version}`}</Badge>
                       <Badge variant="outline" className="font-mono">{selectedImage.arch}</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        image <Size bytes={selectedImage.sizeBytes} /> · min disk <Size bytes={selectedImage.minDiskBytes} />
+                      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span>image <Size bytes={selectedImage.sizeBytes} /></span>
+                        <span className="inline-block h-2.5 w-px bg-border" aria-hidden />
+                        <span>min disk <Size bytes={selectedImage.minDiskBytes} /></span>
                       </span>
                     </div>
                   )}
@@ -431,7 +470,7 @@ function CreateVmPage() {
                 <CardDescription>{t('vms.new.form.networkDescription')}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
-                <FieldRow label={t('vms.new.form.vpcSubnet')} htmlFor="vm-vpc" required>
+                <FieldRow label={t('vms.new.form.vpcSubnet')} htmlFor="vm-vpc" required help={t('vms.new.form.vpcSubnetHelp')}>
                   <SimpleSelect id="vm-vpc" value={vpc} onChange={setVpc} options={NETWORKS} />
                 </FieldRow>
                 <FieldRow label={t('vms.new.form.ipAddress')} help={t('vms.new.form.ipAddressHelp')}>
@@ -470,7 +509,22 @@ function CreateVmPage() {
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
                 <FieldRow label={t('vms.new.name')} htmlFor="vm-name" required help={t('vms.new.nameDescription')}>
-                  <Input id="vm-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('vms.new.namePlaceholder')} />
+                  <Input
+                    id="vm-name"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      if (fieldErrors.name !== undefined) {
+                        setFieldErrors((prev) => ({ ...prev, name: undefined }));
+                      }
+                    }}
+                    placeholder={t('vms.new.namePlaceholder')}
+                    aria-invalid={fieldErrors.name !== undefined}
+                    className={cn(fieldErrors.name !== undefined && 'border-destructive ring-2 ring-destructive/20')}
+                  />
+                  {fieldErrors.name !== undefined && (
+                    <p className="text-xs text-destructive">{t(fieldErrors.name)}</p>
+                  )}
                 </FieldRow>
                 <FieldRow label={t('vms.new.form.user')} htmlFor="vm-user" help={t('vms.new.form.userHelp')}>
                   <Input id="vm-user" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="plexor" className="w-56" />
@@ -510,7 +564,7 @@ function CreateVmPage() {
                 <CardDescription>{t('vms.new.form.optionsDescription')}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
-                <FieldRow label={t('vms.new.form.startAfterCreation')} htmlFor="vm-start">
+                <FieldRow label={t('vms.new.form.startAfterCreation')} htmlFor="vm-start" help={t('vms.new.form.startAfterCreationHelp')}>
                   <Switch id="vm-start" checked={startAfterCreate} onCheckedChange={setStartAfterCreate} />
                 </FieldRow>
                 <FieldRow label={t('vms.new.form.startOnBoot')} htmlFor="vm-onboot" help={t('vms.new.form.startOnBootHelp')}>
@@ -543,9 +597,13 @@ function CreateVmPage() {
               <Button variant="outline" nativeButton={false} render={<Link to="/vms" />}>
                 {t('common.cancel')}
               </Button>
-              <Button onClick={handleCreate} disabled={!canCreate}>
-                <Add />
-                {t('vms.new.create')}
+              <Button
+                onClick={handleCreate}
+                disabled={!canCreate || createVm.isPending}
+                aria-busy={createVm.isPending}
+              >
+                {createVm.isPending ? <Spinner className="size-3.5" aria-hidden="true" /> : <Add />}
+                {createVm.isPending ? t('vms.new.creating') : t('vms.new.create')}
               </Button>
             </div>
           </div>
@@ -567,28 +625,29 @@ function CreateVmPage() {
               <SummaryRow label={t('vms.new.form.image')}>{selectedImage ? selectedImage.name : '—'}</SummaryRow>
               <SummaryRow label={t('vms.new.form.placement')}>
                 {selectedNode ? selectedNode.hostname : '—'}
-                {selectedCluster ? ` · ${selectedCluster.name}` : ''}
+                {selectedCluster ? <span className="text-muted-foreground">, cluster {selectedCluster.name}</span> : ''}
               </SummaryRow>
               <SummaryRow label={t('vms.new.form.cpu')}>
                 <MonoNum>{vcpu}</MonoNum> vCPU <span className="text-muted-foreground">({sockets}×{cores}, {cpuType})</span>
               </SummaryRow>
               <SummaryRow label={t('vms.new.form.memory')}>
                 <Size bytes={ramBytes} />
-                {ballooning ? <span className="text-muted-foreground"> · {t('vms.new.form.balloon')}</span> : null}
+                {ballooning ? <span className="text-muted-foreground">, {t('vms.new.form.balloon')}</span> : null}
               </SummaryRow>
               <SummaryRow label={t('vms.new.form.bootDisk')}>
-                <Size bytes={bootDiskBytes} /> <span className="text-muted-foreground">· {STORAGE_LABELS[effBootPool] ?? effBootPool}</span>
+                <Size bytes={bootDiskBytes} />
+                <span className="text-muted-foreground">, {STORAGE_LABELS[effBootPool] ?? effBootPool}</span>
               </SummaryRow>
               {extraDisks.length > 0 && (
                 <SummaryRow label={t('vms.new.form.extraDisks')}>
-                  <MonoNum>{extraDisks.length}</MonoNum> · <Size bytes={extraDiskBytes} />
+                  <MonoNum>{extraDisks.length}</MonoNum> disks, <Size bytes={extraDiskBytes} />
                 </SummaryRow>
               )}
               <SummaryRow label={t('vms.new.network')}>
-                {vpc} · {ipMode === 'dhcp' ? 'DHCP' : ipAddress || 'static'}
+                {vpc}, {ipMode === 'dhcp' ? 'DHCP' : ipAddress || 'static'}
               </SummaryRow>
               <SummaryRow label={t('vms.new.form.firmware')}>
-                {machineType} · {firmware.toUpperCase()}
+                {machineType}, {firmware.toUpperCase()}
               </SummaryRow>
             </div>
           </SummaryPanel>

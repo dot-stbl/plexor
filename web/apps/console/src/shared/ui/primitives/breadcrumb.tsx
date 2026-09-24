@@ -1,9 +1,13 @@
 import * as React from "react"
-import { mergeProps } from "@base-ui/react/merge-props"
-import { useRender } from "@base-ui/react/use-render"
+import { KeyboardArrowRight, MoreVert } from '@nine-thirty-five/material-symbols-react/rounded/700';
 
 import { cn } from "@/lib/utils"
-import { KeyboardArrowRight, MoreVert } from '@nine-thirty-five/material-symbols-react/rounded/700';function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
+import {
+  polymorphic,
+  type PolymorphicProps,
+} from "@/shared/ui/primitives/polymorphic"
+
+function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav
       aria-label="breadcrumb"
@@ -37,24 +41,13 @@ function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
   )
 }
 
-function BreadcrumbLink({
-  className,
-  render,
-  ...props
-}: useRender.ComponentProps<"a">) {
-  return useRender({
-    defaultTagName: "a",
-    props: mergeProps<"a">(
-      {
-        className: cn("transition-colors hover:text-foreground", className),
-      },
-      props
-    ),
-    render,
-    state: {
-      slot: "breadcrumb-link",
-    },
-  })
+function BreadcrumbLink({ className, ...props }: PolymorphicProps<"a">) {
+  return polymorphic(
+    "a",
+    props,
+    cn("transition-colors hover:text-foreground", className),
+    { slot: "breadcrumb-link" },
+  )
 }
 
 function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {

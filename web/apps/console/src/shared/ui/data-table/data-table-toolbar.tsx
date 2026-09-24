@@ -120,11 +120,12 @@ function FilterControl({ filter, value, onChange }: FilterControlProps) {
   if (filter.type === 'select') {
     const allLabel = filter.placeholder ?? t('common.all');
     return (
-      <div className="min-w-[140px]">
+      <div className="min-w-[160px]">
         <Select
           items={[{ value: '', label: allLabel }, ...filter.options]}
           value={value}
           onValueChange={(v) => onChange(v ?? '')}
+          aria-label={allLabel}
         >
           <SelectTrigger size="sm" className="w-full text-xs">
             <SelectValue placeholder={allLabel} />
@@ -148,7 +149,7 @@ function FilterControl({ filter, value, onChange }: FilterControlProps) {
         onChange={(e) => onChange(e.target.value)}
         placeholder={filter.placeholder}
         className="h-7 text-xs"
-        aria-label={filter.placeholder}
+        aria-label={filter.placeholder ?? t('table.filter.search')}
       />
     </div>
   );

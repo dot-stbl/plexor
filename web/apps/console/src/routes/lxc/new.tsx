@@ -23,8 +23,8 @@ import { SummaryPanel, SummaryRow } from '@/shared/ui/primitives/summary-panel';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
-import { useListClusters } from '@/features/clusters';
-import type { NodeStatus } from '@/features/clusters';
+import { useListClusters } from '@/domains/fleet';
+import type { NodeStatus } from '@/domains/fleet';
 import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/lxc/new')({
@@ -157,7 +157,7 @@ function CreateLxcPage() {
   const handleCreate = () => {
     if (!canCreate) return;
     toast(`Creating container ${effectiveName}`, {
-      description: `${template} · ${cores} cores / ${SizeUtils.format(ramBytes)} · ${SizeUtils.format(rootBytes)} on ${STORAGE_LABELS[effRootPool]} · ${selectedNode?.hostname ?? '—'}`,
+      description: `${template}, ${cores} cores / ${SizeUtils.format(ramBytes)}, ${SizeUtils.format(rootBytes)} on ${STORAGE_LABELS[effRootPool]}, node ${selectedNode?.hostname ?? '—'}`,
     });
     void navigate({ to: '/lxc' });
   };
@@ -165,7 +165,7 @@ function CreateLxcPage() {
   return (
     <PageTemplate
       data-od-id="lxc-new"
-      width="full"
+      width="wide"
       title={t('lxc.new.title')}
       description={t('lxc.new.form.pageDescription')}
       actions={
@@ -224,7 +224,7 @@ function CreateLxcPage() {
                     options={lxcNodes.map((n) => n.id)}
                     render={(id) => {
                       const n = lxcNodes.find((x) => x.id === id);
-                      return n ? `${n.hostname} · ${n.role === 'control' ? 'control-plane' : 'compute'}` : id;
+                      return n ? `${n.hostname} — ${n.role === 'control' ? 'control-plane' : 'compute'}` : id;
                     }}
                     placeholder={t('lxc.new.form.placement.nodePlaceholder')}
                   />
@@ -488,7 +488,7 @@ function CreateLxcPage() {
               <SummaryRow label={t('lxc.new.form.summary.template')}>{template}</SummaryRow>
               <SummaryRow label={t('lxc.new.form.summary.placement')}>
                 {selectedNode ? selectedNode.hostname : '—'}
-                {selectedCluster ? ` · ${selectedCluster.name}` : ''}
+                {selectedCluster ? <span className="text-muted-foreground">, cluster {selectedCluster.name}</span> : ''}
               </SummaryRow>
               <SummaryRow label={t('lxc.new.form.summary.type')}>{unprivileged ? 'unprivileged' : 'privileged'}</SummaryRow>
               <SummaryRow label={t('lxc.new.form.summary.cpu')}>
@@ -501,15 +501,16 @@ function CreateLxcPage() {
                 <Size bytes={swapBytes} />
               </SummaryRow>
               <SummaryRow label={t('lxc.new.form.summary.rootfs')}>
-                <Size bytes={rootBytes} /> <span className="text-muted-foreground">· {STORAGE_LABELS[effRootPool] ?? effRootPool}</span>
+                <Size bytes={rootBytes} />
+                <span className="text-muted-foreground">, {STORAGE_LABELS[effRootPool] ?? effRootPool}</span>
               </SummaryRow>
               {mounts.length > 0 && (
                 <SummaryRow label={t('lxc.new.form.summary.mounts')}>
-                  <MonoNum>{mounts.length}</MonoNum> · <Size bytes={mountBytes} />
+                  <MonoNum>{mounts.length}</MonoNum> mounts, <Size bytes={mountBytes} />
                 </SummaryRow>
               )}
               <SummaryRow label={t('lxc.new.form.summary.network')}>
-                {vpc} · {ipMode === 'dhcp' ? 'DHCP' : ipAddress || 'static'}
+                {vpc}, {ipMode === 'dhcp' ? 'DHCP' : ipAddress || 'static'}
               </SummaryRow>
             </div>
           </SummaryPanel>

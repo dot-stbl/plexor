@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/primitives/popover';
 import { Button } from '@/shared/ui/primitives/button';
 import { Checkbox } from '@/shared/ui/primitives/checkbox';
@@ -26,6 +27,7 @@ export interface DataTableColumnsProps<TData> {
  * `columnOrder`.
  */
 export function DataTableColumns<TData>({ columns, value, onChange }: DataTableColumnsProps<TData>) {
+  const { t } = useTranslation();
   const [dragId, setDragId] = useState<string | null>(null);
 
   const ids = columns.map((c) => c.id as string).filter(Boolean);
@@ -62,14 +64,14 @@ export function DataTableColumns<TData>({ columns, value, onChange }: DataTableC
     <Popover>
       <PopoverTrigger
         render={
-          <Button variant="outline" size="icon-sm" aria-label="Configure columns">
+          <Button variant="outline" size="icon-sm" aria-label={t('table.columns.configure')}>
             <Tune className="size-3.5" />
           </Button>
         }
       />
       <PopoverContent align="end" className="w-56 p-1">
         <div className="px-2 py-1.5 text-[11px] font-medium tracking-[0.04em] text-muted-foreground uppercase">
-          Columns
+          {t('table.columns.title')}
         </div>
         <div className="flex flex-col">
           {order.map((id, idx) => {
@@ -97,7 +99,7 @@ export function DataTableColumns<TData>({ columns, value, onChange }: DataTableC
                   checked={visible}
                   disabled={locked}
                   onCheckedChange={() => toggle(id)}
-                  aria-label={`Column "${labelOf(id)}"`}
+                  aria-label={t('table.columns.toggle', { name: labelOf(id) })}
                 />
                 <span className="min-w-0 flex-1 truncate">{labelOf(id)}</span>
               </div>

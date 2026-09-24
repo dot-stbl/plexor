@@ -4,7 +4,7 @@ import { ArrowBack } from '@nine-thirty-five/material-symbols-react/rounded/700'
 import { Button } from '@/shared/ui/primitives/button';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { routeHead } from '@/shared/lib/route-head';
-import { VSphereCloneForm } from '@/features/vsphere';
+import { VSphereCloneForm } from '@/domains/compute';
 
 export const Route = createFileRoute('/vsphere/clone')({
   staticData: { crumb: 'Clone VM from vSphere template' },
@@ -18,7 +18,7 @@ function VSphereClonePage() {
   return (
     <PageTemplate
       data-od-id="vsphere-clone-page"
-      width="3xl"
+      width="narrow"
       title={t('vsphere.clone.title')}
       description={t('vsphere.clone.description')}
       actions={

@@ -30,10 +30,10 @@ export function CopyableText({ value, children, copyLabel, className }: Copyable
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
-      toast(`Скопировано: ${value}`);
+      toast(`Copied: ${value}`);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast('Не удалось скопировать');
+      toast('Failed to copy');
     }
   };
 
@@ -48,7 +48,7 @@ export function CopyableText({ value, children, copyLabel, className }: Copyable
       <button
         type="button"
         onClick={copy}
-        aria-label={copyLabel ?? `Скопировать ${value}`}
+        aria-label={copyLabel ?? `Copy ${value}`}
         className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground opacity-0 transition-all hover:bg-muted hover:text-foreground group-hover/copy:opacity-100 focus-visible:opacity-100"
       >
         {copied ? (

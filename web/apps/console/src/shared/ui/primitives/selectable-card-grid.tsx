@@ -3,7 +3,7 @@ import { RadioGroup, RadioGroupItem } from '@/shared/ui/primitives/radio-group';
 import { cn } from '@/lib/utils';
 
 /**
- * SelectableCardGrid — сетка выбираемых карт (эталон YC: пресеты «2 vCPU · 8 ГБ»,
+ * SelectableCardGrid — сетка выбираемых карт (эталон YC: пресеты «2 vCPU, 8 ГБ»,
  * большие option-карты «Высокодоступный/Базовый» + badge «Рекомендуемый»).
  * Selected = **ink** border + tint, НЕ синий. RadioGroup-семантика.
  * (RuntimePicker — специализированный вариант этого паттерна.)

@@ -19,7 +19,7 @@
  * signed manifest fetch + validate against a Zod schema — the export shape
  * stays identical so the marketplace UI / hooks don't change.
  */
-import type { ThemePreset } from './presets';
+import type { ThemePreset } from '@plexor/ui/themes';
 
 export interface CommunityTheme extends ThemePreset {
   readonly author: string;

@@ -12,7 +12,7 @@ import {
   type CommunityTheme,
 } from './community-themes';
 import { getPreset, listCommunityThemes } from './registry';
-import type { ThemePreset } from './presets';
+import type { ThemePreset } from '@plexor/ui/themes';
 
 describe('community themes registry', () => {
   it('ships at least two community themes', () => {

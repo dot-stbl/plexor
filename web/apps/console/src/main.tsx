@@ -5,6 +5,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { TooltipProvider } from '@/shared/ui/primitives/tooltip';
 import { Toaster } from '@/shared/ui/primitives/sonner';
 import { ThemeProvider } from '@/shared/lib/theme-provider';
+import { FeatureFlagProvider } from '@/shared/lib/feature-flags/feature-flag-context';
 import { getBootConfig } from '@/shared/lib/config';
 import '@/shared/lib/i18n';
 import { routeTree } from './routeTree.gen';
@@ -12,21 +13,45 @@ import { routeTree } from './routeTree.gen';
 import './index.css';
 
 // Theme bootstrap — apply persisted/auto theme BEFORE first render
-// to avoid flash. Reads from the preferences storage key
-// ('plexor-preferences') and falls back to the legacy 'plexor-theme'
+// to avoid flash. Reads from the per-user preferences storage key
+// ('plexor-preferences::<userId>') when a session is mounted, falls
+// back to the global 'plexor-preferences' key for the splash /
+// anonymous screens, then falls back to the legacy 'plexor-theme'
 // key for users who had a value set before the migration.
 (function applyThemeEarly() {
   try {
-    var raw =
-      localStorage.getItem('plexor-preferences') ||
-      localStorage.getItem('plexor-theme');
+    var session = null;
+    try {
+      var raw = localStorage.getItem('plexor-auth');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.user && typeof parsed.user.id === 'string') {
+          session = parsed;
+        }
+      }
+    } catch {
+      session = null;
+    }
+    var keys = ['plexor-preferences'];
+    if (session && session.user && session.user.id) {
+      keys.unshift('plexor-preferences::' + session.user.id);
+    }
+    keys.push('plexor-theme');
+    var raw: string | null = null;
+    for (var i = 0; i < keys.length; i++) {
+      var candidate = localStorage.getItem(keys[i]);
+      if (candidate) {
+        raw = candidate;
+        break;
+      }
+    }
     var theme;
     if (raw) {
       try {
         // New format: JSON object { theme, accent, fontSize }.
-        var parsed = JSON.parse(raw);
-        theme = parsed && parsed.theme;
-      } catch (_) {
+        var parsedPrefs = JSON.parse(raw);
+        theme = parsedPrefs && parsedPrefs.theme;
+      } catch {
         // Legacy format: bare string ('light' | 'dark' | 'system').
         theme = raw;
       }
@@ -38,7 +63,7 @@ import './index.css';
     } else {
       document.documentElement.classList.remove('dark');
     }
-  } catch (_) {
+  } catch {
     // localStorage unavailable — fall back to system preference
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       document.documentElement.classList.add('dark');
@@ -66,7 +91,7 @@ import './index.css';
     if (customAccent) {
       document.documentElement.style.setProperty('--accent', customAccent);
     }
-  } catch (_) {
+  } catch {
     // Boot config unavailable — the default favicon (set in index.html)
     // and the default accent (from index.css / the active preset) stay
     // in place.
@@ -117,8 +142,23 @@ declare module '@tanstack/react-router' {
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Root element #root not found');
 
-// In dev with VITE_USE_MOCKS=true, start MSW (kubb faker-backed handlers) before
-// first render. Flip the flag off to hit the real Plexor.Host API — no screen changes.
+// Mock activation is EXPLICIT: `VITE_USE_MOCKS=true` (set by the dev:mock /
+// build:mock / test:mocks scripts) starts the MSW worker before first
+// render. There is no implicit env-absence fallback — plain `dev` always
+// talks to the real API, and a dev run without an API target fails fast
+// instead of silently issuing requests against the Vite dev server.
+function assertApiConfigured() {
+  if (import.meta.env.VITE_USE_MOCKS === 'true') return;
+  if (!import.meta.env.DEV) return;
+  if (import.meta.env.VITE_API_URL) return;
+  console.error(
+    '[plexor] dev run has no API target: VITE_API_URL is unset and VITE_USE_MOCKS is not "true".\n' +
+      'Point VITE_API_URL at Plexor.Host (see .env.development) or run the mocked console:\n' +
+      '  bun run dev:mock',
+  );
+  throw new Error('No API target configured: set VITE_API_URL or enable mocks via VITE_USE_MOCKS=true');
+}
+
 async function enableMocking() {
   if (import.meta.env.VITE_USE_MOCKS !== 'true') return;
   const { worker } = await import('@/shared/api/mocks/browser');
@@ -135,8 +175,8 @@ async function applyBootPreset() {
   const presetId = getBootConfig().theme.defaultPresetId;
   if (!presetId || presetId === 'plexor-default-light') return;
   try {
-    const { getPreset } = await import('@/shared/lib/themes/registry');
-    const { applyPreset } = await import('@/shared/lib/themes/apply-tokens');
+    const { getPreset } = await import('@/shared/lib/themes');
+    const { applyPreset } = await import('@plexor/ui/themes');
     const preset = getPreset(presetId);
     if (preset) {
       applyPreset(preset);
@@ -155,8 +195,8 @@ async function applyBootPreset() {
 async function applyBootCommunityTheme() {
   try {
     const { getBrandingTheme } = await import('@/shared/api');
-    const { listCommunityThemes } = await import('@/shared/lib/themes/registry');
-    const { applyPreset } = await import('@/shared/lib/themes/apply-tokens');
+    const { listCommunityThemes } = await import('@/shared/lib/themes');
+    const { applyPreset } = await import('@plexor/ui/themes');
     const installation = await getBrandingTheme();
     const themes = listCommunityThemes();
     const theme = themes.find((entry) => entry.id === installation.themeId);
@@ -171,16 +211,20 @@ async function applyBootCommunityTheme() {
   }
 }
 
+assertApiConfigured();
+
 void Promise.all([enableMocking(), applyBootPreset(), applyBootCommunityTheme()]).then(() => {
   createRoot(rootElement).render(
     <StrictMode>
-      <ThemeProvider defaultTheme="system" storageKey="plexor-preferences">
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <RouterProvider router={router} />
-            <Toaster />
-          </TooltipProvider>
-        </QueryClientProvider>
+      <ThemeProvider defaultTheme="system">
+        <FeatureFlagProvider>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <RouterProvider router={router} />
+              <Toaster />
+            </TooltipProvider>
+          </QueryClientProvider>
+        </FeatureFlagProvider>
       </ThemeProvider>
     </StrictMode>,
   );

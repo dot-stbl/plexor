@@ -1,50 +1,147 @@
-"use client";
+"use client"
 
-import { Select as SelectPrimitive } from "@base-ui/react/select";
+import * as React from "react"
+import {
+  Button as PrimitiveButton,
+  ListBox,
+  ListBoxItem,
+  Popover,
+  Select as RACSelect,
+  SelectValue as RACSelectValue,
+} from "react-aria-components"
+import { Check, KeyboardArrowDown } from "@nine-thirty-five/material-symbols-react/rounded/700"
 
-import { cn } from "@/lib/utils";
-import { Check, KeyboardArrowDown } from "@nine-thirty-five/material-symbols-react/rounded/700";
+import { cn } from "@/lib/utils"
 
 /**
- * Select — Plexor DS wrapper around Base UI Select.
+ * Select — Plexor DS wrapper around react-aria-components' Select.
  *
- * Layout:
- * - Trigger: content-sized, value + CaretDown icon
- * - Popup: min-w-[var(--anchor-width)] (matches trigger width)
- * - Item: flex with text on left + Check icon on right (when selected)
- * - Check uses Plexor DS tokens: text-foreground default,
- *   text-accent-foreground when item is highlighted (hover/focus)
- *
- * alignItemWithTrigger=false: Base UI's default adds +28px
- * (min-w: calc(anchor + 1.75rem)) when alignItemWithTrigger is on
- * to align the selected item with the trigger text. We disable
- * this so popup is exactly trigger width.
+ * Compatibility shims vs base-ui:
+ *   - `value` ↔ RAC `selectedKey`
+ *   - `onValueChange` ↔ RAC `onSelectionChange`
+ *   - `items` prop is the canonical source of options
+ *   - `<SelectContent>` accepts `<SelectItem>` children; we register them
+ *     into a context, then render a RAC `<ListBox items={...}>` from them.
  */
 
-const Select = SelectPrimitive.Root;
+interface PlexorSelectItemProps {
+  value: string
+  children?: React.ReactNode
+  className?: string
+}
 
-function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
+interface PlexorSelectItemDescriptor {
+  id: string
+  label: React.ReactNode
+  textValue?: string
+  className?: string
+}
+
+const SelectItemContext = React.createContext<{
+  items: PlexorSelectItemDescriptor[]
+  register: (desc: PlexorSelectItemDescriptor) => void
+} | null>(null)
+
+interface PlexorItemShape {
+  value: string
+  label?: React.ReactNode
+}
+
+interface PlexorSelectRootProps {
+  items?: PlexorItemShape[]
+  value?: string
+  defaultValue?: string
+  onValueChange?: (value: string) => void
+  isDisabled?: boolean
+  disabled?: boolean
+  placeholder?: string
+  children?: React.ReactNode
+  /**
+   * Accessible name for the whole control. react-aria's `useLabel` warns
+   * ("If you do not provide a visible label…") when the root gets none of
+   * label/aria-label/aria-labelledby — forwarded here so callers can pass
+   * them on `<Select>` like on any other field primitive.
+   */
+  "aria-label"?: string
+  "aria-labelledby"?: string
+  id?: string
+}
+
+function PlexorSelectRoot({ children, items, value, defaultValue, onValueChange, isDisabled, disabled, placeholder, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledby, id }: PlexorSelectRootProps) {
+  const [registeredItems, setRegisteredItems] = React.useState<PlexorSelectItemDescriptor[]>([])
+  const register = React.useCallback((desc: PlexorSelectItemDescriptor) => {
+    setRegisteredItems((prev) => {
+      if (prev.some((p) => p.id === desc.id)) return prev
+      return [...prev, desc]
+    })
+  }, [])
+
+  const finalItems: PlexorSelectItemDescriptor[] = React.useMemo(() => {
+    if (items && items.length > 0) {
+      return items.map((it) => ({
+        id: String(it.value),
+        label: it.label,
+        textValue: typeof it.label === "string" ? it.label : undefined,
+      }))
+    }
+    return registeredItems
+  }, [items, registeredItems])
+
   return (
-    <SelectPrimitive.Value
+    <SelectItemContext.Provider value={{ items: finalItems, register }}>
+      <RACSelect
+        data-slot="select"
+        selectedKey={value}
+        defaultSelectedKey={defaultValue}
+        onSelectionChange={(key) => onValueChange?.(String(key))}
+        isDisabled={isDisabled ?? disabled}
+        placeholder={placeholder}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledby}
+        id={id}
+      >
+        {children}
+      </RACSelect>
+    </SelectItemContext.Provider>
+  )
+}
+
+interface PlexorSelectValueProps extends Omit<React.ComponentProps<typeof RACSelectValue>, "children" | "placeholder"> {
+  children?: React.ReactNode
+  /** base-ui compat: also accepted; ignored because the placeholder is set on the parent `<Select>`. */
+  placeholder?: string
+}
+
+function PlexorSelectValue({ className, placeholder: _placeholder, ...props }: PlexorSelectValueProps) {
+  return (
+    <RACSelectValue
       data-slot="select-value"
       className={cn("line-clamp-1 text-left", className)}
       {...props}
     />
-  );
+  )
 }
 
-function SelectTrigger({
+interface PlexorSelectTriggerProps extends Omit<React.ComponentProps<typeof PrimitiveButton>, "children"> {
+  size?: "sm" | "default"
+  isDisabled?: boolean
+  disabled?: boolean
+  children?: React.ReactNode
+}
+
+function PlexorSelectTrigger({
   className,
   size = "default",
+  isDisabled,
+  disabled,
   children,
   ...props
-}: SelectPrimitive.Trigger.Props & {
-  size?: "sm" | "default";
-}) {
+}: PlexorSelectTriggerProps) {
   return (
-    <SelectPrimitive.Trigger
+    <PrimitiveButton
       data-slot="select-trigger"
       data-size={size}
+      isDisabled={isDisabled ?? disabled}
       className={cn(
         "flex h-7 w-full items-center justify-between gap-1.5 rounded-md border border-input bg-input/20 px-2 text-xs/relaxed whitespace-nowrap transition-colors outline-none",
         "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30",
@@ -58,133 +155,108 @@ function SelectTrigger({
       {...props}
     >
       {children}
-      <SelectPrimitive.Icon
-        render={
-          <KeyboardArrowDown className="pointer-events-none size-3.5 shrink-0 text-muted-foreground" />
-        }
-      />
-    </SelectPrimitive.Trigger>
-  );
+      <span className="pointer-events-none ml-1 flex shrink-0 items-center text-muted-foreground">
+        <KeyboardArrowDown className="size-3.5" />
+      </span>
+    </PrimitiveButton>
+  )
 }
 
-function SelectContent({
-  className,
-  children,
-  side = "bottom",
-  sideOffset = 4,
-  align = "center",
-  alignOffset = 0,
-  alignItemWithTrigger = false,
-  ...props
-}: SelectPrimitive.Popup.Props &
-  Pick<
-    SelectPrimitive.Positioner.Props,
-    "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
-  >) {
-  return (
-    <SelectPrimitive.Portal>
-      <SelectPrimitive.Positioner
-        side={side}
-        sideOffset={sideOffset}
-        align={align}
-        alignOffset={alignOffset}
-        alignItemWithTrigger={alignItemWithTrigger}
-        className="isolate z-50 outline-hidden"
-      >
-        <SelectPrimitive.Popup
-          data-slot="select-content"
-          className={cn(
-            "min-w-(--anchor-width) origin-(--transform-origin) bg-clip-padding",
-            "overflow-hidden rounded-md bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10",
-            "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95",
-            "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-            "duration-100",
-            className,
-          )}
-          {...props}
-        >
-          <SelectPrimitive.List className="p-1">
-            {children}
-          </SelectPrimitive.List>
-        </SelectPrimitive.Popup>
-      </SelectPrimitive.Positioner>
-    </SelectPrimitive.Portal>
-  );
+interface PlexorSelectContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  side?: "top" | "right" | "bottom" | "left"
+  sideOffset?: number
+  align?: "start" | "center" | "end"
+  alignOffset?: number
+  children?: React.ReactNode
+  className?: string
 }
 
-function SelectItem({
-  className,
-  children,
-  ...props
-}: SelectPrimitive.Item.Props) {
+function PlexorSelectContent({ children, className }: PlexorSelectContentProps) {
+  const ctx = React.useContext(SelectItemContext)
+  if (!ctx) return null
   return (
-    <SelectPrimitive.Item
-      data-slot="select-item"
+    <Popover
+      data-slot="select-content"
       className={cn(
-        // 'group/select-item' is used to scope the Check color flip
-        // (group-data-[highlighted] targets only this item's children)
-        "group/select-item relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-xs/relaxed outline-hidden select-none",
-        "data-highlighted:bg-accent data-highlighted:text-accent-foreground",
-        "data-disabled:pointer-events-none data-disabled:opacity-50",
+        "z-popover w-(--anchor-width) origin-(--transform-origin) bg-clip-padding",
+        "overflow-hidden rounded-md bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10",
+        "data-entering:animate-in data-entering:fade-in-0 data-entering:zoom-in-95",
+        "data-exiting:animate-out data-exiting:fade-out-0 data-exiting:zoom-out-95",
+        "duration-100",
         className,
       )}
-      {...props}
     >
-      <SelectPrimitive.ItemText className="flex-1 whitespace-nowrap">
-        {children}
-      </SelectPrimitive.ItemText>
-      <SelectPrimitive.ItemIndicator className="ml-auto flex shrink-0 items-center justify-center">
-        <Check
-          className="size-3.5 text-foreground group-data-highlighted/select-item:text-accent-foreground"
-        />
-      </SelectPrimitive.ItemIndicator>
-    </SelectPrimitive.Item>
-  );
+      <ListBox items={ctx.items} className="p-1">
+        {(item) => (
+          <ListBoxItem
+            id={item.id}
+            textValue={item.textValue}
+            className={cn(
+              "group/select-item relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-xs/relaxed outline-hidden select-none",
+              "data-[focused=true]:bg-accent data-[focused=true]:text-accent-foreground",
+              "data-[selected=true]:bg-accent/40 data-[selected=true]:text-accent-foreground",
+              "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+              item.className,
+            )}
+          >
+            <span className="flex-1 whitespace-nowrap">{item.label}</span>
+            {/* Check only visible on the selected item — otherwise every
+               option looks ticked, which is what users see now. RAC sets
+               data-selected=true on the ListBoxItem itself; the wrapper
+               span inherits via group-data-[selected=true] from
+               .group/select-item on the parent. */}
+            <span
+              aria-hidden
+              className="ml-auto flex shrink-0 items-center justify-center opacity-0 group-data-[selected=true]/select-item:opacity-100"
+            >
+              <Check className="size-3.5 text-foreground group-data-[focused]/select-item:text-accent-foreground" />
+            </span>
+          </ListBoxItem>
+        )}
+      </ListBox>
+      {children}
+    </Popover>
+  )
 }
 
-function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
-  return (
-    <SelectPrimitive.Group
-      data-slot="select-group"
-      className={cn(className)}
-      {...props}
-    />
-  );
+function PlexorSelectItem({ value, children, className }: PlexorSelectItemProps) {
+  const ctx = React.useContext(SelectItemContext)
+  const textValue = typeof children === "string" ? children : undefined
+  React.useEffect(() => {
+    ctx?.register({ id: String(value), label: children, textValue, className })
+  }, [ctx, value, children, textValue, className])
+  return null
 }
 
-function SelectLabel({
-  className,
-  ...props
-}: SelectPrimitive.GroupLabel.Props) {
-  return (
-    <SelectPrimitive.GroupLabel
-      data-slot="select-label"
-      className={cn("px-2 py-1.5 text-xs text-muted-foreground", className)}
-      {...props}
-    />
-  );
+function PlexorSelectGroup({ children }: { children?: React.ReactNode }) {
+  void children
+  return null
 }
 
-function SelectSeparator({
-  className,
-  ...props
-}: SelectPrimitive.Separator.Props) {
+function PlexorSelectLabel({ children }: { children?: React.ReactNode }) {
+  void children
+  return null
+}
+
+type PlexorSelectSeparatorProps = React.HTMLAttributes<HTMLDivElement>
+
+function PlexorSelectSeparator({ className, ...props }: PlexorSelectSeparatorProps) {
   return (
-    <SelectPrimitive.Separator
+    <div
       data-slot="select-separator"
       className={cn("-mx-1 my-1 h-px bg-border/50", className)}
       {...props}
     />
-  );
+  )
 }
 
 export {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-};
+  PlexorSelectRoot as Select,
+  PlexorSelectValue as SelectValue,
+  PlexorSelectTrigger as SelectTrigger,
+  PlexorSelectContent as SelectContent,
+  PlexorSelectItem as SelectItem,
+  PlexorSelectGroup as SelectGroup,
+  PlexorSelectLabel as SelectLabel,
+  PlexorSelectSeparator as SelectSeparator,
+}

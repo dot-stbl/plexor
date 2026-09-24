@@ -1,14 +1,19 @@
-export { presets, DEFAULT_PRESET_ID as DEFAULT_THEME_PRESET_ID } from './presets';
-export type { ThemePreset, TokenName } from './presets';
+/**
+ * Console theme barrel — built-in surface comes from `@plexor/ui`
+ * (single source of truth); the community marketplace layer is a console
+ * extension that wraps the built-in lookup.
+ */
 export {
-  communityThemes,
-  type CommunityTheme,
-} from './community-themes';
+  presets,
+  DEFAULT_PRESET_ID as DEFAULT_THEME_PRESET_ID,
+  applyPreset,
+} from '@plexor/ui/themes';
+export type { ThemePreset, TokenName } from '@plexor/ui/themes';
+export { type CommunityTheme, communityThemes } from './community-themes';
 export {
-  getPreset,
+  DEFAULT_PRESET_ID,
   listPresets,
   listCommunityThemes,
   getCommunityTheme,
-  DEFAULT_PRESET_ID,
+  getPreset,
 } from './registry';
-export { applyPreset } from './apply-tokens';

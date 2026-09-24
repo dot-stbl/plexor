@@ -1,19 +1,47 @@
-import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible"
+import * as React from "react"
+import {
+  Disclosure as RACDisclosure,
+  DisclosurePanel as RACDisclosurePanel,
+  Button as RACButton,
+  Heading as RACHeading,
+} from "react-aria-components"
 
-function Collapsible({ ...props }: CollapsiblePrimitive.Root.Props) {
-  return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />
+interface PlexorCollapsibleProps extends React.ComponentProps<typeof RACDisclosure> {
+  /** base-ui compat: alias for isExpanded. */
+  open?: boolean
+  /** base-ui compat: alias for defaultExpanded. */
+  defaultOpen?: boolean
+  /** base-ui compat: alias for onExpandedChange. */
+  onOpenChange?: (open: boolean) => void
 }
 
-function CollapsibleTrigger({ ...props }: CollapsiblePrimitive.Trigger.Props) {
+function Collapsible(props: PlexorCollapsibleProps) {
+  const { open, defaultOpen, onOpenChange, ...rest } = props
   return (
-    <CollapsiblePrimitive.Trigger data-slot="collapsible-trigger" {...props} />
+    <RACDisclosure
+      data-slot="collapsible"
+      isExpanded={open}
+      defaultExpanded={defaultOpen}
+      onExpandedChange={onOpenChange}
+      {...rest}
+    />
   )
 }
 
-function CollapsibleContent({ ...props }: CollapsiblePrimitive.Panel.Props) {
+interface PlexorCollapsibleTriggerProps extends Omit<React.ComponentProps<typeof RACButton>, "slot"> {
+  asChild?: boolean
+}
+
+function CollapsibleTrigger({ asChild: _asChild, ...props }: PlexorCollapsibleTriggerProps) {
   return (
-    <CollapsiblePrimitive.Panel data-slot="collapsible-content" {...props} />
+    <RACHeading>
+      <RACButton data-slot="collapsible-trigger" slot="trigger" {...props} />
+    </RACHeading>
   )
+}
+
+function CollapsibleContent({ ...props }: React.ComponentProps<typeof RACDisclosurePanel>) {
+  return <RACDisclosurePanel data-slot="collapsible-content" {...props} />
 }
 
 export { Collapsible, CollapsibleTrigger, CollapsibleContent }
