@@ -22,6 +22,7 @@ export { nodeCommandPoll } from "./nodeCommandPoll.ts";
 export { nodeCommandResult } from "./nodeCommandResult.ts";
 export { nodeHeartbeat } from "./nodeHeartbeat.ts";
 export { nodeJoin } from "./nodeJoin.ts";
+export { postAuthLogin } from "./postAuthLogin.ts";
 export { postOidcLogout } from "./postOidcLogout.ts";
 export { provisionVm } from "./provisionVm.ts";
 export { refreshVSphereInventory } from "./refreshVSphereInventory.ts";

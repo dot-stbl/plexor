@@ -1,1 +1,13 @@
 .tanstack/
+dist-storybook/
+
+# Local Playwright diagnostic scripts (repro tooling for tooltip + visual bugs)
+repro/
+repro-screenshots/
+
+# bun run shot output — disposable PNG + .md reports, PID/log files.
+.shots/
+
+# jest-image-snapshot actuals from failing visual runs (diff output is
+# auto-cleaned by the runner; received output is not)
+.storybook/__screenshots__/__received_output__/

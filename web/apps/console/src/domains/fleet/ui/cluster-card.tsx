@@ -1,0 +1,122 @@
+import { useTranslation } from 'react-i18next';
+import { ArrowForward, ProgressActivity, Stacks, Warning } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { Button } from '@/shared/ui/primitives/button';
+import { StatusPill } from '@/shared/ui/primitives/status-pill';
+import { Badge } from '@/shared/ui/primitives/badge';
+import { MonoNum } from '@/shared/ui/primitives/mono-num';
+import { countNodes, formatUptime } from '../model/cluster-types';
+import type { PlexorCluster } from '../model/cluster-types';
+import {
+  clusterHealthFromCounts,
+  clusterHealthLabelKey,
+  mapClusterHealthToVariant,
+} from '../model/cluster-health';
+
+interface ClusterCardProps {
+  cluster: PlexorCluster;
+  /** Navigate to the cluster detail (/clusters/$id). */
+  onOpen: () => void;
+}
+
+const MAX_VISIBLE_PROVIDERS = 4;
+
+/**
+ * Top-level control-plane card. Self-hosted Plexor — name, host version,
+ * health pill (healthy/degraded/down from node status mix, see
+ * model/cluster-health.ts), uptime, ready/total nodes, install provider
+ * chips. Single drill-in to detail for node + token management.
+ */
+export function ClusterCard({ cluster, onOpen }: ClusterCardProps) {
+  const { t } = useTranslation();
+  const counts = countNodes(cluster.nodes);
+  const health = clusterHealthFromCounts(counts);
+
+  const visibleProviders = cluster.installProviders.slice(0, MAX_VISIBLE_PROVIDERS);
+  const overflowProviders = cluster.installProviders.length - visibleProviders.length;
+
+  return (
+    <div
+      data-od-id="cluster-card"
+      data-cluster-id={cluster.id}
+      className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-all hover:border-foreground/20"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="truncate text-sm font-semibold tracking-tight">{cluster.name}</h3>
+            <StatusPill variant={mapClusterHealthToVariant(health)} size="sm">
+              {t(clusterHealthLabelKey(health))}
+            </StatusPill>
+            <Badge variant="outline">v{cluster.hostVersion}</Badge>
+          </div>
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>
+              <MonoNum>{counts.ready}</MonoNum>/<MonoNum>{counts.total}</MonoNum> {t('clusters.card.nodesReady')}
+            </span>
+            <span className="inline-block h-3 w-px bg-border" aria-hidden />
+            <span>
+              {t('clusters.card.uptime')} <MonoNum muted>{formatUptime(cluster.uptimeSeconds)}</MonoNum>
+            </span>
+          </p>
+        </div>
+        <Button size="sm" onClick={onOpen}>
+          {t('clusters.card.manage')}
+          <ArrowForward className="size-4" />
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <MetricCell
+          icon={<Stacks className="size-3.5" />}
+          label={t('clusters.card.nodes')}
+          value={
+            <span>
+              <MonoNum>{counts.ready}</MonoNum>
+              <span className="text-muted-foreground"> / </span>
+              <MonoNum>{counts.total}</MonoNum>
+            </span>
+          }
+        />
+        <MetricCell
+          icon={counts.pending > 0 ? <ProgressActivity className="size-3.5 animate-spin" /> : <Warning className="size-3.5" />}
+          label={t('clusters.card.pending')}
+          value={counts.pending}
+          highlight={counts.pending > 0}
+        />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5">
+        {visibleProviders.map((p) => (
+          <Badge key={p} variant="secondary">
+            {p}
+          </Badge>
+        ))}
+        {overflowProviders > 0 && <Badge variant="secondary">+{overflowProviders}</Badge>}
+      </div>
+    </div>
+  );
+}
+
+function MetricCell({
+  icon,
+  label,
+  value,
+  highlight,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-md border p-2 ${highlight ? 'border-warn/40 bg-warn/5' : 'border-border bg-background'}`}
+    >
+      <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground uppercase tracking-[0.06em]">
+        {icon}
+        {label}
+      </div>
+      <div className="mt-0.5 text-sm font-medium">{value}</div>
+    </div>
+  );
+}

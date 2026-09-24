@@ -12,6 +12,14 @@ bun install
 bun run dev                # real backend at VITE_API_BASE_URL
 ```
 
+## Gate
+
+From `web/apps/console` before committing:
+
+```bash
+bun run gate               # typecheck + lint + test — must exit 0
+```
+
 ## Mock mode
 
 When the Plexor.Host backend is not yet available (or you want to demo UI
@@ -30,11 +38,12 @@ deterministic via `faker.seed(1337)`) and falls through to the real network
 for non-API requests (Vite dev server, HMR, asset loads, route navigation).
 
 **Coverage:** all 32 operations in `contracts/plexor.openapi.yaml` are
-handled — 29 from kubb-generated factories + 3 hand-mirrored for
-`/branding/theme` (kubb 4.39.2 silently skipped these in the MSW + faker
-pass; see `msw/getBrandingThemeHandler.ts` for the kz note). The
-`msw.test.ts` smoke test guards against missing handlers — add a line
-there when you add an admin page that hits a new endpoint.
+handled by kubb-generated factories; `POST /auth/login` (not yet in the
+contract — Phase 4.6 spec) is handmade in
+`src/shared/api/mocks/handmade/post-auth-login.ts` with its client half in
+`src/shared/api/auth.ts`. The `mocks/msw.test.ts` smoke test guards against
+missing handlers — add a line there when you add an admin page that hits a
+new endpoint.
 
 **Default fixture data:**
 
@@ -74,6 +83,24 @@ the assertion is the canary that the dev:mock worker covers the page.
 | `bun run test:e2e` | Playwright end-to-end tests |
 | `bun run lint` | `eslint . --max-warnings 0` |
 | `bun run typecheck` | `tsc --noEmit` |
+
+## Agent tooling
+
+An AI agent building or fixing a page/component here should start at
+`AGENTS.md` (this directory), not this README. Quick reference:
+
+| Script | What it does |
+|--------|--------------|
+| `bun run shot page <path...>` | Render a real route in mock mode → PNG + text report in `.shots/` |
+| `bun run shot story <story-id...>` | Render a Storybook story → PNG + text report in `.shots/` |
+| `bun run shot stories [filter]` | List available story ids |
+| `bun run shot routes` | List route paths (+ sample ids for `$param` routes) |
+| `bun run agent:rules [--all]` | Grep-lint the house rules on changed files |
+| `bun run agent:check` | DoD gate — typecheck + lint + vitest + rules + shots of changed routes/stories |
+
+`.shots/` is disposable and gitignored — see `scripts/visual-tests.md` for
+how it differs from the committed `test:visual` baselines. Full loop and
+recipes: `AGENTS.md` and `docs/agent/`.
 
 ## Adding a new endpoint
 

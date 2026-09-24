@@ -25,7 +25,7 @@ import { SummaryPanel, SummaryRow } from '@/shared/ui/primitives/summary-panel';
 import { PageTemplate } from '@/shared/ui/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/primitives/card';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
-import { useListClusters } from '@/features/clusters';
+import { useListClusters } from '@/domains/fleet';
 import { routeHead } from '@/shared/lib/route-head';
 
 export const Route = createFileRoute('/k8s/new')({
@@ -148,7 +148,7 @@ function CreateK8sPage() {
   const totalRamBytes = pools.reduce((sum, p) => sum + p.count * p.ramBytes, 0);
 
   const ingressLabel = INGRESS_OPTIONS.find((o) => o.value === ingress)?.label ?? ingress;
-  const controlPlaneSummary = cpMode === 'ha' ? `HA · ${datastore === 'etcd' ? 'etcd' : 'SQL'}` : 'Single';
+  const controlPlaneSummary = cpMode === 'ha' ? `HA — ${datastore === 'etcd' ? 'etcd' : 'SQL'}` : 'Single';
 
   const canCreate =
     Boolean(name.trim()) &&
@@ -160,7 +160,7 @@ function CreateK8sPage() {
   const handleCreate = () => {
     if (!canCreate) return;
     toast(`Creating Kubernetes cluster ${name}`, {
-      description: `${version} · ${totalNodes} nodes · ${SizeUtils.format(totalRamBytes)}`,
+      description: `${version}, ${totalNodes} nodes, ${SizeUtils.format(totalRamBytes)}`,
     });
     void navigate({ to: '/' });
   };
@@ -168,7 +168,7 @@ function CreateK8sPage() {
   return (
     <PageTemplate
       data-od-id="k8s-new"
-      width="full"
+      width="wide"
       title={t('k8s.new.title')}
       description={t('k8s.new.description')}
       actions={
@@ -290,8 +290,18 @@ function CreateK8sPage() {
                       </div>
                     )}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    <MonoNum>{totalNodes}</MonoNum> {t('k8s.new.form.totalsNodes')} · <MonoNum>{totalVcpu}</MonoNum> {t('k8s.new.form.totalsVcpu')} · <Size bytes={totalRamBytes} />
+                  <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>
+                      <MonoNum>{totalNodes}</MonoNum> {t('k8s.new.form.totalsNodes')}
+                    </span>
+                    <span className="inline-block h-3 w-px bg-border" aria-hidden />
+                    <span>
+                      <MonoNum>{totalVcpu}</MonoNum> {t('k8s.new.form.totalsVcpu')}
+                    </span>
+                    <span className="inline-block h-3 w-px bg-border" aria-hidden />
+                    <span>
+                      <Size bytes={totalRamBytes} />
+                    </span>
                   </p>
                 </div>
               </CardContent>
@@ -430,7 +440,7 @@ function CreateK8sPage() {
                 <MonoNum>{totalNodes}</MonoNum> {t('k8s.new.form.poolsCount', { count: pools.length })}
               </SummaryRow>
               <SummaryRow label={t('k8s.new.form.summaryCapacity')}>
-                <MonoNum>{totalVcpu}</MonoNum> vCPU · <Size bytes={totalRamBytes} />
+                <MonoNum>{totalVcpu}</MonoNum> vCPU, <Size bytes={totalRamBytes} />
               </SummaryRow>
               <SummaryRow label={t('k8s.new.form.summaryCni')}>{cni}</SummaryRow>
               <SummaryRow label={t('k8s.new.form.summaryIngress')}>{ingressLabel}</SummaryRow>

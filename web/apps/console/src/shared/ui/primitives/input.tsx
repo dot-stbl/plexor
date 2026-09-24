@@ -1,9 +1,11 @@
 import * as React from "react"
-import { Input as InputPrimitive } from "@base-ui/react/input"
+import { Input as InputPrimitive } from "react-aria-components"
 
 import { cn } from "@/lib/utils"
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+export type InputProps = React.ComponentProps<typeof InputPrimitive>
+
+function Input({ className, type, ...props }: InputProps) {
   return (
     <InputPrimitive
       type={type}

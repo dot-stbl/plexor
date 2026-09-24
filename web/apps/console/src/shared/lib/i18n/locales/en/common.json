@@ -24,7 +24,9 @@
     "stop": "Stop",
     "reboot": "Reboot",
     "selected": "selected",
-    "nothingFound": "Nothing found"
+    "nothingFound": "Nothing found",
+    "yes": "Yes",
+    "no": "No"
   },
   "nav": {
     "sections": {
@@ -49,14 +51,14 @@
     "createVmDesc": "Wizard, 6 steps",
     "imagesTitle": "Images",
     "imagesDesc": "OS and custom images",
+    "vsphereTitle": "vSphere inventory",
+    "vsphereDesc": "Clusters, hosts, VMs from vCenter",
     "snapshotsTitle": "VM snapshots",
     "snapshotsDesc": "Disk copies",
     "lxcTitle": "LXC containers",
     "lxcDesc": "System containers (LXD)",
     "k8sTitle": "Kubernetes clusters",
     "k8sDesc": "Managed K3s",
-    "vsphereTitle": "vSphere inventory",
-    "vsphereDesc": "Clusters, hosts, VMs from vCenter",
     "vpcTitle": "VPC and subnets",
     "vpcDesc": "Isolated networks",
     "sgTitle": "Security Groups",
@@ -86,7 +88,7 @@
     "logsTitle": "Logs",
     "logsDesc": "Log search",
     "auditTitle": "Audit log",
-    "auditDesc": "Action history",
+    "auditDesc": "Tenant-scoped audit timeline + retention",
     "postgresTitle": "PostgreSQL",
     "postgresDesc": "CloudNativePG",
     "redisTitle": "Redis",
@@ -102,9 +104,7 @@
     "brandingTitle": "Branding",
     "brandingDesc": "Theme + brand surface",
     "themeMarketplaceTitle": "Theme Marketplace",
-    "themeMarketplaceDesc": "Browse + activate community themes",
-    "auditTitle": "Audit log",
-    "auditDesc": "Tenant-scoped audit timeline + retention"
+    "themeMarketplaceDesc": "Browse + activate community themes"
   },
   "shell": {
     "appName": "Plexor",
@@ -118,7 +118,43 @@
     "documentationCaption": "API (Scalar) and guides",
     "administration": "Administration",
     "administrationCaption": "Nodes, providers",
+    "settings": "Settings",
     "settingsCaption": "Profile, keys, theme",
+    "launcher": {
+      "heading": "App menu",
+      "description": "Project sections and quick links",
+      "summary": {
+        "vms": {
+          "label": "Virtual machines",
+          "value": "12",
+          "context": "+2 this week"
+        },
+        "lxc": {
+          "label": "Containers",
+          "value": "48",
+          "context": "+5 yesterday"
+        },
+        "databases": {
+          "label": "Databases",
+          "value": "6",
+          "context": "3 PostgreSQL, 3 Redis"
+        },
+        "networks": {
+          "label": "Networks",
+          "value": "0",
+          "context": "0 clusters, no nodes ready"
+        },
+        "audit": {
+          "label": "Audit events",
+          "value": "0",
+          "context": "last 24h"
+        }
+      },
+      "overview": {
+        "title": "Project overview",
+        "description": "Resource summary, metrics, and quick actions — project prod-cluster"
+      }
+    },
     "userMenu": {
       "settings": "Settings",
       "signOut": "Sign out",
@@ -127,7 +163,8 @@
     "user": {
       "name": "Alexey Sergeev",
       "email": "a.sergeev@hybrid.ai",
-      "initials": "AS"
+      "initials": "AS",
+      "unknown": "Guest"
     }
   },
   "createMenu": {
@@ -143,11 +180,39 @@
     "title": "Overview",
     "description": "Project sections. Full service catalog — \"All services\" in the sidebar."
   },
+  "dashboard": {
+    "fleet": {
+      "total": "Total VMs",
+      "running": "Running",
+      "ofTotal": "of {{total}} total",
+      "cpu": "vCPU",
+      "ram": "RAM"
+    },
+    "vmStatus": {
+      "title": "VM status"
+    },
+    "quotaUsage": {
+      "title": "Quota usage",
+      "used": "used"
+    },
+    "audit": {
+      "title": "Recent activity",
+      "viewAll": "View all",
+      "justNow": "just now"
+    }
+  },
   "placeholder": {
     "inDevelopment": "Screen in development",
     "scaffoldReady": "Scaffold is ready — content will appear in the next pass."
   },
   "vms": {
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "provisioning": "Provisioning",
+      "error": "Error",
+      "idle": "Idle"
+    },
     "list": {
       "title": "Virtual machines",
       "create": "Create VM",
@@ -160,9 +225,27 @@
         "description": "Create your first VM — Plexor brings it up on the chosen runtime.",
         "noResults": "Nothing found",
         "noResultsDescription": "Try adjusting the filters or reset them.",
-        "reset": "Reset filters"
+        "reset": "Reset filters",
+        "noResultsStatusTitle": "No {{status}} VMs"
       },
-      "errorTitle": "Failed to load VM list"
+      "errorTitle": "Failed to load VM list",
+      "strip": {
+        "filterByStatus": "Filter by status",
+        "allocated": "Allocated",
+        "disk": "disk"
+      }
+    },
+    "rowActions": {
+      "ariaLabel": "Actions for {{name}}",
+      "start": "Start",
+      "startToast": "Start: {{name}}",
+      "stop": "Stop",
+      "stopToast": "Stop: {{name}}",
+      "restart": "Restart",
+      "restartToast": "Restart: {{name}}",
+      "openConsole": "Open console",
+      "delete": "Delete",
+      "deleteToast": "Delete: {{name}}"
     },
     "new": {
       "title": "Create virtual machine",
@@ -192,12 +275,21 @@
       },
       "summary": "What will be deployed",
       "create": "Create VM",
+      "creating": "Creating…",
+      "createdToast": "{{name}} is being created",
+      "createFailedToast": "Failed to create the VM. Try again.",
+      "validation": {
+        "nameRequired": "Name is required.",
+        "nameInvalid": "Use lowercase letters, digits and hyphens only.",
+        "nameConflict": "A VM with this name already exists.",
+        "nameGeneric": "Check the VM name and try again."
+      },
       "form": {
         "pageDescription": "Full KVM configuration — placement, hypervisor, storage and network are all yours to set.",
         "placement": "Placement",
         "placementDescription": "Which node hosts the VM. Only ready nodes accept new VMs.",
         "nodeHelp": "Self-hosted: the VM runs on a specific node, not an abstract zone.",
-        "hypervisorAdvanced": "Advanced · Hypervisor (machine, firmware, CPU type)",
+        "hypervisorAdvanced": "Advanced — Hypervisor (machine, firmware, CPU type)",
         "machineType": "Machine type",
         "machineTypeHelp": "q35 exposes modern PCIe; i440fx for legacy guests.",
         "firmware": "Firmware",
@@ -206,13 +298,14 @@
         "cpuTypeHelp": "`host` passes the physical CPU through (fastest; no live-migration across dissimilar CPUs).",
         "cpuTypeHelp2": "`host` = passthrough (fastest).",
         "imageDescription": "Boot disk template. From the Images catalog.",
+        "imageHelp": "Catalog → Images lists every uploaded template. Pick the OS, version and arch matching the workload.",
         "compute": "Compute",
         "computeDescription": "CPU and memory. Sizes are exact (down to MiB) — self-hosted, not fixed cloud «flavors».",
         "cpu": "CPU",
         "cpuHelp": "vCPU = sockets × cores (Proxmox model).",
         "memory": "Memory",
         "memoryHelp": "Exact size, down to the MiB. Limited by the node's free memory.",
-        "computeAdvanced": "Advanced · CPU type, NUMA, memory ballooning",
+        "computeAdvanced": "Advanced — CPU type, NUMA, memory ballooning",
         "numa": "NUMA",
         "numaHelp": "Expose host NUMA topology to the guest — for large multi-socket VMs.",
         "ballooning": "Ballooning",
@@ -228,7 +321,7 @@
         "bootDiskSizeHelp": "Down to the MiB. Must be ≥ the image's minimum disk.",
         "bus": "Bus",
         "busHelp": "VirtIO SCSI is the modern default; SATA for compatibility.",
-        "storageAdvanced": "Advanced · Cache, SSD emulation, discard, IO thread, extra disks",
+        "storageAdvanced": "Advanced — Cache, SSD emulation, discard, IO thread, extra disks",
         "cacheMode": "Cache mode",
         "cacheModeHelp": "`none` is safest with Ceph/ZFS; `writeback` is fastest but needs a UPS.",
         "ssdEmulation": "SSD emulation",
@@ -242,9 +335,10 @@
         "addDisk": "Add disk",
         "networkDescription": "VPC + addressing.",
         "vpcSubnet": "VPC / subnet",
+        "vpcSubnetHelp": "Target VPC + subnet the VM's primary NIC joins. Determines the address pool for DHCP and the firewall zone.",
         "ipAddress": "IP address",
         "ipAddressHelp": "DHCP from the subnet, or pin a static address + gateway.",
-        "networkAdvanced": "Advanced · NIC model, VLAN, firewall, rate limit",
+        "networkAdvanced": "Advanced — NIC model, VLAN, firewall, rate limit",
         "nicModel": "NIC model",
         "nicModelHelp": "VirtIO is fastest; e1000/rtl8139 for guests without VirtIO drivers.",
         "vlanTag": "VLAN tag",
@@ -260,7 +354,7 @@
         "authentication": "Authentication",
         "authenticationHelp": "An SSH key is recommended; a password is optional.",
         "passwordPlaceholder": "Password",
-        "accessAdvanced": "Advanced · cloud-init user-data, DNS",
+        "accessAdvanced": "Advanced — cloud-init user-data, DNS",
         "userData": "user-data",
         "userDataHelp": "Extra cloud-init YAML merged on first boot (packages, run-cmd…).",
         "dnsServers": "DNS servers",
@@ -268,6 +362,7 @@
         "options": "Options",
         "optionsDescription": "Boot behavior, guest integration, labels.",
         "startAfterCreation": "Start after creation",
+        "startAfterCreationHelp": "Boot the VM once provisioning finishes. Off → stays powered off until you start it manually.",
         "startOnBoot": "Start on boot",
         "startOnBootHelp": "Autostart when the node boots.",
         "guestAgent": "QEMU guest agent",
@@ -283,23 +378,125 @@
         "bootDisk": "Boot disk",
         "balloon": "balloon"
       }
+    },
+    "detail": {
+      "title": "Virtual machine",
+      "subtitle": "Identity, placement and lifecycle controls.",
+      "back": "Back to VMs",
+      "notFound": "VM not found",
+      "notFoundDescription": "No virtual machine with id {{id}} in this organization.",
+      "section": {
+        "identity": "Identity",
+        "placement": "Placement",
+        "lifecycle": "Lifecycle",
+        "network": "Network"
+      },
+      "field": {
+        "name": "Name",
+        "id": "ID",
+        "status": "Status",
+        "role": "Role",
+        "image": "OS image",
+        "machineType": "Machine type",
+        "vcpu": "vCPU",
+        "ram": "RAM",
+        "disk": "Disk",
+        "internalIp": "Internal IP",
+        "publicIp": "Public IP",
+        "zone": "Zone",
+        "project": "Project",
+        "vpc": "VPC",
+        "subnet": "Subnet",
+        "securityGroups": "Security groups",
+        "diskEncrypted": "Disk encryption",
+        "createdAt": "Created",
+        "updatedAt": "Updated",
+        "tags": "Tags",
+        "tagsEmpty": "No tags"
+      },
+      "lifecycle": {
+        "start": "Start",
+        "stop": "Stop",
+        "delete": "Delete",
+        "deleteTitle": "Delete this VM?",
+        "deleteDescription": "This action is irreversible. VM resources and associated disks will be released.",
+        "provisioningHint": "VM is provisioning — lifecycle controls are unavailable.",
+        "errorHint": "VM is in error state. Start or stop to attempt recovery.",
+        "startedToast": "Starting {{name}}",
+        "stoppedToast": "Stopping {{name}}",
+        "deletedToast": "Deleting {{name}}",
+        "deleteSuccessToast": "{{name}} deleted",
+        "startFailed": "Could not start VM",
+        "stopFailed": "Could not stop VM",
+        "deleteFailed": "Could not delete VM"
+      },
+      "console": {
+        "title": "Console & terminal",
+        "description": "VNC display and SSH shell for this VM. Both stream through the Plexor.NodeAgent; in this preview the agent isn't deployed, so the viewers are inert placeholders.",
+        "tabConsole": "Console",
+        "tabTerminal": "Terminal",
+        "consoleUnavailable": "Console preview unavailable — backend agent required.",
+        "consoleUnavailableDetail": "When Plexor.NodeAgent is deployed, this opens a noVNC stream to the VM's graphical display.",
+        "terminalUnavailable": "Terminal session requires the Plexor.NodeAgent (not deployed in this preview).",
+        "terminalUnavailableDetail": "When the agent is deployed, this opens a WebSocket to ws://nodeagent/vms/{{id}}/shell and forwards stdin/stdout."
+      }
     }
   },
   "k8s": {
+    "status": {
+      "running": "Running",
+      "provisioning": "Provisioning",
+      "degraded": "Degraded",
+      "error": "Error"
+    },
     "list": {
       "title": "Kubernetes clusters",
       "create": "Create cluster",
+      "runningOf": "running of",
+      "total": "total",
       "empty": {
         "title": "No Kubernetes clusters yet",
         "description": "Deploy managed K3s on your Plexor fleet — control plane, node pools, networking.",
         "noResults": "Nothing found",
         "noResultsDescription": "Try adjusting the filters or reset them.",
+        "noResultsStatusTitle": "No {{status}} clusters",
         "reset": "Reset filters"
+      },
+      "strip": {
+        "filterByStatus": "Filter by status",
+        "allocated": "Allocated",
+        "nodes": "nodes"
       },
       "docs": {
         "label": "Learn more:",
         "managed": "Managed Kubernetes (K3s)",
         "nodePools": "Node pools and placement"
+      }
+    },
+    "detail": {
+      "title": "Kubernetes cluster",
+      "subtitle": "Identity, capacity and API endpoint.",
+      "back": "Back to clusters",
+      "notFound": "Cluster not found",
+      "notFoundDescription": "No Kubernetes cluster with id {{id}} in this organization.",
+      "section": {
+        "identity": "Identity",
+        "capacity": "Capacity"
+      },
+      "field": {
+        "name": "Name",
+        "id": "ID",
+        "status": "Status",
+        "version": "Version",
+        "cni": "CNI",
+        "fleet": "Fleet",
+        "endpoint": "API endpoint",
+        "createdAt": "Created",
+        "cpNodes": "Control-plane nodes",
+        "workerNodes": "Worker nodes",
+        "totalNodes": "Nodes total",
+        "vcpu": "vCPU",
+        "ram": "RAM"
       }
     },
     "new": {
@@ -337,7 +534,7 @@
         "modeHelp": "HA runs 3 control-plane nodes with embedded etcd quorum.",
         "datastoreLabel": "Datastore",
         "datastoreHelp": "Embedded etcd (self-managed quorum) or an external SQL datastore.",
-        "advancedApiServer": "Advanced · API server",
+        "advancedApiServer": "Advanced — API server",
         "nodePlacementLabel": "Node placement",
         "nodePlacementHelp": "Let the scheduler place control-plane nodes automatically, or pin them to specific hosts.",
         "pinSelectionComingSoon": "Pin selection coming soon.",
@@ -354,7 +551,7 @@
         "ingressHelp": "Bundled ingress controller for HTTP routing.",
         "loadBalancerLabel": "Load balancer",
         "loadBalancerHelp": "How LoadBalancer Services get an address. ServiceLB (klipper) is the K3s default.",
-        "advancedCidrs": "Advanced · CIDRs",
+        "advancedCidrs": "Advanced — CIDRs",
         "podCidrLabel": "Pod CIDR",
         "podCidrHelp": "Address range pods are allocated from.",
         "serviceCidrLabel": "Service CIDR",
@@ -394,20 +591,60 @@
     }
   },
   "lxc": {
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "paused": "Paused",
+      "error": "Error"
+    },
     "list": {
       "title": "Containers",
       "create": "Create container",
+      "runningOf": "running of",
+      "total": "total",
       "empty": {
         "title": "No containers yet",
         "description": "Deploy LXC containers on ready nodes with an LXD/LXC runtime provider.",
         "noResults": "Nothing found",
         "noResultsDescription": "Try adjusting the filters or reset them.",
+        "noResultsStatusTitle": "No {{status}} containers",
         "reset": "Reset filters"
+      },
+      "strip": {
+        "filterByStatus": "Filter by status",
+        "allocated": "Allocated",
+        "rootfs": "rootfs"
       },
       "docs": {
         "label": "Learn more:",
         "howItWorks": "How LXC works",
         "runtimes": "Runtimes and placement"
+      }
+    },
+    "detail": {
+      "title": "Container",
+      "subtitle": "Identity, resources and placement.",
+      "back": "Back to containers",
+      "notFound": "Container not found",
+      "notFoundDescription": "No LXC container with id {{id}} in this organization.",
+      "section": {
+        "identity": "Identity",
+        "resources": "Resources",
+        "placement": "Placement & network"
+      },
+      "field": {
+        "name": "Name",
+        "id": "ID",
+        "status": "Status",
+        "os": "OS",
+        "template": "Template",
+        "type": "Type",
+        "cores": "Cores",
+        "memory": "Memory",
+        "rootfs": "Rootfs",
+        "node": "Node",
+        "ip": "IP address",
+        "createdAt": "Created"
       }
     },
     "new": {
@@ -446,7 +683,7 @@
           "memoryHelp": "Exact size, down to the MiB. Limited by the node's free memory.",
           "swapLabel": "Swap",
           "swapHelp": "Container swap. 0 disables swap.",
-          "advanced": "Advanced · CPU limit, CPU units",
+          "advanced": "Advanced — CPU limit, CPU units",
           "cpuLimitLabel": "CPU limit",
           "cpuLimitHelp": "Hard ceiling in cores (fractional allowed via host cgroup). 0 = no limit.",
           "cpuUnitsLabel": "CPU units",
@@ -460,7 +697,7 @@
           "poolHelp": "Backend the rootfs lives on — offered by the selected node (Ceph, LVM-Thin, ZFS…).",
           "sizeLabel": "Rootfs size",
           "sizeHelp": "Down to the MiB.",
-          "advanced": "Advanced · Mount points",
+          "advanced": "Advanced — Mount points",
           "mountsLabel": "Mount points",
           "mountsDescription": "Extra data volumes mounted into the container.",
           "addMount": "Add mount point"
@@ -472,7 +709,7 @@
           "ipLabel": "IP address",
           "ipHelp": "DHCP from the subnet, or pin a static address + gateway.",
           "ipAria": "IP assignment",
-          "advanced": "Advanced · Interface, VLAN, firewall, rate limit",
+          "advanced": "Advanced — Interface, VLAN, firewall, rate limit",
           "nicLabel": "Interface name",
           "nicHelp": "Name inside the container.",
           "vlanLabel": "VLAN tag",
@@ -538,22 +775,49 @@
     "list": {
       "title": "Plexor clusters",
       "docs": "Documentation",
+      "nodesReady": "nodes ready",
+      "totalClusters": "clusters",
+      "totalClusters_one": "cluster",
+      "totalClusters_few": "clusters",
+      "totalClusters_many": "clusters",
+      "totalClusters_other": "clusters",
+      "searchPlaceholder": "Search by name",
+      "errorTitle": "Failed to load clusters",
+      "strip": {
+        "filterByHealth": "Filter clusters by health",
+        "clusters": "clusters",
+        "clusters_one": "cluster",
+        "clusters_few": "clusters",
+        "clusters_many": "clusters",
+        "clusters_other": "clusters",
+        "nodes": "nodes",
+        "nodes_one": "node",
+        "nodes_few": "nodes",
+        "nodes_many": "nodes",
+        "nodes_other": "nodes",
+        "ready": "ready"
+      },
       "empty": {
         "title": "No registered clusters",
         "description": "Install Plexor on your server via {{code}} or an ISO image, then register the control plane here.",
-        "docsLabel": "Installation docs"
-      },
-      "summary": "{{clusters}} cluster(s) · {{ready}}/{{total}} nodes ready"
+        "docsLabel": "Installation docs",
+        "noResults": "No matching clusters",
+        "noResultsDescription": "No clusters match the current search or health filter.",
+        "noResultsHealthTitle": "No {{status}} clusters",
+        "reset": "Reset filters"
+      }
+    },
+    "health": {
+      "healthy": "healthy",
+      "degraded": "degraded",
+      "down": "down"
     },
     "detail": {
+      "title": "Cluster",
       "notFound": "Cluster not found",
       "notFoundDescription": "Cluster with id {{id}} does not exist or was deleted.",
-      "backToClusters": "Back to clusters",
       "addNode": "Add node",
-      "installProviders": "Install providers",
-      "nodes": "Nodes",
       "joinTokens": "Join tokens",
-      "docs": "Documentation",
       "selfHelp": "Self-service installation",
       "selfHelpDescription": "Plexor self-hosted — you install control-plane and nodes on your own hardware.",
       "docLinks": {
@@ -564,14 +828,63 @@
       },
       "nodesReady": "nodes ready",
       "activeTokens": "active tokens",
-      "providersChosenAt": "Chosen at",
+      "uptime": "uptime",
       "nodeAgentInstances": "Plexor.NodeAgent instances",
       "tokensDescription": "Generated here, copied to the node, used once.",
       "createToken": "Create token",
       "tokensExpireNote": "Tokens expire — after joining, the node stays in the Nodes list.",
-      "nodesDescription": "Plexor.NodeAgent instances that joined this cluster.",
-      "noNodes": "No nodes yet. Add one with a join token.",
-      "noTokens": "No join tokens yet. Create one to add a node."
+      "noNodes": "No nodes yet",
+      "noNodesDescription": "Issue a join token and run plx node join on the machine booted from the Plexor ISO.",
+      "noTokensTitle": "No join tokens yet",
+      "noTokens": "No join tokens yet. Create one to add a node.",
+      "section": {
+        "identity": "Identity"
+      },
+      "identityDescription": "Control plane installed via plx init on your own hardware.",
+      "field": {
+        "name": "Name",
+        "id": "ID",
+        "health": "Health",
+        "version": "Version",
+        "endpoint": "Endpoint",
+        "uptime": "Uptime",
+        "createdAt": "Created",
+        "installProviders": "Install providers",
+        "disk": "disk",
+        "vms": "VMs"
+      },
+      "copy": {
+        "name": "Copy name",
+        "id": "Copy id",
+        "endpoint": "Copy endpoint"
+      }
+    },
+    "node": {
+      "joined": "joined",
+      "vms": "VMs",
+      "status": {
+        "ready": "ready",
+        "pending": "pending",
+        "draining": "draining",
+        "offline": "offline"
+      },
+      "role": {
+        "control": "control-plane",
+        "compute": "compute"
+      }
+    },
+    "token": {
+      "issued": "issued",
+      "expires": "expires",
+      "redeemedBy": "redeemed by",
+      "revoke": "Revoke",
+      "revokeTitle": "Revoke join token?",
+      "revokeDescription": "Token \"{{label}}\" becomes invalid immediately. Nodes already joined are not affected.",
+      "status": {
+        "active": "active",
+        "expired": "expired",
+        "revoked": "revoked"
+      }
     },
     "addNode": {
       "title": "Add a node to the cluster",
@@ -608,13 +921,36 @@
     "card": {
       "nodesReady": "nodes ready",
       "manage": "Manage",
-      "nodes": "Nodes"
+      "nodes": "Nodes",
+      "uptime": "uptime",
+      "pending": "Pending"
     }
   },
   "images": {
     "title": "Images",
     "description": "OS images and custom snapshots for VM provisioning.",
     "create": "Create image",
+    "status": {
+      "ready": "Ready",
+      "creating": "Building",
+      "error": "Error"
+    },
+    "list": {
+      "readyOf": "ready of",
+      "total": "total",
+      "createToast": "Creating an image — coming soon",
+      "strip": {
+        "filterByStatus": "Filter by status",
+        "images": "images",
+        "totalSize": "total size"
+      },
+      "empty": {
+        "noResults": "Nothing found",
+        "noResultsDescription": "Try adjusting the filters or reset them.",
+        "reset": "Reset filters",
+        "noResultsStatusTitle": "No {{status}} images"
+      }
+    },
     "empty": {
       "title": "No images yet",
       "description": "An image is a disk template that a VM is created from. Upload your own (qcow2/raw) or use public distributions."
@@ -625,28 +961,216 @@
       "upload": "Uploading your own image"
     }
   },
+  "vsphere": {
+    "inventory": {
+      "title": "vSphere inventory",
+      "summary": "clusters · hosts · VMs",
+      "vcenterLabel": "vCenter",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing…",
+      "clustersTitle": "Clusters ({{count}})",
+      "clustersEmpty": "No clusters in this snapshot.",
+      "hostsTitle": "Hosts ({{count}})",
+      "hostsEmpty": "No ESXi hosts in this snapshot.",
+      "vmsTitle": "Virtual machines ({{count}})",
+      "vmsEmpty": "No VMs in this snapshot.",
+      "datacenter": "Datacenter",
+      "cluster": "Cluster",
+      "folder": "Folder",
+      "host": "Host",
+      "drs": "DRS",
+      "drsOn": "On",
+      "drsOff": "Off",
+      "powerState": "Power state",
+      "powerOn": "Powered on",
+      "powerOff": "Powered off",
+      "suspended": "Suspended",
+      "refreshed": "vSphere inventory refreshed",
+      "cloneCta": "Clone from template",
+      "errorTitle": "Failed to load vSphere inventory",
+      "empty": {
+        "title": "No vSphere snapshot yet",
+        "description": "Pull a fresh snapshot from vCenter — the result appears here and refreshes the inventory list."
+      }
+    },
+    "clone": {
+      "title": "Clone VM from vSphere template",
+      "description": "Clone a template into a target VM folder and power it on.",
+      "card": {
+        "title": "Source and target",
+        "description": "The handler resolves the template name + folder path against the latest cached inventory."
+      },
+      "templateName": "Template name",
+      "templateNameHelp": "Display name of the source template. Must already exist as a VM or previously-cloned template in the latest snapshot.",
+      "templateNamePlaceholder": "e.g. ubuntu-22.04-base",
+      "name": "New VM name",
+      "nameHelp": "Display name shown in vCenter and the Plexor inventory.",
+      "namePlaceholder": "e.g. web-prod-02",
+      "folderPath": "Target folder path",
+      "folderPathHelp": "Optional. vCenter picks the default folder when empty.",
+      "folderPathPlaceholder": "/Datacenter/vm/Tenants/Acme",
+      "submit": "Clone and power on",
+      "success": "Cloned {{name}}",
+      "morefField": "vm.moref = {{moref}}",
+      "errorTitle": "Clone failed",
+      "errorGeneric": "The clone request did not complete."
+    }
+  },
   "networks": {
     "title": "Networks and VPC",
     "description": "VPC, subnets and security groups for the project.",
-    "create": "Create network"
+    "create": "Create network",
+    "summary": "{{networks}} VPCs, {{subnets}} subnets, {{active}} active",
+    "table": {
+      "cidr": "CIDR",
+      "subnets": "Subnets",
+      "bindings": "Bindings",
+      "status": "Status",
+      "statusActive": "Active",
+      "statusDraft": "Draft"
+    },
+    "empty": {
+      "title": "No networks yet",
+      "description": "Create a VPC to give your resources an isolated address space. Subnets, security groups and floating IPs all hang off a VPC.",
+      "docs": {
+        "vpc": "How VPC works",
+        "subnets": "Subnets and routing",
+        "sg": "Security groups"
+      },
+      "cta": "Create first VPC"
+    }
   },
   "audit": {
     "title": "Audit log",
     "description": "History of user and system actions in the project.",
-    "filter": "Filter"
+    "filter": "Filter",
+    "empty": {
+      "title": "No audit events yet",
+      "description": "Audit rows appear here as users and services act on the project — the first one will land once you create, edit, or delete a resource.",
+      "docs": {
+        "audit": "What gets audited",
+        "retention": "Retention and export"
+      }
+    },
+    "error": {
+      "fetch": "Failed to load the audit log."
+    }
   },
   "billing": {
     "title": "Billing",
     "description": "Resource billing and consumption by project.",
-    "export": "Export"
+    "export": "Export",
+    "currentPlan": {
+      "heading": "Current plan",
+      "name": "Self-hosted — {{edition}}",
+      "renews": "Renews",
+      "support": "Support",
+      "supportValue": "Community (GitHub)",
+      "seats": "Seats",
+      "seatsValue": "{{used}}/{{limit}} active",
+      "cta": "Manage subscription"
+    },
+    "usage": {
+      "heading": "Usage this month",
+      "compute": "Compute (vCPU hours)",
+      "storage": "Storage (GB-month)",
+      "egress": "Egress (GB)",
+      "of": "of {{limit}}",
+      "resetNote": "Counter resets on the 1st of next month."
+    },
+    "invoices": {
+      "heading": "Invoices",
+      "number": "Invoice",
+      "issued": "Issued",
+      "amount": "Amount",
+      "status": "Status",
+      "statusPaid": "Paid",
+      "statusOpen": "Open",
+      "statusVoid": "Void",
+      "empty": "No invoices yet",
+      "emptyDescription": "Invoices are issued on the 1st of each month for the previous month."
+    },
+    "payment": {
+      "heading": "Payment method",
+      "method": "Method",
+      "methodValue": "Bank transfer",
+      "details": "IBAN",
+      "cta": "Update details"
+    },
+    "empty": {
+      "title": "No usage recorded",
+      "description": "Plexor self-hosted does not bill — this page is a read-only projection of resource usage. It will populate once your project has running resources."
+    }
   },
   "managed": {
     "title": "Data platform",
-    "description": "running of · backups, HA, fine-tuning",
+    "description": "running of, backups, HA, fine-tuning",
     "create": "Create {{engine}} cluster",
+    "status": {
+      "running": "Running",
+      "deploying": "Deploying",
+      "degraded": "Degraded",
+      "stopped": "Stopped",
+      "error": "Error"
+    },
+    "list": {
+      "runningOf": "running of",
+      "total": "total",
+      "create": "Create cluster",
+      "strip": {
+        "filterByStatus": "Filter by status",
+        "clusters": "clusters",
+        "storage": "storage",
+        "bindings": "bindings"
+      },
+      "empty": {
+        "noResults": "Nothing found",
+        "noResultsDescription": "Try adjusting the filters or reset them.",
+        "reset": "Reset filters",
+        "noResultsStatusTitle": "No {{status}} clusters"
+      }
+    },
+    "engineNotFound": {
+      "title": "Engine not found",
+      "description": "Unknown engine: {{engine}}."
+    },
+    "landing": {
+      "title": "Data platform",
+      "description": "Managed data services: preinstalled engines with backups, DNS, and bindings. One section per engine.",
+      "clusters": "clusters",
+      "open": "Open",
+      "empty": {
+        "title": "No engines in the catalog",
+        "description": "The engine catalog is empty. Engines are shipped with the platform — check the installation docs.",
+        "docs": "Managed data services"
+      }
+    },
     "empty": {
       "title": "No {{engine}} instances",
       "create": "Create {{engine}} cluster"
+    },
+    "detail": {
+      "title": "DB cluster",
+      "back": "Back",
+      "section": {
+        "identity": "Identity",
+        "connection": "Connection & placement",
+        "connectionDescription": "What consumers bind to and where the cluster runs",
+        "storage": "Storage & service"
+      },
+      "field": {
+        "name": "Name",
+        "id": "ID",
+        "engine": "Engine",
+        "kind": "Kind",
+        "createdAt": "Created at",
+        "binding": "Binding contract",
+        "nodeId": "Node ID"
+      },
+      "notFound": {
+        "title": "Cluster not found",
+        "description": "No cluster \"{{id}}\" in the data platform. It may have been deleted, or the link is stale."
+      }
     },
     "new": {
       "form": {
@@ -696,7 +1220,7 @@
         "summaryDisk": "Disk",
         "summaryPlacement": "Placement",
         "summaryBackups": "Backups",
-        "summaryBackupsOn": "on · {{count}} days",
+        "summaryBackupsOn": "on for {{count}} days",
         "sourceLabel": "Source",
         "providesLabel": "Provides (binding)"
       },
@@ -713,6 +1237,7 @@
     "themeDark": "Dark",
     "themeSystem": "System",
     "accent": "Accent color",
+    "accentDescription": "Applies to all links, buttons, selections, and focus rings.",
     "fontSize": "Text size",
     "fontSizeSmall": "Small",
     "fontSizeMedium": "Medium",
@@ -732,6 +1257,10 @@
   "table": {
     "name": "Name",
     "id": "ID",
+    "action": "Action",
+    "actor": "Actor",
+    "target": "Target",
+    "occurredAt": "Occurred at",
     "status": "Status",
     "ip": "IP",
     "zone": "Zone",
@@ -762,16 +1291,29 @@
     "bindings": "Bindings",
     "filter": {
       "searchName": "Search name…",
+      "search": "Search",
       "status": "Status",
       "arch": "Arch",
       "visibility": "Visibility"
+    },
+    "selectAll": "Select all",
+    "selectRow": "Select row",
+    "columns": {
+      "configure": "Configure columns",
+      "title": "Columns",
+      "toggle": "Column \"{{name}}\""
     },
     "copy": {
       "host": "Copy host",
       "dns": "Copy DNS",
       "id": "Copy ID",
       "ip": "Copy IP",
-      "zone": "Copy zone"
+      "zone": "Copy zone",
+      "name": "Copy name",
+      "image": "Copy image",
+      "machineType": "Copy machine type",
+      "endpoint": "Copy endpoint",
+      "template": "Copy template"
     },
     "openRow": "Open {{name}}"
   },
@@ -851,62 +1393,71 @@
       "version": "Version",
       "empty": "No community themes are registered for this build.",
       "loadError": "Failed to load the theme marketplace.",
+      "resetToDefaults": "Reset to defaults",
       "brandingHint": "for operator-level defaults (logo, accent, favicon) that affect every user."
     }
   },
-  "vsphere": {
-    "inventory": {
-      "title": "vSphere inventory",
-      "summary": "clusters · hosts · VMs",
-      "vcenterLabel": "vCenter",
-      "refresh": "Refresh",
-      "refreshing": "Refreshing…",
-      "clustersTitle": "Clusters ({{count}})",
-      "clustersEmpty": "No clusters in this snapshot.",
-      "hostsTitle": "Hosts ({{count}})",
-      "hostsEmpty": "No ESXi hosts in this snapshot.",
-      "vmsTitle": "Virtual machines ({{count}})",
-      "vmsEmpty": "No VMs in this snapshot.",
-      "datacenter": "Datacenter",
-      "cluster": "Cluster",
-      "folder": "Folder",
-      "host": "Host",
-      "drs": "DRS",
-      "drsOn": "On",
-      "drsOff": "Off",
-      "powerState": "Power state",
-      "powerOn": "Powered on",
-      "powerOff": "Powered off",
-      "suspended": "Suspended",
-      "refreshed": "vSphere inventory refreshed",
-      "cloneCta": "Clone from template",
-      "errorTitle": "Failed to load vSphere inventory",
-      "empty": {
-        "title": "No vSphere snapshot yet",
-        "description": "Pull a fresh snapshot from vCenter — the result appears here and refreshes the inventory list."
-      }
-    },
-    "clone": {
-      "title": "Clone VM from vSphere template",
-      "description": "Clone a template into a target VM folder and power it on.",
-      "card": {
-        "title": "Source and target",
-        "description": "The handler resolves the template name + folder path against the latest cached inventory."
+  "auth": {
+    "login": {
+      "title": "Sign in to Plexor",
+      "subtitle": "Use your work email or single sign-on",
+      "email": {
+        "label": "Email",
+        "placeholder": "you@company.com",
+        "help": "Use the email you registered with. Local-part is case-insensitive."
       },
-      "templateName": "Template name",
-      "templateNameHelp": "Display name of the source template. Must already exist as a VM or previously-cloned template in the latest snapshot.",
-      "templateNamePlaceholder": "e.g. ubuntu-22.04-base",
-      "name": "New VM name",
-      "nameHelp": "Display name shown in vCenter and the Plexor inventory.",
-      "namePlaceholder": "e.g. web-prod-02",
-      "folderPath": "Target folder path",
-      "folderPathHelp": "Optional. vCenter picks the default folder when empty.",
-      "folderPathPlaceholder": "/Datacenter/vm/Tenants/Acme",
-      "submit": "Clone and power on",
-      "success": "Cloned {{name}}",
-      "morefField": "vm.moref = {{moref}}",
-      "errorTitle": "Clone failed",
-      "errorGeneric": "The clone request did not complete."
+      "password": {
+        "label": "Password",
+        "placeholder": "••••••••",
+        "help": "8+ characters. For shared operator accounts prefer SSO so a password isn't needed here."
+      },
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "sso": "Continue with SSO",
+      "providersDivider": "or",
+      "providers": {
+        "google": "Continue with Google",
+        "github": "Continue with GitHub",
+        "oidc": "Continue with SSO",
+        "ldap": "Continue with LDAP"
+      },
+      "validation": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Enter a valid email address",
+        "emailTooLong": "Email is too long",
+        "passwordRequired": "Password is required",
+        "passwordTooLong": "Password is too long"
+      },
+      "errors": {
+        "invalid": "Invalid email or password",
+        "network": "Network error — please try again",
+        "config": "Single sign-on not configured for your organization",
+        "generic": "Sign-in failed — please try again"
+      }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Account and preferences",
+    "profile": {
+      "heading": "Profile",
+      "email": "Email",
+      "displayName": "Display name",
+      "signOut": "Sign out"
+    },
+    "theme": {
+      "heading": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": {
+      "heading": "Language",
+      "comingSoon": "Coming soon"
+    },
+    "security": {
+      "heading": "Security",
+      "comingSoon": "Coming soon"
     }
   }
 }

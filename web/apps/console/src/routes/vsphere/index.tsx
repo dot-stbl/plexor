@@ -15,7 +15,7 @@ import {
   getVSphereVmColumns,
   useVSphereInventory,
   useVSphereRefresh,
-} from '@/features/vsphere';
+} from '@/domains/compute';
 import type { VSphereInventoryClusterRow } from '@/shared/api';
 
 export const Route = createFileRoute('/vsphere/')({
@@ -62,7 +62,7 @@ function VSphereInventoryPage() {
     <PageTemplate
       data-od-id="vsphere-inventory-list"
       title={t('vsphere.inventory.title')}
-      width="full"
+      width="wide"
       description={
         isPending ? (
           t('common.loading')

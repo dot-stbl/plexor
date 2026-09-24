@@ -2,7 +2,7 @@
 // fed with kubb-generated faker fixtures.
 //
 // Coverage:
-//   29 handlers come from `bun run generate` (kubb); see
+//   32 handlers come from `bun run generate` (kubb); see
 //   `web/tooling/codegen/kubb.config.ts`.
 //   3 handlers (`getBrandingTheme`, `updateBrandingTheme`,
 //   `deleteBrandingTheme`) are hand-mirrored — kubb 4.39.2 skipped them in
@@ -13,6 +13,14 @@
 // adding a new endpoint, regenerate via `web/tooling/codegen` and add one
 // line below (or, if kubb skipped it like /branding/theme, hand-mirror
 // the handler + fixture and add a `kz` note).
+//
+// Mock data for endpoints NOT yet in the contract lives in
+// `shared/api/mocks/handmade/` (each with a TODO(contract) header) — never
+// inline in features.
+//
+// Shared hand-curated data (the VM fleet, cluster set, audit entries) lives
+// in `web/apps/console/src/mocks/` so component tests AND this handler file
+// read from the same source. Don't inline fixtures here — see mocks/README.md.
 import type { RequestHandler } from 'msw';
 import { faker } from '@faker-js/faker';
 import {
@@ -55,7 +63,9 @@ import {
   getOidcAuthorizeHandler,
   getOidcCallbackHandler,
   postOidcLogoutHandler,
-  // vSphere (3 — issue #77)
+  // Auth (1 — kubb-generated from /auth/login, Phase 4.6 sigil endpoint)
+  postAuthLoginHandler,
+  // vSphere (3 — issue #77, alternate compute provider)
   getVSphereInventoryHandler,
   refreshVSphereInventoryHandler,
   cloneVSphereTemplateHandler,
@@ -74,9 +84,9 @@ import {
   createBrandingBootConfig,
   createOrgBrandingConfigResponse,
   createGetBrandingTheme200,
-  createAuditQueryResponse,
   createOrgAuthProviderConfigResponse,
   createOrgAuthProviderTestResult,
+  createPostAuthLogin200,
   createVSphereInventoryResponse,
   createVSphereInventoryClusterRow,
   createVSphereInventoryHostRow,
@@ -84,43 +94,25 @@ import {
   createVSphereInventoryRefreshResponse,
   createVSphereCloneResponse,
 } from '@/shared/api';
+import { DEV_SESSION, resetMockRng } from '@/mocks';
+import { getMockScenario } from '@/mocks/db/scenario';
+import { mockDelay } from '@/mocks/db/latency';
+import {
+  listVms,
+  getVm as getStoreVm,
+  getVmDetailExtras,
+  createVm,
+  startVm,
+  stopVm,
+  deleteVm,
+} from '@/mocks/db/store';
+import { queryAuditEntries } from '@/mocks/audit/audit';
+import type { CreateVmRequest, ProblemDetails } from '@/shared/api';
 
 // Deterministic mocks — same data every reload (stable UI + screenshots).
-faker.seed(1337);
-
-// Hand-curated fleet so the list renders a realistic mix of statuses.
-// Names + IDs + IPs are deterministic; the rest comes from kubb factories.
-const FLEET = [
-  { id: 'vm-a8c91f2e', name: 'web-prod-01', status: 'running',      ip: '10.128.1.10', zone: 'eu-central-1', vcpu: 4, ram: 8,  disk: 80  },
-  { id: 'vm-b7d40e1a', name: 'api-prod-01', status: 'running',      ip: '10.128.1.11', zone: 'eu-central-1', vcpu: 4, ram: 8,  disk: 60  },
-  { id: 'vm-c2f8a039', name: 'worker-01',    status: 'running',      ip: '10.128.2.20', zone: 'eu-central-1', vcpu: 2, ram: 4,  disk: 40  },
-  { id: 'vm-9e1b3c47', name: 'db-replica-01',status: 'running',      ip: '10.128.3.5',  zone: 'eu-central-1', vcpu: 8, ram: 32, disk: 500 },
-  { id: 'vm-3a7c5d12', name: 'cache-01',     status: 'running',      ip: '10.128.4.7',  zone: 'eu-central-1', vcpu: 2, ram: 16, disk: 30  },
-  { id: 'vm-6f8d22b8', name: 'build-runner', status: 'error',        ip: '10.128.5.3',  zone: 'eu-central-1', vcpu: 4, ram: 8,  disk: 100 },
-  { id: 'vm-1b9e4f73', name: 'staging-api',  status: 'stopped',      ip: '10.128.6.12', zone: 'eu-central-1', vcpu: 2, ram: 4,  disk: 40  },
-  { id: 'vm-4d2a89e1', name: 'ml-trainer',   status: 'provisioning', ip: '10.128.7.4',  zone: 'eu-central-1', vcpu: 8, ram: 64, disk: 250 },
-] as const;
-
-const fleet = FLEET.map((vm) => ({
-  id: vm.id,
-  name: vm.name,
-  status: vm.status,
-  internalIp: vm.ip,
-  zone: vm.zone,
-  machineType: `${vm.vcpu}-${vm.ram}`,
-  vcpu: vm.vcpu,
-  ramGb: vm.ram,
-  diskGb: vm.disk,
-  createdAt: faker.date.past().toISOString(),
-}));
-
-// Lookup table so getVmHandler resolves a hand-curated id to the fleet
-// entry (kubb's createVmDetail emits a fresh fake id every call — fine
-// for the smoke test, awkward for the VM detail page which URLs to a
-// specific id from the list).
-const fleetById: Map<string, (typeof fleet)[number]> = new Map(
-  fleet.map((vm) => [vm.id, vm]),
-);
+// Seeded by the shared mocks/ utility so the fleet + audit counts stay in
+// sync with the launcher SUMMARY card.
+resetMockRng();
 
 // ───────────────────────── vSphere fixture data (issue #77) ─────────────────────────
 //
@@ -222,25 +214,127 @@ const VSPHERE_INVENTORY_FIXTURE = {
 
 export const handlers: RequestHandler[] = [
   // ───────────────────────── VMs (6) ─────────────────────────
-  listVmsHandler(createVmList({ items: fleet, total: fleet.length, page: 1, pageSize: 20 })),
-  getVmHandler((info) => {
+  listVmsHandler(async () => {
+    await mockDelay(200);
+    const scenario = getMockScenario();
+    if (scenario === 'error') {
+      return new Response(
+        JSON.stringify({ status: 500, title: 'Internal Server Error', detail: 'Mock scenario: error' } satisfies ProblemDetails),
+        { status: 500, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    const items = scenario === 'empty' ? [] : listVms();
+    return new Response(
+      JSON.stringify(createVmList({ items, total: items.length, page: 1, pageSize: 20 })),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    );
+  }),
+  getVmHandler(async (info) => {
+    await mockDelay(150);
     const id = String((info.params as { vmId: unknown }).vmId);
-    const vm = fleetById.get(id);
+    const vm = getStoreVm(id);
     if (!vm) {
-      return new Response(JSON.stringify({ status: 404, title: 'Not Found' }), {
+      return new Response(JSON.stringify({ status: 404, title: 'Not Found' } satisfies ProblemDetails), {
         status: 404,
         headers: { 'Content-Type': 'application/problem+json' },
       });
     }
-    return new Response(JSON.stringify(createVmDetail({ ...vm })), {
+    const extras = getVmDetailExtras(id);
+    return new Response(JSON.stringify(createVmDetail({ ...vm, ...extras })), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   }),
-  provisionVmHandler(createVmDetail()),
-  startVmHandler(createVmDetail()),
-  stopVmHandler(createVmDetail()),
-  deleteVmHandler(),
+  provisionVmHandler(async (info) => {
+    const scenario = getMockScenario();
+    if (scenario === 'error') {
+      return new Response(
+        JSON.stringify({ status: 500, title: 'Internal Server Error', detail: 'Mock scenario: error' } satisfies ProblemDetails),
+        { status: 500, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    await mockDelay(300);
+    const body = (await info.request.json().catch(() => ({}))) as Partial<CreateVmRequest>;
+    const name = body.name?.trim() ?? '';
+    if (!name) {
+      return new Response(
+        JSON.stringify({
+          type: 'https://plexor.dev/problems/vms/name-required',
+          title: 'Validation failed',
+          status: 422,
+          detail: 'name is required.',
+        } satisfies ProblemDetails),
+        { status: 422, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    if (!/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/.test(name)) {
+      return new Response(
+        JSON.stringify({
+          type: 'https://plexor.dev/problems/vms/name-invalid',
+          title: 'Validation failed',
+          status: 422,
+          detail: 'Name must be lowercase letters, digits and hyphens.',
+        } satisfies ProblemDetails),
+        { status: 422, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    const duplicate = listVms().some((vm) => vm.name.toLowerCase() === name.toLowerCase());
+    if (duplicate) {
+      return new Response(
+        JSON.stringify({
+          type: 'https://plexor.dev/problems/vms/name-conflict',
+          title: 'Conflict',
+          status: 409,
+          detail: `A VM named '${name}' already exists.`,
+        } satisfies ProblemDetails),
+        { status: 409, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    const vm = createVm({ ...body, name }, DEV_SESSION.user.id);
+    const extras = getVmDetailExtras(vm.id);
+    return new Response(JSON.stringify(createVmDetail({ ...vm, ...extras })), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+  startVmHandler(async (info) => {
+    await mockDelay(200);
+    const id = String((info.params as { vmId: unknown }).vmId);
+    const vm = startVm(id, DEV_SESSION.user.id);
+    if (!vm) {
+      return new Response(JSON.stringify({ status: 404, title: 'Not Found' } satisfies ProblemDetails), {
+        status: 404,
+        headers: { 'Content-Type': 'application/problem+json' },
+      });
+    }
+    const extras = getVmDetailExtras(id);
+    return new Response(JSON.stringify(createVmDetail({ ...vm, ...extras })), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+  stopVmHandler(async (info) => {
+    await mockDelay(200);
+    const id = String((info.params as { vmId: unknown }).vmId);
+    const vm = stopVm(id, DEV_SESSION.user.id);
+    if (!vm) {
+      return new Response(JSON.stringify({ status: 404, title: 'Not Found' } satisfies ProblemDetails), {
+        status: 404,
+        headers: { 'Content-Type': 'application/problem+json' },
+      });
+    }
+    const extras = getVmDetailExtras(id);
+    return new Response(JSON.stringify(createVmDetail({ ...vm, ...extras })), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+  deleteVmHandler(async (info) => {
+    await mockDelay(150);
+    const id = String((info.params as { vmId: unknown }).vmId);
+    deleteVm(id, DEV_SESSION.user.id);
+    return new Response(null, { status: 204 });
+  }),
 
   // ───────────────────────── Nodes (4) ─────────────────────────
   nodeJoinHandler(createNodeJoinResponse()),
@@ -276,14 +370,42 @@ export const handlers: RequestHandler[] = [
   deleteBrandingThemeHandler(),
 
   // ───────────────────────── Audit (1) ─────────────────────────
-  getAuditHandler(
-    faker.helpers.multiple(() => createAuditQueryResponse(), { count: 12 }),
-  ),
+  getAuditHandler(async (info) => {
+    await mockDelay(150);
+    const scenario = getMockScenario();
+    if (scenario === 'error') {
+      return new Response(
+        JSON.stringify({ status: 500, title: 'Internal Server Error' } satisfies ProblemDetails),
+        { status: 500, headers: { 'Content-Type': 'application/problem+json' } },
+      );
+    }
+    if (scenario === 'empty') {
+      return new Response(JSON.stringify([]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    const url = new URL(info.request.url);
+    const limitParam = url.searchParams.get('limit');
+    const rows = queryAuditEntries({
+      action: url.searchParams.get('action') ?? undefined,
+      actorUserId: url.searchParams.get('actorUserId') ?? undefined,
+      since: url.searchParams.get('since') ?? undefined,
+      before: url.searchParams.get('before') ?? undefined,
+      limit: limitParam ? Number(limitParam) : undefined,
+    });
+    return new Response(JSON.stringify(rows), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  }),
 
   // ───────────────────────── Auth providers (3) ─────────────────────────
   getOrgAuthProviderHandler(createOrgAuthProviderConfigResponse()),
   updateOrgAuthProviderHandler(createOrgAuthProviderConfigResponse()),
   testOrgAuthProviderHandler(createOrgAuthProviderTestResult({ ok: true })),
+
+  // ───────────────────────── Login (1) ─────────────────────────
+  //
+  // Phase 4.6 endpoint — generated by kubb from /auth/login. 200 with a
+  // faker-shaped token + user triple so postAuthLogin() in dev:mock mode
+  // always resolves with a mock-shaped body. Tokens come from faker so
+  // each reload is fresh; matches the dev:mock session-bearer contract.
+  postAuthLoginHandler(createPostAuthLogin200()),
 
   // ───────────────────────── OIDC (3) ─────────────────────────
   //
@@ -291,12 +413,13 @@ export const handlers: RequestHandler[] = [
   // generator emits 200 by default. The dev:mock worker never reaches
   // these — the FE uses `window.location.assign` to navigate, which
   // bypasses the service worker — so wiring them with a static 200
-  // body is enough to keep an accidental `fetch('/auth/oidc/...')`
-  // call from crashing. A real browser-driven flow would need a
-  // 302; mark these `x-passthrough: true` in the contract when the
-  // backend lands.
+  // body (and a `redirectUrl` field so the FE has something to read if
+  // it ever does call them) is enough to keep an accidental
+  // `fetch('/auth/oidc/...')` from crashing. A real browser-driven flow
+  // would need a 302; mark these `x-passthrough: true` in the contract
+  // when the backend lands.
   getOidcAuthorizeHandler({ redirectUrl: 'https://mock-idp.example.com/authorize' }),
-  getOidcCallbackHandler({ status: 'ok' }),
+  getOidcCallbackHandler({ status: 'ok', redirectUrl: '/?access_token=mock-idp-callback-token' }),
   postOidcLogoutHandler(),
 
   // ───────────────────────── vSphere (3 — issue #77) ─────────────────────────

@@ -17,7 +17,7 @@ import {
 } from '@/shared/ui/primitives/table';
 import { EmptyState } from '@/shared/ui/primitives/empty-state';
 import { routeHead } from '@/shared/lib/route-head';
-import { useAudit } from '@/features/audit/use-audit';
+import { useAudit } from '@/domains/audit';
 import type { AuditQueryResponse, GetAuditQueryParams } from '@/shared/api';
 
 /**
@@ -137,7 +137,7 @@ function AdminAuditPage() {
     <PageTemplate
       title={t('admin.audit.title')}
       description={t('admin.audit.description')}
-      width="full"
+      width="wide"
       data-od-id="admin-audit"
       actions={
         <Button

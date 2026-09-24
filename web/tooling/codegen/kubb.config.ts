@@ -15,7 +15,8 @@
 //        for the new handler factory + fixture (e.g.
 //        `getNewThingHandler(createNewThing200())`).
 //     4. Add a smoke-test line in
-//        `apps/console/src/shared/api/src/msw/msw.test.ts`.
+//        `apps/console/src/shared/api/mocks/msw.test.ts` (outside the
+//        clean-wiped output dir — do not move it back into `src/msw/`).
 //
 //   If kubb silently skips the endpoint in the MSW + faker pass (as it
 //   did with /branding/theme in kubb 4.39.2), hand-mirror the handler +

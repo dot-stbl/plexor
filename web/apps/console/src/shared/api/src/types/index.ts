@@ -1,4 +1,5 @@
 export type { AuditQueryResponse } from "./AuditQueryResponse.ts";
+export type { AuthLoginResponse } from "./AuthLoginResponse.ts";
 export type { BrandingBootConfig } from "./BrandingBootConfig.ts";
 export type { CloneVSphereTemplate200, CloneVSphereTemplate404, CloneVSphereTemplate502, CloneVSphereTemplate503, CloneVSphereTemplate504, CloneVSphereTemplateError, CloneVSphereTemplateMutation, CloneVSphereTemplateMutationRequest, CloneVSphereTemplateMutationResponse } from "./CloneVSphereTemplate.ts";
 export type { CreateVmRequest } from "./CreateVmRequest.ts";
@@ -37,6 +38,9 @@ export type { NodeJoinResponse } from "./NodeJoinResponse.ts";
 export type { OrgAuthProviderConfigResponse, OrgAuthProviderConfigResponseProviderEnumKey } from "./OrgAuthProviderConfigResponse.ts";
 export type { OrgAuthProviderTestResult } from "./OrgAuthProviderTestResult.ts";
 export type { OrgBrandingConfigResponse } from "./OrgBrandingConfigResponse.ts";
+export type { PostAuthLogin200, PostAuthLogin401, PostAuthLogin422, PostAuthLoginError, PostAuthLoginMutation, PostAuthLoginMutationRequest, PostAuthLoginMutationResponse } from "./PostAuthLogin.ts";
+export type { PostAuthLoginRequest } from "./PostAuthLoginRequest.ts";
+export type { PostAuthLoginUser } from "./PostAuthLoginUser.ts";
 export type { PostOidcLogout204, PostOidcLogoutError, PostOidcLogoutMutation, PostOidcLogoutMutationResponse } from "./PostOidcLogout.ts";
 export type { ProblemDetails } from "./ProblemDetails.ts";
 export type { ProvisionVm201, ProvisionVm422, ProvisionVmError, ProvisionVmMutation, ProvisionVmMutationRequest, ProvisionVmMutationResponse } from "./ProvisionVm.ts";

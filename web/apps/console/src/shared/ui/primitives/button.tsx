@@ -1,4 +1,5 @@
-import { Button as ButtonPrimitive } from "@base-ui/react/button"
+import * as React from "react"
+import { Button as ButtonPrimitive } from "react-aria-components"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
@@ -38,18 +39,116 @@ const buttonVariants = cva(
   }
 )
 
+type BaseRenderable = React.ReactElement<{
+  className?: string
+  children?: React.ReactNode
+}>
+
+export interface ButtonProps
+  extends Omit<
+      React.ComponentProps<typeof ButtonPrimitive>,
+      "onClick" | "onFocus" | "onBlur" | "onPointerDown" | "onPointerUp" | "onPointerEnter" | "onPointerLeave" | "isDisabled" | "className" | "children" | "render" | "value"
+    >,
+    VariantProps<typeof buttonVariants> {
+  className?: string
+  children?: React.ReactNode
+  disabled?: boolean
+  nativeButton?: boolean
+  render?: BaseRenderable
+  onClick?: React.MouseEventHandler<HTMLButtonElement>
+  onFocus?: React.FocusEventHandler<HTMLButtonElement>
+  onBlur?: React.FocusEventHandler<HTMLButtonElement>
+  onPointerDown?: React.PointerEventHandler<HTMLButtonElement>
+  onPointerUp?: React.PointerEventHandler<HTMLButtonElement>
+  onPointerEnter?: React.PointerEventHandler<HTMLButtonElement>
+  onPointerLeave?: React.PointerEventHandler<HTMLButtonElement>
+  form?: string
+  formAction?: string | ((formData: FormData) => void | Promise<void>)
+  formEncType?: string
+  formMethod?: string
+  formNoValidate?: boolean
+  formTarget?: string
+  name?: string
+  value?: string | number | readonly string[]
+  type?: "button" | "submit" | "reset"
+}
+
+function composeRender(
+  render: BaseRenderable,
+  className: string,
+  children?: React.ReactNode,
+): BaseRenderable {
+  const original = render.props
+  // Button's children win over whatever the render element already had —
+  // callers like `<Button render={<Link />}>{icon + label}</Button>` expect
+  // their JSX to land inside the cloned element, not be silently dropped.
+  // Falls back to the render element's own children when Button has none.
+  const merged = {
+    ...original,
+    className: cn(original.className, className),
+    children: children ?? original.children,
+  } as typeof original
+  return React.cloneElement(render, merged)
+}
+
 function Button({
   className,
   variant = "default",
   size = "default",
+  disabled,
+  nativeButton: _nativeButton,
+  render,
+  children,
+  onClick,
+  onFocus,
+  onBlur,
+  onPointerDown,
+  onPointerUp,
+  onPointerEnter,
+  onPointerLeave,
+  type = "button",
+  value: _value,
+  name: _name,
+  form: _form,
+  formAction: _formAction,
+  formEncType: _formEncType,
+  formMethod: _formMethod,
+  formNoValidate: _formNoValidate,
+  formTarget: _formTarget,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonProps) {
+  if (render) {
+    return composeRender(
+      render,
+      cn(buttonVariants({ variant, size }), className),
+      children,
+    )
+  }
+
+  // Cast through unknown: RAC's onClick event type uses FocusableElement,
+  // but consumers (and existing call sites) use HTMLButtonElement signatures.
+  // The two are structurally compatible at runtime.
+  const racProps = {
+    onClick: onClick as unknown as React.ComponentProps<typeof ButtonPrimitive>["onClick"],
+    onFocus: onFocus as unknown as React.ComponentProps<typeof ButtonPrimitive>["onFocus"],
+    onBlur: onBlur as unknown as React.ComponentProps<typeof ButtonPrimitive>["onBlur"],
+    onPointerDown: onPointerDown as unknown as React.ComponentProps<typeof ButtonPrimitive>["onPointerDown"],
+    onPointerUp: onPointerUp as unknown as React.ComponentProps<typeof ButtonPrimitive>["onPointerUp"],
+    onPointerEnter: onPointerEnter as unknown as React.ComponentProps<typeof ButtonPrimitive>["onPointerEnter"],
+    onPointerLeave: onPointerLeave as unknown as React.ComponentProps<typeof ButtonPrimitive>["onPointerLeave"],
+  }
+
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), className)}
+      isDisabled={disabled}
+      type={type}
+      {...racProps}
       {...props}
-    />
+    >
+      {children}
+    </ButtonPrimitive>
   )
 }
 

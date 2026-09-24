@@ -7,21 +7,20 @@ import { PageTemplate } from './page-template';
  * Wraps `PageTemplate` (consistent chrome: title + description + actions)
  * with a dashed empty-state panel as the body.
  *
- * Width defaults to `6xl` — placeholders don't need full-width, the dashed
- * panel reads better with breathing room on both sides.
+ * Inherits `PageTemplate`'s default width (centered, max-w-6xl).
  */
 export function PlaceholderPage({
   title,
   description,
   icon: PageIcon,
   actions,
-  width = '6xl',
+  width,
 }: {
   title: string;
   description: string;
   icon: Icon;
   actions?: React.ReactNode;
-  width?: '3xl' | '6xl' | 'full';
+  width?: 'default' | 'narrow' | 'wide';
 }) {
   const { t } = useTranslation();
   return (
