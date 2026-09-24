@@ -139,7 +139,7 @@ const PLEXOR_DEFAULT_LIGHT: ThemePreset = {
     'surface-2': 'oklch(97% 0.006 250)',
     'surface-3': 'oklch(95% 0.008 240)',
     'fg-2': 'oklch(35% 0.018 240)',
-    'muted-2': 'oklch(65% 0.014 240)',
+    'muted-2': 'oklch(55% 0.014 240)',
 
     /* ─── Accent (monochrome ink, NOT a hue) ─── */
     accent: 'oklch(28% 0.02 255)',
@@ -223,7 +223,7 @@ const PLEXOR_DEFAULT_DARK: ThemePreset = {
     'surface-2': 'oklch(25% 0.015 250)',
     'surface-3': 'oklch(28% 0.016 250)',
     'fg-2': 'oklch(82% 0.008 250)',
-    'muted-2': 'oklch(52% 0.012 250)',
+    'muted-2': 'oklch(62% 0.012 250)',
 
     /* ─── Accent (bone, NOT a hue) ─── */
     accent: 'oklch(92% 0.006 250)',
