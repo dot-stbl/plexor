@@ -1067,6 +1067,13 @@
       "arch": "Arch",
       "visibility": "Visibility"
     },
+    "selectAll": "Select all",
+    "selectRow": "Select row",
+    "columns": {
+      "configure": "Configure columns",
+      "title": "Columns",
+      "toggle": "Column \"{{name}}\""
+    },
     "copy": {
       "host": "Copy host",
       "dns": "Copy DNS",
