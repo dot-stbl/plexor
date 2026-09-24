@@ -295,6 +295,12 @@ Backup*/
 UpgradeLog*.XML
 UpgradeLog*.htm
 ServiceFabricBackup/
+
+# `Backup*/` above (VS backup-folder convention) false-matches our own
+# docs route on Windows, where git's default core.ignorecase=true makes
+# it case-insensitive against "backup-and-disaster/". Un-ignore it.
+!web/apps/www/src/routes/(docs)/docs/admin/backup-and-disaster/
+!web/apps/www/src/routes/(docs)/docs/admin/backup-and-disaster/**
 *.rptproj.bak
 *.mdf
 *.ldf

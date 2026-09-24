@@ -1,0 +1,170 @@
+---
+title: "Backup and disaster avoidance"
+description: "What Plexor persists by design — the control-plane database and an on-disk secrets root — what it doesn't (workload disks and bucket data), and how to back up and restore both."
+chapter: "admin"
+---
+
+Plexor does not back itself up. Everything it needs to recover a
+lost host lives in two places — a Postgres database and a small
+secrets directory on disk — and arranging their backup is the
+operator's job. This page covers what's in each place, what Plexor
+does not manage at all, and the restore order that gets a
+replacement host back to serving traffic.
+
+<Callout type="warning">
+
+Plexor has no built-in scheduled backups, no backup/restore button
+in the console, and no point-in-time-restore UI. Every recipe below
+is a standard PostgreSQL or filesystem operation the operator runs
+themselves — cron, a backup appliance, or by hand.
+
+</Callout>
+
+## What lives in the database
+
+Plexor keeps one Postgres database (`plexor` by default) as its
+control-plane state store. A single `pg_dump` of that database
+captures, in one consistent snapshot:
+
+- Organizations, teams, folders, users, roles, and role bindings.
+- API keys and cluster join tokens — stored as one-way hashes, not
+  reversible secrets, so a restore never leaks a usable credential.
+- The JWT signing keypair the host uses to issue session tokens
+  lives in this database too. If a restore ever brings back a
+  database with no signing key in it (a fresh install, not a normal
+  restore), the host generates a new one automatically on boot —
+  every existing session gets invalidated, but nothing else breaks.
+- Clusters and nodes, including each node's last-known status and
+  heartbeat timestamp. This state is **not** in-memory — it's a
+  normal table. After a restore, a node's status is whatever it was
+  at dump time; it converges back to the truth within about 90
+  seconds (three missed 30-second heartbeats) as agents keep
+  checking in, with no manual re-registration needed.
+- Floating IP and load balancer assignments, volume and bucket
+  *records* (size, folder scope, attachment state — not the bytes),
+  quota assignments, the audit log, and theme installations.
+- The encrypted ciphertext of any OIDC client secret an org has
+  configured. The database dump alone cannot decrypt it — see the
+  next section.
+
+## What lives outside the database
+
+A second, smaller set of state lives on the host's filesystem, in
+Plexor's data directory (`/var/lib/plexor/` on Linux by convention,
+`%LOCALAPPDATA%\plexor\` on Windows), holding:
+
+- **The CA root certificate and private key** (`ca.crt` / `ca.key`)
+  — the trust anchor Plexor mints every node's mTLS client
+  certificate from. This is the one piece of state a restore can
+  silently get wrong: if the host boots without it, Plexor generates
+  a **brand-new** CA rather than failing loudly — and every
+  already-joined node's certificate, signed by the old CA, stops
+  being trusted. Losing this file means rejoining every node in the
+  cluster by hand.
+- **The host's own server certificate** (`host.pfx`). This one is
+  safe to lose on its own — it's reissued automatically from the CA
+  on next boot if missing.
+- **The data-protection keyring** (a `dataprotection-keys/` folder
+  of key files) — the only thing that can decrypt the OIDC client
+  secret ciphertext stored in the database. Lose it and existing
+  OIDC integrations stop working; the fix is to re-enter each org's
+  client secret from its identity provider, not a restore.
+
+<Callout type="warning">
+
+Back up the CA key and the data-protection keyring **together with**
+your database dumps, not instead of them. A database restore without
+them is only partially useful — organization, user, and audit
+history comes back, but node trust and OIDC secrets do not.
+
+</Callout>
+
+## What Plexor does not manage at all
+
+Two things are entirely outside Plexor's backup story, by design:
+
+- **Workload disk contents.** A volume's bytes live on the cluster's
+  storage backend (Ceph RBD by default, local-lvm on a single-node
+  install) — Plexor's database only holds the volume's *record*
+  (name, size, which folder and workload it belongs to). If the
+  storage backend loses the disk, the workload's data is gone
+  regardless of how current your database dump is.
+- **Bucket object data.** Same split: the bucket's *record* is in
+  the database, the objects themselves live on Ceph RGW or MinIO.
+  Durability for buckets comes from the storage backend's own
+  replication, not from Plexor.
+
+Back these up the way you'd back up any Ceph pool, LVM volume, or
+MinIO bucket — snapshot the backend, or run your own file-level copy
+of what's inside the guest. Plexor doesn't schedule this for you and
+has no opinion on your retention policy.
+
+## The backups to arrange
+
+### 1. A database dump, on a schedule
+
+```bash
+pg_dump -Fc -h <host> -U plexor -d plexor -f "plexor-$(date +%F).dump"
+```
+
+Nightly, retained for at least 30 days, written somewhere off the
+host it came from. This one command captures every schema in the
+database in a single consistent snapshot — there's no cross-table
+ordering to get right on the way out.
+
+If you need point-in-time recovery instead of "as of last night,"
+run continuous WAL archiving alongside a periodic `pg_basebackup` —
+both are stock PostgreSQL, nothing Plexor-specific.
+
+### 2. The secrets directory, once per host lifetime
+
+```bash
+tar -czf plexor-secrets-$(date +%F).tar.gz \
+  /var/lib/plexor/ca.crt /var/lib/plexor/ca.key \
+  /var/lib/plexor/dataprotection-keys
+```
+
+This changes rarely — typically only at first boot, since Plexor
+doesn't rotate the CA key or the data-protection keyring in the
+current release. Back it up once, store it somewhere separate from
+the database dump (a compromise of one shouldn't hand over both),
+and repeat only if you ever regenerate either.
+
+### 3. Workload and bucket data, per your own retention needs
+
+Whatever your storage backend supports: scheduled Ceph snapshots
+with off-host replication, LVM snapshots copied out, or a
+filesystem-level backup job that runs inside the guest. This is the
+one item on this page that has nothing to do with Plexor's own
+tooling — treat it exactly as you would on any hypervisor.
+
+## Restoring
+
+Restore the database first, then the secrets directory, then bring
+the host back up:
+
+```bash
+pg_restore -h <host> -U plexor -d plexor --clean --if-exists "plexor-<date>.dump"
+```
+
+A single `pg_restore` of the full dump is the right approach for
+essentially every recovery — every schema restores together, so
+there's no ordering to worry about. If you ever need to restore
+schema-by-schema instead, organization data has to land before
+identity data (everything else has a foreign key into one or both
+of them, not into each other), so restore those two first and the
+rest in any order.
+
+Put the secrets directory back at the same path it came from before
+starting the host — if the CA key isn't there when the host boots,
+it mints a new one silently, and you'll be rejoining nodes instead of
+just restoring a database.
+
+## What to do next
+
+- **Review the audit log** after any restore — the timeline of
+  events right before the incident is the fastest way to tell how
+  much state you actually lost.
+- **Treat this restore recipe as your rollback path, too.** A
+  release migration can't be undone once it's run; restoring last
+  night's dump is the only way back if an upgrade goes wrong.
