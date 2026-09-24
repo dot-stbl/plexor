@@ -1,0 +1,75 @@
+---
+title: "Create your first org, team, and folder"
+description: "Walk through the three-tier scope hierarchy interactively."
+chapter: "getting-started"
+---
+
+The scope switcher in the top-right header drives everything else in
+Plexor. Before you can run a workload, attach a volume, or set a
+quota, you need to be operating inside a folder. This page walks
+through the three-tier hierarchy in the order the console presents it.
+
+<Callout type="info">
+
+A fresh Plexor install comes with one organisation and one team. You
+do not need to create these unless you want to. The first thing every
+operator does is create a folder — that is where new resources land.
+
+</Callout>
+
+## Step 1 — Pick the organisation
+
+The organisation is the outermost scope. On a single-tenant self-hosted
+deploy there is exactly one; on a SaaS deploy there are many. Today,
+the console does not yet expose organisation creation — the initial
+organisation is seeded by the installer.
+
+If you are on a fresh install, the organisation is already selected
+and labelled in the scope switcher. Move on to the team.
+
+## Step 2 — Pick (or create) the team
+
+Teams group people who share access to a slice of the deployment.
+The installer seeds a single team, typically named after the
+administrator who installed Plexor.
+
+To create a second team (for example, to give a contractor
+time-limited access without exposing your platform team), open the
+scope switcher, click **New team**, give the team a name and a slug,
+and confirm. The new team appears in the switcher.
+
+The slug is the URL-safe form of the team's name (`team-zero`,
+`contractors-q4`). Plexor enforces that slugs are unique inside the
+organisation.
+
+## Step 3 — Create the folder
+
+This is the one the operator does every day. Folders are where
+resources actually live. Open the scope switcher, click **New
+folder**, name the folder, and confirm.
+
+Common folder shapes:
+
+- **Per-environment** — `dev`, `staging`, `prod`. Each folder gets
+  its own quota, its own audit trail, and its own permission
+  boundaries.
+- **Per-project** — `project-alpha`, `project-beta`. Useful when one
+  team runs multiple things at once and you want to keep the blast
+  radius of a misconfiguration small.
+- **Per-customer** — for a small MSP that hosts multiple customers
+  on the same Plexor. Each customer gets a folder; quotas keep one
+  customer from monopolising the host.
+
+You can create as many folders as your default organisation quota
+allows (200 by default for volume-style quotas). The quota is
+configurable per folder — see **How-to → Set up quotas**.
+
+## What just happened
+
+After step 3, the scope switcher shows your selected folder. Every
+subsequent page — workloads, volumes, audit, the API — operates on
+that folder. To move between folders, click the switcher again.
+
+The folder boundary is also the unit of isolation: a user with a
+`compute.editor` role binding on `project-alpha` cannot see or touch
+`project-beta`, even if both folders sit in the same team.

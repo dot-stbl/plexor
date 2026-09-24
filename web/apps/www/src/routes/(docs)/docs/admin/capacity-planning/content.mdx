@@ -1,0 +1,130 @@
+---
+title: "Capacity planning"
+description: "Default org-seeded quotas, when to raise the org versus adding a folder override, and what to watch on dashboards."
+chapter: "admin"
+---
+
+A Plexor deployment grows in three phases: a single user, a small
+team, and a small org. The capacity story at each phase is
+different. This page covers the default quotas the platform
+seeds, the patterns that keep a deployment healthy as it grows,
+and the dashboards operators watch.
+
+## The defaults
+
+When Plexor creates an organisation, it seeds a quota assignment
+for every catalog key at the org scope with the values from
+**Concepts → Quotas**. The defaults are:
+
+| Catalog key | Default |
+|---|---|
+| `compute.vms.count` | 100 |
+| `compute.vms.vcpu` | 256 |
+| `compute.vms.ram_gb` | 1024 |
+| `compute.clusters.count` | 10 |
+| `compute.workloads.count` | 100 |
+| `storage.volumes.count` | 200 |
+| `storage.volumes.gb` | 4096 |
+| `network.floating_ips.count` | 10 |
+| `network.load_balancers.count` | 20 |
+| `api.requests.per_hour.user` | 1000 |
+| `api.requests.per_hour.org` | 10000 |
+
+These are generous for a single-team deployment (100 VMs is a lot
+of test workloads), tight for a 50-person org (10 floating IPs is
+not many shared services), and meaningless for a SaaS deploy
+(per-org quotas are not the right unit when there are hundreds of
+orgs).
+
+## The capacity story by phase
+
+### Phase 1 — Single user
+
+The defaults are not a constraint. The operator runs a handful of
+test workloads, hits no warnings, and probably never edits a
+quota.
+
+### Phase 2 — Small team (5–15)
+
+The team starts to share workloads. A folder per project becomes
+the natural shape. The org-wide defaults start to look tight:
+
+- 10 floating IPs is not many if every workload wants one for
+  ingress.
+- 100 VMs is fine until the team starts running CI agents.
+
+The right move is **folder overrides** for the projects that need
+more than the org default. A folder-level override for the CI
+team's folder lets that team have 50 VMs without changing the
+ceiling for everyone else.
+
+### Phase 3 — Small org (50+ people)
+
+The org-wide defaults start to feel wrong. The org needs more
+floating IPs, more volumes, more API requests per hour. The
+right move is **raise the org default** — the values that ship
+are starting points, not ceilings.
+
+Two patterns to avoid:
+
+1. **Folder overrides for everyone.** When most folders override
+   most quotas, the org defaults become meaningless and the
+   walker does nothing useful. Stop fighting the org defaults;
+   raise them.
+2. **Per-user API quotas.** The default `1000 requests per hour`
+   per user is per-user, not per-key. A service account that
+   needs 10,000 requests per hour should get a folder or team
+   override, not an exception carved out for that user.
+
+## What to watch on the dashboards
+
+Three signals tell you that capacity planning is needed:
+
+### 1. Sustained 80% warnings
+
+A folder that crosses 80% and stays there is a folder that needs
+a quota raise. The right move is to ask the team "do you want
+more capacity or fewer workloads" — the answer is usually
+"more", and the right path is to raise the folder override.
+
+### 2. Frequent 429s in the audit log
+
+The audit log records every quota block with action
+`quotas.usage.exceeded`. A spike in this action means the team
+is hitting limits they did not anticipate. Read the audit log
+payloads: which key, which scope, which user. The fix is usually
+a quota raise at the right scope.
+
+### 3. The API rate-limit hitting often
+
+`api.requests.per_hour.user` is the rate limit per authenticated
+user. A user hitting the limit consistently is a user whose
+workflow assumes the limit is not there — usually a script that
+polls a lot, or a dashboard that re-queries on every refresh.
+The fix is either to rate-limit the consumer or to raise the
+user's per-hour quota.
+
+<Callout type="info">
+
+The platform's per-user quota is a protection against runaway
+scripts, not a budget. If you have a legitimate use case that
+needs more requests per hour than the default, raise the
+quota — there is no other quota tax to pay.
+
+</Callout>
+
+## What the operator sees when something is wrong
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| A folder shows 80% on a single key | That folder is approaching its limit | Raise the folder override or reduce the workload count. |
+| The whole org shows 80% on multiple keys | The org default is the wrong ceiling | Raise the org default. |
+| `quotas.usage.exceeded` on every API request | The API key has exhausted the user quota | Raise the user quota, or rotate the key's consumer to use less. |
+| `api.requests.per_hour.org` is the limiter | An org-aggregate rate limit is being hit | Raise the org quota on this key. |
+
+## What to do next
+
+- **Set up quotas** for folders that are outgrowing the org
+  default.
+- **Recover from a quota violation** if a raise triggered a
+  cascade of warnings.

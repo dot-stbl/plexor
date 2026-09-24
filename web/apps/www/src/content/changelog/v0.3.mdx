@@ -1,0 +1,16 @@
+---
+version: "v0.3"
+title: "App catalog and usage tracking"
+status: "next"
+bullets:
+  - "Install Postgres, Redis, Keycloak, WordPress and Ghost with one command"
+  - "Operators write their own catalog entries — drop in a manifest, ship it to your team"
+  - "Usage tracking that rolls up into an invoice viewable from the console"
+  - "Per-organization and per-folder quotas for memory, CPU and storage"
+---
+
+<ul>
+  {frontmatter.bullets.map((bullet) => (
+    <li key={bullet}>{bullet}</li>
+  ))}
+</ul>

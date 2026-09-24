@@ -1,0 +1,39 @@
+---
+title: "Install Plexor via air-gapped bundle"
+description: "Download a Plexor bundle, transfer it across the air gap, and run the local installer."
+chapter: "getting-started"
+---
+
+The air-gapped bundle is the install path for regulated environments
+where the target host has no internet access at install time. You
+download a single tarball from a connected machine, transfer it
+across the gap, and run the local installer on the target.
+
+<Callout type="info">
+
+The full air-gapped procedure (where to download the bundle, how to
+verify its signature, the local installer flags) is being written
+up. Until then, the universal install flow on [Install
+Plexor](/docs/getting-started/install/) covers every step on either
+install path, and the same five wizard questions the bundle walks.
+
+</Callout>
+
+## What you need
+
+- A connected machine (laptop, build server) that can reach the
+  Plexor package distribution.
+- A transfer medium for the bundle — USB stick, internal file
+  share, or whatever the air gap allows.
+- The target host: Linux kernel 5.15+, systemd, an XFS or ext4
+  data directory.
+- A way to verify the bundle's signature before running the local
+  installer. The signature is published alongside the bundle.
+
+## Where to go from here
+
+- Back to [Install Plexor](/docs/getting-started/install/) — the
+  universal install page covers both paths.
+- [First login](/docs/getting-started/first-login) — once the host is
+  up and the console is reachable, this is the next step regardless
+  of install path.

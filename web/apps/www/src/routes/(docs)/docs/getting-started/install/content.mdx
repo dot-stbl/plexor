@@ -1,0 +1,192 @@
+---
+title: "Install Plexor"
+description: "Two supported paths to a running Plexor host — bootable ISO for bare metal, and plx init for an existing Linux host."
+chapter: "getting-started"
+---
+
+Plexor is designed to be installed **once**, on hardware you own, and
+then run unattended for the rest of its life. This page walks the
+supported install paths and what to do immediately after the host
+comes up. If you already have a Plexor host reachable on the network
+and just need to get in, skip to [First login](/docs/getting-started/first-login).
+
+<Callout type="info">
+
+Plexor is **self-hosted cloud platform software**. The install lands a
+single `Plexor.Host` process on one host. That process owns the control
+plane (organisation, identity, audit) and the data-plane state for
+everything that runs on it (compute, networking, storage). A second
+process, the NodeAgent, joins the host over a one-time token and runs
+workloads — that join step is described in the project runbook, not
+here.
+
+</Callout>
+
+## Choose how to install
+
+<Choices>
+  <Choice title="Bootable ISO" icon="disc" href="/docs/getting-started/install/iso/">
+    Download a bootable image, flash to USB, boot the target machine.
+    The installer picks the right drivers automatically; nothing to
+    install by hand. Best for dedicated hardware.
+  </Choice>
+  <Choice title="CLI on a Linux host" icon="terminal" href="/docs/getting-started/install/cli/">
+    Run `plx init` on an existing Ubuntu 22.04 / AlmaLinux 9 host.
+    Plexor takes over the box and registers it as the first control-
+    plane node. Best for development and VMs on existing infra.
+  </Choice>
+  <Choice title="Air-gapped bundle" icon="package" href="/docs/getting-started/install/airgap/">
+    Download a tarball, copy it across the air gap, run the local
+    installer. No internet access required at install time. Best
+    for regulated environments.
+  </Choice>
+</Choices>
+
+Both paths produce the same result: a running `Plexor.Host` process that
+the console can talk to, with a bootstrap admin user ready to take a
+first login.
+
+## Path A — bootable ISO (bare metal)
+
+This is the recommended path for production. The ISO is a small,
+purpose-built image that boots into a minimal Linux, runs the install
+wizard, and reboots into a hardened Plexor appliance.
+
+### What you need
+
+- One physical server (or a VM with nested virtualisation enabled if
+  you want to evaluate on top of a hypervisor you already have).
+- A bootable medium: USB stick, or virtual CD-ROM if you are running
+  inside another hypervisor.
+- Network access from the host to at least one DNS resolver and one
+  NTP source. Plexor does not phone home — but its TLS certificates
+  and audit-log timestamps require accurate time.
+- One free IPv4 address on a network the operator's laptop can reach.
+  Plexor defaults to a self-signed certificate and listens on `:443`;
+  the install wizard walks you through choosing a hostname.
+
+### What the wizard does
+
+The installer is a single-screen-per-question TUI. The questions, in
+order, are:
+
+1. **Hostname and DNS** — the FQDN the console will be served from.
+   Plexor generates a self-signed certificate for this name. You can
+   replace the certificate later.
+2. **Network** — DHCP, or a static IPv4 / IPv6 configuration.
+3. **Data disk** — the XFS-formatted block device Plexor will use for
+   the database, the object store, and the volume data disk. This
+   disk is wiped on confirmation; Plexor does not preserve any data
+   on it.
+4. **Bootstrap admin slug** — the email-shaped identifier of the
+   first user. You set the password on the **First login** screen.
+5. **Time zone and NTP source**.
+
+The wizard takes about four minutes on a typical server. After it
+reboots, the host comes up with the `Plexor.Host` process running and
+the console reachable at `https://<the hostname you chose>`.
+
+### What you should check first
+
+Three things, in this order:
+
+1. **Can the console load?** Open `https://<hostname>` from a browser
+   on the same network. The self-signed certificate warning is
+   expected; accept it. The first-login screen should render.
+2. **Is the host clock right?** Run `plx status` (or open the
+   **Admin → Health** page once you are logged in). The clock drift
+   from `time.cloudflare.com` is reported there. Anything under two
+   seconds is fine; more than that breaks TLS for some clients and
+   skews the audit log.
+3. **Is the data disk mounted?** `plx status` also reports the data
+   disk's free space. If the disk is missing, Plexor is running in
+   read-only mode and most operations will fail.
+
+When all three are green, proceed to [First login](/docs/getting-started/first-login).
+
+## Path B — `plx init` on an existing Linux host
+
+Use this path for development, evaluation, or when Plexor has to
+coexist with other software on the same host. `plx init` installs the
+`Plexor.Host` systemd unit, lays down the data directory, and walks the
+same wizard as the ISO — minus the partitioning step.
+
+### Prerequisites
+
+- Linux host with kernel 5.15 or newer (`uname -r`).
+- systemd (most modern distributions).
+- An ununsed data directory on an XFS or ext4 filesystem. Plexor does
+  not support running its database on btrfs or ZFS in this release.
+- One unprivileged user account that the installer can use to run
+  the host process. The installer creates a `plexor` system user.
+- Outbound HTTPS to the package mirror you are installing from.
+
+### The commands
+
+The install is four commands and one reboot. None of them require
+elevated privileges for the operator — `plx` calls `sudo` itself when
+it needs it.
+
+```bash
+# 1. Add the Plexor package mirror and install plx
+curl -fsSL https://pkg.plexor.dev/install.sh | sudo bash -
+
+# 2. Run the wizard
+sudo plx init
+
+# 3. Enable and start the host
+sudo systemctl enable --now plexor-host.service
+
+# 4. Verify
+plx status
+```
+
+`plx init` walks the same wizard as the ISO (hostname, data directory,
+bootstrap admin slug). It does not partition a disk; you point it at
+an existing directory.
+
+### What `plx init` does not do
+
+Two things, both deliberate:
+
+- It does not configure the firewall. The default ports are `:443`
+  (console), `:8443` (NodeAgent join), and `:9100` (Prometheus
+  metrics). On a development host this is usually fine; in production
+  you want to lock down `:9100` and `:443` to the management network.
+- It does not request a certificate. The host serves a self-signed
+  certificate until you configure ACME or supply your own.
+
+Both are handled from **Admin → Settings** once you are logged in.
+
+## Upgrading between Plexor releases
+
+Plexor versions are date-stamped (for example, `2026.09.1`). The
+upgrade path is:
+
+```bash
+sudo plx upgrade           # pulls the latest release, runs pre-flight checks
+sudo systemctl restart plexor-host.service
+plx status                # confirms the new version is running
+```
+
+`plx upgrade` is non-destructive: the data directory is preserved, and
+the database schema is migrated in-place by the host process on first
+boot of the new version. Migrations are applied in FK-dependency order
+on startup.
+
+<Callout type="warning">
+
+A rollback is **not** supported between releases that ship a database
+migration. If a migration has run and the new version is broken,
+restore from backup — see
+[Backup & disaster avoidance](/docs/admin/backup-and-disaster) for the
+snapshot + WAL shipping recipe.
+
+</Callout>
+
+## Where to go next
+
+You are now in front of a running Plexor host. The next page is
+[First login](/docs/getting-started/first-login), which walks through
+the bootstrap admin's first interaction with the console and the scope
+switcher that every later page assumes.

@@ -1,0 +1,16 @@
+---
+version: "v0.2"
+title: "Compute, network and storage"
+status: "shipped"
+bullets:
+  - "Virtual machines with snapshots and an in-browser console"
+  - "Private networks, subnets, security groups, floating IPs and load balancers"
+  - "Block volumes and S3-compatible object storage"
+  - "Single-node path that runs on a single server without a storage cluster"
+---
+
+<ul>
+  {frontmatter.bullets.map((bullet) => (
+    <li key={bullet}>{bullet}</li>
+  ))}
+</ul>

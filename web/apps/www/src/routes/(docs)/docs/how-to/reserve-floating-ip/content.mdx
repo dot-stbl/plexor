@@ -1,0 +1,82 @@
+---
+title: "Reserve a floating IP"
+description: "Reserve, assign, reassign, and release a floating IP."
+chapter: "how-to"
+---
+
+A floating IP is a public IP address that moves between workloads.
+This page walks through reserving one and using it for inbound
+traffic.
+
+## Step 1 — Reserve
+
+Open **Network → Floating IPs** and click **Reserve floating IP**.
+
+The dialog asks for a name (kebab-case, unique per cluster) and an
+optional region label. Click **Reserve**. The floating IP is added
+to the cluster's pool; it does not yet route to any workload.
+
+## Step 2 — Assign to a workload
+
+Open the floating IP's detail view and click **Assign**. Pick the
+workload that should receive inbound traffic on this address.
+
+The assign is recorded in the audit log. The floating IP's state
+moves from `Reserved` to `Assigned`.
+
+From the outside world, traffic to the floating IP is now routed
+to the workload's private IP inside its VPC. The workload's guest
+OS sees the traffic arriving with the floating IP as the source.
+
+<Callout type="tip">
+
+If the workload is in a stopped state when you assign the floating
+IP, the IP is "Assigned (Stopped)" — the route exists in the
+control plane, but no traffic flows until the workload is Running.
+Start the workload and traffic resumes.
+
+</Callout>
+
+## Step 3 — Point DNS at the floating IP
+
+For inbound traffic, the public DNS record needs to point at the
+floating IP. Most operators run their own DNS (Plexor does not yet
+ship a DNS service in the current release). A typical setup:
+
+- In your DNS provider, create an A record (`api.example.com`,
+  `vpn.example.com`, `play.example.com`) pointing at the floating
+  IP.
+- Wait for TTL propagation. Most providers refresh within minutes.
+
+The floating IP stays reserved across workload lifetimes; if you
+replace the workload, you reassign the floating IP and the DNS
+record stays valid.
+
+## Step 4 — Reassign
+
+When you need to move the public address to a different workload
+— for example, to swap in a new VM without waiting for DNS
+propagation — open the floating IP's detail view and click
+**Reassign**. Pick the new workload.
+
+Reassign is a single API call; the floating IP moves in seconds.
+Connections to the old workload are interrupted; connections to
+the new workload resume from the same public address.
+
+## Step 5 — Release
+
+When the floating IP is no longer needed, open its detail view
+and click **Release**. The IP returns to the cluster's pool (or
+is returned to the upstream if the cluster has no spare public
+IPs).
+
+A released floating IP is **not recoverable**. The audit log
+carries the release event, but the address is gone. Reserve a new
+one if you need it back.
+
+## What to do next
+
+- **Add a load balancer** in front of two workloads that share the
+  same floating IP — that is the "high availability" shape.
+- **Set up a quota** for floating IPs in the folder if the team
+  has a habit of leaving reserved IPs running.
