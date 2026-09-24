@@ -180,6 +180,11 @@ export const Default: Story = {
   render: () => <LxcListBody items={INVENTORY} onCreate={noop} />,
 };
 
+/** Loading: strip skeleton + table row skeletons. */
+export const Loading: Story = {
+  render: () => <LxcListBody items={[]} isPending onCreate={noop} />,
+};
+
 /** Empty inventory: no strip, empty state with a create CTA and docs links. */
 export const Empty: Story = {
   render: () => <LxcListBody items={[]} onCreate={noop} />,

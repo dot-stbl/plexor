@@ -161,6 +161,11 @@ export const Default: Story = {
   render: () => <K8sListBody items={FLEET} onCreate={noop} />,
 };
 
+/** Loading: strip skeleton + table row skeletons. */
+export const Loading: Story = {
+  render: () => <K8sListBody items={[]} isPending onCreate={noop} />,
+};
+
 /** Empty fleet: no strip, empty state with a create CTA and docs links. */
 export const Empty: Story = {
   render: () => <K8sListBody items={[]} onCreate={noop} />,
