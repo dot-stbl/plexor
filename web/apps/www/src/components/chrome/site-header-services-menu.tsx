@@ -34,11 +34,16 @@ export function SiteHeaderServicesMenu() {
         <div className="grid grid-cols-2 gap-1">
           {BENTO_CELLS.map((cell) => {
             const CellIcon = cell.icon;
+            // Explicit `: string` so the template literal widens to the
+            // permissive fallback on TanStack's `<Link to>` route union
+            // (see docs-breadcrumb.tsx `crumb.to?: string` precedent) —
+            // a narrow template-literal type wouldn't satisfy the union
+            // and `tsc` would fail with TS2322.
+            const cellHref: string = `/services/${cell.id}/`;
             return (
               <Link
                 key={cell.id}
-                to="/"
-                hash="services"
+                to={cellHref}
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted"
               >

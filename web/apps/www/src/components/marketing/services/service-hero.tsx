@@ -3,19 +3,19 @@ import { Button } from '@/components/ui/button';
 import { StatusPill } from '@/components/ui/status-pill';
 import { bentoStatusLabel, bentoStatusVariant, requireBentoCell } from '@/components/marketing/bento/bento-data';
 import { requireServiceContent } from './service-content';
+import { requireServiceIllustration } from './service-illustrations';
 
 /**
- * Per-service hero — copy on the left, illustration slot on the right.
+ * Per-service hero — copy on the left, illustration on the right.
  * Mirrors `marketing-hero.tsx`'s two-column shape (`3fr_2fr`, copy left,
  * visual right) but with no clone-command box: this page is narrower
  * (no second-row GitHub CTA / install one-liner — those live in the
  * landing's hero and the inverted closing CTA respectively).
  *
- * `data-service-illustration-slot={id}` on the right column is the
- * chunk-3 mount point: chunk 3 swaps the empty `<div />` for a real
- * per-service SVG illustration, picked by `id`. We deliberately render
- * nothing here rather than placeholder SVG art — chunk 3 owns that
- * asset and the brief says not to invent it.
+ * The right column renders the per-id SVG illustration from
+ * `service-illustrations.tsx`; the wrapping `data-service-illustration-slot`
+ * attribute stays for visual-test selectors that target the slot, not the
+ * inner svg.
  */
 export function ServiceHero({ id }: { id: string }) {
   const cell = requireBentoCell(id);
@@ -58,11 +58,12 @@ export function ServiceHero({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Chunk 3 fills this in from a per-id illustration map. */}
       <div
         className="mx-auto mt-12 max-w-md lg:mt-0 lg:max-w-none lg:mx-0"
         data-service-illustration-slot={id}
-      />
+      >
+        {requireServiceIllustration(id)()}
+      </div>
     </div>
   );
 }
