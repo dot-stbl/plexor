@@ -83,6 +83,12 @@ document why in a code comment — the default rhythm is almost always right.
   `text-muted-foreground`) or CSS vars (`bg-(--terminal-bg)`). Hex lives in
   `index.css` (the token source) and in two blessed files: brand SVGs
   (`provider-icons.tsx`) and recharts attribute selectors (`chart.tsx`).
+  Two non-hex literal forms are equally sanctioned: accent-preset **data**
+  (the `oklch(…)` strings in `preferences-provider.tsx`,
+  `preferences-dialog.tsx`, and the `branding.tsx` default fallback —
+  user-selectable theme values written into `--accent` at runtime, not
+  static styling) and `scroll-area.tsx`'s injected scrollbar CSS
+  (`oklch(var(--token))` — token-derived by construction).
 - **No arbitrary px spacing** (`p-[3px]`, `mt-[18px]`) where a spacing step
   exists — use the step (`p-0.75`, `mt-4`). The `[--var:…]` arbitrary
   *property* syntax is the token mechanism and is always correct.
