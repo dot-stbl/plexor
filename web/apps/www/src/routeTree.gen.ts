@@ -28,6 +28,7 @@ import { Route as marketingServicesNetworkingIndexRouteImport } from './routes/(
 import { Route as marketingServicesQuotasAuditIndexRouteImport } from './routes/(marketing)/services/quotas-audit/index'
 import { Route as marketingServicesStorageIndexRouteImport } from './routes/(marketing)/services/storage/index'
 import { Route as docsDocsAdminAuditLogIndexRouteImport } from './routes/(docs)/docs/admin/audit-log/index'
+import { Route as docsDocsAdminBackupAndDisasterIndexRouteImport } from './routes/(docs)/docs/admin/backup-and-disaster/index'
 import { Route as docsDocsAdminCapacityPlanningIndexRouteImport } from './routes/(docs)/docs/admin/capacity-planning/index'
 import { Route as docsDocsAdminLockoutRecoveryIndexRouteImport } from './routes/(docs)/docs/admin/lockout-recovery/index'
 import { Route as docsDocsAdminQuotasIndexRouteImport } from './routes/(docs)/docs/admin/quotas/index'
@@ -162,6 +163,12 @@ const docsDocsAdminAuditLogIndexRoute =
   docsDocsAdminAuditLogIndexRouteImport.update({
     id: '/admin/audit-log/',
     path: '/admin/audit-log/',
+    getParentRoute: () => docsDocsRouteRoute,
+  } as any)
+const docsDocsAdminBackupAndDisasterIndexRoute =
+  docsDocsAdminBackupAndDisasterIndexRouteImport.update({
+    id: '/admin/backup-and-disaster/',
+    path: '/admin/backup-and-disaster/',
     getParentRoute: () => docsDocsRouteRoute,
   } as any)
 const docsDocsAdminCapacityPlanningIndexRoute =
@@ -387,6 +394,7 @@ export interface FileRoutesByFullPath {
   '/services/quotas-audit/': typeof marketingServicesQuotasAuditIndexRoute
   '/services/storage/': typeof marketingServicesStorageIndexRoute
   '/docs/admin/audit-log/': typeof docsDocsAdminAuditLogIndexRoute
+  '/docs/admin/backup-and-disaster/': typeof docsDocsAdminBackupAndDisasterIndexRoute
   '/docs/admin/capacity-planning/': typeof docsDocsAdminCapacityPlanningIndexRoute
   '/docs/admin/lockout-recovery/': typeof docsDocsAdminLockoutRecoveryIndexRoute
   '/docs/admin/quotas/': typeof docsDocsAdminQuotasIndexRoute
@@ -439,6 +447,7 @@ export interface FileRoutesByTo {
   '/services/quotas-audit': typeof marketingServicesQuotasAuditIndexRoute
   '/services/storage': typeof marketingServicesStorageIndexRoute
   '/docs/admin/audit-log': typeof docsDocsAdminAuditLogIndexRoute
+  '/docs/admin/backup-and-disaster': typeof docsDocsAdminBackupAndDisasterIndexRoute
   '/docs/admin/capacity-planning': typeof docsDocsAdminCapacityPlanningIndexRoute
   '/docs/admin/lockout-recovery': typeof docsDocsAdminLockoutRecoveryIndexRoute
   '/docs/admin/quotas': typeof docsDocsAdminQuotasIndexRoute
@@ -495,6 +504,7 @@ export interface FileRoutesById {
   '/(marketing)/services/quotas-audit/': typeof marketingServicesQuotasAuditIndexRoute
   '/(marketing)/services/storage/': typeof marketingServicesStorageIndexRoute
   '/(docs)/docs/admin/audit-log/': typeof docsDocsAdminAuditLogIndexRoute
+  '/(docs)/docs/admin/backup-and-disaster/': typeof docsDocsAdminBackupAndDisasterIndexRoute
   '/(docs)/docs/admin/capacity-planning/': typeof docsDocsAdminCapacityPlanningIndexRoute
   '/(docs)/docs/admin/lockout-recovery/': typeof docsDocsAdminLockoutRecoveryIndexRoute
   '/(docs)/docs/admin/quotas/': typeof docsDocsAdminQuotasIndexRoute
@@ -550,6 +560,7 @@ export interface FileRouteTypes {
     | '/services/quotas-audit/'
     | '/services/storage/'
     | '/docs/admin/audit-log/'
+    | '/docs/admin/backup-and-disaster/'
     | '/docs/admin/capacity-planning/'
     | '/docs/admin/lockout-recovery/'
     | '/docs/admin/quotas/'
@@ -602,6 +613,7 @@ export interface FileRouteTypes {
     | '/services/quotas-audit'
     | '/services/storage'
     | '/docs/admin/audit-log'
+    | '/docs/admin/backup-and-disaster'
     | '/docs/admin/capacity-planning'
     | '/docs/admin/lockout-recovery'
     | '/docs/admin/quotas'
@@ -657,6 +669,7 @@ export interface FileRouteTypes {
     | '/(marketing)/services/quotas-audit/'
     | '/(marketing)/services/storage/'
     | '/(docs)/docs/admin/audit-log/'
+    | '/(docs)/docs/admin/backup-and-disaster/'
     | '/(docs)/docs/admin/capacity-planning/'
     | '/(docs)/docs/admin/lockout-recovery/'
     | '/(docs)/docs/admin/quotas/'
@@ -831,6 +844,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/audit-log'
       fullPath: '/docs/admin/audit-log/'
       preLoaderRoute: typeof docsDocsAdminAuditLogIndexRouteImport
+      parentRoute: typeof docsDocsRouteRoute
+    }
+    '/(docs)/docs/admin/backup-and-disaster/': {
+      id: '/(docs)/docs/admin/backup-and-disaster/'
+      path: '/admin/backup-and-disaster'
+      fullPath: '/docs/admin/backup-and-disaster/'
+      preLoaderRoute: typeof docsDocsAdminBackupAndDisasterIndexRouteImport
       parentRoute: typeof docsDocsRouteRoute
     }
     '/(docs)/docs/admin/capacity-planning/': {
@@ -1083,6 +1103,7 @@ interface docsDocsRouteRouteChildren {
   docsDocsHowToIndexRoute: typeof docsDocsHowToIndexRoute
   docsDocsReferenceIndexRoute: typeof docsDocsReferenceIndexRoute
   docsDocsAdminAuditLogIndexRoute: typeof docsDocsAdminAuditLogIndexRoute
+  docsDocsAdminBackupAndDisasterIndexRoute: typeof docsDocsAdminBackupAndDisasterIndexRoute
   docsDocsAdminCapacityPlanningIndexRoute: typeof docsDocsAdminCapacityPlanningIndexRoute
   docsDocsAdminLockoutRecoveryIndexRoute: typeof docsDocsAdminLockoutRecoveryIndexRoute
   docsDocsAdminQuotasIndexRoute: typeof docsDocsAdminQuotasIndexRoute
@@ -1128,6 +1149,8 @@ const docsDocsRouteRouteChildren: docsDocsRouteRouteChildren = {
   docsDocsHowToIndexRoute: docsDocsHowToIndexRoute,
   docsDocsReferenceIndexRoute: docsDocsReferenceIndexRoute,
   docsDocsAdminAuditLogIndexRoute: docsDocsAdminAuditLogIndexRoute,
+  docsDocsAdminBackupAndDisasterIndexRoute:
+    docsDocsAdminBackupAndDisasterIndexRoute,
   docsDocsAdminCapacityPlanningIndexRoute:
     docsDocsAdminCapacityPlanningIndexRoute,
   docsDocsAdminLockoutRecoveryIndexRoute:
