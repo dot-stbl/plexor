@@ -24,6 +24,15 @@ const TYPING_DURATION_MS = FULL_TEXT.length * MS_PER_CHAR;
  *
  * Reduced motion: renders every line already typed and the output
  * already visible, no cursor.
+ *
+ * Two-column at `lg:` (text left, terminal right) — this panel used to
+ * sit paired 50/50 with the "how it runs" screenshot panel (`PanelRow`),
+ * which kept its own `max-w-2xl` terminal from ever needing more room.
+ * Now that it's a full-width panel on its own (screenshot legibility
+ * fix, `routes/(marketing)/index.tsx`), a single `max-w-2xl` column on
+ * an otherwise-empty wide black panel left a large dead area to its
+ * right; splitting text/terminal into two columns uses that width
+ * instead of leaving it blank.
  */
 export function MarketingInstall() {
   const copyValue = copyableLines(TERMINAL_LINES);
@@ -37,15 +46,25 @@ export function MarketingInstall() {
   const cursorLineIndex = typedLines.length - 1;
 
   return (
-    <div>
-      <p className="mb-3 text-sm font-medium text-background/50">
-        Get running
-      </p>
-      <h2 className="max-w-2xl text-3xl font-extrabold tracking-tight text-background">
-        One binary. One process. Running in minutes.
-      </h2>
+    <div className="lg:grid lg:grid-cols-[2fr_3fr] lg:items-start lg:gap-12">
+      <div>
+        <p className="mb-3 text-sm font-medium text-background/50">Get running</p>
+        <h2 className="text-3xl font-extrabold tracking-tight text-background">
+          One binary. One process. Running in minutes.
+        </h2>
+        <p className="mt-4 text-sm leading-6 text-background/70">
+          There is no packaged install command yet.{' '}
+          <Link
+            to="/docs/getting-started/install"
+            className="text-background underline underline-offset-4 hover:no-underline"
+          >
+            Read the full install guide
+          </Link>{' '}
+          for airgapped, CLI and ISO paths.
+        </p>
+      </div>
 
-      <div ref={ref} className="mt-8 max-w-2xl overflow-hidden rounded-2xl border border-border bg-card">
+      <div ref={ref} className="mt-8 overflow-hidden rounded-2xl border border-border bg-card lg:mt-0">
         <div className="flex items-center justify-between border-b border-border px-4 py-2">
           <span className="font-mono text-xs text-muted-2">terminal</span>
           <CopyButton value={copyValue} copyLabel="Copy the install commands" />
@@ -87,17 +106,6 @@ export function MarketingInstall() {
           )}
         </div>
       </div>
-
-      <p className="mt-4 text-sm text-background/70">
-        There is no packaged install command yet.{' '}
-        <Link
-          to="/docs/getting-started/install"
-          className="text-background underline underline-offset-4 hover:no-underline"
-        >
-          Read the full install guide
-        </Link>{' '}
-        for airgapped, CLI and ISO paths.
-      </p>
     </div>
   );
 }

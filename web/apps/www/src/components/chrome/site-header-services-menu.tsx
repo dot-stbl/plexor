@@ -26,7 +26,7 @@ export function SiteHeaderServicesMenu() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className="h-auto items-center gap-0.5 bg-transparent px-1.5 py-1 text-xs font-normal text-muted-2 hover:bg-transparent hover:text-foreground">
+      <PopoverTrigger className="h-auto items-center gap-1 bg-transparent px-0 py-0 text-sm font-medium text-foreground/70 hover:bg-transparent hover:text-foreground">
         Product areas
         <KeyboardArrowDown aria-hidden className={cn('size-3.5 transition-transform', open && 'rotate-180')} />
       </PopoverTrigger>

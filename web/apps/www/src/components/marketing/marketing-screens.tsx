@@ -16,7 +16,7 @@ function ScreenFigure({ shot, label }: ScreenFigureProps) {
 
   return (
     <figure>
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="mx-auto max-w-7xl overflow-hidden rounded-2xl border border-border bg-card">
         <img
           src={src}
           alt={shot.alt}
@@ -26,7 +26,7 @@ function ScreenFigure({ shot, label }: ScreenFigureProps) {
           className="h-full w-full object-cover"
         />
       </div>
-      <figcaption className="mt-2 text-xs text-muted-2">{label}</figcaption>
+      <figcaption className="mt-3 text-xs text-muted-2">{label}</figcaption>
     </figure>
   );
 }
@@ -41,6 +41,13 @@ function ScreenFigure({ shot, label }: ScreenFigureProps) {
  * is the 2nd panel below the hero, so eager-loading buys nothing; the
  * hero shot in `marketing-hero-preview.tsx` stays `loading="eager"`
  * because it is the first paint.
+ *
+ * Stacked full-width, not a 2-up half-width grid — the console UI in
+ * these shots (sidebar labels, table rows, filter fields) reads as an
+ * illegible thumbnail at half the panel's width. Each figure now spans
+ * the panel (capped at `max-w-7xl` = 1280px, the screenshot's native
+ * captured width, so it never upscales), one below the other — the "one
+ * big console shot" idea YC product pages use, twice.
  */
 export function MarketingScreens() {
   return (
@@ -50,7 +57,7 @@ export function MarketingScreens() {
         A managed database, and every action logged.
       </h2>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="mt-8 flex flex-col gap-10">
         <ScreenFigure shot={CATALOG_SHOT} label="Managed PostgreSQL" />
         <ScreenFigure shot={AUDIT_SHOT} label="Audit log" />
       </div>

@@ -15,6 +15,7 @@ import type { Browser } from 'playwright';
 import { ariaOutline, inspectDom, recordPage, visibleText } from './inspect';
 import {
   disableAnimations,
+  scrollThroughPage,
   seedTheme,
   viewportFor,
   waitForNetworkIdleBestEffort,
@@ -116,6 +117,13 @@ export async function renderPageTarget(
     const aria = await ariaOutline(page, rootSelector);
     const text = await visibleText(page, rootSelector);
     recorder.detach();
+
+    if (opts.full) {
+      // Force below-the-fold `loading="lazy"` images to load before the
+      // stitched capture — see `scrollThroughPage`'s own doc comment.
+      await scrollThroughPage(page);
+      await waitForNetworkIdleBestEffort(page, 4_000);
+    }
 
     await page.screenshot({ path: pngPath, fullPage: opts.full });
 

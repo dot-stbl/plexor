@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { SiteFrame } from '@/components/chrome/site-frame';
-import { EYEBROW_CLASS, Panel, PanelContainer, PanelRow, PanelStack } from '@/components/chrome/panel';
+import { EYEBROW_CLASS, Panel, PanelContainer, PanelStack } from '@/components/chrome/panel';
 import { Reveal } from '@/components/motion';
 import { MarketingComparison } from '@/components/marketing/marketing-comparison';
 import { MarketingCta } from '@/components/marketing/marketing-cta';
@@ -25,14 +25,19 @@ import { MarketingSpectrum } from '@/components/marketing/marketing-spectrum';
  * and docs 3-column grid.
  *
  * Order: hero (headline + SVG, no screenshot) → screens (2 console
- * shots) → services catalog (6 surfaces, category-labelled) → how it
- * runs (light screenshot panel + inverted terminal panel, side by side)
- * → scenarios (single box / small cluster / fleet) → manifesto →
- * comparison → latest release + docs entry points → final CTA
- * (inverted). Fills alternate card/muted/sunken/inverted so no two
- * adjacent panels share a tone (see `panel.tsx` for the fill palette).
- * No video, no scroll-scrubbed tour, no canvas background, no more than
- * 3 static screenshots total (product owner feedback, unchanged).
+ * shots, stacked full-width) → services catalog (6 surfaces,
+ * category-labelled) → how it runs (light screenshot panel, full width)
+ * → get running (inverted terminal panel, its own full-width panel
+ * right below) → scenarios (single box / small cluster / fleet) →
+ * manifesto → comparison → latest release + docs entry points → final
+ * CTA (inverted). The screenshot and terminal panels used to share one
+ * `PanelRow` (50/50) — split into two full-width panels instead so the
+ * console screenshot reads at a legible size (was shrinking to ~1/4 of
+ * its native resolution in that half-width slot). Fills alternate
+ * card/muted/sunken/inverted so no two adjacent panels share a tone
+ * (see `panel.tsx` for the fill palette). No video, no scroll-scrubbed
+ * tour, no canvas background, no more than 3 static screenshots total
+ * (product owner feedback, unchanged).
  *
  * Each section still lives in its own component
  * (`components/marketing/*`) so a copy edit lands in one file under 200
@@ -72,24 +77,23 @@ function Landing() {
             <MarketingFeatures />
           </Panel>
 
-          <PanelRow>
-            <Panel fill="card">
-              <p className={EYEBROW_CLASS}>How it runs</p>
-              <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-foreground">
-                The real console, on your hardware.
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Every action in Plexor goes through the same UI you see here — no
-                separate CLI-only surface, no hidden control plane.
-              </p>
-              <div className="mt-6">
-                <MarketingHeroPreview />
-              </div>
-            </Panel>
-            <Panel fill="inverted">
-              <MarketingInstall />
-            </Panel>
-          </PanelRow>
+          <Panel fill="card">
+            <p className={EYEBROW_CLASS}>How it runs</p>
+            <h2 className="mt-2 max-w-2xl text-3xl font-extrabold tracking-tight text-foreground">
+              The real console, on your hardware.
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Every action in Plexor goes through the same UI you see here — no
+              separate CLI-only surface, no hidden control plane.
+            </p>
+            <div className="mt-8">
+              <MarketingHeroPreview />
+            </div>
+          </Panel>
+
+          <Panel fill="inverted">
+            <MarketingInstall />
+          </Panel>
 
           <Panel fill="muted">
             <MarketingSpectrum />

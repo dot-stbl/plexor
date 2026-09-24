@@ -1,6 +1,7 @@
-import { useNavigate, Link } from '@tanstack/react-router';
+import { useNavigate, useRouterState, Link } from '@tanstack/react-router';
 import { PlexorMark } from '@plexor/ui/brand';
 import { Menu, Search } from '@nine-thirty-five/material-symbols-react/rounded/700';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { StatusPill } from '@/components/ui/status-pill';
 import {
@@ -37,11 +38,18 @@ function isMacPlatform(): boolean {
  * (the mobile hamburger lives here too, since row 2 is desktop-only);
  * row 2 (`hidden md:flex`) is the nav proper — the "Product areas"
  * mega-menu (`SiteHeaderServicesMenu`) followed by the flat
- * `MARKETING_NAV_ITEMS` (Docs, Changelog).
+ * `MARKETING_NAV_ITEMS` (Docs, Changelog). Restyled 2026-09-24 (YC
+ * critique pass): row 2 used to read as `text-xs text-muted-2` — pale
+ * and tiny next to row 1's `text-sm` search/CTA. Bumped to `text-sm
+ * font-medium`, base color `text-foreground/70` (full `text-foreground`
+ * when active, matching `ChapterLink`'s active pattern in
+ * `docs-sidebar-chapter.tsx`), and `h-11` (was `h-10`) for a touch more
+ * height around the larger type.
  */
 export function SiteHeader({ variant }: SiteHeaderProps) {
   const { setOpen } = useCommandMenu();
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const shortcutHint = isMacPlatform() ? '⌘K' : 'Ctrl K';
 
   return (
@@ -131,17 +139,24 @@ export function SiteHeader({ variant }: SiteHeaderProps) {
       </div>
 
       {variant === 'marketing' && (
-        <div className={`hidden h-10 items-center gap-5 border-t border-border/60 md:flex ${FRAME_CLASS}`}>
+        <div className={`hidden h-11 items-center gap-6 border-t border-border/60 md:flex ${FRAME_CLASS}`}>
           <SiteHeaderServicesMenu />
-          {MARKETING_NAV_ITEMS.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="text-xs text-muted-2 transition-colors duration-fast ease-out hover:text-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {MARKETING_NAV_ITEMS.map((item) => {
+            const active = item.to.startsWith('/docs') ? pathname.startsWith('/docs') : pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'text-sm font-medium transition-colors duration-fast ease-out',
+                  active ? 'text-foreground' : 'text-foreground/70 hover:text-foreground',
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
       )}
     </header>

@@ -23,19 +23,27 @@ import { MarketingHeroIllustration } from './marketing-hero-illustration';
  * — is crap, remove it") — the section is plain, no absolutely positioned
  * decorative layer, so no z-index/stacking contract to document here.
  *
- * Column split is `11fr_9fr` (~55/45), not an even `3fr_2fr` — the
- * illustration needs to read at YC-hero confidence (~45% of the panel
- * width), which a narrower column undersells. Headline still wraps
- * cleanly down to the `lg:` minimum (1024px) — checked via `bun run
- * shot page / --width 1280`.
+ * Column split is `3fr_2fr` (60/40) — a `lg:` 55/45 split combined with
+ * `lg:text-7xl` used to wrap the headline to 4 lines at 1280 (an
+ * orphaned "own" on its own line): the illustration column was wide
+ * enough to undersell, but the text column was too narrow for a 72px
+ * headline. Fix is two levers together, not just one: the wider 60%
+ * text column, AND a headline size that steps DOWN at `lg:` (two-column
+ * layout starts) before stepping back up at `xl:`/`2xl:` as the column's
+ * absolute width grows — `text-5xl md:text-6xl lg:text-5xl xl:text-6xl
+ * 2xl:text-7xl`. Verified via `bun run shot page / --width 1280` (3
+ * lines) and `--width 1920` (2 lines); `text-balance` avoids single-word
+ * orphan lines at any width in between. The illustration still reads at
+ * confident scale at 40% of the panel width (its own `lg:max-w-none`
+ * fills whatever the grid column gives it).
  */
 export function MarketingHero() {
   return (
-    <div className="lg:grid lg:grid-cols-[11fr_9fr] lg:items-center lg:gap-12">
+    <div className="lg:grid lg:grid-cols-[3fr_2fr] lg:items-center lg:gap-10 xl:gap-12">
       <div>
         <p className={EYEBROW_CLASS}>Plexor · self-hosted cloud</p>
 
-        <h1 className="mt-4 max-w-3xl text-5xl leading-[1.02] font-extrabold tracking-tight text-foreground md:text-6xl lg:text-7xl">
+        <h1 className="mt-4 text-balance text-5xl leading-[1.05] font-extrabold tracking-tight text-foreground md:text-6xl lg:text-5xl xl:text-6xl 2xl:text-7xl">
           The cloud you run on your own hardware.
         </h1>
 

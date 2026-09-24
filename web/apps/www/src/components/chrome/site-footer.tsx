@@ -83,33 +83,45 @@ function FooterLinkItem({ link }: { link: FooterLink }) {
  * pair (with opacity modifiers) so they read correctly in both light
  * and dark themes; `border-border` would be calibrated for a light
  * panel and is hard to see on an inverted one.
+ *
+ * The top divider is deliberately full-bleed (`w-full border-t` on the
+ * outer `<footer>`, edge to edge of the viewport), not scoped to
+ * `FRAME_CLASS` — a hairline that stopped short of the viewport edge,
+ * floating a few px above the black panel's own rounded corner, read as
+ * a stray leftover line rather than an intentional section divider.
+ * `FRAME_CLASS` moves to a plain inner wrapper so the `Panel` itself
+ * keeps its own default padding (`p-8 md:p-12 lg:p-16`, same as every
+ * other `Panel` on the page) rather than swapping it for `FRAME_CLASS`'s
+ * slightly different gutter values.
  */
 export function SiteFooter() {
   return (
-    <footer className={`border-t border-border ${FRAME_CLASS}`}>
-      <Panel fill="inverted">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-          {COLUMNS.map((column) => (
-            <div key={column.heading}>
-              <div className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-background/50">
-                {column.heading}
+    <footer className="w-full border-t border-border">
+      <div className={FRAME_CLASS}>
+        <Panel fill="inverted">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            {COLUMNS.map((column) => (
+              <div key={column.heading}>
+                <div className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-background/50">
+                  {column.heading}
+                </div>
+                <ul className="flex flex-col gap-2">
+                  {column.links.map((link) => (
+                    <li key={link.label}>
+                      <FooterLinkItem link={link} />
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="flex flex-col gap-2">
-                {column.links.map((link) => (
-                  <li key={link.label}>
-                    <FooterLinkItem link={link} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-background/15 pt-6 text-xs text-background/50">
-          <span>© {new Date().getFullYear()} .stbl</span>
-          <span className="font-mono">plexor {VERSION_LABEL}</span>
-        </div>
-      </Panel>
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-background/15 pt-6 text-xs text-background/50">
+            <span>© {new Date().getFullYear()} .stbl</span>
+            <span className="font-mono">plexor {VERSION_LABEL}</span>
+          </div>
+        </Panel>
+      </div>
     </footer>
   );
 }

@@ -91,3 +91,44 @@ export async function waitForNetworkIdleBestEffort(page: Page, maxMs = 8_000): P
     // Not critical — continue with whatever has rendered.
   }
 }
+
+const SCROLL_STEP_SETTLE_MS = 120;
+const SCROLL_END_SETTLE_MS = 200;
+
+/**
+ * Scrolls the page from top to bottom in viewport-sized steps, then back
+ * to the top. Needed before a `fullPage` screenshot: native `loading=
+ * "lazy"` `<img>`s (e.g. the landing's below-the-fold console
+ * screenshots, `marketing-screens.tsx`) only start their network fetch
+ * once Chromium's own intersection heuristic considers them near the
+ * viewport — a `page.screenshot({ fullPage: true })` taken from an
+ * unscrolled page does not reliably trigger that for images far down a
+ * long page, so they can still be blank/unloaded when Playwright
+ * stitches the full-page capture. Walking the scroll position down (and
+ * back up, so the page is back at its natural starting position for the
+ * capture) forces every lazy image to enter the viewport at least once
+ * before the screenshot is taken.
+ */
+async function documentHeight(page: Page): Promise<number> {
+  return page.evaluate(() => document.documentElement.scrollHeight);
+}
+
+export async function scrollThroughPage(page: Page): Promise<void> {
+  const viewportHeight = page.viewportSize()?.height ?? 800;
+  const stepPx = Math.max(viewportHeight, 400);
+
+  // Re-reads the document height every iteration (not cached once) — a
+  // lazy image finishing its own layout can grow the document further
+  // as we walk down it.
+  let y = stepPx;
+  while (y < (await documentHeight(page))) {
+    await page.evaluate((offset) => window.scrollTo(0, offset), y);
+    await page.waitForTimeout(SCROLL_STEP_SETTLE_MS);
+    y += stepPx;
+  }
+
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.waitForTimeout(SCROLL_END_SETTLE_MS);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(SCROLL_END_SETTLE_MS);
+}
