@@ -107,6 +107,17 @@ false-positive pixel diffs even when the rendered output is visually
 identical — sub-pixel anti-aliasing differences, font hinting, fractional
 pixel rounding, all of it.
 
+**UI language is also pinned, separately from the OS/font stack.**
+`.storybook/preview.tsx` forces `i18n.changeLanguage('en')` via a
+Storybook `loaders` entry. Without this, `i18next-browser-
+languagedetector` falls back to `navigator.language` — which mirrors the
+*host OS's* display language on Windows/macOS (so a Russian-language dev
+box renders every story in Russian) but happens to default to `en-US` in
+a minimal Linux container. That's exactly how earlier Windows-generated
+baselines ended up checked in as Russian text — non-deterministic, not
+intentional. This pin only affects Storybook; the real app's language
+detection (`src/shared/lib/i18n/index.ts`) is untouched.
+
 What this means in practice:
 
 1. **The committed baselines are the source of truth.** Don't regenerate
