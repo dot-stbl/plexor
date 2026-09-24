@@ -6,6 +6,8 @@ index before creating any new primitive.**
 
 - Primitives live in `src/shared/ui/primitives/` (react-aria-components + cva + cn).
 - Composite shells live in `src/shared/ui/app-shell/` and `src/shared/ui/data-table/`.
+- Spacing, rhythm ownership, and token rules live in [SPACING.md](./SPACING.md) —
+  primitives own padding, pages own layout. No hex, no arbitrary px, semantic z-index.
 - Full consumer audit (2026-09-20) is in the [Appendix](#appendix-audit-2026-09-20).
 
 ## Inputs

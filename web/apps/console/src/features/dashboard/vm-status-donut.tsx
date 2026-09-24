@@ -47,11 +47,11 @@ export function VmStatusDonut() {
   );
 
   return (
-    <Card data-od-id="dashboard-vm-status" className="gap-0 p-0">
-      <CardHeader className="gap-0.5 border-b border-border p-4">
+    <Card data-od-id="dashboard-vm-status">
+      <CardHeader className="border-b border-border">
         <CardTitle className="text-sm">{t('dashboard.vmStatus.title')}</CardTitle>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent>
         {isPending || grouped.length === 0 ? (
           <div className="flex h-32 items-center justify-center text-xs text-muted-foreground">
             {t('common.loading')}

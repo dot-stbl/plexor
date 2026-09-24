@@ -103,8 +103,8 @@ function ClusterDetailPage() {
       >
         {/* Top info card — install providers + self-help links.
             Self-hosted = these are the primary discovery surface. */}
-        <Card className="gap-0 p-0">
-          <CardHeader className="gap-0.5 border-b border-border p-4">
+        <Card>
+          <CardHeader className="border-b border-border">
             <div className="flex items-center justify-between gap-2">
               <div className="space-y-0.5">
                 <CardTitle className="text-sm">{t('clusters.detail.installProviders')}</CardTitle>
@@ -138,8 +138,8 @@ function ClusterDetailPage() {
           </TabsList>
 
           <TabsContent value="nodes" className="space-y-3">
-            <Card className="gap-0 p-0">
-              <CardHeader className="gap-0.5 border-b border-border p-4">
+            <Card>
+              <CardHeader className="border-b border-border">
                 <div className="flex items-center justify-between gap-2">
                   <div className="space-y-0.5">
                     <CardTitle className="text-sm">{t('clusters.detail.nodeAgentInstances')}</CardTitle>
@@ -170,8 +170,8 @@ function ClusterDetailPage() {
           </TabsContent>
 
           <TabsContent value="tokens" className="space-y-3">
-            <Card className="gap-0 p-0">
-              <CardHeader className="gap-0.5 border-b border-border p-4">
+            <Card>
+              <CardHeader className="border-b border-border">
                 <div className="flex items-center justify-between gap-2">
                   <div className="space-y-0.5">
                     <CardTitle className="text-sm">{t('clusters.detail.joinTokens')}</CardTitle>
@@ -202,14 +202,14 @@ function ClusterDetailPage() {
           </TabsContent>
 
           <TabsContent value="docs" className="space-y-3">
-            <Card className="gap-0 p-0">
-              <CardHeader className="gap-0.5 border-b border-border p-4">
+            <Card>
+              <CardHeader className="border-b border-border">
                 <CardTitle className="text-sm">{t('clusters.detail.selfHelp')}</CardTitle>
                 <CardDescription>
                   {t('clusters.detail.selfHelpDescription')}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 gap-1.5 p-4 md:grid-cols-2">
+              <CardContent className="grid grid-cols-1 gap-1.5 md:grid-cols-2">
                 {selfHelpLinks.map((link) => (
                   <a
                     key={link.href}

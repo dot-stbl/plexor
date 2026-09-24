@@ -33,12 +33,12 @@ export function VmConsoleCard({ vmId, defaultTab = 'console' }: VmConsoleCardPro
   const { t } = useTranslation();
 
   return (
-    <Card className="gap-0 p-0" data-od-id="vm-console-card">
-      <CardHeader className="gap-0.5 border-b border-border p-4">
+    <Card data-od-id="vm-console-card">
+      <CardHeader className="border-b border-border">
         <CardTitle className="text-sm">{t('vms.detail.console.title')}</CardTitle>
         <CardDescription>{t('vms.detail.console.description')}</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3 p-4">
+      <CardContent className="flex flex-col gap-3">
         <Tabs defaultValue={defaultTab}>
           <TabsList>
             <TabsTrigger value="console">{t('vms.detail.console.tabConsole')}</TabsTrigger>
