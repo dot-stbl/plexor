@@ -84,7 +84,7 @@ When implementing a feature:
 | Schema | C# module project | Entities owned |
 |--------|-------------------|----------------|
 | `sigil` | `Plexor.Modules.Sigil` | `User`, `Role`, `RoleBinding`, `ApiKey`, `SshKey`, `RefreshToken`, `SigningKey` |
-| `realm` | `Plexor.Modules.Realm` | `Organization`, `Team`, `Folder` (formerly `Plexor.Modules.Organizations` — root `AGENTS.md` is mid-rename) |
+| `realm` | `Plexor.Modules.Realm` | `Organization`, `Team`, `Folder` |
 | `atlas` | `Plexor.Modules.Audit` | `AuditEntry` |
 | `forge` | `Plexor.Modules.Clusters` | `Cluster`, `Node`, `Workload`, `JoinToken`, `NodeCommand` |
 

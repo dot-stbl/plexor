@@ -15,10 +15,13 @@ does not override it — the two guides cover disjoint parts of the repo.
 
 ## TL;DR
 
-- **Plexor** is a self-hosted cloud platform. v0.1 = in-memory node registry +
-  PostgreSQL with one schema per module.
-- Single naming system (theme everywhere) — see below. They look inconsistent at first;
-  they aren't.
+- **Plexor** is a self-hosted cloud platform. v0.1 = PostgreSQL with one
+  schema per module. Nodes and clusters live in Postgres (`forge` /
+  `Plexor.Modules.Clusters`). JWT signing keys live in the DB
+  (`sigil.signing_keys`). CA key/cert and the Data Protection keyring
+  live on disk under `/var/lib/plexor/` (see the backup admin page).
+- Two naming systems in parallel (theme schema vs C# concept) — see
+  below. They look inconsistent at first; they aren't.
 - The resource-scope hierarchy is **Organization → Team → Folder** (3 levels).
   Resources can live at any level (Org-wide for shared, Folder-narrow for
   private).
@@ -30,15 +33,17 @@ bearing. Confusing them is the #1 source of agent mistakes in this repo.
 
 | System | Where | Purpose | Examples |
 |--------|-------|---------|----------|
-| **Architecture theme** | PostgreSQL schema names, single-word one-token | Stable DB identifiers, no underscores, no spaces, hard to drift across migrations | `sigil`, `realm`, `atlas`, `ledger`, `forge`, `outpost`, `shard` |
+| **Architecture theme** | PostgreSQL schema names, single-word one-token | Stable DB identifiers, no underscores, no spaces, hard to drift across migrations | Theme-word: `sigil`, `realm`, `atlas`, `ledger`, `forge`, `outpost`, `shard`. Later modules used the concept noun as the schema (`branding`, `network`, `quotas`, `storage`) — same rule, no underscores. |
 | **C# concept** | Entity / type / property / claim names — what devs + users call things | What developers + users actually see and call things; rich and self-describing | `Organization`, `Team`, `Folder`, `User`, `Role`, `AuditEntry` |
 
 ### Why two systems
 
 - **Schema names** are short, no special characters, easy to type in raw
-  SQL, easy to grep in migrations. They form a "theme" — every module is
-  named after a single word (sigil, realm, atlas, ledger, forge, outpost,
-  shard). Both the schema and the module project use the same name.
+  SQL, easy to grep in migrations. Original modules used the architecture
+  theme (sigil, realm, atlas, ledger, forge, outpost, shard). Later
+  shipped modules used the concept noun (`quotas`, `branding`, `storage`,
+  `network`). The C# project is the concept (`Plexor.Modules.Clusters`
+  owns schema `forge`); do not assume schema == project name.
 - **C# concept names** match the domain language (Plexor users see
   "Organization" and "Folder" in the UI, not "Realm" or "Atlas"). They
   use standard cloud-platform vocabulary (Organization/Team/Folder, with
@@ -49,12 +54,17 @@ bearing. Confusing them is the #1 source of agent mistakes in this repo.
 | Schema | C# module project | Entities owned |
 |--------|-------------------|-----------------|
 | `sigil` | `Plexor.Modules.Sigil` | `User`, `Role`, `RoleBinding`, `ApiKey`, `SshKey`, `RefreshToken`, `SigningKey` |
-| `realm` | `Plexor.Modules.Organizations` | `Organization`, `Team`, `Folder` |
+| `realm` | `Plexor.Modules.Realm` | `Organization`, `Team`, `Folder`, `OrgAuthProviderConfig` |
 | `atlas` | `Plexor.Modules.Audit` | `AuditEntry` |
-| `ledger` | `Plexor.Modules.Billing` | (planned) `Invoice`, `MeteringRecord` |
-| `forge` | (planned) cluster fleet module | (planned) `Cluster` |
-| `outpost` | (planned) node registry module | (planned) `NodeRecord` |
-| `shard` | (planned) workloads module | (planned) `Workload` |
+| `forge` | `Plexor.Modules.Clusters` | `Cluster`, `Node`, `JoinToken`, `Workload`, `WorkloadLifecycleEvent`, `NodeCommand` |
+| `forge` | `Plexor.Shared.Mtls` | `RevokedCert` (same schema as Clusters — revoke cascade shares the transaction) |
+| `quotas` | `Plexor.Modules.Quotas` | `QuotaDefinition`, `QuotaAssignment`, `QuotaUsage`, `RateLimitEvent` |
+| `branding` | `Plexor.Modules.Branding` | `GlobalThemeConfig`, `OrgThemeConfig`, `ThemeInstallation` |
+| `storage` | `Plexor.Modules.Storage` | `Volume`, `Bucket` |
+| `network` | `Plexor.Modules.Network` | `FloatingIp`, `LoadBalancer` |
+| `outpost` | `Plexor.Providers.VSphere` | `VSphereInventorySnapshot`, `VSphereCluster`, `VSphereHost`, `VSphereVirtualMachine`, `VSphereProvisioningRun` |
+| `ledger` | (planned) `Plexor.Modules.Billing` | (planned) `Invoice`, `MeteringRecord` |
+| `shard` | (planned, unused) | workloads shipped in `forge` with Clusters; do not invent a second workloads schema |
 
 When you see `realm.x` in SQL or `Schemes.Realm` in C# — that's the
 schema. When you see `Organization` or `Folder` in C# — that's the
@@ -118,19 +128,33 @@ JWT claims: `sub` (UserId), `org`, `team`, `folder`, `role`, `permission`,
 ## Migration order
 
 Plexor uses EF Core migrations. The `Plexor.Migrator` CLI applies them in
-FK-dependency order on startup:
+the explicit `AddModuleDbContext` order in
+`src/host/Plexor.Migrator/Program.cs` (FK-dependency order). That list
+is the source of truth — not this table, if they ever diverge.
 
-1. `realm` (Organizations, Teams, Folders) — **always first**, every other
-   table FKs into `realm.organizations.id`.
-2. `sigil` (Identity) — FKs into `realm.organizations.id`.
-3. `atlas` (Audit) — FKs into both `sigil.users.id` (actor) and
+1. `realm` (`RealmDbContext`) — Organizations, Teams, Folders. **Always
+   first**; every other table FKs into `realm.organizations.id`.
+2. `sigil` (`IdentityDbContext`) — users, roles, keys. FKs into
+   `realm.organizations.id`.
+3. `forge` (`ClusterDbContext`) — clusters, nodes, join tokens,
+   workloads. After Identity because nodes reference users; tenant
+   rows carry `org_id` into `realm.organizations`.
+4. `forge` (`RevokedCertsDbContext`, `Plexor.Shared.Mtls`) — mTLS
+   revoke list. No extra FKs; shares the `forge` schema with Clusters.
+5. `quotas` (`QuotasDbContext`) — isolated (polymorphic `ScopeId`, no
+   FKs into Realm/Sigil). After them so a freshly-migrated schema can
+   receive the catalog rows the seeder inserts.
+6. `branding` (`BrandingDbContext`) — global + per-org theme.
+7. `atlas` (`AuditDbContext`) — FKs into `sigil.users.id` (actor) and
    `realm.organizations.id` (tenant scope).
-4. (future) `ledger`, `forge`, `outpost`, `shard` — each depends on
-   the modules above it.
+8. `storage` (`StorageDbContext`) — volumes, buckets (records only).
+9. `network` (`NetworkDbContext`) — floating IPs, load balancers.
+10. `outpost` (`VSphereDbContext`) — cached vSphere inventory.
 
 When generating a new migration with `dotnet ef migrations add`, make
 sure the target DbContext's dependencies (FKs) have already been
-migrated to the target database.
+migrated to the target database. Adding a DbContext means adding a
+call in `Program.cs` — the compiler will not silently miss it.
 
 ## Build + verification
 
