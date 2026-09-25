@@ -171,6 +171,16 @@ Build must be clean (0 warnings, 0 errors). What the build catches:
 - API style — `VerifyAntiPatternsOnBuild` target (no `this.x = x`,
   no `var x = ...; if (x is null)` patterns, etc.).
 
+### Backend CI (GitHub Actions)
+
+`.github/workflows/dotnet.yml` runs `dotnet build plexor.slnx -c Debug`
+and then `dotnet test plexor.slnx -c Debug --no-build --nologo
+--filter "FullyQualifiedName!~MapperlyApiSmokeTests&FullyQualifiedName!~Bench"`
+on every push to `main` and on PRs that touch `src/`, `tests/`,
+`plexor.slnx`, or the build/config files. `MapperlyApiSmokeTests`
+(`Plexor.Host.UnitTests.MapperlyApiSmokeTests`) is excluded because it
+needs a live Postgres on `localhost:47100` — not stood up in this job.
+
 ## When you get stuck
 
 - Read `.agents/rules/` — every agent rule is there, with self-audit
