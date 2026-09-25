@@ -93,9 +93,11 @@ export const Empty: Story = {
 };
 
 /** Many rows: realistic cap (100 rows the kubb client allows by default).
- *  Uses faker to seed stable shapes — faker's random is seeded per-render
- *  here, but the deterministic timestamp + action strings keep the snapshot
- *  stable enough for the 1% pixel threshold. */
+ *  Uses faker with faker.seed(42) above so uuid/action/targetKind/occurredAt
+ *  offsets are all stable across renders — every field that contributes to
+ *  the snapshot comes from the seeded PRNG, never Math.random(). The
+ *  occurredAt offset is subtracted from a fixed epoch (2026-09-22T08:00:00Z)
+ *  rather than Date.now() so the timeline does not drift against now. */
 export const ManyRows: Story = {
   render: () => {
     faker.seed(42);
@@ -114,7 +116,9 @@ export const ManyRows: Story = {
       targetKind: faker.helpers.arrayElement(['vm', 'cluster', 'ssh_key', 'quota_assignment']),
       targetId: faker.string.uuid(),
       payload: {},
-      occurredAt: new Date(Date.parse('2026-09-22T08:00:00.000Z') - Math.random() * 86400000).toISOString(),
+      occurredAt: new Date(
+        Date.parse('2026-09-22T08:00:00.000Z') - faker.number.int({ min: 0, max: 86400000 }),
+      ).toISOString(),
     }));
     return <AuditPageBody rows={rows} />;
   },
